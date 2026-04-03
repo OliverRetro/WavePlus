@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Data;
-using MySql.Data.MySqlClient;
+using MySqlConnector;
 using Plus.Database.Adapter;
 using Plus.Database.Interfaces;
 

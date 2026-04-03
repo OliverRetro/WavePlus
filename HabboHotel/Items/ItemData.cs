@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Plus.HabboHotel.Items.Wired;
+using System.Globalization;
 
 namespace Plus.HabboHotel.Items
 {
@@ -56,33 +57,28 @@ namespace Plus.HabboHotel.Items
             BehaviourData = behaviourData;
             Modes = modes;
             VendingIds = new List<int>();
-            if (vendingIds.Contains(","))
+            if (!string.IsNullOrEmpty(vendingIds))
             {
                 foreach (string vendingId in vendingIds.Split(','))
                 {
-                    try
-                    {
-                        VendingIds.Add(int.Parse(vendingId));
-                    }
-                    catch
-                    {
+                    if (int.TryParse(vendingId, out int idValue))
+                        VendingIds.Add(idValue);
+                    else
                         Console.WriteLine("Error with Item " + ItemName + " - Vending Ids");
-                    }
                 }
             }
-            else if (!string.IsNullOrEmpty(vendingIds) && (int.Parse(vendingIds)) > 0)
-                VendingIds.Add(int.Parse(vendingIds));
 
             AdjustableHeights = new List<double>();
-            if (adjustableHeights.Contains(","))
+            if (!string.IsNullOrEmpty(adjustableHeights))
             {
                 foreach (string h in adjustableHeights.Split(','))
                 {
-                    AdjustableHeights.Add(double.Parse(h));
+                    if (double.TryParse(h, NumberStyles.Any, CultureInfo.InvariantCulture, out double heightValue))
+                        AdjustableHeights.Add(heightValue);
+                    else
+                        Console.WriteLine("Error with Item " + ItemName + " - Adjustable Height: " + h);
                 }
             }
-            else if (!string.IsNullOrEmpty(adjustableHeights) && (double.Parse(adjustableHeights)) > 0)
-                AdjustableHeights.Add(double.Parse(adjustableHeights));
 
             EffectId = effectId;
 

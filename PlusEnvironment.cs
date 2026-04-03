@@ -6,7 +6,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using log4net;
-using MySql.Data.MySqlClient;
+using MySqlConnector;
 using Plus.Communication.Encryption;
 using Plus.Communication.Encryption.Keys;
 using Plus.Communication.Packets.Outgoing.Moderation;
@@ -96,7 +96,6 @@ namespace Plus
                     ConnectionTimeout = 10,
                     Database = GetConfig().Data["db.name"],
                     DefaultCommandTimeout = 30,
-                    Logging = false,
                     MaximumPoolSize = uint.Parse(GetConfig().Data["db.pool.maxsize"]),
                     MinimumPoolSize = uint.Parse(GetConfig().Data["db.pool.minsize"]),
                     Password = GetConfig().Data["db.password"],

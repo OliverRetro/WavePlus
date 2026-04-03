@@ -68,9 +68,12 @@ namespace Plus.HabboHotel.Items
                         }
                         catch (Exception e)
                         {
-                            Console.WriteLine(e.ToString());
+                            Console.WriteLine($"Error loading furniture ID {row["id"]}");
+                            foreach (DataColumn col in row.Table.Columns)
+                                Console.WriteLine($"{col.ColumnName}: {row[col]}");
+
+                            Console.WriteLine(e);
                             Console.ReadKey();
-                            //Logging.WriteLine("Could not load item #" + Convert.ToInt32(Row[0]) + ", please verify the data is okay.");
                         }
                     }
                 }
