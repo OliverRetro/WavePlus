@@ -24200,6 +24200,8 @@ CREATE TABLE `rooms` (
   `pet_morphs_allowed` enum('0','1') NOT NULL DEFAULT '1',
   `spull_enabled` enum('0','1') NOT NULL DEFAULT '1',
   `spush_enabled` enum('0','1') NOT NULL DEFAULT '1',
+  `sale_price` int(11) NOT NULL DEFAULT '0',
+  `lay_enabled` enum('0','1') NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`),
   KEY `owner` (`owner`),

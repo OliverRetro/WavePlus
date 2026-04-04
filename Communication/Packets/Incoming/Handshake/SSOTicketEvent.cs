@@ -20,7 +20,7 @@ namespace Plus.Communication.Packets.Incoming.Handshake
                 session.Disconnect();
                 return;
             }
-
+            
             session.TryAuthenticate(sso);
         }
     }

@@ -200,8 +200,7 @@ namespace Plus
 
         public static double GetUnixTimestamp()
         {
-            TimeSpan ts = DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0);
-            return ts.TotalSeconds;
+            return DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         }
 
         public static long Now()
