@@ -32,7 +32,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
                 return; //TODO: Remove?
             }
 
-            room.SendObjects(session);
+            room.SendObjects(session, room);
 
             if (session.GetHabbo().GetMessenger() != null)
                 session.GetHabbo().GetMessenger().OnStatusChanged(true);

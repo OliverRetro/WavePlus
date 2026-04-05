@@ -1,55 +1,30 @@
-﻿using System;
+﻿using Plus.HabboHotel.Rooms;
+using System;
 
 namespace Plus.Communication.Packets.Outgoing.Rooms.Engine
 {
     internal class HeightMapComposer : MessageComposer
     {
-        public string Map { get; }
+        private readonly Room _room;
 
-        public HeightMapComposer(string map)
+        public HeightMapComposer(Room room)
             : base(ServerPacketHeader.HeightMapMessageComposer)
         {
-            Map = map.Replace("\n", "");
+            _room = room;
         }
 
         public override void Compose(ServerPacket packet)
         {
-            string[] split = Map.Split('\r');
-            packet.WriteInteger(split[0].Length);
-            packet.WriteInteger((split.Length - 1) * split[0].Length);
-            int x = 0;
-            int y = 0;
-            for (y = 0; y < split.Length - 1; y++)
+            var map = _room.GetGameMap().StaticModel;
+
+            packet.WriteInteger(map.MapSizeX);
+            packet.WriteInteger(map.MapSizeX * map.MapSizeY);
+
+            for (int y = 0; y < map.MapSizeY; y++)
             {
-                for (x = 0; x < split[0].Length; x++)
+                for (int x = 0; x < map.MapSizeX; x++)
                 {
-                    char pos;
-
-                    try
-                    {
-                        pos = split[y][x];
-                    }
-                    catch
-                    {
-                        pos = 'x';
-                    }
-
-                    if (pos == 'x')
-                        packet.WriteShort(-1);
-                    else
-                    {
-                        int height = 0;
-                        if (int.TryParse(pos.ToString(), out height))
-                        {
-                            height = height * 256;
-                        }
-                        else
-                        {
-                            height = ((Convert.ToInt32(pos) - 87) * 256);
-                        }
-
-                        packet.WriteShort(height);
-                    }
+                    packet.WriteShort((short)(_room.GetGameMap().SqAbsoluteHeight(x, y) * 256));
                 }
             }
         }

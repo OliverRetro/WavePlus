@@ -708,7 +708,7 @@ namespace Plus.HabboHotel.Users
             if (room == null)
                 GetClient().SendPacket(new CloseConnectionComposer());
 
-            GetClient().SendPacket(new RoomReadyComposer(room.RoomId, room.ModelName));
+            GetClient().SendPacket(new RoomReadyComposer(room));
             if (room.Wallpaper != "0.0")
                 GetClient().SendPacket(new RoomPropertyComposer("wallpaper", room.Wallpaper));
             if (room.Floor != "0.0")

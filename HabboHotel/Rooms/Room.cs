@@ -547,9 +547,9 @@ namespace Plus.HabboHotel.Rooms
             return false;
         }
 
-        public void SendObjects(GameClient session)
+        public void SendObjects(GameClient session, Room room)
         {
-            session.SendPacket(new HeightMapComposer(GetGameMap().Model.Heightmap));
+            session.SendPacket(new HeightMapComposer(room));
             session.SendPacket(new FloorHeightMapComposer(GetGameMap().Model.GetRelativeHeightmap(), GetGameMap().StaticModel.WallHeight));
 
             foreach (RoomUser user in _roomUserManager.GetUserList().ToList())
