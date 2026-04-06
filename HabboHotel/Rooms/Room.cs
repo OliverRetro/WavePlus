@@ -684,6 +684,35 @@ namespace Plus.HabboHotel.Rooms
             }
         }
 
+        public void SendPacketExcept(MessageComposer message, GameClient excludedSession)
+        {
+            if (message == null)
+                return;
+
+            try
+            {
+                List<RoomUser> users = _roomUserManager.GetUserList().ToList();
+
+                if (_roomUserManager == null)
+                    return;
+
+                foreach (RoomUser user in users)
+                {
+                    if (user == null || user.IsBot)
+                        continue;
+
+                    if (user.GetClient() == null || user.GetClient() == excludedSession)
+                        continue;
+
+                    user.GetClient().SendPacket(message);
+                }
+            }
+            catch (Exception e)
+            {
+                ExceptionLogger.LogException(e);
+            }
+        }
+
         public void BroadcastPacket(List<MessageComposer> packets)
         {
             foreach (RoomUser user in _roomUserManager.GetUserList().ToList())
