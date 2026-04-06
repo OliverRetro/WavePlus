@@ -321,7 +321,7 @@ namespace Plus.HabboHotel.Rooms
                             trade.EndTrade(user.TradeId);
                     }
 
-                    //Session.GetHabbo().CurrentRoomId = 0;
+                    session.GetHabbo().CurrentRoomId = 0;
 
                     if (session.GetHabbo().GetMessenger() != null)
                         session.GetHabbo().GetMessenger().OnStatusChanged(true);

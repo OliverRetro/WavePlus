@@ -700,7 +700,7 @@ namespace Plus.HabboHotel.Users
             }
 
             if (!EnterRoom(room))
-                GetClient().SendPacket(new CloseConnectionComposer());
+                GetClient().SendPacket(new CloseConnectionComposer()); Console.WriteLine("Entered room (!EnterRoom in PrepareRoom)");
         }
 
         public bool EnterRoom(Room room)
@@ -716,7 +716,7 @@ namespace Plus.HabboHotel.Users
 
             GetClient().SendPacket(new RoomPropertyComposer("landscape", room.Landscape));
             GetClient().SendPacket(new RoomRatingComposer(room.Score, !(GetClient().GetHabbo().RatedRooms.Contains(room.RoomId) || room.OwnerId == GetClient().GetHabbo().Id)));
-
+            Console.WriteLine("Before sql");
             using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
             {
                 dbClient.RunQuery("INSERT INTO user_roomvisits (user_id,room_id,entry_timestamp,exit_timestamp,hour,minute) VALUES ('" + GetClient().GetHabbo().Id + "','" + GetClient().GetHabbo().CurrentRoomId + "','" + DateTimeOffset.UtcNow.ToUnixTimeSeconds() + "','0','" + DateTime.Now.Hour + "','" + DateTime.Now.Minute + "');"); // +
@@ -727,7 +727,7 @@ namespace Plus.HabboHotel.Users
                 GetClient().GetHabbo().GetStats().RoomVisits += 1;
                 PlusEnvironment.GetGame().GetAchievementManager().ProgressAchievement(GetClient(), "ACH_RoomEntry", 1);
             }
-
+            Console.WriteLine("User " + GetClient().GetHabbo().Username + " entered room " + room.RoomId);
             return true;
         }
     }
