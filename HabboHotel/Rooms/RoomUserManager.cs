@@ -417,12 +417,17 @@ namespace Plus.HabboHotel.Rooms
                 _room.GetGameMap().GameMap[user.X, user.Y] = user.SqState;
 
             _room.GetGameMap().RemoveUserFromMap(user, new Point(user.X, user.Y));
-            _room.SendPacket(new UserRemoveComposer(user.VirtualId));
 
+            // Remove from the user list BEFORE broadcasting UserRemoveComposer so the
+            // departing user does not receive their own removal packet. Nitro tears down
+            // its room session when it receives a UserRemove for itself, which prevents
+            // follow-up room entry packets (GetFurnitureAliases, GetRoomEntryData) from
+            // ever being sent on subsequent room entries.
             if (_users.TryRemove(user.InternalRoomId, out RoomUser toRemove))
             {
-                //uhmm, could put the below stuff in but idk.
             }
+
+            _room.SendPacket(new UserRemoveComposer(user.VirtualId));
 
             user.InternalRoomId = -1;
             OnRemove(user);
