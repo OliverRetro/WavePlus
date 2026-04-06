@@ -307,7 +307,11 @@ namespace Plus.HabboHotel.Rooms
                         }
                     }
 
-                    RemoveRoomUser(user);
+                    // When notifyUser is false, the user is transitioning to another room
+                    // (not disconnecting). Exclude them from the UserRemove broadcast so
+                    // the Nitro client doesn't receive a self-removal that kills the new
+                    // room session. Other users in the room still see the removal.
+                    RemoveRoomUser(user, notifyUser ? null : session);
 
                     if (user.CurrentItemEffect != ItemEffectType.None)
                     {
@@ -409,7 +413,7 @@ namespace Plus.HabboHotel.Rooms
             }
         }
 
-        private void RemoveRoomUser(RoomUser user)
+        private void RemoveRoomUser(RoomUser user, GameClient excludeFromBroadcast = null)
         {
             if (user.SetStep)
                 _room.GetGameMap().GameMap[user.SetX, user.SetY] = user.SqState;
@@ -418,16 +422,14 @@ namespace Plus.HabboHotel.Rooms
 
             _room.GetGameMap().RemoveUserFromMap(user, new Point(user.X, user.Y));
 
-            // Remove from the user list BEFORE broadcasting UserRemoveComposer so the
-            // departing user does not receive their own removal packet. Nitro tears down
-            // its room session when it receives a UserRemove for itself, which prevents
-            // follow-up room entry packets (GetFurnitureAliases, GetRoomEntryData) from
-            // ever being sent on subsequent room entries.
+            if (excludeFromBroadcast != null)
+                _room.SendPacketExcept(new UserRemoveComposer(user.VirtualId), excludeFromBroadcast);
+            else
+                _room.SendPacket(new UserRemoveComposer(user.VirtualId));
+
             if (_users.TryRemove(user.InternalRoomId, out RoomUser toRemove))
             {
             }
-
-            _room.SendPacket(new UserRemoveComposer(user.VirtualId));
 
             user.InternalRoomId = -1;
             OnRemove(user);
