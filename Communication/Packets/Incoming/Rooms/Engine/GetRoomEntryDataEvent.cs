@@ -3,7 +3,6 @@ using Plus.Communication.Packets.Outgoing.Rooms.Engine;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items.Wired;
 using Plus.HabboHotel.Rooms;
-using System;
 
 namespace Plus.Communication.Packets.Incoming.Rooms.Engine
 {
@@ -11,35 +10,12 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
     {
         public void Parse(GameClient session, ClientPacket packet)
         {
-            Console.WriteLine("getroomentry was called");
             if (session == null || session.GetHabbo() == null)
                 return;
 
             Room room = session.GetHabbo().CurrentRoom;
             if (room == null)
                 return;
-
-            int previousRoomId = session.GetHabbo().CurrentRoomId;
-            Console.WriteLine($"[GetRoomEntryData] CurrentRoomId before removal: {previousRoomId}, InRoom: {session.GetHabbo().InRoom}");
-            if (session.GetHabbo().InRoom)
-            {
-                if (PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(session.GetHabbo().CurrentRoomId, out Room oldRoom))
-                {
-                    Console.WriteLine($"[GetRoomEntryData] Found old room {oldRoom.RoomId}, removing user");
-                    if (oldRoom.GetRoomUserManager() != null)
-                    {
-                        Console.WriteLine("run a milly");
-                        oldRoom.GetRoomUserManager().RemoveUserFromRoom(session, false);
-                    }
-                } else {
-                    Console.WriteLine($"[GetRoomEntryData] Could not find old room with ID {session.GetHabbo().CurrentRoomId}");
-                }
-            } else
-            {
-                Console.WriteLine("not in a room");
-            }
-            session.GetHabbo().CurrentRoomId = previousRoomId;
-            Console.WriteLine($"[GetRoomEntryData] CurrentRoomId restored to: {session.GetHabbo().CurrentRoomId}");
 
             if (!room.GetRoomUserManager().AddAvatarToRoom(session))
             {

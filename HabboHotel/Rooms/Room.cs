@@ -549,7 +549,6 @@ namespace Plus.HabboHotel.Rooms
 
         public void SendObjects(GameClient session, Room room)
         {
-            Console.WriteLine("sendobjects initiated");
             session.SendPacket(new HeightMapComposer(room));
             session.SendPacket(new FloorHeightMapComposer(GetGameMap().Model.GetRelativeHeightmap(), GetGameMap().StaticModel.WallHeight));
 
