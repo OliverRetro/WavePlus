@@ -36,7 +36,10 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Session
             {
                 for (int x = 0; x < map.MapSizeX; x++)
                 {
-                    packet.WriteShort((short)(room.GetGameMap().SqAbsoluteHeight(x, y) * 256));
+                    if (map.SqState[x, y] != SquareState.Blocked)
+                        packet.WriteShort((short)(room.GetGameMap().SqAbsoluteHeight(x, y) * 256));
+                    else
+                        packet.WriteShort(short.MaxValue);
                 }
             }
         }
