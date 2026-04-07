@@ -713,6 +713,12 @@ namespace Plus.HabboHotel.Users
                 return false;
             }
 
+            if (!RoomFactory.TryGetData(room.Id, out RoomData data))
+            {
+                return false;
+            }
+
+            data.UsersNow++;
             GetClient().SendPacket(new RoomReadyComposer(room.Id, room.ModelName));
             if (room.Wallpaper != "0.0")
                 GetClient().SendPacket(new RoomPropertyComposer("wallpaper", room.Wallpaper));

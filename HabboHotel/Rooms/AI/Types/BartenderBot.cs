@@ -33,7 +33,6 @@ namespace Plus.HabboHotel.Rooms.AI.Types
 
         public override void OnUserLeaveRoom(GameClient client)
         {
-            //if ()
         }
 
         public override void OnUserSay(RoomUser user, string message)

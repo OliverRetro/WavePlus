@@ -279,6 +279,13 @@ namespace Plus.HabboHotel.Rooms
                 if (session.GetHabbo().TentId > 0)
                     session.GetHabbo().TentId = 0;
 
+                if (!RoomFactory.TryGetData(_room.RoomId, out RoomData data))
+                {
+                    return;
+                }
+
+                data.UsersNow--;
+
                 RoomUser user = GetRoomUserByHabbo(session.GetHabbo().Id);
                 if (user != null)
                 {
