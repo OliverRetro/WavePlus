@@ -713,7 +713,7 @@ namespace Plus.HabboHotel.Users
                 return false;
             }
 
-            GetClient().SendPacket(new RoomReadyComposer(room));
+            GetClient().SendPacket(new RoomReadyComposer(room.Id, room.ModelName));
             if (room.Wallpaper != "0.0")
                 GetClient().SendPacket(new RoomPropertyComposer("wallpaper", room.Wallpaper));
             if (room.Floor != "0.0")

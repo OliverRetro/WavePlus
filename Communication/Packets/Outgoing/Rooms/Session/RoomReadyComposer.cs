@@ -1,47 +1,21 @@
-﻿using Plus.HabboHotel.Rooms;
-using Plus.Communication.Packets.Outgoing;
-
-namespace Plus.Communication.Packets.Outgoing.Rooms.Session
+﻿namespace Plus.Communication.Packets.Outgoing.Rooms.Session
 {
     internal class RoomReadyComposer : MessageComposer
     {
-        private readonly Room _room;
+        public int RoomId { get; }
+        public string Model { get; }
 
-        public RoomReadyComposer(Room room)
+        public RoomReadyComposer(int roomId, string model)
             : base(ServerPacketHeader.RoomReadyMessageComposer)
         {
-            _room = room;
+            RoomId = roomId;
+            Model = model;
         }
 
         public override void Compose(ServerPacket packet)
         {
-            packet.WriteString(_room.ModelName); 
-            packet.WriteInteger(_room.Id);
-
-            SerializeMapData(packet, _room);
-
-            packet.WriteBoolean(true);
-            packet.WriteInteger(_room.GetGameMap().StaticModel.WallHeight);
-            packet.WriteString(_room.GetGameMap().StaticModel.Heightmap);
-        }
-
-        private void SerializeMapData(ServerPacket packet, Room room)
-        {
-            var map = room.GetGameMap().StaticModel;
-
-            packet.WriteInteger(map.MapSizeX);
-            packet.WriteInteger(map.MapSizeX * map.MapSizeY);
-
-            for (int y = 0; y < map.MapSizeY; y++)
-            {
-                for (int x = 0; x < map.MapSizeX; x++)
-                {
-                    if (map.SqState[x, y] != SquareState.Blocked)
-                        packet.WriteShort((short)(room.GetGameMap().SqAbsoluteHeight(x, y) * 256));
-                    else
-                        packet.WriteShort(short.MaxValue);
-                }
-            }
+            packet.WriteString(Model);
+            packet.WriteInteger(RoomId);
         }
     }
 }

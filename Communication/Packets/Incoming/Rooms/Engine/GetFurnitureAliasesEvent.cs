@@ -12,24 +12,6 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
 
         public void Parse(GameClient session, ClientPacket packet)
         {
-            if (!PlusEnvironment.GetGame().GetRoomManager().TryLoadRoom(session.GetHabbo().CurrentRoomId, out Room room))
-            {
-                Log.Warn("Couldn't load room for GetFurnitureAliasesEvent: " + session.GetHabbo().CurrentRoomId);
-                session.SendPacket(new CloseConnectionComposer());
-                return;
-            }
-
-            if (room == null || room.GetGameMap() == null)
-            {
-                Log.Debug("Room or GameMap null");
-                return;
-            }
-
-            session.SendPacket(new HeightMapComposer(room));
-            session.SendPacket(new FloorHeightMapComposer(room.GetGameMap().Model.GetRelativeHeightmap(), room.GetGameMap().StaticModel.WallHeight));
-
-            //session.GetHabbo().PrepareRoom(room.Id, room.Password);
-
             session.SendPacket(new FurnitureAliasesComposer());
         }
     }
