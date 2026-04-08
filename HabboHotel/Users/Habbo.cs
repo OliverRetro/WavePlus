@@ -160,6 +160,8 @@ namespace Plus.HabboHotel.Users
         private PermissionComponent _permissions;
         private IgnoresComponent _ignores;
 
+        private UserRpStats _rpStats;
+
         public Habbo(int id, string username, int rank, string motto, string look, string gender, int credits, int activityPoints, int homeRoom,
             bool hasFriendRequestsDisabled, int lastOnline, bool appearOffline, bool hideInRoom, double createDate, int diamonds,
             string machineId, string clientVolume, bool chatPreference, bool focusPreference, bool petsMuted, bool botsMuted, bool advertisingReportBlocked, double lastNameChange,
@@ -334,6 +336,32 @@ namespace Plus.HabboHotel.Users
 
             if (!PlusEnvironment.GetGame().GetGroupManager().TryGetGroup(_habboStats.FavouriteGroupId, out Group _))
                 _habboStats.FavouriteGroupId = 0;
+
+            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            {
+                dbClient.SetQuery("SELECT * FROM `user_rp_statistics` WHERE `id` = @user_id LIMIT 1");
+                dbClient.AddParameter("user_id", id);
+                DataRow statRow = dbClient.GetRow();
+
+                if (statRow == null) // insert if not found
+                {
+                    dbClient.RunQuery("INSERT INTO `user_rp_statistics` (`user_id`) VALUES ('" + id + "')");
+                    dbClient.SetQuery("SELECT * FROM `user_rp_statistics` WHERE `user_id` = @user_id LIMIT 1");
+                    dbClient.AddParameter("user_id", id);
+                    statRow = dbClient.GetRow();
+                }
+
+                try
+                {
+                    _rpStats = new UserRpStats(Convert.ToInt32(statRow["health"]), Convert.ToInt32(statRow["shield"]), Convert.ToInt32(statRow["energy"]), Convert.ToInt32(statRow["hunger"]), Convert.ToInt32(statRow["experience"]),
+                        Convert.ToInt32(statRow["knockouts"]), Convert.ToInt32(statRow["deaths"]), Convert.ToInt32(statRow["arrested"]), Convert.ToInt32(statRow["escapes"]),
+                        Convert.ToInt32(statRow["damage_dealt"]), Convert.ToInt32(statRow["damage_taken"]), Convert.ToInt32(statRow["attacks"]), Convert.ToInt32(statRow["attacked"]));
+                }
+                catch (Exception e)
+                {
+                    ExceptionLogger.LogException(e);
+                }
+            }
 
             #endregion
         }
