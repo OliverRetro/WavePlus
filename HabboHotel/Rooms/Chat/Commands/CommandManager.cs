@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Plus.Communication.Packets.Outgoing.Notifications;
+﻿using Plus.Communication.Packets.Outgoing.Notifications;
 using Plus.Database.Interfaces;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items.Wired;
@@ -9,8 +6,12 @@ using Plus.HabboHotel.Rooms.Chat.Commands.Administrator;
 using Plus.HabboHotel.Rooms.Chat.Commands.Events;
 using Plus.HabboHotel.Rooms.Chat.Commands.Moderator;
 using Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Fun;
+using Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay;
 using Plus.HabboHotel.Rooms.Chat.Commands.User;
 using Plus.HabboHotel.Rooms.Chat.Commands.User.Fun;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands
 {
@@ -170,6 +171,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
         /// </summary>
         private void RegisterModerator()
         {
+            // RP
+            Register("rpstats", new RpuserRpInfoCommand());
+
+            // rest
             Register("ban", new BanCommand());
             Register("mip", new MipCommand());
             Register("ipban", new IpBanCommand());

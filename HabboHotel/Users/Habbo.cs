@@ -373,6 +373,11 @@ namespace Plus.HabboHotel.Users
             return _habboStats;
         }
 
+        public UserRpStats GetRpStats()
+        {
+            return _rpStats;
+        }
+
         public bool InRoom => CurrentRoomId >= 1 && CurrentRoom != null;
 
         public Room CurrentRoom

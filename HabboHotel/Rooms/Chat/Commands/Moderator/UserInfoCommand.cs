@@ -57,21 +57,19 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
             DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Convert.ToDouble(userInfo["trading_locked"]));
 
             StringBuilder habboInfo = new();
-            habboInfo.Append(Convert.ToString(userData["username"]) + "'s account:\r\r");
-            habboInfo.Append("Generic Info:\r");
-            habboInfo.Append("ID: " + Convert.ToInt32(userData["id"]) + "\r");
+            habboInfo.Append("<b>Generic Info:</b>\r");
+            habboInfo.Append("Username: " + Convert.ToString(userData["username"]) + "" + " (ID: <b>" + Convert.ToInt32(userData["id"]) + ")</b>\r\r");
             habboInfo.Append("Rank: " + Convert.ToInt32(userData["rank"]) + "\r");
             habboInfo.Append("VIP Rank: " + Convert.ToInt32(userData["rank_vip"]) + "\r");
-            habboInfo.Append("Email: " + Convert.ToString(userData["mail"]) + "\r");
             habboInfo.Append("Online Status: " + (targetClient != null ? "True" : "False") + "\r\r");
 
-            habboInfo.Append("Currency Info:\r");
+            habboInfo.Append("<b>Currency Info:</b>\r");
             habboInfo.Append("Credits: " + Convert.ToInt32(userData["credits"]) + "\r");
             habboInfo.Append("Duckets: " + Convert.ToInt32(userData["activity_points"]) + "\r");
             habboInfo.Append("Diamonds: " + Convert.ToInt32(userData["vip_points"]) + "\r");
             habboInfo.Append("GOTW Points: " + Convert.ToInt32(userData["gotw_points"]) + "\r\r");
 
-            habboInfo.Append("Moderation Info:\r");
+            habboInfo.Append("<b>Moderation Info:</b>\r");
             habboInfo.Append("Bans: " + Convert.ToInt32(userInfo["bans"]) + "\r");
             habboInfo.Append("CFHs Sent: " + Convert.ToInt32(userInfo["cfhs"]) + "\r");
             habboInfo.Append("Abusive CFHs: " + Convert.ToInt32(userInfo["cfhs_abusive"]) + "\r");
@@ -80,14 +78,14 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
 
             if (targetClient != null)
             {
-                habboInfo.Append("Current Session:\r");
+                habboInfo.Append("<b>Current Session:</b>\r");
                 if (!targetClient.GetHabbo().InRoom)
                     habboInfo.Append("Currently not in a room.\r");
                 else
                 {
                     habboInfo.Append("Room: " + targetClient.GetHabbo().CurrentRoom.Name + " (" + targetClient.GetHabbo().CurrentRoom.RoomId + ")\r");
                     habboInfo.Append("Room Owner: " + targetClient.GetHabbo().CurrentRoom.OwnerName + "\r");
-                    habboInfo.Append("Current Visitors: " + targetClient.GetHabbo().CurrentRoom.UserCount + "/" + targetClient.GetHabbo().CurrentRoom.UsersMax);
+                    habboInfo.Append("Current Visitors: " + targetClient.GetHabbo().CurrentRoom.UsersNow + "/" + targetClient.GetHabbo().CurrentRoom.UsersMax);
                 }
             }
 
