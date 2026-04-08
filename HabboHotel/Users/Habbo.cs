@@ -378,7 +378,35 @@ namespace Plus.HabboHotel.Users
             return _rpStats;
         }
 
-        public bool InRoom => CurrentRoomId >= 1 && CurrentRoom != null;
+        public void SaveRpStats(Habbo habbo)
+        {
+            /*
+            try
+            {
+                var stats = habbo.GetRpStats();
+
+                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                {
+                    var row = new UserRpStatistics
+                    {
+                        user_id = habbo.Id,
+                        health = stats.Health,
+                        shield = stats.Shield
+                    };
+
+                    dbClient.Connection.Upsert(row)
+                        .On(r => r.user_id)
+                        .Run();
+                }
+            }
+            catch (Exception e)
+            {
+                ExceptionLogger.LogException(e);
+            }
+            */
+        }
+
+    public bool InRoom => CurrentRoomId >= 1 && CurrentRoom != null;
 
         public Room CurrentRoom
         {
