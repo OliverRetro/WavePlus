@@ -18,6 +18,7 @@ namespace Plus.HabboHotel.Users
         public int DamageTaken { get; set; }
         public int Attacks { get; set; }
         public int Attacked { get; set; }
+        public bool IsDead { get; set; }
         public DateTime NextHungerTick { get; set; }
 
         public UserRpStats(int userId, int health, int shield, int energy, int hunger, int experience, int knockouts, int deaths, int arrested, int escapes, int damageDealt, int damageTaken, int attacks, int attacked)
@@ -38,7 +39,23 @@ namespace Plus.HabboHotel.Users
             Attacked = attacked;
 
             // not saved in db
+            IsDead = false;
             NextHungerTick = DateTime.UtcNow.AddMinutes(10);
+        }
+
+        public void Heal(int health)
+        {
+            //refresh packet missing, but this is for the room heal command
+            IsDead = false;
+            Health = health;
+        }
+
+        public void Kill(Habbo target)
+        {
+            // for combat
+            target.GetRpStats().IsDead = true;
+            target.GetRpStats().Deaths++;
+            Knockouts++;
         }
     }
 }

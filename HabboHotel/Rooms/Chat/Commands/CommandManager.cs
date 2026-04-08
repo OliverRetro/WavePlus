@@ -172,8 +172,9 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
         /// </summary>
         private void RegisterModerator()
         {
-            // RP
+            // Roleplay
             Register("rpstats", new RpuserRpInfoCommand());
+            Register("roomheal", new RoomHealCommand());
 
             // rest
             Register("ban", new BanCommand());
