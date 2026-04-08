@@ -11,7 +11,7 @@ CREATE TABLE `user_rp_statistics`  (
   `health` int NOT NULL DEFAULT 100,
   `shield` int NOT NULL DEFAULT 0,
   `energy` int NOT NULL DEFAULT 100,
-  `hunger` int NOT NULL DEFAULT 50,
+  `hunger` int NOT NULL DEFAULT 25,
   `experience` int NOT NULL DEFAULT 0,
   `knockouts` int NOT NULL DEFAULT 0,
   `deaths` int NOT NULL DEFAULT 0,

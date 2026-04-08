@@ -232,7 +232,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
         private void RegisterAdministrator()
         {
             // Roleplay
-            Register("medit", new AttributeEditCommand());
+            Register("set", new AttributeEditCommand());
 
             Register("bubble", new BubbleCommand());
             Register("update", new UpdateCommand());
