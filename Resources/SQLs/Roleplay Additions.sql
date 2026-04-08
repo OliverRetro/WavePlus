@@ -2,6 +2,7 @@ SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
 INSERT INTO `permissions_commands` (`command`) VALUES ('command_rp_user_info');
+INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_master_edit_rp', 6);
 
 DROP TABLE IF EXISTS `user_rp_statistics`;
 CREATE TABLE `user_rp_statistics`  (

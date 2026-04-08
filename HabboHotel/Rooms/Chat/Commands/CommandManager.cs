@@ -3,6 +3,7 @@ using Plus.Database.Interfaces;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items.Wired;
 using Plus.HabboHotel.Rooms.Chat.Commands.Administrator;
+using Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay;
 using Plus.HabboHotel.Rooms.Chat.Commands.Events;
 using Plus.HabboHotel.Rooms.Chat.Commands.Moderator;
 using Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Fun;
@@ -230,6 +231,9 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
         /// </summary>
         private void RegisterAdministrator()
         {
+            // Roleplay
+            Register("medit", new AttributeEditCommand());
+
             Register("bubble", new BubbleCommand());
             Register("update", new UpdateCommand());
             Register("deletegroup", new DeleteGroupCommand());
