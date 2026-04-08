@@ -306,6 +306,25 @@ namespace Plus.HabboHotel.Rooms
             return _rooms.Values;
         }
 
+        public IEnumerable<RoomUser> GetAllRoomUsers()
+        {
+            foreach (Room room in _rooms.Values)
+            {
+                if (room == null)
+                    continue;
+
+                RoomUserManager userManager = room.GetRoomUserManager();
+                if (userManager == null)
+                    continue;
+
+                foreach (RoomUser user in userManager.GetUserList())
+                {
+                    if (user != null)
+                        yield return user;
+                }
+            }
+        }
+
         public void Dispose()
         {
             int length = _rooms.Count;

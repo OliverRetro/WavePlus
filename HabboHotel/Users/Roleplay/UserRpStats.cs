@@ -45,9 +45,8 @@ namespace Plus.HabboHotel.Users
 
         public void Heal(int health)
         {
-            //refresh packet missing, but this is for the room heal command
             IsDead = false;
-            Health = health;
+            Health = Math.Min(Health + health, 100);
         }
 
         public void Kill(Habbo target)
