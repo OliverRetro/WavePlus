@@ -228,12 +228,20 @@ namespace Plus.HabboHotel.Users
             _timeCached = DateTime.Now;
 
             TradingLockExpiry = tradingLock;
-            if (TradingLockExpiry > 0 && PlusEnvironment.GetUnixTimestamp() > TradingLockExpiry)
+            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
             {
-                TradingLockExpiry = 0;
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                dbClient.GetRowOrInsert(
+                    "SELECT `user_id` FROM `user_info` WHERE `user_id` = @user_id LIMIT 1",
+                    query => query.AddParameter("user_id", id),
+                    "INSERT INTO `user_info` (`user_id`) VALUES (@user_id)",
+                    query => query.AddParameter("user_id", id));
+
+                if (TradingLockExpiry > 0 && PlusEnvironment.GetUnixTimestamp() > TradingLockExpiry)
                 {
-                    dbClient.RunQuery("UPDATE `user_info` SET `trading_locked` = '0' WHERE `user_id` = '" + id + "' LIMIT 1");
+                    TradingLockExpiry = 0;
+                    dbClient.SetQuery("UPDATE `user_info` SET `trading_locked` = 0 WHERE `user_id` = @user_id LIMIT 1");
+                    dbClient.AddParameter("user_id", id);
+                    dbClient.RunQuery();
                 }
             }
 
@@ -293,23 +301,30 @@ namespace Plus.HabboHotel.Users
 
             using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
             {
-                dbClient.SetQuery("SELECT `id`,`roomvisits`,`onlinetime`,`respect`,`respectgiven`,`giftsgiven`,`giftsreceived`,`dailyrespectpoints`,`dailypetrespectpoints`,`achievementscore`,`quest_id`,`quest_progress`,`groupid`,`tickets_answered`,`respectstimestamp`,`forum_posts` FROM `user_stats` WHERE `id` = @user_id LIMIT 1");
-                dbClient.AddParameter("user_id", id);
-                DataRow statRow = dbClient.GetRow();
-
-                if (statRow == null) //No row, add it yo
-                {
-                    dbClient.RunQuery("INSERT INTO `user_stats` (`id`) VALUES ('" + id + "')");
-                    dbClient.SetQuery("SELECT `id`,`roomvisits`,`onlinetime`,`respect`,`respectgiven`,`giftsgiven`,`giftsreceived`,`dailyrespectpoints`,`dailypetrespectpoints`,`achievementscore`,`quest_id`,`quest_progress`,`groupid`,`tickets_answered`,`respectstimestamp`,`forum_posts` FROM `user_stats` WHERE `id` = @user_id LIMIT 1");
-                    dbClient.AddParameter("user_id", id);
-                    statRow = dbClient.GetRow();
-                }
+                DataRow statRow = dbClient.GetRowOrInsert(
+                    "SELECT `id`,`roomvisits`,`onlinetime`,`respect`,`respectgiven`,`giftsgiven`,`giftsreceived`,`dailyrespectpoints`,`dailypetrespectpoints`,`achievementscore`,`quest_id`,`quest_progress`,`groupid`,`tickets_answered`,`respectstimestamp`,`forum_posts` FROM `user_stats` WHERE `id` = @user_id LIMIT 1",
+                    query => query.AddParameter("user_id", id),
+                    "INSERT INTO `user_stats` (`id`) VALUES (@user_id)",
+                    query => query.AddParameter("user_id", id));
 
                 try
                 {
-                    _habboStats = new HabboStats(Convert.ToInt32(statRow["roomvisits"]), Convert.ToDouble(statRow["onlineTime"]), Convert.ToInt32(statRow["respect"]), Convert.ToInt32(statRow["respectGiven"]), Convert.ToInt32(statRow["giftsGiven"]),
-                        Convert.ToInt32(statRow["giftsReceived"]), Convert.ToInt32(statRow["dailyRespectPoints"]), Convert.ToInt32(statRow["dailyPetRespectPoints"]), Convert.ToInt32(statRow["AchievementScore"]),
-                        Convert.ToInt32(statRow["quest_id"]), Convert.ToInt32(statRow["quest_progress"]), Convert.ToInt32(statRow["groupid"]), Convert.ToString(statRow["respectsTimestamp"]), Convert.ToInt32(statRow["forum_posts"]));
+                    _habboStats = new HabboStats(
+                        Convert.ToInt32(statRow["roomvisits"]),
+                        Convert.ToDouble(statRow["onlineTime"]),
+                        Convert.ToInt32(statRow["respect"]),
+                        Convert.ToInt32(statRow["respectGiven"]),
+                        Convert.ToInt32(statRow["giftsGiven"]),
+                        Convert.ToInt32(statRow["giftsReceived"]),
+                        Convert.ToInt32(statRow["dailyRespectPoints"]),
+                        Convert.ToInt32(statRow["dailyPetRespectPoints"]),
+                        Convert.ToInt32(statRow["AchievementScore"]),
+                        Convert.ToInt32(statRow["quest_id"]),
+                        Convert.ToInt32(statRow["quest_progress"]),
+                        Convert.ToInt32(statRow["groupid"]),
+                        Convert.ToString(statRow["respectsTimestamp"]),
+                        Convert.ToInt32(statRow["forum_posts"])
+                    );
 
                     if (Convert.ToString(statRow["respectsTimestamp"]) != DateTime.Today.ToString("MM/dd"))
                     {
@@ -325,7 +340,12 @@ namespace Plus.HabboHotel.Users
                         _habboStats.DailyRespectPoints = dailyRespects;
                         _habboStats.DailyPetRespectPoints = dailyRespects;
 
-                        dbClient.RunQuery("UPDATE `user_stats` SET `dailyRespectPoints` = '" + dailyRespects + "', `dailyPetRespectPoints` = '" + dailyRespects + "', `respectsTimestamp` = '" + DateTime.Today.ToString("MM/dd") + "' WHERE `id` = '" + id + "' LIMIT 1");
+                        dbClient.SetQuery("UPDATE `user_stats` SET `dailyRespectPoints` = @daily_respects, `dailyPetRespectPoints` = @daily_pet_respects, `respectsTimestamp` = @respects_timestamp WHERE `id` = @user_id LIMIT 1");
+                        dbClient.AddParameter("daily_respects", dailyRespects);
+                        dbClient.AddParameter("daily_pet_respects", dailyRespects);
+                        dbClient.AddParameter("respects_timestamp", DateTime.Today.ToString("MM/dd"));
+                        dbClient.AddParameter("user_id", id);
+                        dbClient.RunQuery();
                     }
                 }
                 catch (Exception e)
@@ -339,23 +359,30 @@ namespace Plus.HabboHotel.Users
 
             using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
             {
-                dbClient.SetQuery("SELECT * FROM `user_rp_statistics` WHERE `id` = @user_id LIMIT 1");
-                dbClient.AddParameter("user_id", id);
-                DataRow statRow = dbClient.GetRow();
-
-                if (statRow == null) // insert if not found
-                {
-                    dbClient.RunQuery("INSERT INTO `user_rp_statistics` (`user_id`) VALUES ('" + id + "')");
-                    dbClient.SetQuery("SELECT * FROM `user_rp_statistics` WHERE `user_id` = @user_id LIMIT 1");
-                    dbClient.AddParameter("user_id", id);
-                    statRow = dbClient.GetRow();
-                }
+                DataRow statRow = dbClient.GetRowOrInsert(
+                    "SELECT * FROM `user_rp_statistics` WHERE `user_id` = @user_id LIMIT 1",
+                    query => query.AddParameter("user_id", id),
+                    "INSERT INTO `user_rp_statistics` (`user_id`) VALUES (@user_id)",
+                    query => query.AddParameter("user_id", id));
 
                 try
                 {
-                    _rpStats = new UserRpStats(Convert.ToInt32(statRow["health"]), Convert.ToInt32(statRow["shield"]), Convert.ToInt32(statRow["energy"]), Convert.ToInt32(statRow["hunger"]), Convert.ToInt32(statRow["experience"]),
-                        Convert.ToInt32(statRow["knockouts"]), Convert.ToInt32(statRow["deaths"]), Convert.ToInt32(statRow["arrested"]), Convert.ToInt32(statRow["escapes"]),
-                        Convert.ToInt32(statRow["damage_dealt"]), Convert.ToInt32(statRow["damage_taken"]), Convert.ToInt32(statRow["attacks"]), Convert.ToInt32(statRow["attacked"]));
+                    _rpStats = new UserRpStats(
+                        id,
+                        Convert.ToInt32(statRow["health"]),
+                        Convert.ToInt32(statRow["shield"]),
+                        Convert.ToInt32(statRow["energy"]),
+                        Convert.ToInt32(statRow["hunger"]),
+                        Convert.ToInt32(statRow["experience"]),
+                        Convert.ToInt32(statRow["knockouts"]),
+                        Convert.ToInt32(statRow["deaths"]),
+                        Convert.ToInt32(statRow["arrested"]),
+                        Convert.ToInt32(statRow["escapes"]),
+                        Convert.ToInt32(statRow["damage_dealt"]),
+                        Convert.ToInt32(statRow["damage_taken"]),
+                        Convert.ToInt32(statRow["attacks"]),
+                        Convert.ToInt32(statRow["attacked"])
+                    );
                 }
                 catch (Exception e)
                 {
@@ -378,35 +405,45 @@ namespace Plus.HabboHotel.Users
             return _rpStats;
         }
 
-        public void SaveRpStats(Habbo habbo)
+        public void SaveRpStats()
         {
-            /*
             try
             {
-                var stats = habbo.GetRpStats();
-
                 using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                 {
-                    var row = new UserRpStatistics
-                    {
-                        user_id = habbo.Id,
-                        health = stats.Health,
-                        shield = stats.Shield
-                    };
-
-                    dbClient.Connection.Upsert(row)
-                        .On(r => r.user_id)
-                        .Run();
+                    dbClient.UpdateOrInsert(
+                        "UPDATE `user_rp_statistics` SET `health` = @health, `shield` = @shield, `energy` = @energy, `hunger` = @hunger, `experience` = @experience, `knockouts` = @knockouts, `deaths` = @deaths, `arrested` = @arrested, `escapes` = @escapes, `damage_dealt` = @damage_dealt, `damage_taken` = @damage_taken, `attacks` = @attacks, `attacked` = @attacked WHERE `user_id` = @user_id LIMIT 1",
+                        query =>
+                        {
+                            query.AddParameter("health", _rpStats.Health);
+                            query.AddParameter("shield", _rpStats.Shield);
+                            query.AddParameter("energy", _rpStats.Energy);
+                            query.AddParameter("hunger", _rpStats.Hunger);
+                            query.AddParameter("experience", _rpStats.Experience);
+                            query.AddParameter("knockouts", _rpStats.Knockouts);
+                            query.AddParameter("deaths", _rpStats.Deaths);
+                            query.AddParameter("arrested", _rpStats.Arrested);
+                            query.AddParameter("escapes", _rpStats.Escapes);
+                            query.AddParameter("damage_dealt", _rpStats.DamageDealt);
+                            query.AddParameter("damage_taken", _rpStats.DamageTaken);
+                            query.AddParameter("attacks", _rpStats.Attacks);
+                            query.AddParameter("attacked", _rpStats.Attacked);
+                            query.AddParameter("user_id", Id);
+                        },
+                        "INSERT INTO `user_rp_statistics` (`user_id`) VALUES (@user_id)",
+                        query =>
+                        {
+                            query.AddParameter("user_id", Id);
+                        });
                 }
             }
             catch (Exception e)
             {
                 ExceptionLogger.LogException(e);
             }
-            */
         }
 
-    public bool InRoom => CurrentRoomId >= 1 && CurrentRoom != null;
+        public bool InRoom => CurrentRoomId >= 1 && CurrentRoom != null;
 
         public Room CurrentRoom
         {
@@ -550,6 +587,8 @@ namespace Plus.HabboHotel.Users
                     if (GetPermissions().HasRight("mod_tickets"))
                         dbClient.RunQuery("UPDATE `moderation_tickets` SET `status` = 'open', `moderator_id` = '0' WHERE `status` ='picked' AND `moderator_id` = '" + Id + "'");
                 }
+
+                this.SaveRpStats();
             }
 
             Dispose();

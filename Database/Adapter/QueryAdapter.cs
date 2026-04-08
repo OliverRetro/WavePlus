@@ -173,5 +173,76 @@ namespace Plus.Database.Adapter
                 ExceptionLogger.LogQueryError(Command.CommandText, exception);
             }
         }
+
+        public DataRow GetRowOrInsert(string selectQuery, Action<IQueryAdapter> selectParameters, string insertQuery, Action<IQueryAdapter> insertParameters)
+        {
+            if (!DbEnabled)
+                return null;
+
+            SetQuery(selectQuery);
+            selectParameters?.Invoke((IQueryAdapter)this);
+
+            DataRow row = GetRow();
+            if (row != null)
+                return row;
+
+            try
+            {
+                SetQuery(insertQuery);
+                insertParameters?.Invoke((IQueryAdapter)this);
+                Command.ExecuteNonQuery();
+            }
+            catch (Exception exception)
+            {
+                if (!(exception is MySqlException mySqlException) || mySqlException.Number != 1062)
+                {
+                    ExceptionLogger.LogQueryError(Command.CommandText, exception);
+                    return null;
+                }
+            }
+
+            SetQuery(selectQuery);
+            selectParameters?.Invoke((IQueryAdapter)this);
+            return GetRow();
+        }
+
+        public void UpdateOrInsert(string updateQuery, Action<IQueryAdapter> updateParameters, string insertQuery, Action<IQueryAdapter> insertParameters)
+        {
+            if (!DbEnabled)
+                return;
+
+            try
+            {
+                SetQuery(updateQuery);
+                updateParameters?.Invoke((IQueryAdapter)this);
+
+                if (Command.ExecuteNonQuery() > 0)
+                    return;
+            }
+            catch (Exception exception)
+            {
+                ExceptionLogger.LogQueryError(Command.CommandText, exception);
+                return;
+            }
+
+            try
+            {
+                SetQuery(insertQuery);
+                insertParameters?.Invoke((IQueryAdapter)this);
+                Command.ExecuteNonQuery();
+            }
+            catch (Exception exception)
+            {
+                if (exception is MySqlException mySqlException && mySqlException.Number == 1062)
+                {
+                    SetQuery(updateQuery);
+                    updateParameters?.Invoke((IQueryAdapter)this);
+                    RunQuery();
+                    return;
+                }
+
+                ExceptionLogger.LogQueryError(Command.CommandText, exception);
+            }
+        }
     }
 }
