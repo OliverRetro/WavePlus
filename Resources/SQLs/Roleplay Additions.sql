@@ -6,6 +6,50 @@ INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_mast
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_room_heal', 5);
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_global_heal', 6);
 
+-- fix rooms?
+ALTER TABLE rooms 
+MODIFY allow_pets_eat TINYINT(1) NOT NULL DEFAULT 0;
+
+ALTER TABLE rooms 
+MODIFY allow_pets TINYINT(1) NOT NULL DEFAULT 0;
+
+ALTER TABLE rooms 
+MODIFY room_blocking_disabled TINYINT(1) NOT NULL DEFAULT 0;
+
+ALTER TABLE rooms 
+MODIFY allow_hidewall TINYINT(1) NOT NULL DEFAULT 1;
+
+ALTER TABLE rooms 
+MODIFY mute_settings TINYINT(1) NOT NULL DEFAULT 1;
+
+ALTER TABLE rooms 
+MODIFY kick_settings TINYINT(2) NOT NULL DEFAULT 1;
+
+ALTER TABLE rooms 
+MODIFY ban_settings TINYINT(1) NOT NULL DEFAULT 1;
+
+ALTER TABLE rooms 
+MODIFY push_enabled TINYINT(1) NOT NULL DEFAULT 1;
+
+ALTER TABLE rooms 
+MODIFY pull_enabled TINYINT(1) NOT NULL DEFAULT 1;
+
+ALTER TABLE rooms 
+MODIFY enables_enabled TINYINT(1) NOT NULL DEFAULT 1;
+
+ALTER TABLE rooms 
+MODIFY respect_notifications_enabled TINYINT(1) NOT NULL DEFAULT 1;
+
+ALTER TABLE rooms 
+MODIFY pet_morphs_allowed TINYINT(1) NOT NULL DEFAULT 1;
+
+ALTER TABLE rooms 
+MODIFY spull_enabled TINYINT(1) NOT NULL DEFAULT 1;
+
+ALTER TABLE rooms 
+MODIFY push_enabled TINYINT(1) NOT NULL DEFAULT 1;
+
+-- new tables
 DROP TABLE IF EXISTS `user_rp_statistics`;
 CREATE TABLE `user_rp_statistics`  (
   `id` int NOT NULL AUTO_INCREMENT,

@@ -48,10 +48,10 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Settings
             }
 
             int tradeSettings = packet.PopInt(); //2 = All can trade, 1 = owner only, 0 = no trading.
-            int allowPets = Convert.ToInt32(PlusEnvironment.BoolToEnum(packet.PopBoolean()));
-            int allowPetsEat = Convert.ToInt32(PlusEnvironment.BoolToEnum(packet.PopBoolean()));
-            int roomBlockingEnabled = Convert.ToInt32(PlusEnvironment.BoolToEnum(packet.PopBoolean()));
-            int hideWall = Convert.ToInt32(PlusEnvironment.BoolToEnum(packet.PopBoolean()));
+            int allowPets = packet.PopBoolean() ? 1 : 0;
+            int allowPetsEat = packet.PopBoolean() ? 1 : 0;
+            int roomBlockingEnabled = packet.PopBoolean() ? 1 : 0;
+            int hideWall = packet.PopBoolean() ? 1 : 0;
             int wallThickness = packet.PopInt();
             int floorThickness = packet.PopInt();
             int whoMute = packet.PopInt(); // mute
