@@ -1,4 +1,5 @@
 ﻿using Plus.Communication.Packets.Outgoing.Catalog;
+using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.HabboHotel.GameClients;
 using System;
 
@@ -46,7 +47,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
                         }
 
                         targetClient.GetHabbo().GetRpStats().Health = + Convert.ToInt32(@params[3]);
-                        session.SendWhisper(targetClient.GetHabbo().Username + " now has health: " + @params[3], 1);
+                        session.SendPacket(new ShoutComposer(session.GetHabbo().Id, "*Sets " + targetClient.GetHabbo().Username + "\'s Health to " + @params[3] + "*", 0, 23));
                         break;
                     }
 
@@ -65,7 +66,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
                         }
 
                         targetClient.GetHabbo().GetRpStats().Shield = + Convert.ToInt32(@params[3]);
-                        session.SendWhisper(targetClient.GetHabbo().Username + " now has health: " + @params[3], 1);
+                        session.SendPacket(new ShoutComposer(session.GetHabbo().Id, "*Sets " + targetClient.GetHabbo().Username + "\'s Shield to " + @params[3] + "*", 0, 23));
                         break;
                     }
                 case "energy":
@@ -83,7 +84,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
                         }
 
                         targetClient.GetHabbo().GetRpStats().Energy = + Convert.ToInt32(@params[3]);
-                        session.SendWhisper(targetClient.GetHabbo().Username + " now has energy: " + @params[3], 1);
+                        session.SendPacket(new ShoutComposer(session.GetHabbo().Id, "*Sets " + targetClient.GetHabbo().Username + "\'s Energy to " + @params[3] + "*", 0, 23));
                         break;
                     }
                 case "hunger":
@@ -102,7 +103,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
                         }
 
                         targetClient.GetHabbo().GetRpStats().Hunger = + Convert.ToInt32(@params[3]);
-                        session.SendWhisper(targetClient.GetHabbo().Username + " now has hunger: " + @params[3], 1);
+                        session.SendPacket(new ShoutComposer(session.GetHabbo().Id, "*Sets " + targetClient.GetHabbo().Username + "\'s Hunger to " + @params[3] + "*", 0, 23));
                         break;
                     }
                 case "xp":
@@ -115,8 +116,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
                             break;
                         }
 
-                        targetClient.GetHabbo().GetRpStats().Experience += + Convert.ToInt32(@params[3]);
-                        session.SendWhisper(targetClient.GetHabbo().Username + " has " + targetClient.GetHabbo().GetRpStats().Experience + " XP", 1);
+                        targetClient.GetHabbo().GetRpStats().Experience = + Convert.ToInt32(@params[3]);
+                        session.SendPacket(new ShoutComposer(session.GetHabbo().Id, "*Sets " + targetClient.GetHabbo().Username + "\'s Experience to " + @params[3] + "*", 0, 23));
                         break;
                     }
             }

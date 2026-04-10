@@ -71,35 +71,39 @@ namespace Plus.Communication.Packets.Outgoing.Catalog
             return i;
         }
 
+        private bool CanViewPage(CatalogPage page)
+        {
+            return page.MinimumRank <= Habbo.Rank && (page.MinimumVip <= Habbo.VipRank || Habbo.Rank != 1);
+        }
+
+        private void WritePageBranch(CatalogPage page, ServerPacket packet)
+        {
+            int treeSize = CalcTreeSize(Habbo, Pages, page.Id);
+
+            if (page.Enabled)
+                WritePage(page, treeSize, packet);
+            else
+                WriteNodeIndex(page, treeSize, packet);
+
+            foreach (CatalogPage child in Pages)
+            {
+                if (child.ParentId != page.Id || !CanViewPage(child))
+                    continue;
+
+                WritePageBranch(child, packet);
+            }
+        }
+
         public override void Compose(ServerPacket packet)
         {
             WriteRootIndex(Habbo, Pages, packet);
 
             foreach (CatalogPage parent in Pages)
             {
-                if (parent.ParentId != -1 || parent.MinimumRank > Habbo.Rank || (parent.MinimumVip > Habbo.VipRank && Habbo.Rank == 1))
+                if (parent.ParentId != -1 || !CanViewPage(parent))
                     continue;
 
-                WritePage(parent, CalcTreeSize(Habbo, Pages, parent.Id), packet);
-
-                foreach (CatalogPage child in Pages)
-                {
-                    if (child.ParentId != parent.Id || child.MinimumRank > Habbo.Rank || (child.MinimumVip > Habbo.VipRank && Habbo.Rank == 1))
-                        continue;
-
-                    if (child.Enabled)
-                        WritePage(child, CalcTreeSize(Habbo, Pages, child.Id), packet);
-                    else
-                        WriteNodeIndex(child, CalcTreeSize(Habbo, Pages, child.Id), packet);
-
-                    foreach (CatalogPage subChild in Pages)
-                    {
-                        if (subChild.ParentId != child.Id || subChild.MinimumRank > Habbo.Rank)
-                            continue;
-
-                        WritePage(subChild, 0, packet);
-                    }
-                }
+                WritePageBranch(parent, packet);
             }
 
             packet.WriteBoolean(false);
