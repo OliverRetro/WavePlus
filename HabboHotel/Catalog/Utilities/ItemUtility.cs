@@ -8,7 +8,7 @@ namespace Plus.HabboHotel.Catalog.Utilities
         {
             if (!item.Data.AllowGift || item.IsLimited || item.Amount > 1 || item.Data.InteractionType == InteractionType.Exchange ||
                 item.Data.InteractionType == InteractionType.Badge || (item.Data.Type != 's' && item.Data.Type != 'i') || item.CostDiamonds > 0 ||
-                item.Data.InteractionType == InteractionType.Teleport || item.Data.InteractionType == InteractionType.Deal)
+                item.Data.InteractionType == InteractionType.Teleport || item.Data.InteractionType == InteractionType.Deal || item.Data.InteractionType == InteractionType.Arrow)
                 return false;
 
             if (item.Data.IsRare)

@@ -85,6 +85,10 @@ namespace Plus.HabboHotel.Items
                         RequestUpdate(0, true);
                         break;
 
+                    case InteractionType.Arrow:
+                        RequestUpdate(0, true);
+                        break;
+
                     case InteractionType.Hopper:
                         RequestUpdate(0, true);
                         break;
@@ -357,6 +361,9 @@ namespace Plus.HabboHotel.Items
 
                     case InteractionType.Teleport:
                         return new InteractorTeleport();
+
+                    case InteractionType.Arrow:
+                        return new InteractorArrowTeleport();
 
                     case InteractionType.Hopper:
                         return new InteractorHopper();

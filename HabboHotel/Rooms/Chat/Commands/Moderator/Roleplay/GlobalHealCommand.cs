@@ -26,9 +26,9 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Fun
                     client.GetHabbo().GetRpStats().Heal(200);
                     client.SendWhisper("You were healed!", 1);
                 }
-
-                session.SendPacket(new ShoutComposer(session.GetHabbo().CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*Heals everyone to their full HP!*", 0, 23));
             }
+
+            session.SendPacket(new ShoutComposer(session.GetHabbo().CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*Heals everyone to their full HP!*", 0, 23));
         }
     }
 }

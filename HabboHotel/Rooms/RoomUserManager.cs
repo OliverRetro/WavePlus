@@ -1233,52 +1233,9 @@ namespace Plus.HabboHotel.Rooms
 
                         case InteractionType.Arrow:
                         {
-                            if (user.GoalX == item.GetX && user.GoalY == item.GetY)
+                            if (user.Coordinate == item.Coordinate)
                             {
-                                if (user == null || user.GetClient() == null || user.GetClient().GetHabbo() == null)
-                                    continue;
-
-                                if (!PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(user.GetClient().GetHabbo().CurrentRoomId, out Room room))
-                                    return;
-
-                                if (!ItemTeleporterFinder.IsTeleLinked(item.Id, room))
-                                    user.UnlockWalking();
-                                else
-                                {
-                                    int linkedTele = ItemTeleporterFinder.GetLinkedTele(item.Id);
-                                    int teleRoomId = ItemTeleporterFinder.GetTeleRoomId(linkedTele, room);
-
-                                    if (teleRoomId == room.RoomId)
-                                    {
-                                        Item targetItem = room.GetRoomItemHandler().GetItem(linkedTele);
-                                        if (targetItem == null)
-                                        {
-                                            if (user.GetClient() != null)
-                                                user.GetClient().SendWhisper("Hey, that arrow is poorly!");
-                                            return;
-                                        }
-
-                                        room.GetGameMap().TeleportToItem(user, targetItem);
-                                    }
-                                    else if (teleRoomId != room.RoomId)
-                                    {
-                                        if (user != null && !user.IsBot && user.GetClient() != null && user.GetClient().GetHabbo() != null)
-                                        {
-                                            user.GetClient().GetHabbo().IsTeleporting = true;
-                                            user.GetClient().GetHabbo().TeleportingRoomId = teleRoomId;
-                                            user.GetClient().GetHabbo().TeleportId = linkedTele;
-
-                                            user.GetClient().GetHabbo().PrepareRoom(teleRoomId, "");
-                                        }
-                                    }
-                                    else if (_room.GetRoomItemHandler().GetItem(linkedTele) != null)
-                                    {
-                                        user.SetPos(item.GetX, item.GetY, item.GetZ);
-                                        user.SetRot(item.Rotation, false);
-                                    }
-                                    else
-                                        user.UnlockWalking();
-                                }
+                                Plus.HabboHotel.Items.Interactor.InteractorArrowTeleport.TriggerInstantTeleport(user, item);
                             }
 
                             break;
