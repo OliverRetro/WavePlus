@@ -20,8 +20,9 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
                     continue;
 
                 UserRpStats rpStats = roomUser.GetClient().GetHabbo().GetRpStats();
-                if (rpStats.Health < 100) {
-                    rpStats.Heal(200);
+                if (rpStats.Health < rpStats.GetMaxHealth(roomUser.GetClient().GetHabbo()))
+                {
+                    rpStats.Heal(roomUser.GetClient().GetHabbo(), 200);
                 }
             }
 

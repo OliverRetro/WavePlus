@@ -20,6 +20,7 @@ using Plus.Database.Interfaces;
 using Plus.HabboHotel;
 using Plus.HabboHotel.Cache.Type;
 using Plus.HabboHotel.GameClients;
+using Plus.HabboHotel.Permissions;
 using Plus.HabboHotel.Users;
 using Plus.HabboHotel.Users.UserData;
 using Plus.Network;
@@ -45,6 +46,9 @@ namespace Plus
         private static RconSocket _rcon;
         private static FigureDataManager _figureManager;
         private static NetworkBootstrap _bootstrap;
+
+        // rp
+        private static SkillManager _skillManager;
 
         // TODO: Get rid?
         public static bool Event = false;
@@ -138,6 +142,10 @@ namespace Plus
 
                 _figureManager = new FigureDataManager();
                 _figureManager.Init();
+
+                // Get new RP stuff
+                _skillManager = new SkillManager();
+                _skillManager.Init();
 
                 //Have our encryption ready.
                 HabboEncryptionV2.Initialize(new RSAKeys());
@@ -403,6 +411,11 @@ namespace Plus
         public static SettingsManager GetSettingsManager()
         {
             return _settingsManager;
+        }
+
+        public static SkillManager GetSkillManager()
+        {
+            return _skillManager;
         }
 
         public static ICollection<Habbo> GetUsersCached()

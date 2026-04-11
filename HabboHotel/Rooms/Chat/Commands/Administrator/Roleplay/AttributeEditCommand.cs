@@ -1,6 +1,8 @@
 ﻿using Plus.Communication.Packets.Outgoing.Catalog;
 using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.HabboHotel.GameClients;
+using Plus.HabboHotel.Permissions;
+using Plus.HabboHotel.Roleplay.Skill;
 using System;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
@@ -118,6 +120,35 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 
                         targetClient.GetHabbo().GetRpStats().Experience = + Convert.ToInt32(@params[3]);
                         session.SendPacket(new ShoutComposer(session.GetHabbo().CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*Sets " + targetClient.GetHabbo().Username + "\'s Experience to " + @params[3] + "*", 0, 23));
+                        break;
+                    }
+
+                case "skill":
+                    {
+                        if (!session.GetHabbo().GetPermissions().HasCommand("command_master_edit_rp"))
+                        {
+                            session.SendWhisper("Oops, you do not have the 'command_master_edit_rp' permission.");
+                            break;
+                        }
+
+                        int skillId = Convert.ToInt32(@params[3]);
+                        int progressAmount = Convert.ToInt32(@params[4]);
+
+                        if (skillId > 8 || skillId < 1)
+                        {
+                            session.SendWhisper("Skill must be between 1-8.");
+                            break;
+                        }
+
+                        if (progressAmount > 10000 || progressAmount < 1)
+                        {
+                            session.SendWhisper("Skill progress must be between 1-6967.");
+                            break;
+                        }
+
+                        targetClient.GetHabbo().GetRpSkills().ProgressSkill(skillId, progressAmount);
+                        Skill skill = PlusEnvironment.GetSkillManager().GetSkillById(skillId);
+                        session.SendPacket(new ShoutComposer(session.GetHabbo().CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*Added " + targetClient.GetHabbo().Username + "\'s " + skill.Name + " Skill progress with " + progressAmount + "*", 0, 23));
                         break;
                     }
             }

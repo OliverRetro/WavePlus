@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Plus.HabboHotel.Users
 {
@@ -43,10 +43,26 @@ namespace Plus.HabboHotel.Users
             NextHungerTick = DateTime.UtcNow.AddMinutes(10);
         }
 
-        public void Heal(int health)
+        public int GetMaxHealth(Habbo habbo)
+        {
+            if (habbo?.GetRpSkills() == null)
+            {
+                return 100;
+            }
+
+            return habbo.GetRpSkills().GetLevel(7, true) switch
+            {
+                1 => 125,
+                2 => 150,
+                3 => 180,
+                _ => 100
+            };
+        }
+
+        public void Heal(Habbo habbo, int health)
         {
             IsDead = false;
-            Health = Math.Min(Health + health, 100);
+            Health = Math.Min(Health + health, GetMaxHealth(habbo));
         }
 
         public void Kill(Habbo target)

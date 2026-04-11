@@ -15,6 +15,7 @@ using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Rooms.Chat.Commands;
+using Plus.HabboHotel.Roleplay.Skill;
 using Plus.HabboHotel.Subscriptions;
 using Plus.HabboHotel.Users.Badges;
 using Plus.HabboHotel.Users.Clothing;
@@ -161,6 +162,7 @@ namespace Plus.HabboHotel.Users
         private IgnoresComponent _ignores;
 
         private UserRpStats _rpStats;
+        private UserRpSkills _rpSkills;
 
         public Habbo(int id, string username, int rank, string motto, string look, string gender, int credits, int activityPoints, int homeRoom,
             bool hasFriendRequestsDisabled, int lastOnline, bool appearOffline, bool hideInRoom, double createDate, int diamonds,
@@ -390,6 +392,28 @@ namespace Plus.HabboHotel.Users
                 }
             }
 
+            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            {
+                dbClient.SetQuery("SELECT `skill_id`,`progress`,`equipped` FROM `user_rp_skills` WHERE `user_id` = @user_id");
+                dbClient.AddParameter("user_id", id);
+                DataTable skillTable = dbClient.GetTable();
+
+                List<UserSkillData> loadedSkills = new();
+                if (skillTable != null)
+                {
+                    foreach (DataRow row in skillTable.Rows)
+                    {
+                        loadedSkills.Add(new UserSkillData(
+                            Convert.ToInt32(row["skill_id"]),
+                            Convert.ToInt32(row["progress"]),
+                            Convert.ToInt32(row["equipped"]) == 1));
+                    }
+                }
+
+                _rpSkills = new UserRpSkills(PlusEnvironment.GetSkillManager(), loadedSkills);
+                _rpSkills.MarkSaved();
+            }
+
             #endregion
         }
 
@@ -403,6 +427,36 @@ namespace Plus.HabboHotel.Users
         public UserRpStats GetRpStats()
         {
             return _rpStats;
+        }
+
+        public UserRpSkills GetRpSkills()
+        {
+            return _rpSkills;
+        }
+
+        public int ProgressSkill(string progressCategory, int progress)
+        {
+            return _rpSkills.ProgressSkillByCategory(progressCategory, progress);
+        }
+
+        public int GetSkillLevel(int skillId)
+        {
+            return _rpSkills.GetLevel(skillId);
+        }
+
+        public bool HasSkill(int skillId)
+        {
+            return _rpSkills.HasSkill(skillId);
+        }
+
+        public bool HasUnlockedSkill(int skillId)
+        {
+            return _rpSkills.HasUnlockedSkill(skillId);
+        }
+
+        public bool ToggleSkill(int skillId)
+        {
+            return _rpSkills.ToggleSkill(skillId);
         }
 
         public void SaveRpStats()
@@ -436,6 +490,45 @@ namespace Plus.HabboHotel.Users
                             query.AddParameter("user_id", Id);
                         });
                 }
+            }
+            catch (Exception e)
+            {
+                ExceptionLogger.LogException(e);
+            }
+        }
+
+        public void SaveRpSkills()
+        {
+            if (_rpSkills == null || !_rpSkills.Dirty)
+                return;
+
+            try
+            {
+                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                {
+                    foreach (UserSkillData skill in _rpSkills.Skills)
+                    {
+                        dbClient.UpdateOrInsert(
+                            "UPDATE `user_rp_skills` SET `progress` = @progress, `equipped` = @equipped WHERE `user_id` = @user_id AND `skill_id` = @skill_id LIMIT 1",
+                            query =>
+                            {
+                                query.AddParameter("progress", skill.Progress);
+                                query.AddParameter("equipped", skill.Equipped ? 1 : 0);
+                                query.AddParameter("user_id", Id);
+                                query.AddParameter("skill_id", skill.SkillId);
+                            },
+                            "INSERT INTO `user_rp_skills` (`user_id`, `skill_id`, `progress`, `equipped`) VALUES (@user_id, @skill_id, @progress, @equipped)",
+                            query =>
+                            {
+                                query.AddParameter("user_id", Id);
+                                query.AddParameter("skill_id", skill.SkillId);
+                                query.AddParameter("progress", skill.Progress);
+                                query.AddParameter("equipped", skill.Equipped ? 1 : 0);
+                            });
+                    }
+                }
+
+                _rpSkills.MarkSaved();
             }
             catch (Exception e)
             {
@@ -588,7 +681,8 @@ namespace Plus.HabboHotel.Users
                         dbClient.RunQuery("UPDATE `moderation_tickets` SET `status` = 'open', `moderator_id` = '0' WHERE `status` ='picked' AND `moderator_id` = '" + Id + "'");
                 }
 
-                this.SaveRpStats();
+                SaveRpStats();
+                SaveRpSkills();
             }
 
             Dispose();

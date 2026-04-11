@@ -22,8 +22,9 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Fun
                 if (client == null)
                     continue;
 
-                if(client.GetHabbo().GetRpStats().Health < 100) {
-                    client.GetHabbo().GetRpStats().Heal(200);
+                if (client.GetHabbo().GetRpStats().Health < client.GetHabbo().GetRpStats().GetMaxHealth(client.GetHabbo()))
+                {
+                    client.GetHabbo().GetRpStats().Heal(client.GetHabbo(), 200);
                     client.SendWhisper("You were healed!", 1);
                 }
             }
