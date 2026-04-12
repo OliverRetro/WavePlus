@@ -1,7 +1,4 @@
-﻿using Plus.Communication.Packets.Incoming.Inventory.Achievements;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace Plus.HabboHotel.Roleplay.Skill
 {

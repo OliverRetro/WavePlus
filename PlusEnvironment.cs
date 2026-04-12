@@ -49,6 +49,7 @@ namespace Plus
 
         // rp
         private static SkillManager _skillManager;
+        private static WeaponManager _weaponManager;
 
         // TODO: Get rid?
         public static bool Event = false;
@@ -146,6 +147,9 @@ namespace Plus
                 // Get new RP stuff
                 _skillManager = new SkillManager();
                 _skillManager.Init();
+
+                _weaponManager = new WeaponManager();
+                _weaponManager.Init();
 
                 //Have our encryption ready.
                 HabboEncryptionV2.Initialize(new RSAKeys());
@@ -416,6 +420,11 @@ namespace Plus
         public static SkillManager GetSkillManager()
         {
             return _skillManager;
+        }
+
+        public static WeaponManager GetWeaponManager()
+        {
+            return _weaponManager;
         }
 
         public static ICollection<Habbo> GetUsersCached()
