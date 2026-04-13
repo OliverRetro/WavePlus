@@ -75,7 +75,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
                 habboInfo.Append("Hunger: " + targetClient.GetHabbo().GetRpStats().Hunger + "\r");
                 habboInfo.Append("Experience: " + targetClient.GetHabbo().GetRpStats().Experience + " [LVL: <b>" + LevelManager.GetLevelFromXp(targetClient.GetHabbo().GetRpStats().Experience) + "</b>]\r");
                 habboInfo.Append("Kills: " + targetClient.GetHabbo().GetRpStats().Knockouts + "\r");
-                habboInfo.Append("Deaths: " + targetClient.GetHabbo().GetRpStats().Deaths + "\r\r");
+                habboInfo.Append("Deaths: " + targetClient.GetHabbo().GetRpStats().Deaths + "\r");
+                habboInfo.Append("Equipped Weapon: <b>" + (targetClient.GetHabbo().GetRpStats().ActiveWeapon()?.WeaponData?.Name ?? "Nothing") + "</b>\r\r");
 
                 habboInfo.Append("<b>Skills:</b>\r");
 
@@ -130,8 +131,6 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
                     }
                 }
             }
-
-
 
             session.SendNotification(habboInfo.ToString());
         }

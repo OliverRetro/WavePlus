@@ -1,4 +1,5 @@
 using System;
+using Plus.HabboHotel.Roleplay.RpItem.Weapon;
 
 namespace Plus.HabboHotel.Users
 {
@@ -20,6 +21,7 @@ namespace Plus.HabboHotel.Users
         public int Attacked { get; set; }
         public bool IsDead { get; set; }
         public DateTime NextHungerTick { get; set; }
+        public UserRpWeapons Weapons { get; set; }
 
         public UserRpStats(int userId, int health, int shield, int energy, int hunger, int experience, int knockouts, int deaths, int arrested, int escapes, int damageDealt, int damageTaken, int attacks, int attacked)
         {
@@ -71,6 +73,11 @@ namespace Plus.HabboHotel.Users
             target.GetRpStats().IsDead = true;
             target.GetRpStats().Deaths++;
             Knockouts++;
+        }
+
+        public UserWeapon ActiveWeapon()
+        {
+            return Weapons?.GetActiveWeapon();
         }
     }
 }

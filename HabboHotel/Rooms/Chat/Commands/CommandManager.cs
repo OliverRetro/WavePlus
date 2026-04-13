@@ -180,6 +180,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             Register("rpstats", new RpuserRpInfoCommand());
             Register("roomheal", new RoomHealCommand());
             Register("globalheal", new GlobalHealCommand());
+            Register("tempinventory", new TempRpInventoryCommand());
+            Register("setweapon", new EquipWeaponCommand());
 
             // rest
             Register("ban", new BanCommand());

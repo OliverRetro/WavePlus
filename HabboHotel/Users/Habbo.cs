@@ -15,6 +15,7 @@ using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Rooms.Chat.Commands;
+using Plus.HabboHotel.Roleplay.RpItem.Weapon;
 using Plus.HabboHotel.Roleplay.Skill;
 using Plus.HabboHotel.Subscriptions;
 using Plus.HabboHotel.Users.Badges;
@@ -163,6 +164,7 @@ namespace Plus.HabboHotel.Users
 
         private UserRpStats _rpStats;
         private UserRpSkills _rpSkills;
+        private UserRpWeapons _rpWeapons;
 
         public Habbo(int id, string username, int rank, string motto, string look, string gender, int credits, int activityPoints, int homeRoom,
             bool hasFriendRequestsDisabled, int lastOnline, bool appearOffline, bool hideInRoom, double createDate, int diamonds,
@@ -394,6 +396,36 @@ namespace Plus.HabboHotel.Users
 
             using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
             {
+                dbClient.SetQuery("SELECT `id`,`weapon_id`,`durability_left` FROM `user_rp_weapons` WHERE `user_id` = @user_id");
+                dbClient.AddParameter("user_id", id);
+                DataTable weaponTable = dbClient.GetTable();
+
+                List<UserWeapon> loadedWeapons = new();
+                if (weaponTable != null)
+                {
+                    foreach (DataRow row in weaponTable.Rows)
+                    {
+                        int weaponId = Convert.ToInt32(row["weapon_id"]);
+                        Weapon weaponData = PlusEnvironment.GetWeaponManager().GetWeaponById(weaponId);
+                        if (weaponData == null)
+                            continue;
+
+                        loadedWeapons.Add(new UserWeapon(
+                            Convert.ToInt32(row["id"]),
+                            id,
+                            weaponId,
+                            Convert.ToInt32(row["durability_left"]),
+                            weaponData));
+                    }
+                }
+
+                _rpWeapons = new UserRpWeapons(id, PlusEnvironment.GetWeaponManager(), loadedWeapons);
+                _rpWeapons.MarkSaved();
+                _rpStats.Weapons = _rpWeapons;
+            }
+
+            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            {
                 dbClient.SetQuery("SELECT `skill_id`,`progress`,`equipped` FROM `user_rp_skills` WHERE `user_id` = @user_id");
                 dbClient.AddParameter("user_id", id);
                 DataTable skillTable = dbClient.GetTable();
@@ -432,6 +464,11 @@ namespace Plus.HabboHotel.Users
         public UserRpSkills GetRpSkills()
         {
             return _rpSkills;
+        }
+
+        public UserRpWeapons GetRpWeapons()
+        {
+            return _rpWeapons;
         }
 
         public int ProgressSkill(string progressCategory, int progress)
@@ -529,6 +566,45 @@ namespace Plus.HabboHotel.Users
                 }
 
                 _rpSkills.MarkSaved();
+            }
+            catch (Exception e)
+            {
+                ExceptionLogger.LogException(e);
+            }
+        }
+
+        public void SaveRpWeapons()
+        {
+            if (_rpWeapons == null || !_rpWeapons.Dirty)
+                return;
+
+            try
+            {
+                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                {
+                    foreach (UserWeapon weapon in _rpWeapons.Weapons)
+                    {
+                        if (weapon.IsDefault)
+                            continue;
+
+                        if (weapon.Id > 0)
+                        {
+                            dbClient.SetQuery("UPDATE `user_rp_weapons` SET `durability_left` = @durability_left WHERE `id` = @id LIMIT 1");
+                            dbClient.AddParameter("durability_left", weapon.DurabilityLeft);
+                            dbClient.AddParameter("id", weapon.Id);
+                            dbClient.RunQuery();
+                            continue;
+                        }
+
+                        dbClient.SetQuery("INSERT INTO `user_rp_weapons` (`user_id`, `weapon_id`, `durability_left`) VALUES (@user_id, @weapon_id, @durability_left)");
+                        dbClient.AddParameter("user_id", Id);
+                        dbClient.AddParameter("weapon_id", weapon.WeaponId);
+                        dbClient.AddParameter("durability_left", weapon.DurabilityLeft);
+                        weapon.Id = (int)dbClient.InsertQuery();
+                    }
+                }
+
+                _rpWeapons.MarkSaved();
             }
             catch (Exception e)
             {
@@ -682,6 +758,7 @@ namespace Plus.HabboHotel.Users
                 }
 
                 SaveRpStats();
+                SaveRpWeapons();
                 SaveRpSkills();
             }
 
