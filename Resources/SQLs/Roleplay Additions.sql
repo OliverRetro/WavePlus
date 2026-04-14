@@ -6,6 +6,7 @@ INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_mast
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_room_heal', 5);
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_global_heal', 6);
 INSERT INTO `permissions_commands` (`command`) VALUES ('command_rp_toggle_skill');
+INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_hit', 1);
 
 -- fix rooms?
 ALTER TABLE rooms 

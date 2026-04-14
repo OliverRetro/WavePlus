@@ -14,8 +14,9 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
         public int Effect { get; set; }
         public int Range { get; set; }
         public int Durability { get; set; }
+        public int StunChance { get; set; }
 
-        public Weapon(int id, string name, string description, int minimumDamage, int maximumDamage, int criticalChance, double criticalMultiplier, int effect, int range, int durability)
+        public Weapon(int id, string name, string description, int minimumDamage, int maximumDamage, int criticalChance, double criticalMultiplier, int effect, int range, int durability, int stunChance)
         {
             Id = id;
             Name = name;
@@ -27,6 +28,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
             Effect = effect;
             Range = range;
             Durability = durability;
+            StunChance = stunChance;
         }
     }
 }

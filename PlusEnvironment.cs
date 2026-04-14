@@ -21,6 +21,7 @@ using Plus.HabboHotel;
 using Plus.HabboHotel.Cache.Type;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Permissions;
+using Plus.HabboHotel.Roleplay.Combat;
 using Plus.HabboHotel.Users;
 using Plus.HabboHotel.Users.UserData;
 using Plus.Network;
@@ -49,6 +50,7 @@ namespace Plus
 
         // rp
         private static SkillManager _skillManager;
+        private static CombatManager _combatManager;
         private static WeaponManager _weaponManager;
 
         // TODO: Get rid?
@@ -147,6 +149,8 @@ namespace Plus
                 // Get new RP stuff
                 _skillManager = new SkillManager();
                 _skillManager.Init();
+
+                _combatManager = new CombatManager();
 
                 _weaponManager = new WeaponManager();
                 _weaponManager.Init();
@@ -420,6 +424,11 @@ namespace Plus
         public static SkillManager GetSkillManager()
         {
             return _skillManager;
+        }
+
+        public static CombatManager GetCombatManager()
+        {
+            return _combatManager;
         }
 
         public static WeaponManager GetWeaponManager()

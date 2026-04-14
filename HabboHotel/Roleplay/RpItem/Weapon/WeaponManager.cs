@@ -38,14 +38,15 @@ namespace Plus.HabboHotel.Permissions
                             Convert.ToDouble(row["critical_multiplier"]),
                             Convert.ToInt32(row["effect_id"]),
                             Convert.ToInt32(row["range"]),
-                            Convert.ToInt32(row["durability"])
+                            Convert.ToInt32(row["durability"]),
+                            Convert.ToInt32(row["stun_chance"])
                         );
 
                         _weapons.Add(weapon.Id, weapon);
                     }
                 }
 
-                _weapons.Add(0, new Weapon(0, "Hand", "Basic hand attack", 1, 2, 5, 1.5, 0, 1, 100));
+                _weapons.Add(0, new Weapon(0, "Fists", "Basic hand attack", 1, 3, 0, 1, 0, 0, 999999, 0));
             }
 
             Log.Info($"[RP] Loaded {_weapons.Count} Weapons.");

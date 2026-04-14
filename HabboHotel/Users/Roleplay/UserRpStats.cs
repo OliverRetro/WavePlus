@@ -19,11 +19,13 @@ namespace Plus.HabboHotel.Users
         public int DamageTaken { get; set; }
         public int Attacks { get; set; }
         public int Attacked { get; set; }
+        public int Knowledge { get; set; }
+        public int Strength { get; set; }
         public bool IsDead { get; set; }
         public DateTime NextHungerTick { get; set; }
         public UserRpWeapons Weapons { get; set; }
 
-        public UserRpStats(int userId, int health, int shield, int energy, int hunger, int experience, int knockouts, int deaths, int arrested, int escapes, int damageDealt, int damageTaken, int attacks, int attacked)
+        public UserRpStats(int userId, int health, int shield, int energy, int hunger, int experience, int knockouts, int deaths, int arrested, int escapes, int damageDealt, int damageTaken, int attacks, int attacked, int knowledge, int strength)
         {
             UserId = userId;
             Health = health;
@@ -39,6 +41,8 @@ namespace Plus.HabboHotel.Users
             DamageTaken = damageTaken;
             Attacks = attacks;
             Attacked = attacked;
+            Knowledge = knowledge;
+            Strength = strength;
 
             // not saved in db
             IsDead = false;
@@ -56,7 +60,7 @@ namespace Plus.HabboHotel.Users
             {
                 1 => 125,
                 2 => 150,
-                3 => 180,
+                3 => 175,
                 _ => 100
             };
         }

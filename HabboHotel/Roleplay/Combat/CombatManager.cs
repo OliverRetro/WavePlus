@@ -1,10 +1,82 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Plus.Communication.Packets.Outgoing.Rooms.Chat;
+using Plus.HabboHotel.Rooms;
+using Plus.HabboHotel.Users;
+using System;
 
 namespace Plus.HabboHotel.Roleplay.Combat
 {
-    internal class CombatManager
+    public class CombatManager
     {
+        public void AttackUser(Habbo attacker, Habbo target)
+        {
+            if (attacker == null || target == null)
+                return;
+
+            var attackerStats = attacker.GetRpStats();
+            var targetStats = target.GetRpStats();
+
+            if (attackerStats.IsDead || targetStats.IsDead)
+                return;
+
+            var weapon = attackerStats.ActiveWeapon()?.WeaponData;
+
+            // stun
+            bool stunTarget = Random.Shared.NextDouble() < (weapon?.StunChance ?? 0 / 100.0);
+            if (stunTarget)
+            {
+                RoomUser user = target.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(target.Id);
+                target.GetClient().SendPacket(new ShoutComposer(user.VirtualId, "Literally got stunned", 0, 23));
+                user.Frozen = true;
+            }
+
+            // Damage user
+            DamageResult result = CalculateDamage(weapon?.MinimumDamage ?? 0, weapon?.MaximumDamage ?? 0, weapon?.CriticalChance ?? 0, weapon?.CriticalMultiplier ?? 1, attackerStats.Strength);
+
+            int totalDamage = result.TotalDamage;
+
+            // Send shout about the attack
+            string shoutResult = result.IsCritical ? "*CRITICAL HIT! " + target.Username + " takes " + totalDamage + " damage!*" : "*hits " + target.Username + " for " + totalDamage + " damage*";
+            attacker.GetClient().SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, shoutResult, 0, 23));
+
+            attacker.GetRpWeapons().GetActiveWeapon().DurabilityLeft--;
+
+            // stats and damage application
+            int remainingDamage = totalDamage - targetStats.Shield;
+            targetStats.Shield = Math.Max(0, targetStats.Shield - totalDamage);
+
+            if (remainingDamage > 0)
+            {
+                targetStats.Health = Math.Max(0, targetStats.Health - remainingDamage);
+            }
+
+            if (targetStats.Health <= 0)
+            {
+                targetStats.IsDead = true;
+            }
+
+            attackerStats.Attacks++;
+            attackerStats.DamageDealt += totalDamage;
+
+            targetStats.Attacked++;
+            targetStats.DamageTaken += totalDamage;
+        }
+
+        private DamageResult CalculateDamage(int minDamage, int maxDamage, double critChancePercent, double critMultiplier, int strength)
+        {
+            // this is a bit of a cleanup, but this is to calculate all the variables and return a clean object
+            int baseDamage = Random.Shared.Next(minDamage, maxDamage + 1);
+
+            bool isCrit = Random.Shared.NextDouble() < (critChancePercent / 100.0);
+
+            double damageAfterCrit = baseDamage * (isCrit ? critMultiplier : 1);
+
+            int totalDamage = (int)Math.Ceiling(damageAfterCrit) + strength * 2;
+
+            return new DamageResult
+            {
+                TotalDamage = totalDamage,
+                IsCritical = isCrit
+            };
+        }
     }
 }

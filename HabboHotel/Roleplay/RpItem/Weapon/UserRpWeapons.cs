@@ -80,7 +80,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
         private UserWeapon CreateDefaultWeapon()
         {
             Weapon defaultWeapon = _weaponManager.GetWeaponById(0);
-            return new UserWeapon(0, _userId, defaultWeapon?.Id ?? 0, defaultWeapon?.Durability ?? 100, defaultWeapon, true);
+            return new UserWeapon(0, _userId, defaultWeapon?.Id ?? 0, defaultWeapon?.Durability ?? 999999, defaultWeapon, true);
         }
     }
 }

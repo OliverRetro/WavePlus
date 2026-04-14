@@ -1,8 +1,4 @@
-﻿using System;
-using System.Data;
-using System.Text;
-using Plus.Database.Interfaces;
-using Plus.HabboHotel.GameClients;
+﻿using Plus.HabboHotel.GameClients;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
 {
@@ -22,6 +18,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
                 return;
             }
 
+            GameClient targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(@params[1]);
+
+            if (targetClient != null)
+            {
+                PlusEnvironment.GetCombatManager().AttackUser(session.GetHabbo(), targetClient.GetHabbo());
+            }
             // run kill and shit
         }
     }

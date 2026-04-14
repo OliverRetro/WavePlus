@@ -25,8 +25,8 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Chat
                 return;
 
             string message = StringCharFilter.Escape(packet.PopString());
-            if (message.Length > 100)
-                message = message.Substring(0, 100);
+            if (message.Length > 110)
+                message = message.Substring(0, 110);
 
             int colour = packet.PopInt();
 

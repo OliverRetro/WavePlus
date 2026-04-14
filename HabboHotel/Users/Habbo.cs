@@ -385,7 +385,9 @@ namespace Plus.HabboHotel.Users
                         Convert.ToInt32(statRow["damage_dealt"]),
                         Convert.ToInt32(statRow["damage_taken"]),
                         Convert.ToInt32(statRow["attacks"]),
-                        Convert.ToInt32(statRow["attacked"])
+                        Convert.ToInt32(statRow["attacked"]),
+                        Convert.ToInt32(statRow["knowledge"]),
+                        Convert.ToInt32(statRow["strength"])
                     );
                 }
                 catch (Exception e)
@@ -410,12 +412,7 @@ namespace Plus.HabboHotel.Users
                         if (weaponData == null)
                             continue;
 
-                        loadedWeapons.Add(new UserWeapon(
-                            Convert.ToInt32(row["id"]),
-                            id,
-                            weaponId,
-                            Convert.ToInt32(row["durability_left"]),
-                            weaponData));
+                        loadedWeapons.Add(new UserWeapon(Convert.ToInt32(row["id"]), id, weaponId, Convert.ToInt32(row["durability_left"]), weaponData));
                     }
                 }
 
@@ -503,7 +500,7 @@ namespace Plus.HabboHotel.Users
                 using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                 {
                     dbClient.UpdateOrInsert(
-                        "UPDATE `user_rp_statistics` SET `health` = @health, `shield` = @shield, `energy` = @energy, `hunger` = @hunger, `experience` = @experience, `knockouts` = @knockouts, `deaths` = @deaths, `arrested` = @arrested, `escapes` = @escapes, `damage_dealt` = @damage_dealt, `damage_taken` = @damage_taken, `attacks` = @attacks, `attacked` = @attacked WHERE `user_id` = @user_id LIMIT 1",
+                        "UPDATE `user_rp_statistics` SET `health` = @health, `shield` = @shield, `energy` = @energy, `hunger` = @hunger, `experience` = @experience, `knockouts` = @knockouts, `deaths` = @deaths, `arrested` = @arrested, `escapes` = @escapes, `damage_dealt` = @damage_dealt, `damage_taken` = @damage_taken, `attacks` = @attacks, `attacked` = @attacked, `knowledge` = @knowledge, `strength` = @strength WHERE `user_id` = @user_id LIMIT 1",
                         query =>
                         {
                             query.AddParameter("health", _rpStats.Health);
@@ -519,6 +516,8 @@ namespace Plus.HabboHotel.Users
                             query.AddParameter("damage_taken", _rpStats.DamageTaken);
                             query.AddParameter("attacks", _rpStats.Attacks);
                             query.AddParameter("attacked", _rpStats.Attacked);
+                            query.AddParameter("knowledge", _rpStats.Knowledge);
+                            query.AddParameter("strength", _rpStats.Strength);
                             query.AddParameter("user_id", Id);
                         },
                         "INSERT INTO `user_rp_statistics` (`user_id`) VALUES (@user_id)",
