@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Threading.Tasks;
 using Plus.Communication.Packets.Outgoing;
 using Plus.Communication.Packets.Outgoing.Rooms.Avatar;
 using Plus.Communication.Packets.Outgoing.Rooms.Chat;
@@ -92,6 +94,9 @@ namespace Plus.HabboHotel.Rooms
 
         public int LLPartner = 0;
         public double TimeInRoom;
+        public DateTime TimedFreezeUntilUtc;
+
+        private int _timedFreezeId;
 
         public RoomUser(int habboId, int roomId, int virtualId, Room room)
         {
@@ -175,6 +180,8 @@ namespace Plus.HabboHotel.Rooms
         }
 
         public bool IsBot => BotData != null;
+
+        public bool IsMovementFrozen => Frozen || TimedFreezeUntilUtc > DateTime.UtcNow;
 
         public string GetUsername()
         {
@@ -388,6 +395,9 @@ namespace Plus.HabboHotel.Rooms
             Statusses.Remove("mv");
             GoalX = 0;
             GoalY = 0;
+            PathRecalcNeeded = false;
+            Path.Clear();
+            PathStep = 1;
             SetStep = false;
             SetX = 0;
             SetY = 0;
@@ -416,7 +426,7 @@ namespace Plus.HabboHotel.Rooms
                 return;
             }
 
-            if ((GetRoom().GetGameMap().SquareHasUsers(pX, pY) && !pOverride) || Frozen)
+            if ((GetRoom().GetGameMap().SquareHasUsers(pX, pY) && !pOverride) || IsMovementFrozen)
                 return;
 
             UnIdle();
@@ -436,6 +446,28 @@ namespace Plus.HabboHotel.Rooms
         {
             AllowOverride = false;
             CanWalk = true;
+        }
+
+        public void ApplyTimedFreeze(TimeSpan duration)
+        {
+            TimedFreezeUntilUtc = DateTime.UtcNow.Add(duration);
+
+            if (IsWalking || Statusses.ContainsKey("mv"))
+            {
+                ClearMovement(true);
+                GetRoom()?.GetRoomUserManager().UpdateUserStatus(this, false);
+            }
+
+            int freezeId = ++_timedFreezeId;
+            _ = ClearTimedFreezeAsync(freezeId, duration);
+        }
+
+        private async Task ClearTimedFreezeAsync(int freezeId, TimeSpan duration)
+        {
+            await Task.Delay(duration);
+
+            if (_timedFreezeId == freezeId)
+                TimedFreezeUntilUtc = DateTime.MinValue;
         }
 
 

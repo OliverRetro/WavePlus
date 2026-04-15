@@ -1,13 +1,14 @@
-﻿using Plus.Communication.Packets.Outgoing.Rooms.Chat;
+using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
 using System;
-using static System.Collections.Specialized.BitVector32;
 
 namespace Plus.HabboHotel.Roleplay.Combat
 {
     public class CombatManager
     {
+        private static readonly TimeSpan StunDuration = TimeSpan.FromSeconds(1.5);
+
         public void AttackUser(Habbo attacker, Habbo target)
         {
             if (attacker == null || target == null)
@@ -41,11 +42,11 @@ namespace Plus.HabboHotel.Roleplay.Combat
             }
 
             // stun
-            bool stunTarget = Random.Shared.NextDouble() < (weapon?.StunChance ?? 0 / 100.0);
+            bool stunTarget = Random.Shared.NextDouble() < ((weapon?.StunChance ?? 0) / 100.0);
             if (stunTarget)
             {
                 target.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(target.Id).VirtualId, "*Got stunned*", 0, 23));
-                targetRoomUser.Frozen = true;
+                StunUser(targetRoomUser);
             }
 
             // Damage user
@@ -96,6 +97,14 @@ namespace Plus.HabboHotel.Roleplay.Combat
                 TotalDamage = totalDamage,
                 IsCritical = isCrit
             };
+        }
+
+        private void StunUser(RoomUser targetRoomUser)
+        {
+            if (targetRoomUser == null)
+                return;
+
+            targetRoomUser.ApplyTimedFreeze(StunDuration);
         }
     }
 }
