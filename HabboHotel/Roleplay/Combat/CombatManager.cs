@@ -2,6 +2,7 @@
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
 using System;
+using static System.Collections.Specialized.BitVector32;
 
 namespace Plus.HabboHotel.Roleplay.Combat
 {
@@ -12,21 +13,39 @@ namespace Plus.HabboHotel.Roleplay.Combat
             if (attacker == null || target == null)
                 return;
 
+            // Rp Stats
             var attackerStats = attacker.GetRpStats();
             var targetStats = target.GetRpStats();
+
+            // Room users
+            RoomUser targetRoomUser = target.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(target.Id);
+            RoomUser attackerRoomUser = attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id);
 
             if (attackerStats.IsDead || targetStats.IsDead)
                 return;
 
             var weapon = attackerStats.ActiveWeapon()?.WeaponData;
 
+            int range = weapon?.Range ?? 1;
+
+            int dx = Math.Abs(attackerRoomUser.X - targetRoomUser.X);
+            int dy = Math.Abs(attackerRoomUser.Y - targetRoomUser.Y);
+
+            double distance = Math.Sqrt(dx * dx + dy * dy);
+            bool inRange = (dx + dy) <= range;
+
+            if (!inRange)
+            {
+                attacker.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, "*Misses " + target.Username + "*", 0, 23));
+                return;
+            }
+
             // stun
             bool stunTarget = Random.Shared.NextDouble() < (weapon?.StunChance ?? 0 / 100.0);
             if (stunTarget)
             {
-                RoomUser user = target.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(target.Id);
-                attacker.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(target.Id).VirtualId, "*Got stunned*", 0, 23));
-                user.Frozen = true;
+                target.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(target.Id).VirtualId, "*Got stunned*", 0, 23));
+                targetRoomUser.Frozen = true;
             }
 
             // Damage user

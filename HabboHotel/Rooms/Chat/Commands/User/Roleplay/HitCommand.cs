@@ -20,11 +20,19 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
 
             GameClient targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(@params[1]);
 
-            if (targetClient != null)
+            if (targetClient == null)
             {
-                PlusEnvironment.GetCombatManager().AttackUser(session.GetHabbo(), targetClient.GetHabbo());
+                session.SendWhisper("The user could not be found.", 1);
+                return; 
             }
-            // run kill and shit
+
+            if(targetClient.GetHabbo().CurrentRoomId != session.GetHabbo().CurrentRoomId)
+            {
+                session.SendWhisper("The user is not in the same room as you.", 1);
+                return;
+            }
+                
+            PlusEnvironment.GetCombatManager().AttackUser(session.GetHabbo(), targetClient.GetHabbo());      
         }
     }
 }
