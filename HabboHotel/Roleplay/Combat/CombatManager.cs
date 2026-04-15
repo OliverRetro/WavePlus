@@ -25,7 +25,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
             if (stunTarget)
             {
                 RoomUser user = target.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(target.Id);
-                target.GetClient().SendPacket(new ShoutComposer(user.VirtualId, "Literally got stunned", 0, 23));
+                attacker.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(target.Id).VirtualId, "*Got stunned*", 0, 23));
                 user.Frozen = true;
             }
 
@@ -36,7 +36,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
 
             // Send shout about the attack
             string shoutResult = result.IsCritical ? "*CRITICAL HIT! " + target.Username + " takes " + totalDamage + " damage!*" : "*hits " + target.Username + " for " + totalDamage + " damage*";
-            attacker.GetClient().SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, shoutResult, 0, 23));
+            attacker.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, shoutResult, 0, 23));
 
             attacker.GetRpWeapons().GetActiveWeapon().DurabilityLeft--;
 

@@ -26,7 +26,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
                 }
             }
 
-            session.SendPacket(new ShoutComposer(session.GetHabbo().CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*Heals everyone in the room to their full HP!*", 0, 23));
+            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*Heals everyone in the room to their full HP!*", 0, 23));
         }
     }
 }

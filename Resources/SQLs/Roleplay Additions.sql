@@ -8,6 +8,9 @@ INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_glob
 INSERT INTO `permissions_commands` (`command`) VALUES ('command_rp_toggle_skill');
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_hit', 1);
 
+-- server settings
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.hospital.room.id', '0', 'The hospital room.');
+
 -- fix rooms?
 ALTER TABLE rooms 
 MODIFY allow_pets_eat TINYINT(1) NOT NULL DEFAULT 0;
@@ -69,6 +72,8 @@ CREATE TABLE `user_rp_statistics`  (
   `damage_taken` bigint NOT NULL DEFAULT 0,
   `attacks` int NOT NULL DEFAULT 0,
   `attacked` int NOT NULL DEFAULT 0,
+  `knowledge` int NOT NULL DEFAULT 0,
+  `strength` int NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
 
@@ -135,5 +140,36 @@ INSERT INTO `rp_skills` VALUES (6, 'Lockpick', 'Lockpick', 'Increases your succe
 INSERT INTO `rp_skills` VALUES (7, 'Stamina-zor', 'Gym', 'Boosts health, energy, and hunger max.', 'Stamina');
 INSERT INTO `rp_skills` VALUES (8, 'Scavenger', 'Scavenge', 'Boosted chances of finding items when searching bins/crates.', 'Scavenger');
 
+-- weapons
+DROP TABLE IF EXISTS `user_rp_weapons`;
+CREATE TABLE `user_rp_weapons`  (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `weapon_id` int NOT NULL,
+  `durability_left` int NOT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
+
+DROP TABLE IF EXISTS `rp_weapons`;
+CREATE TABLE `rp_weapons`  (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(55) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL DEFAULT '',
+  `description` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL DEFAULT '',
+  `minimum_damage` int NOT NULL DEFAULT 0,
+  `maximum_damage` int NOT NULL DEFAULT 1,
+  `critical_chance` smallint NOT NULL DEFAULT 10 COMMENT 'As %. For instance 50% is 50-50 on hitting it, without Skill boosts.',
+  `critical_multiplier` double NOT NULL,
+  `effect_id` smallint NOT NULL DEFAULT 0,
+  `range` int NOT NULL DEFAULT 0,
+  `durability` int NOT NULL DEFAULT 0,
+  `image` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL DEFAULT '',
+  `stun_chance` int NOT NULL COMMENT '0-100',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
+
+INSERT INTO `rp_weapons` VALUES (1, 'Bat', 'Basketball bat, duh', 4, 6, 0, 1, 0, 0, 50, 'none.png', 5);
+INSERT INTO `rp_weapons` VALUES (2, 'Axe', 'An literal axe', 7, 9, 0, 1, 0, 0, 50, 'none.png', 7);
+INSERT INTO `rp_weapons` VALUES (3, 'Sword', 'Sword', 10, 12, 50, 1.5, 162, 0, 50, 'none.png', 100);
+INSERT INTO `rp_weapons` VALUES (4, 'Kunai', 'you throw these shits', 50, 60, 10, 0, 0, 5, 3, 'none.png', 0);
 
 SET FOREIGN_KEY_CHECKS = 1;
