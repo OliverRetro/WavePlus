@@ -26,7 +26,13 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
                 return; 
             }
 
-            if(targetClient.GetHabbo().CurrentRoomId != session.GetHabbo().CurrentRoomId)
+            if (targetClient == session)
+            {
+                session.SendWhisper("You cannot hit yourself!", 1);
+                return;
+            }
+
+            if (targetClient.GetHabbo().CurrentRoomId != session.GetHabbo().CurrentRoomId)
             {
                 session.SendWhisper("The user is not in the same room as you.", 1);
                 return;

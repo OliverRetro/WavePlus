@@ -7,7 +7,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
 {
     public class CombatManager
     {
-        private static readonly TimeSpan StunDuration = TimeSpan.FromSeconds(1.5);
+        private static readonly TimeSpan StunDuration = TimeSpan.FromSeconds(2);
 
         public void AttackUser(Habbo attacker, Habbo target)
         {

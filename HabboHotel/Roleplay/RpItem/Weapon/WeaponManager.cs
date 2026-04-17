@@ -46,7 +46,7 @@ namespace Plus.HabboHotel.Permissions
                     }
                 }
 
-                _weapons.Add(0, new Weapon(0, "Fists", "Basic hand attack", 1, 3, 0, 1, 0, 1, 999999, 0));
+                _weapons.Add(0, new Weapon(0, "Fists", "Basic hand attack", 1, 3, 0, 1, 0, 1, 999999, 1));
             }
 
             Log.Info($"[RP] Loaded {_weapons.Count} Weapons.");

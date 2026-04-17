@@ -458,6 +458,22 @@ namespace Plus.HabboHotel.Users
             return _rpStats;
         }
 
+        public int GetBubbleId(int requestedBubbleId)
+        {
+            if (Rank > 5)
+                return 23;
+
+            int health = _rpStats?.Health ?? 100;
+
+            if (health > 50)
+                return CustomBubbleId == 0 ? requestedBubbleId : CustomBubbleId;
+
+            if (health >= 20)
+                return 5;
+
+            return 3;
+        }
+
         public UserRpSkills GetRpSkills()
         {
             return _rpSkills;

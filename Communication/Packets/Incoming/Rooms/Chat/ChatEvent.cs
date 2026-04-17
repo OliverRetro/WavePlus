@@ -50,7 +50,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Chat
                 return;
             }
 
-            user.LastBubble = session.GetHabbo().CustomBubbleId == 0 ? colour : session.GetHabbo().CustomBubbleId;
+            user.LastBubble = session.GetHabbo().GetBubbleId(colour);
 
             if (!session.GetHabbo().GetPermissions().HasRight("mod_tool"))
             {
