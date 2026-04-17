@@ -33,7 +33,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Chat
             if (!PlusEnvironment.GetGame().GetChatManager().GetChatStyles().TryGetStyle(colour, out ChatStyle style) || style.RequiredRight.Length > 0 && !session.GetHabbo().GetPermissions().HasRight(style.RequiredRight))
                 colour = 0;
 
-            user.LastBubble = session.GetHabbo().CustomBubbleId == 0 ? colour : session.GetHabbo().CustomBubbleId;
+            user.LastBubble = session.GetHabbo().GetBubbleId(colour);
 
             if (PlusEnvironment.GetUnixTimestamp() < session.GetHabbo().FloodTime && session.GetHabbo().FloodTime != 0)
                 return;
