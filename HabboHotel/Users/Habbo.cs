@@ -166,6 +166,8 @@ namespace Plus.HabboHotel.Users
         private UserRpSkills _rpSkills;
         private UserRpWeapons _rpWeapons;
 
+        public double CustomBuildHeight { get; set; }
+
         public Habbo(int id, string username, int rank, string motto, string look, string gender, int credits, int activityPoints, int homeRoom,
             bool hasFriendRequestsDisabled, int lastOnline, bool appearOffline, bool hideInRoom, double createDate, int diamonds,
             string machineId, string clientVolume, bool chatPreference, bool focusPreference, bool petsMuted, bool botsMuted, bool advertisingReportBlocked, double lastNameChange,
@@ -297,6 +299,8 @@ namespace Plus.HabboHotel.Users
             Achievements = new ConcurrentDictionary<string, UserAchievement>();
             Relationships = new Dictionary<int, Relationship>();
             RatedRooms = new List<int>();
+
+            CustomBuildHeight = -1;
 
             //TODO: Nope.
             InitPermissions();
@@ -460,9 +464,6 @@ namespace Plus.HabboHotel.Users
 
         public int GetBubbleId(int requestedBubbleId)
         {
-            if (Rank > 5)
-                return 23;
-
             int health = _rpStats?.Health ?? 100;
 
             if (health > 50)

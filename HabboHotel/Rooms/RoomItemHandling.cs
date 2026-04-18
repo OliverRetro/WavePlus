@@ -464,6 +464,10 @@ namespace Plus.HabboHotel.Rooms
         {
             newRot = NormalizeFloorRotation(newRot);
 
+            double customBuildHeight = session?.GetHabbo()?.CustomBuildHeight ?? -1;
+            if (customBuildHeight > -1)
+                height = customBuildHeight;
+
             bool needsReAdd = false;
 
             if (newItem)

@@ -7,6 +7,7 @@ INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_room
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_global_heal', 6);
 INSERT INTO `permissions_commands` (`command`) VALUES ('command_rp_toggle_skill');
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_hit', 1);
+INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_buildheight', 1);
 
 -- server settings
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.hospital.room.id', '0', 'The hospital room.');
