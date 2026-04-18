@@ -37,7 +37,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
 
             if (!inRange)
             {
-                attacker.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, "*swings at " + target.Username + " , but misses*", 0, 23));
+                attacker.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, "*swings at " + target.Username + ", but misses*", 0, 23));
                 return;
             }
 
@@ -55,7 +55,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
             int totalDamage = result.TotalDamage;
 
             // Send shout about the attack
-            string shoutResult = result.IsCritical ? "*lands a critical hit on " + target.Username + " , dealing " + totalDamage + " damage*" : "*swings at " + target.Username + " , dealing " + totalDamage + " damage*";
+            string shoutResult = result.IsCritical ? "*lands a critical hit on " + target.Username + ", dealing " + totalDamage + " damage*" : "*swings at " + target.Username + ", dealing " + totalDamage + " damage*";
             attacker.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, shoutResult, 0, 23));
 
             attacker.GetRpWeapons().GetActiveWeapon().DurabilityLeft--;

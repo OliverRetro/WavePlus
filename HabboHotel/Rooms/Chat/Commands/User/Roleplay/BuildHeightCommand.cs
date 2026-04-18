@@ -17,6 +17,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
             {
                 if(session.GetHabbo().CustomBuildHeight != -1)
                 {
+                    session.GetHabbo().CustomBuildHeight = -1;
                     session.SendWhisper("Custom Build Height has been disabled.");
                     return;
                 } else {
