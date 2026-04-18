@@ -37,7 +37,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
 
             if (!inRange)
             {
-                attacker.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, "*Misses " + target.Username + "*", 0, 23));
+                attacker.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, "*swings at " + target.Username + " , but misses*", 0, 23));
                 return;
             }
 
@@ -45,7 +45,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
             bool stunTarget = Random.Shared.NextDouble() < ((weapon?.StunChance ?? 0) / 100.0);
             if (stunTarget)
             {
-                target.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(target.Id).VirtualId, "*Got stunned*", 0, 23));
+                target.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(target.Id).VirtualId, "*Gets stunned by the hit*", 0, 23));
                 StunUser(targetRoomUser);
             }
 
@@ -55,7 +55,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
             int totalDamage = result.TotalDamage;
 
             // Send shout about the attack
-            string shoutResult = result.IsCritical ? "*CRITICAL HIT! " + target.Username + " takes " + totalDamage + " damage!*" : "*hits " + target.Username + " for " + totalDamage + " damage*";
+            string shoutResult = result.IsCritical ? "*lands a critical hit on " + target.Username + " , dealing " + totalDamage + " damage*" : "*swings at " + target.Username + " , dealing " + totalDamage + " damage*";
             attacker.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, shoutResult, 0, 23));
 
             attacker.GetRpWeapons().GetActiveWeapon().DurabilityLeft--;
