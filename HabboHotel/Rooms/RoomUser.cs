@@ -97,6 +97,7 @@ namespace Plus.HabboHotel.Rooms
         public DateTime TimedFreezeUntilUtc;
 
         private int _timedFreezeId;
+        private int _timedFreezePreviousEffect;
 
         public RoomUser(int habboId, int roomId, int virtualId, Room room)
         {
@@ -450,6 +451,11 @@ namespace Plus.HabboHotel.Rooms
 
         public void ApplyTimedFreeze(TimeSpan duration)
         {
+            bool isAlreadyTimedFrozen = TimedFreezeUntilUtc > DateTime.UtcNow;
+
+            if (!isAlreadyTimedFrozen)
+                _timedFreezePreviousEffect = GetClient()?.GetHabbo()?.Effects()?.CurrentEffect ?? 0;
+
             TimedFreezeUntilUtc = DateTime.UtcNow.Add(duration);
 
             if (IsWalking || Statusses.ContainsKey("mv"))
@@ -457,6 +463,8 @@ namespace Plus.HabboHotel.Rooms
                 ClearMovement(true);
                 GetRoom()?.GetRoomUserManager().UpdateUserStatus(this, false);
             }
+
+            ApplyEffect(53);
 
             int freezeId = ++_timedFreezeId;
             _ = ClearTimedFreezeAsync(freezeId, duration);
@@ -467,7 +475,11 @@ namespace Plus.HabboHotel.Rooms
             await Task.Delay(duration);
 
             if (_timedFreezeId == freezeId)
+            {
                 TimedFreezeUntilUtc = DateTime.MinValue;
+
+                ApplyEffect(_timedFreezePreviousEffect);
+            }
         }
 
 

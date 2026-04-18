@@ -462,6 +462,8 @@ namespace Plus.HabboHotel.Rooms
 
         public bool SetFloorItem(GameClient session, Item item, int newX, int newY, int newRot, bool newItem, bool onRoller, bool sendMessage, bool updateRoomUserStatuses = false, double height = -1)
         {
+            newRot = NormalizeFloorRotation(newRot);
+
             bool needsReAdd = false;
 
             if (newItem)
@@ -617,9 +619,6 @@ namespace Plus.HabboHotel.Rooms
                     }
                 }
 
-                // Verify the rotation is correct
-                if (newRot != 0 && newRot != 2 && newRot != 4 && newRot != 6 && newRot != 8 && !item.GetBaseItem().ExtraRot)
-                    newRot = 0;
             }
             else
                 newZ = height;
@@ -677,6 +676,14 @@ namespace Plus.HabboHotel.Rooms
             }
 
             return true;
+        }
+
+        private static int NormalizeFloorRotation(int rotation)
+        {
+            if (rotation < 0)
+                return 0;
+
+            return rotation % 8;
         }
 
         public List<Item> GetFurniObjects(int x, int y)
