@@ -45,11 +45,11 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator
             //if its hands we fuck it all
             if (weaponId == 0)
             {
-                room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*Unequips weapons*", 0, 6));
+                room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*Unequips weapons*", 0, 11));
             }
             else
             {
-                room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*Equips " + weapon.WeaponData.Name + " as their active weapon*", 0, 6));
+                room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*Equips " + weapon.WeaponData.Name + " as their active weapon*", 0, 11));
             }
         }
     }
