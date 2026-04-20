@@ -37,16 +37,8 @@ namespace Plus.HabboHotel.Roleplay.Combat
 
             if (!inRange)
             {
-                attacker.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, "*swings at " + target.Username + ", but misses*", 0, 23));
+                attacker.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, "*swings at " + target.Username + ", but misses*", 0, 29));
                 return;
-            }
-
-            // stun
-            bool stunTarget = Random.Shared.NextDouble() < ((weapon?.StunChance ?? 0) / 100.0);
-            if (stunTarget)
-            {
-                target.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(target.Id).VirtualId, "*Gets stunned by the hit*", 0, 23));
-                StunUser(targetRoomUser);
             }
 
             // Damage user
@@ -54,31 +46,50 @@ namespace Plus.HabboHotel.Roleplay.Combat
 
             int totalDamage = result.TotalDamage;
 
-            // Send shout about the attack
-            string shoutResult = result.IsCritical ? "*lands a critical hit on " + target.Username + ", dealing " + totalDamage + " damage*" : "*swings at " + target.Username + ", dealing " + totalDamage + " damage*";
-            attacker.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, shoutResult, 0, 23));
+            int shieldBeforeHit = targetStats.Shield;
+            int healthBeforeHit = targetStats.Health;
+            int absorbedByShield = Math.Min(shieldBeforeHit, totalDamage);
+            int damageToHealth = Math.Min(healthBeforeHit, Math.Max(0, totalDamage - shieldBeforeHit));
+            int actualDamageDealt = absorbedByShield + damageToHealth;
+            bool isFinalBlow = damageToHealth >= healthBeforeHit && healthBeforeHit > 0;
 
             attacker.GetRpWeapons().GetActiveWeapon().DurabilityLeft--;
 
             // stats and damage application
-            int remainingDamage = totalDamage - targetStats.Shield;
             targetStats.Shield = Math.Max(0, targetStats.Shield - totalDamage);
 
-            if (remainingDamage > 0)
+            if (damageToHealth > 0)
             {
-                targetStats.Health = Math.Max(0, targetStats.Health - remainingDamage);
+                targetStats.Health -= damageToHealth;
             }
 
-            if (targetStats.Health <= 0)
+            if (isFinalBlow)
             {
-                targetStats.IsDead = true;
+                targetStats.Health = 0;
+                attackerStats.Kill(target, targetRoomUser);
+            }
+
+            // Send shout about the attack after damage is resolved so it reflects the final result.
+            string shoutResult = isFinalBlow
+                ? "*deals the final blow to " + target.Username + "*"
+                : result.IsCritical
+                    ? "*lands a critical hit on " + target.Username + ", dealing " + actualDamageDealt + " damage*"
+                    : "*swings at " + target.Username + ", dealing " + actualDamageDealt + " damage*";
+            attacker.CurrentRoom.SendPacket(new ShoutComposer(attackerRoomUser.VirtualId, shoutResult, 0, 29));
+
+            // stun
+            bool stunTarget = Random.Shared.NextDouble() < ((weapon?.StunChance ?? 0) / 100.0);
+            if (stunTarget && !targetStats.IsDead)
+            {
+                target.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(target.Id).VirtualId, "*Gets stunned by the hit*", 0, 29));
+                StunUser(targetRoomUser);
             }
 
             attackerStats.Attacks++;
-            attackerStats.DamageDealt += totalDamage;
+            attackerStats.DamageDealt += actualDamageDealt;
 
             targetStats.Attacked++;
-            targetStats.DamageTaken += totalDamage;
+            targetStats.DamageTaken += actualDamageDealt;
         }
 
         private DamageResult CalculateDamage(int minDamage, int maxDamage, double critChancePercent, double critMultiplier, int strength)
@@ -104,7 +115,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
             if (targetRoomUser == null)
                 return;
 
-            targetRoomUser.ApplyTimedFreeze(StunDuration);
+            targetRoomUser.ApplyTimedFreeze(StunDuration, 53);
         }
     }
 }

@@ -182,7 +182,43 @@ namespace Plus.HabboHotel.Rooms
 
         public bool IsBot => BotData != null;
 
-        public bool IsMovementFrozen => Frozen || TimedFreezeUntilUtc > DateTime.UtcNow;
+        public bool IsMovementFrozen => Frozen || TimedFreezeUntilUtc > DateTime.UtcNow || (GetClient()?.GetHabbo()?.GetRpStats()?.IsDead ?? false);
+
+        public void Lay()
+        {
+            if (!HasStatus("lay"))
+            {
+                if (RotBody % 2 == 0)
+                {
+                    try
+                    {
+                        Statusses.Add("lay", "1.0 null");
+                        Z -= 0.35;
+                        IsLying = true;
+                        UpdateNeeded = true;
+                    }
+                    catch
+                    {
+                    }
+                }
+                else
+                {
+                    RotBody--;
+                    Statusses.Add("lay", "1.0 null");
+                    Z -= 0.35;
+                    IsLying = true;
+                    UpdateNeeded = true;
+                }
+            }
+            else
+            {
+                Z += 0.35;
+                Statusses.Remove("lay");
+                Statusses.Remove("1.0");
+                IsLying = false;
+                UpdateNeeded = true;
+            }
+        }
 
         public string GetUsername()
         {
@@ -449,7 +485,7 @@ namespace Plus.HabboHotel.Rooms
             CanWalk = true;
         }
 
-        public void ApplyTimedFreeze(TimeSpan duration)
+        public void ApplyTimedFreeze(TimeSpan duration, int effectId)
         {
             bool isAlreadyTimedFrozen = TimedFreezeUntilUtc > DateTime.UtcNow;
 
@@ -464,7 +500,7 @@ namespace Plus.HabboHotel.Rooms
                 GetRoom()?.GetRoomUserManager().UpdateUserStatus(this, false);
             }
 
-            ApplyEffect(53);
+            ApplyEffect(effectId);
 
             int freezeId = ++_timedFreezeId;
             _ = ClearTimedFreezeAsync(freezeId, duration);

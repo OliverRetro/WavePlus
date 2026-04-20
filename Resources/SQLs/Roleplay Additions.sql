@@ -9,6 +9,13 @@ INSERT INTO `permissions_commands` (`command`) VALUES ('command_rp_toggle_skill'
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_hit', 1);
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_buildheight', 1);
 
+-- hospital
+ALTER TABLE `user_rp_statistics`
+ADD COLUMN `is_dead` int(11) NOT NULL DEFAULT 0,
+ADD COLUMN `hospital_release_time` double NOT NULL DEFAULT 0,
+ADD COLUMN `hospital_heal_start_time` double NOT NULL DEFAULT 0,
+ADD COLUMN `hospital_health_start` int(11) NOT NULL DEFAULT 0;
+
 -- server settings
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.hospital.room.id', '0', 'The hospital room.');
 

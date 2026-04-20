@@ -10,6 +10,7 @@ using Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Fun;
 using Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay;
 using Plus.HabboHotel.Rooms.Chat.Commands.User;
 using Plus.HabboHotel.Rooms.Chat.Commands.User.Fun;
+using Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -129,6 +130,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             Register("hit", new HitCommand());
             Register("toggleskill", new ToggleSkillCommand());
             Register("bh", new BuildHeightCommand());
+            Register("suicide", new SuicideCommand());
 
             Register("about", new InfoCommand());
             Register("pickall", new PickAllCommand());

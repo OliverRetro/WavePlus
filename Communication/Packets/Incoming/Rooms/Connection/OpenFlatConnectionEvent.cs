@@ -12,6 +12,10 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Connection
             int roomId = packet.PopInt();
             string password = packet.PopString();
 
+            int hospitalRoomId = PlusEnvironment.GetHospitalManager().GetLoginRoomId(session.GetHabbo());
+            if (hospitalRoomId > 0)
+                roomId = hospitalRoomId;
+
             session.GetHabbo().PrepareRoom(roomId, password);
         }
     }

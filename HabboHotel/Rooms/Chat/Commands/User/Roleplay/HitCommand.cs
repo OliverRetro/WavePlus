@@ -1,6 +1,6 @@
 ﻿using Plus.HabboHotel.GameClients;
 
-namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
+namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 {
     internal class HitCommand : IChatCommand
     {
@@ -12,9 +12,19 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
+            if (session == null || session.GetHabbo() == null)
+                return;
+
             if (@params.Length == 1)
             {
                 session.SendWhisper("Please enter the username of the user you wish attack.");
+                return;
+            }
+
+            double now = PlusEnvironment.GetUnixTimestamp();
+            if (session.GetHabbo().LastHitTime > now)
+            {
+                session.SendWhisper("You must wait 3 seconds between hits.", 1);
                 return;
             }
 
@@ -37,7 +47,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
                 session.SendWhisper("The user is not in the same room as you.", 1);
                 return;
             }
-                
+
+            session.GetHabbo().LastHitTime = now + 3;
             PlusEnvironment.GetCombatManager().AttackUser(session.GetHabbo(), targetClient.GetHabbo());      
         }
     }

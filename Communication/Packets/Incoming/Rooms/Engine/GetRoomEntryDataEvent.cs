@@ -45,6 +45,8 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
             if (room.GetWired() != null)
                 room.GetWired().TriggerEvent(WiredBoxType.TriggerRoomEnter, session.GetHabbo());
 
+            PlusEnvironment.GetHospitalManager().HandleRoomEntry(session.GetHabbo());
+
             if (PlusEnvironment.GetUnixTimestamp() < session.GetHabbo().FloodTime && session.GetHabbo().FloodTime != 0)
                 session.SendPacket(new FloodControlComposer((int) session.GetHabbo().FloodTime - (int) PlusEnvironment.GetUnixTimestamp()));
         }

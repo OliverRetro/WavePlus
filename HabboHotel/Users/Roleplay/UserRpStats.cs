@@ -1,5 +1,6 @@
 using System;
 using Plus.HabboHotel.Roleplay.RpItem.Weapon;
+using Plus.HabboHotel.Rooms;
 
 namespace Plus.HabboHotel.Users
 {
@@ -22,10 +23,14 @@ namespace Plus.HabboHotel.Users
         public int Knowledge { get; set; }
         public int Strength { get; set; }
         public bool IsDead { get; set; }
-        public DateTime NextHungerTick { get; set; }
+        public double HospitalReleaseTime { get; set; }
+        public double HospitalHealStartTime { get; set; }
+        public int HospitalHealthStart { get; set; }
+        public double NextPassiveHospitalHealTick { get; set; }
         public UserRpWeapons Weapons { get; set; }
+        public DateTime NextHungerTick { get; set; }
 
-        public UserRpStats(int userId, int health, int shield, int energy, int hunger, int experience, int knockouts, int deaths, int arrested, int escapes, int damageDealt, int damageTaken, int attacks, int attacked, int knowledge, int strength)
+        public UserRpStats(int userId, int health, int shield, int energy, int hunger, int experience, int knockouts, int deaths, int arrested, int escapes, int damageDealt, int damageTaken, int attacks, int attacked, int knowledge, int strength, bool isDead, double hospitalReleaseTime, double hospitalHealStartTime, int hospitalHealthStart)
         {
             UserId = userId;
             Health = health;
@@ -43,9 +48,12 @@ namespace Plus.HabboHotel.Users
             Attacked = attacked;
             Knowledge = knowledge;
             Strength = strength;
+            IsDead = isDead;
+            HospitalReleaseTime = hospitalReleaseTime;
+            HospitalHealStartTime = hospitalHealStartTime;
+            HospitalHealthStart = hospitalHealthStart;
+            NextPassiveHospitalHealTick = 0;
 
-            // not saved in db
-            IsDead = false;
             NextHungerTick = DateTime.UtcNow.AddMinutes(10);
         }
 
@@ -67,16 +75,14 @@ namespace Plus.HabboHotel.Users
 
         public void Heal(Habbo habbo, int health)
         {
-            IsDead = false;
             Health = Math.Min(Health + health, GetMaxHealth(habbo));
         }
 
-        public void Kill(Habbo target)
+        public void Kill(Habbo target, RoomUser user)
         {
-            // for combat
-            target.GetRpStats().IsDead = true;
-            target.GetRpStats().Deaths++;
-            Knockouts++;
+            if (target == null || user == null) { return; }
+
+            PlusEnvironment.GetHospitalManager().HandleDeath(this, target, user);
         }
 
         public UserWeapon ActiveWeapon()

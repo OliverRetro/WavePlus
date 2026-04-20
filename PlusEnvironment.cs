@@ -22,6 +22,7 @@ using Plus.HabboHotel.Cache.Type;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Permissions;
 using Plus.HabboHotel.Roleplay.Combat;
+using Plus.HabboHotel.Roleplay.Hospital;
 using Plus.HabboHotel.Users;
 using Plus.HabboHotel.Users.UserData;
 using Plus.Network;
@@ -52,6 +53,7 @@ namespace Plus
         private static SkillManager _skillManager;
         private static CombatManager _combatManager;
         private static WeaponManager _weaponManager;
+        private static HospitalManager _hospitalManager;
 
         // TODO: Get rid?
         public static bool Event = false;
@@ -151,6 +153,8 @@ namespace Plus
                 _skillManager.Init();
 
                 _combatManager = new CombatManager();
+
+                _hospitalManager = new HospitalManager();
 
                 _weaponManager = new WeaponManager();
                 _weaponManager.Init();
@@ -429,6 +433,11 @@ namespace Plus
         public static CombatManager GetCombatManager()
         {
             return _combatManager;
+        }
+
+        public static HospitalManager GetHospitalManager()
+        {
+            return _hospitalManager;
         }
 
         public static WeaponManager GetWeaponManager()

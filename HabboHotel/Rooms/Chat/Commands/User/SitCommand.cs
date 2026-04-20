@@ -12,6 +12,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
+            if(session.GetHabbo().GetRpStats().IsDead)
+            {
+                session.SendWhisper("You are actively bleeding out. Please don't move.", 1);
+                return;
+            }
+
             RoomUser user = room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id);
             if (user == null)
                 return;
