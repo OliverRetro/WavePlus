@@ -22,6 +22,9 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
                 UserRpStats rpStats = roomUser.GetClient().GetHabbo().GetRpStats();
                 if (rpStats.Health < rpStats.GetMaxHealth(roomUser.GetClient().GetHabbo()))
                 {
+                    if (rpStats.IsDead)
+                        PlusEnvironment.GetHospitalManager().CancelDeath(roomUser.GetClient().GetHabbo());
+
                     rpStats.Heal(roomUser.GetClient().GetHabbo(), 200);
                 }
             }

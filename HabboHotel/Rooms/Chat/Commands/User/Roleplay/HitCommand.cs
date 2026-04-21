@@ -1,4 +1,5 @@
 ﻿using Plus.HabboHotel.GameClients;
+using System;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 {
@@ -22,9 +23,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
             }
 
             double now = PlusEnvironment.GetUnixTimestamp();
+
             if (session.GetHabbo().LastHitTime > now)
             {
-                session.SendWhisper("You must wait 3 seconds between hits.", 1);
+                double secondsLeft = session.GetHabbo().LastHitTime - now;
+
+                session.SendWhisper("You must wait " + (int)Math.Ceiling(secondsLeft) + " seconds to swing again.", 1);
                 return;
             }
 

@@ -463,6 +463,13 @@ namespace Plus.HabboHotel.Rooms
                 return;
             }
 
+            if (!IsBot && GetClient()?.GetHabbo() != null && PlusEnvironment.GetHospitalManager().IsRestrictedHospitalBedTile(GetRoom(), GetClient().GetHabbo(), pX, pY))
+            {
+                GetClient().SendWhisper("You aren't in critical condition!", 1);
+                ClearMovement(true);
+                return;
+            }
+
             if ((GetRoom().GetGameMap().SquareHasUsers(pX, pY) && !pOverride) || IsMovementFrozen)
                 return;
 

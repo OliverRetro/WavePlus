@@ -1078,12 +1078,6 @@ namespace Plus.HabboHotel.Rooms
                         case InteractionType.Bed:
                         case InteractionType.TentSmall:
                         {
-                            if (item.GetBaseItem().InteractionType == InteractionType.Bed && user.GetClient() != null && user.GetClient().GetHabbo() != null && user.GetClient().GetHabbo().CurrentRoomId == PlusEnvironment.GetHospitalManager().GetHospitalRoomId() && !user.GetClient().GetHabbo().GetRpStats().IsDead)
-                            {
-                                user.GetClient().SendWhisper("You aren't in critical condition!", 1);
-                                break;
-                            }
-
                             if (!user.Statusses.ContainsKey("lay"))
                                 user.Statusses.Add("lay", TextHandling.GetString(item.GetBaseItem().Height) + " null");
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using Plus.HabboHotel.GameClients;
@@ -70,6 +71,42 @@ namespace Plus.HabboHotel.Roleplay.Hospital
 
             _bleedoutUsers.TryRemove(habbo.Id, out _);
             BeginHospitalStay(habbo, true);
+        }
+
+        public void CancelDeath(Habbo habbo)
+        {
+            if (habbo?.GetRpStats() == null)
+                return;
+
+            UserRpStats stats = habbo.GetRpStats();
+            stats.IsDead = false;
+            stats.HospitalReleaseTime = 0;
+            stats.HospitalHealStartTime = 0;
+            stats.HospitalHealthStart = 0;
+            stats.NextPassiveHospitalHealTick = 0;
+
+            _deadUsers.TryRemove(habbo.Id, out _);
+            _bleedoutUsers.TryRemove(habbo.Id, out _);
+
+            if (habbo.CurrentRoom == null)
+            {
+                habbo.SaveRpStats();
+                return;
+            }
+
+            RoomUser roomUser = habbo.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(habbo.Id);
+            if (roomUser != null)
+            {
+                roomUser.ClearMovement(true);
+                roomUser.RemoveStatus("lay");
+                roomUser.RemoveStatus("sit");
+                roomUser.IsLying = false;
+                roomUser.IsSitting = false;
+                roomUser.UpdateNeeded = true;
+                habbo.CurrentRoom.GetRoomUserManager().UpdateUserStatus(roomUser, false);
+            }
+
+            habbo.SaveRpStats();
         }
 
         public void HandleUserCycle(Habbo habbo)
@@ -157,7 +194,7 @@ namespace Plus.HabboHotel.Roleplay.Hospital
 
         private void HandlePassiveHospitalHeal(Habbo habbo)
         {
-            if (habbo.CurrentRoom == null || habbo.CurrentRoom.RoomId != GetHospitalRoomId())
+            if (habbo.CurrentRoom == null || habbo.CurrentRoom.RoomId != GetHospitalRoomId() || habbo.GetRpStats().IsDead)
                 return;
 
             UserRpStats stats = habbo.GetRpStats();
@@ -193,6 +230,18 @@ namespace Plus.HabboHotel.Roleplay.Hospital
             }
 
             return hospitalRoomId;
+        }
+
+        public bool IsRestrictedHospitalBedTile(Room room, Habbo habbo, int x, int y)
+        {
+            if (room == null || habbo == null)
+                return false;
+
+            if (room.RoomId != GetHospitalRoomId() || habbo.GetRpStats()?.IsDead == true)
+                return false;
+
+            List<Item> items = room.GetGameMap().GetAllRoomItemForSquare(x, y);
+            return items.Any(item => item?.GetBaseItem()?.InteractionType == InteractionType.Bed);
         }
 
         private void ProgressBleedout(Habbo habbo)
