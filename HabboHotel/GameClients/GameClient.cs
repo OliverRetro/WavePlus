@@ -89,7 +89,7 @@ namespace Plus.HabboHotel.GameClients
 
                     SendPacket(new AuthenticationOkComposer());
                     SendPacket(new AvatarEffectsComposer(_habbo.Effects().GetAllEffects));
-                    SendPacket(new NavigatorSettingsComposer(_habbo.HomeRoom));
+                    SendPacket(new NavigatorSettingsComposer(_habbo.GetReconnectRoomId()));
                     SendPacket(new FavouritesComposer(userData.User.FavoriteRooms));
                     SendPacket(new FigureSetIdsComposer(_habbo.GetClothing().GetClothingParts));
                     SendPacket(new UserRightsComposer(_habbo.Rank));

@@ -9,6 +9,9 @@ INSERT INTO `permissions_commands` (`command`) VALUES ('command_rp_toggle_skill'
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_hit', 1);
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_buildheight', 1);
 
+ALTER TABLE `users`
+ADD COLUMN `home_room_data` LONGTEXT NOT NULL DEFAULT '{"roomid":17,"x":18,"y":22,"z":0,"rotation":4,"weapon":0}';
+
 -- hospital
 ALTER TABLE `user_rp_statistics`
 ADD COLUMN `is_dead` int(11) NOT NULL DEFAULT 0,

@@ -7,7 +7,7 @@ namespace Plus.HabboHotel.Users.Authenticator
     {
         public static Habbo GenerateHabbo(DataRow row, DataRow userInfo)
         {
-            return new Habbo(Convert.ToInt32(row["id"]), Convert.ToString(row["username"]), Convert.ToInt32(row["rank"]), Convert.ToString(row["motto"]), Convert.ToString(row["look"]),
+            Habbo habbo = new Habbo(Convert.ToInt32(row["id"]), Convert.ToString(row["username"]), Convert.ToInt32(row["rank"]), Convert.ToString(row["motto"]), Convert.ToString(row["look"]),
                 Convert.ToString(row["gender"]), Convert.ToInt32(row["credits"]), Convert.ToInt32(row["activity_points"]),
                 Convert.ToInt32(row["home_room"]), PlusEnvironment.EnumToBool(row["block_newfriends"].ToString()), Convert.ToInt32(row["last_online"]),
                 PlusEnvironment.EnumToBool(row["hide_online"].ToString()), PlusEnvironment.EnumToBool(row["hide_inroom"].ToString()),
@@ -17,6 +17,10 @@ namespace Plus.HabboHotel.Users.Authenticator
                 PlusEnvironment.EnumToBool(Convert.ToString(row["ignore_invites"])), Convert.ToDouble(row["time_muted"]), Convert.ToDouble(userInfo["trading_locked"]),
                 PlusEnvironment.EnumToBool(row["allow_gifts"].ToString()), Convert.ToInt32(row["friend_bar_state"]), PlusEnvironment.EnumToBool(row["disable_forced_effects"].ToString()),
                 PlusEnvironment.EnumToBool(row["allow_mimic"].ToString()), Convert.ToInt32(row["rank_vip"]));
+
+                habbo.LoadHomeRoomData(Convert.ToString(row["home_room_data"]));
+
+            return habbo;
         }
     }
 }

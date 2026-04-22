@@ -155,6 +155,7 @@ namespace Plus.HabboHotel.Roleplay.Hospital
             if (habbo.CurrentRoom.RoomId != GetHospitalRoomId())
                 return;
 
+            habbo.PendingReconnectPlacement = false;
             PlaceOnHospitalBed(habbo);
         }
 

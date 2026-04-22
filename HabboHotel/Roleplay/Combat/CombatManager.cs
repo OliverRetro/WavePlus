@@ -71,7 +71,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
 
             // Send shout about the attack after damage is resolved so it reflects the final result.
             string shoutResult = isFinalBlow
-                ? "*deals the final blow to " + target.Username + "*"
+                ? "*deals the final blow to " + target.Username + " with " + actualDamageDealt + " damage*"
                 : result.IsCritical
                     ? "*lands a critical hit on " + target.Username + ", dealing " + actualDamageDealt + " damage*"
                     : "*swings at " + target.Username + ", dealing " + actualDamageDealt + " damage*";

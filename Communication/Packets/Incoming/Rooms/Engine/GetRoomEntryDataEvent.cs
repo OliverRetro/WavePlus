@@ -47,6 +47,9 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
 
             PlusEnvironment.GetHospitalManager().HandleRoomEntry(session.GetHabbo());
 
+            if (session.GetHabbo().GetRpStats()?.IsDead != true)
+                session.GetHabbo().ApplyHomeRoomData();
+
             if (PlusEnvironment.GetUnixTimestamp() < session.GetHabbo().FloodTime && session.GetHabbo().FloodTime != 0)
                 session.SendPacket(new FloodControlComposer((int) session.GetHabbo().FloodTime - (int) PlusEnvironment.GetUnixTimestamp()));
         }
