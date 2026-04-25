@@ -135,6 +135,8 @@ namespace Plus.HabboHotel.Users
         public bool OnHelperDuty { get; set; }
         public HomeRoomDataState HomeRoomData { get; set; }
         public bool PendingReconnectPlacement { get; set; }
+        public int CachedSkillHealth { get; set; }
+        public bool HasCachedSkillHealth { get; set; }
 
         // FastFood
         public int FastFoodScore { get; set; }
@@ -618,7 +620,33 @@ namespace Plus.HabboHotel.Users
 
         public bool ToggleSkill(int skillId)
         {
-            return _rpSkills.ToggleSkill(skillId);
+            if (skillId != 7)
+                return _rpSkills.ToggleSkill(skillId);
+
+            bool isEquipped = _rpSkills.IsEquipped(skillId);
+            bool toggled = _rpSkills.ToggleSkill(skillId);
+            if (!toggled || _rpStats == null)
+                return toggled;
+
+            if (isEquipped)
+            {
+                if (_rpStats.Health > 100)
+                {
+                    CachedSkillHealth = _rpStats.Health;
+                    HasCachedSkillHealth = true;
+                    _rpStats.Health = 100;
+                }
+            }
+            else if (HasCachedSkillHealth)
+            {
+                if (CachedSkillHealth > _rpStats.Health)
+                    _rpStats.Health = CachedSkillHealth;
+
+                CachedSkillHealth = 0;
+                HasCachedSkillHealth = false;
+            }
+
+            return true;
         }
 
         public void SaveRpStats()

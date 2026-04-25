@@ -26,7 +26,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
 
             int skillId = Convert.ToInt32(@params[1]);
 
-            if (session.GetHabbo().GetRpSkills().ToggleSkill(skillId))
+            if (session.GetHabbo().ToggleSkill(skillId))
             {
                 Skill skill = PlusEnvironment.GetSkillManager().GetSkillById(skillId);
 
