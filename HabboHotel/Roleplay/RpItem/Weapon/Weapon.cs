@@ -7,6 +7,8 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
         public int Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
+        public string HitMessage { get; set; }
+        public string CriticalHitMessage { get; set; }
         public int MinimumDamage { get; set; }
         public int MaximumDamage { get; set; }
         public int CriticalChance { get; set; }
@@ -15,12 +17,15 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
         public int Range { get; set; }
         public int Durability { get; set; }
         public int StunChance { get; set; }
+        public string Image { get; set; }
 
-        public Weapon(int id, string name, string description, int minimumDamage, int maximumDamage, int criticalChance, double criticalMultiplier, int effect, int range, int durability, int stunChance)
+        public Weapon(int id, string name, string description, string hitMessage, string criticalHitMessage, int minimumDamage, int maximumDamage, int criticalChance, double criticalMultiplier, int effect, int range, int durability, int stunChance, string image)
         {
             Id = id;
             Name = name;
             Description = description;
+            HitMessage = hitMessage;
+            CriticalHitMessage = criticalHitMessage;
             MinimumDamage = minimumDamage;
             MaximumDamage = maximumDamage;
             CriticalChance = criticalChance;
@@ -29,6 +34,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
             Range = range;
             Durability = durability;
             StunChance = stunChance;
+            Image = image;
         }
     }
 }

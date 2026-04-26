@@ -182,6 +182,7 @@ namespace Plus.HabboHotel.Users
         private UserRpStats _rpStats;
         private UserRpSkills _rpSkills;
         private UserRpWeapons _rpWeapons;
+        private UserRpWeaponSkins _rpWeaponSkins;
 
         public double CustomBuildHeight { get; set; }
 
@@ -448,6 +449,29 @@ namespace Plus.HabboHotel.Users
 
             using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
             {
+                dbClient.SetQuery("SELECT `id`,`skin_id`,`equipped` FROM `user_rp_weapon_skins` WHERE `user_id` = @user_id");
+                dbClient.AddParameter("user_id", id);
+                DataTable skinTable = dbClient.GetTable();
+
+                List<UserWeaponSkin> loadedSkins = new();
+                if (skinTable != null)
+                {
+                    foreach (DataRow row in skinTable.Rows)
+                    {
+                        WeaponSkin skinData = PlusEnvironment.GetWeaponManager().GetSkinById(Convert.ToInt32(row["skin_id"]));
+                        if (skinData == null)
+                            continue;
+
+                        loadedSkins.Add(new UserWeaponSkin(Convert.ToInt32(row["id"]), id, skinData.Id, Convert.ToInt32(row["equipped"]) == 1, skinData));
+                    }
+                }
+
+                _rpWeaponSkins = new UserRpWeaponSkins(loadedSkins);
+                _rpWeaponSkins.MarkSaved();
+            }
+
+            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            {
                 dbClient.SetQuery("SELECT `skill_id`,`progress`,`equipped` FROM `user_rp_skills` WHERE `user_id` = @user_id");
                 dbClient.AddParameter("user_id", id);
                 DataTable skillTable = dbClient.GetTable();
@@ -567,7 +591,11 @@ namespace Plus.HabboHotel.Users
             CurrentRoom.GetRoomUserManager().UpdateUserStatus(roomUser, false);
 
             if (GetRpWeapons() != null && GetRpWeapons().SetActiveWeaponId(HomeRoomData.weapon))
-                Effects().ApplyEffect(GetRpWeapons().GetActiveWeapon().WeaponData.Effect);
+            {
+                UserWeapon activeWeapon = GetRpWeapons().GetActiveWeapon();
+                UserWeaponSkin equippedSkin = GetRpWeaponSkins()?.GetEquippedSkinForWeapon(activeWeapon.WeaponId);
+                Effects().ApplyEffect(equippedSkin?.SkinData?.EffectId ?? activeWeapon.WeaponData.Effect);
+            }
 
             PendingReconnectPlacement = false;
         }
@@ -596,6 +624,11 @@ namespace Plus.HabboHotel.Users
         public UserRpWeapons GetRpWeapons()
         {
             return _rpWeapons;
+        }
+
+        public UserRpWeaponSkins GetRpWeaponSkins()
+        {
+            return _rpWeaponSkins;
         }
 
         public int ProgressSkill(string progressCategory, int progress)
@@ -759,11 +792,51 @@ namespace Plus.HabboHotel.Users
                         dbClient.AddParameter("user_id", Id);
                         dbClient.AddParameter("weapon_id", weapon.WeaponId);
                         dbClient.AddParameter("durability_left", weapon.DurabilityLeft);
+                        int oldId = weapon.Id;
                         weapon.Id = (int)dbClient.InsertQuery();
+                        _rpWeapons.RekeyWeapon(oldId, weapon.Id);
                     }
                 }
 
                 _rpWeapons.MarkSaved();
+            }
+            catch (Exception e)
+            {
+                ExceptionLogger.LogException(e);
+            }
+        }
+
+        public void SaveRpWeaponSkins()
+        {
+            if (_rpWeaponSkins == null || !_rpWeaponSkins.Dirty)
+                return;
+
+            try
+            {
+                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                {
+                    foreach (UserWeaponSkin skin in _rpWeaponSkins.Skins)
+                    {
+                        if (skin.Id > 0)
+                        {
+                            dbClient.SetQuery("UPDATE `user_rp_weapon_skins` SET `equipped` = @equipped WHERE `id` = @id LIMIT 1");
+                            dbClient.AddParameter("equipped", skin.Equipped ? 1 : 0);
+                            dbClient.AddParameter("id", skin.Id);
+                            dbClient.RunQuery();
+                            continue;
+                        }
+
+                        dbClient.SetQuery("INSERT INTO `user_rp_weapon_skins` (`user_id`, `skin_id`, `equipped`) VALUES (@user_id, @skin_id, @equipped)");
+                        dbClient.AddParameter("user_id", Id);
+                        dbClient.AddParameter("skin_id", skin.SkinId);
+                        dbClient.AddParameter("equipped", skin.Equipped ? 1 : 0);
+                        int oldId = skin.Id;
+                        skin.Id = (int)dbClient.InsertQuery();
+                        _rpWeaponSkins.RekeySkin(oldId, skin.Id);
+                    }
+                }
+
+                _rpWeaponSkins.MarkSaved();
             }
             catch (Exception e)
             {
@@ -937,6 +1010,7 @@ namespace Plus.HabboHotel.Users
 
                 SaveRpStats();
                 SaveRpWeapons();
+                SaveRpWeaponSkins();
                 SaveRpSkills();
             }
 

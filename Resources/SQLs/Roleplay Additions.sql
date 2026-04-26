@@ -8,6 +8,7 @@ INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_glob
 INSERT INTO `permissions_commands` (`command`) VALUES ('command_rp_toggle_skill');
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_hit', 1);
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_buildheight', 1);
+INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_unlockall', 6);
 
 ALTER TABLE `users`
 ADD COLUMN `home_room_data` LONGTEXT NOT NULL DEFAULT '{"roomid":17,"x":18,"y":22,"z":0,"rotation":4,"weapon":0}';
@@ -166,6 +167,8 @@ CREATE TABLE `rp_weapons`  (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(55) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL DEFAULT '',
   `description` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL DEFAULT '',
+  `hit_message` varchar(110) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL DEFAULT '*swings at %username%, dealing %damage% damage*' COMMENT 'Variables available username and damage',
+  `critical_hit_message` varchar(110) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL DEFAULT '*lands a critical hit on %username%, dealing %damage% damage*',
   `minimum_damage` int NOT NULL DEFAULT 0,
   `maximum_damage` int NOT NULL DEFAULT 1,
   `critical_chance` smallint NOT NULL DEFAULT 10 COMMENT 'As %. For instance 50% is 50-50 on hitting it, without Skill boosts.',
@@ -175,12 +178,38 @@ CREATE TABLE `rp_weapons`  (
   `durability` int NOT NULL DEFAULT 0,
   `image` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL DEFAULT '',
   `stun_chance` int NOT NULL COMMENT '0-100',
+  `rarity` smallint NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
 
-INSERT INTO `rp_weapons` VALUES (1, 'Bat', 'Basketball bat, duh', 4, 6, 0, 1, 0, 0, 50, 'none.png', 5);
-INSERT INTO `rp_weapons` VALUES (2, 'Axe', 'An literal axe', 7, 9, 0, 1, 0, 0, 50, 'none.png', 7);
-INSERT INTO `rp_weapons` VALUES (3, 'Sword', 'Sword', 10, 12, 50, 1.5, 162, 0, 50, 'none.png', 100);
-INSERT INTO `rp_weapons` VALUES (4, 'Kunai', 'you throw these shits', 50, 60, 10, 0, 0, 5, 3, 'none.png', 0);
+
+INSERT INTO `rp_weapons` VALUES (1, 'Bat', 'Basketball bat, duh', '*swings at %username%, dealing %damage% damage*', '*lands a critical hit on %username%, dealing %damage% damage*', 4, 6, 0, 1, 0, 50, 50, 'none.png', 5, 0);
+INSERT INTO `rp_weapons` VALUES (2, 'Axe', 'An literal axe', '*swings at %username%, dealing %damage% damage*', '*lands a critical hit on %username%, dealing %damage% damage*', 7, 9, 0, 1, 0, 50, 50, 'none.png', 7, 0);
+INSERT INTO `rp_weapons` VALUES (3, 'Sword', 'Sword', '*swings at %username%, dealing %damage% damage*', '*lands a critical hit on %username%, dealing %damage% damage*', 12, 15, 50, 2, 162, 50, 50, 'none.png', 100, 1);
+INSERT INTO `rp_weapons` VALUES (4, 'Kunai', 'you throw these shits', '*throws Kunai at %username%, dealing %damage% damage*', '*lands a critical hit on %username%, dealing %damage% damage*', 50, 60, 10, 0, 0, 50, 3, 'none.png', 0, 0);
+
+DROP TABLE IF EXISTS `user_rp_weapon_skins`;
+CREATE TABLE `user_rp_weapon_skins`  (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `skin_id` int NOT NULL,
+  `equipped` int NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
+
+DROP TABLE IF EXISTS `rp_weapon_skins`;
+CREATE TABLE `rp_weapon_skins`  (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `weapon_id` int NOT NULL,
+  `name` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
+  `hit_message` varchar(110) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '*swings at %username%, dealing %damage% damage*',
+  `critical_hit_message` varchar(110) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '*lands a critical hit on %username%, dealing %damage% damage*',
+  `base_price` int NOT NULL DEFAULT 0,
+  `rarity` smallint NOT NULL DEFAULT 0,
+  `effect_id` int NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
+
+INSERT INTO `rp_weapon_skins` VALUES (1, 3, 'Elden Wand', '*fires a fire blast at %username%, dealing %damage% damage*', '*fucking destroys %username%, dealing %damage% damage*', 0, 3, 26);
 
 SET FOREIGN_KEY_CHECKS = 1;

@@ -185,6 +185,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             Register("globalheal", new GlobalHealCommand());
             Register("tempinventory", new TempRpInventoryCommand());
             Register("setweapon", new EquipWeaponCommand());
+            Register("setweaponskin", new ToggleWeaponSkinCommand());
+            Register("unlockall", new UnlockEverythingCommand());
 
             // rest
             Register("ban", new BanCommand());

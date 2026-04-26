@@ -1,9 +1,7 @@
 ﻿using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Roleplay.RpItem.Weapon;
-using Plus.HabboHotel.Roleplay.Skill;
 using System;
-using System.Security.Policy;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator
 {
@@ -40,12 +38,17 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator
 
             // use the equipped weapon, this will apply the weapon's effects to the user and make them able to use it in combat.
             UserWeapon weapon = session.GetHabbo().GetRpWeapons().GetActiveWeapon();
-            session.GetHabbo().Effects().ApplyEffect(weapon.WeaponData.Effect);
+            UserWeaponSkin equippedSkin = session.GetHabbo().GetRpWeaponSkins()?.GetEquippedSkinForWeapon(weapon.WeaponId);
+            session.GetHabbo().Effects().ApplyEffect(equippedSkin?.SkinData?.EffectId ?? weapon.WeaponData.Effect);
 
             //if its hands we fuck it all
             if (weaponId == 0)
             {
                 room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*Unequips weapons*", 0, 11));
+            }
+            else if (equippedSkin != null)
+            {
+                room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*Equips " + equippedSkin.SkinData.Name + " as their active weapon skin*", 0, 11));
             }
             else
             {

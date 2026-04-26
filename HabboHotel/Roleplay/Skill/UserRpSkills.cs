@@ -111,6 +111,18 @@ namespace Plus.HabboHotel.Roleplay.Skill
             return skill == null ? 0 : ProgressSkill(skill.Id, progress);
         }
 
+        public bool GrantMaxSkill(int skillId)
+        {
+            if (!_skillManager.TryGetSkill(skillId, out Skill skill) || skill.Levels.Count == 0)
+                return false;
+
+            int maxProgress = skill.Levels.Values.Max(x => x.RequiredProgress);
+            UserSkillData userSkill = GetOrCreateSkill(skillId);
+            userSkill.SetProgress(maxProgress);
+            Dirty = true;
+            return true;
+        }
+
         public void SetEquipped(int skillId, bool equipped)
         {
             if (equipped && !HasUnlockedSkill(skillId))

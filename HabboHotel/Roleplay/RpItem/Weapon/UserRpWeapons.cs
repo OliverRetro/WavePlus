@@ -77,6 +77,15 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
             Dirty = false;
         }
 
+        public void RekeyWeapon(int oldId, int newId)
+        {
+            if (oldId == newId || !_weapons.TryGetValue(oldId, out UserWeapon weapon))
+                return;
+
+            _weapons.Remove(oldId);
+            _weapons[newId] = weapon;
+        }
+
         private UserWeapon CreateDefaultWeapon()
         {
             Weapon defaultWeapon = _weaponManager.GetWeaponById(0);

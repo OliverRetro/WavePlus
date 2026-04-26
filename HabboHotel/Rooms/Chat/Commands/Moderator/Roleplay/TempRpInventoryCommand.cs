@@ -37,6 +37,19 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
                     habboInfo.Append($"ID: {weaponData.Id} - {weapon.Name} - Durability: {weaponData.DurabilityLeft}\r");
                 }
 
+                habboInfo.Append("\r<b>Weapon skins owned:</b>\r");
+
+                foreach (UserWeaponSkin skinData in session.GetHabbo().GetRpWeaponSkins().Skins)
+                {
+                    WeaponSkin skin = skinData.SkinData;
+                    Weapon baseWeapon = PlusEnvironment.GetWeaponManager().GetWeaponById(skin?.WeaponId ?? 0);
+
+                    if (skin == null)
+                        continue;
+
+                    habboInfo.Append($"ID: {skinData.Id} - {skin.Name} - Weapon: {baseWeapon?.Name ?? "Unknown"} - Equipped: {(skinData.Equipped ? "Yes" : "No")}\r");
+                }
+
                 habboInfo.Append("\r<b>Other Items:</b>\r");
                 habboInfo.Append("Not coded yet.");
             }

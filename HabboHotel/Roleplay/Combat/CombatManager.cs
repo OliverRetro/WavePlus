@@ -1,5 +1,6 @@
 using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.HabboHotel.Rooms;
+using Plus.HabboHotel.Roleplay.RpItem.Weapon;
 using Plus.HabboHotel.Users;
 using System;
 
@@ -25,7 +26,9 @@ namespace Plus.HabboHotel.Roleplay.Combat
             if (attackerStats.IsDead || targetStats.IsDead)
                 return;
 
-            var weapon = attackerStats.ActiveWeapon()?.WeaponData;
+            UserWeapon activeWeapon = attackerStats.ActiveWeapon();
+            var weapon = activeWeapon?.WeaponData;
+            WeaponSkin skin = attacker.GetRpWeaponSkins()?.GetEquippedSkinForWeapon(activeWeapon?.WeaponId ?? 0)?.SkinData;
 
             int range = weapon?.Range ?? 1;
 
@@ -72,9 +75,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
             // Send shout about the attack after damage is resolved so it reflects the final result.
             string shoutResult = isFinalBlow
                 ? "*deals the final blow to " + target.Username + " with " + actualDamageDealt + " damage*"
-                : result.IsCritical
-                    ? "*lands a critical hit on " + target.Username + ", dealing " + actualDamageDealt + " damage*"
-                    : "*swings at " + target.Username + ", dealing " + actualDamageDealt + " damage*";
+                : FormatAttackMessage(skin, weapon, target.Username, actualDamageDealt, result.IsCritical);
             attacker.CurrentRoom.SendPacket(new ShoutComposer(attackerRoomUser.VirtualId, shoutResult, 0, 29));
 
             // stun
@@ -116,6 +117,17 @@ namespace Plus.HabboHotel.Roleplay.Combat
                 return;
 
             targetRoomUser.ApplyTimedFreeze(StunDuration, 53);
+        }
+
+        private static string FormatAttackMessage(WeaponSkin skin, Weapon weapon, string targetUsername, int damage, bool isCritical)
+        {
+            string message = isCritical
+                ? skin?.CriticalHitMessage ?? weapon?.CriticalHitMessage ?? "*lands a critical hit on %username%, dealing %damage% damage*"
+                : skin?.HitMessage ?? weapon?.HitMessage ?? "*swings at %username%, dealing %damage% damage*";
+
+            return message
+                .Replace("%username%", targetUsername)
+                .Replace("%damage%", damage.ToString());
         }
     }
 }

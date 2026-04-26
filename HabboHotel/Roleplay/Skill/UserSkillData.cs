@@ -21,6 +21,11 @@ namespace Plus.HabboHotel.Roleplay.Skill
             Progress += progress;
         }
 
+        public void SetProgress(int progress)
+        {
+            Progress = progress;
+        }
+
         public void SetEquipped(bool equipped)
         {
             Equipped = equipped;
