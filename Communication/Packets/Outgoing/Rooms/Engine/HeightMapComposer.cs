@@ -24,7 +24,12 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Engine
             {
                 for (int x = 0; x < map.MapSizeX; x++)
                 {
-                    packet.WriteShort((short)(_room.GetGameMap().SqAbsoluteHeight(x, y) * 256));
+                    // Blocked tiles must be marked short.MaxValue so the client's
+                    // walkability map is correct (matches Java RoomRelativeMapComposer).
+                    if (map.SqState[x, y] == SquareState.Blocked)
+                        packet.WriteShort(short.MaxValue);
+                    else
+                        packet.WriteShort((short)(_room.GetGameMap().SqAbsoluteHeight(x, y) * 256));
                 }
             }
         }

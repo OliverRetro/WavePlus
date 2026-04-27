@@ -1150,10 +1150,14 @@ namespace Plus.HabboHotel.Users
             if (GetClient().GetHabbo().InRoom)
             {
                 if (!PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(GetClient().GetHabbo().CurrentRoomId, out Room oldRoom))
-                    return;
-
-                if (oldRoom.GetRoomUserManager() != null)
+                {
+                    // Old room no longer loaded (unloaded while idle) — clear the stale room ID and continue.
+                    GetClient().GetHabbo().CurrentRoomId = 0;
+                }
+                else if (oldRoom.GetRoomUserManager() != null)
+                {
                     oldRoom.GetRoomUserManager().RemoveUserFromRoom(GetClient(), false);
+                }
             }
 
             if (GetClient().GetHabbo().IsTeleporting && GetClient().GetHabbo().TeleportingRoomId != id)
@@ -1242,7 +1246,7 @@ namespace Plus.HabboHotel.Users
             }
 
             data.UsersNow++;
-            GetClient().SendPacket(new RoomReadyComposer(room.Id, room.ModelName));
+            GetClient().SendPacket(new RoomReadyComposer(room));
             if (room.Wallpaper != "0.0")
                 GetClient().SendPacket(new RoomPropertyComposer("wallpaper", room.Wallpaper));
             if (room.Floor != "0.0")
@@ -1250,6 +1254,11 @@ namespace Plus.HabboHotel.Users
 
             GetClient().SendPacket(new RoomPropertyComposer("landscape", room.Landscape));
             GetClient().SendPacket(new RoomRatingComposer(room.Score, !(GetClient().GetHabbo().RatedRooms.Contains(room.RoomId) || room.OwnerId == GetClient().GetHabbo().Id)));
+
+            // The client only sends GetFurnitureAliases on the very first connection and then
+            // stops. We must push FurnitureAliases proactively on every room entry so that the
+            // client always receives it and triggers GetRoomEntryData in response.
+            GetClient().SendPacket(new FurnitureAliasesComposer());
             using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
             {
                 dbClient.RunQuery("INSERT INTO user_roomvisits (user_id,room_id,entry_timestamp,exit_timestamp,hour,minute) VALUES ('" + GetClient().GetHabbo().Id + "','" + GetClient().GetHabbo().CurrentRoomId + "','" + DateTimeOffset.UtcNow.ToUnixTimeSeconds() + "','0','" + DateTime.Now.Hour + "','" + DateTime.Now.Minute + "');"); // +

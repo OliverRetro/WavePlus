@@ -1,8 +1,5 @@
-﻿using Plus.Communication.Packets.Outgoing.Rooms.Engine;
-using Plus.HabboHotel.GameClients;
-using Plus.HabboHotel.Rooms;
+﻿using Plus.HabboHotel.GameClients;
 using log4net;
-using Plus.Communication.Packets.Outgoing.Rooms.Session;
 
 namespace Plus.Communication.Packets.Incoming.Rooms.Engine
 {
@@ -12,7 +9,9 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
 
         public void Parse(GameClient session, ClientPacket packet)
         {
-            session.SendPacket(new FurnitureAliasesComposer());
+            // FurnitureAliases is now pushed proactively by EnterRoom() on every room entry,
+            // so we must not respond here — doing so would cause a duplicate FurnitureAliases
+            // packet, triggering two GetRoomEntryData requests and triple-adding the user.
         }
     }
 }

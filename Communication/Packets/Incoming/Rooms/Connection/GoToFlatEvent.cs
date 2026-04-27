@@ -1,5 +1,4 @@
-﻿using Plus.Communication.Packets.Outgoing.Rooms.Session;
-using Plus.HabboHotel.GameClients;
+﻿using Plus.HabboHotel.GameClients;
 
 namespace Plus.Communication.Packets.Incoming.Rooms.Connection
 {
@@ -7,11 +6,10 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Connection
     {
         public void Parse(GameClient session, ClientPacket packet)
         {
-            if (!session.GetHabbo().InRoom)
-                return;
-
-            if (!session.GetHabbo().EnterRoom(session.GetHabbo().CurrentRoom))
-                session.SendPacket(new CloseConnectionComposer());
+            // GoToFlat is sent by the client after it has finished rendering the room model.
+            // The actual room entry (AddAvatarToRoom + SendObjects) happens in GetRoomEntryDataEvent.
+            // Calling EnterRoom() here was sending a second RoomReadyComposer on every entry,
+            // which caused the client's loading state machine to reset and never complete on re-entry.
         }
     }
 }
