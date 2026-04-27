@@ -80,23 +80,34 @@ namespace Plus.HabboHotel.Items
                     break;
 
                 case InteractionType.Background:
-                    packet.WriteInteger(0);
-                    packet.WriteInteger(1);
+                {
+                    // Wire format (matching Java's InteractionCustomValues.serializeExtradata):
+                    //   [int: 1]     ← "extra" field (client reads this before the object data)
+                    //   [int: 1]     ← ObjectDataFactory type key → MapDataType
+                    //   [int: N]     ← number of key-value pairs
+                    //   [str:key][str:value] × N
+                    // ExtraData is stored as "key=value;key=value;"
+                    var pairs = new System.Collections.Generic.Dictionary<string, string>();
                     if (!string.IsNullOrEmpty(item.ExtraData))
                     {
-                        packet.WriteInteger(item.ExtraData.Split(Convert.ToChar(9)).Length / 2);
-
-                        for (int i = 0; i <= item.ExtraData.Split(Convert.ToChar(9)).Length - 1; i++)
+                        foreach (string segment in item.ExtraData.Split(';'))
                         {
-                            packet.WriteString(item.ExtraData.Split(Convert.ToChar(9))[i]);
+                            if (string.IsNullOrEmpty(segment)) continue;
+                            int eq = segment.IndexOf('=');
+                            if (eq < 0) continue;
+                            pairs[segment.Substring(0, eq)] = segment.Substring(eq + 1);
                         }
                     }
-                    else
+                    packet.WriteInteger(1);  // extra
+                    packet.WriteInteger(1);  // MapDataType key
+                    packet.WriteInteger(pairs.Count);
+                    foreach (var kv in pairs)
                     {
-                        packet.WriteInteger(0);
+                        packet.WriteString(kv.Key);
+                        packet.WriteString(kv.Value);
                     }
-
                     break;
+                }
 
                 case InteractionType.Gift:
                 {

@@ -26,15 +26,17 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
 
             if (item.Data.InteractionType == InteractionType.Background)
             {
-                int data = packet.PopInt();
-                string brandData = "state" + Convert.ToChar(9) + "0";
-
-                for (int i = 1; i <= data; i++)
+                // Client sends: [int: count = pairs*2], then [string: key][string: value] × (count/2)
+                // Store as "key=value;key=value;" to match the Java InteractionCustomValues format.
+                int count = packet.PopInt();
+                var sb = new System.Text.StringBuilder();
+                for (int i = 0; i < count / 2; i++)
                 {
-                    brandData = brandData + Convert.ToChar(9) + packet.PopString();
+                    string key = packet.PopString();
+                    string value = packet.PopString();
+                    sb.Append(key).Append('=').Append(value).Append(';');
                 }
-
-                item.ExtraData = brandData;
+                item.ExtraData = sb.ToString();
             }
             else if (item.Data.InteractionType == InteractionType.FxProvider)
             {
