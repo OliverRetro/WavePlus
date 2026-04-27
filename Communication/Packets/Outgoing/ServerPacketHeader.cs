@@ -2,7 +2,10 @@
 {
     public static class ServerPacketHeader
     {
-        // credit to Keorich##1440 for the headers
+        // Roleplay packets
+        public const int UserStatsMessageComposer = 6004;
+
+        // credit to Keorich##1440 for the headers for Production-201611291003-338511768
         public const int AvatarEffectActivatedMessageComposer = 1959; // PRODUCTION-201611291003-338511768
         public const int HelperToolMessageComposer = 1548; // PRODUCTION-201611291003-338511768
         public const int NameChangeUpdateMessageComposer = 563; // PRODUCTION-201611291003-338511768

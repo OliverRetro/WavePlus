@@ -140,6 +140,7 @@ namespace Plus.HabboHotel.Roleplay.Hospital
                 if (client?.GetHabbo() == null)
                     continue;
 
+                client.GetHabbo().TrySendUserStatsUpdate();
                 HandleUserCycle(client.GetHabbo());
             }
         }

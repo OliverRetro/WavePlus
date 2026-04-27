@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
+using System.Linq;
 using Plus.Communication.Packets.Outgoing.Handshake;
 using Plus.Communication.Packets.Outgoing.Inventory.Purse;
 using Plus.Communication.Packets.Outgoing.Navigator;
@@ -132,6 +133,7 @@ namespace Plus.HabboHotel.Users
         public int CustomBubbleId { get; set; }
         public int TempInt { get; set; }
         public double LastHitTime { get; set; }
+        public double LastUserStatsUpdate { get; set; }
         public bool OnHelperDuty { get; set; }
         public HomeRoomDataState HomeRoomData { get; set; }
         public bool PendingReconnectPlacement { get; set; }
@@ -560,6 +562,19 @@ namespace Plus.HabboHotel.Users
             };
         }
 
+        public void TrySendUserStatsUpdate(bool force = false)
+        {
+            if (GetClient() == null)
+                return;
+
+            double now = PlusEnvironment.GetUnixTimestamp();
+            if (!force && LastUserStatsUpdate > now)
+                return;
+
+            GetClient().SendPacket(new Plus.Communication.Packets.Outgoing.Quests.UserStatsComposer(GetClient(), null));
+            LastUserStatsUpdate = now + 1;
+        }
+
         public void ApplyHomeRoomData()
         {
             if (!PendingReconnectPlacement || HomeRoomData == null || CurrentRoom == null || CurrentRoomId != HomeRoomData.roomid)
@@ -774,7 +789,7 @@ namespace Plus.HabboHotel.Users
             {
                 using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                 {
-                    foreach (UserWeapon weapon in _rpWeapons.Weapons)
+                    foreach (UserWeapon weapon in _rpWeapons.Weapons.ToList())
                     {
                         if (weapon.IsDefault)
                             continue;

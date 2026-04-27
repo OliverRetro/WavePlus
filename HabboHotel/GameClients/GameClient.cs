@@ -97,6 +97,7 @@ namespace Plus.HabboHotel.GameClients
                     SendPacket(new AchievementScoreComposer(_habbo.GetStats().AchievementPoints));
                     SendPacket(new BuildersClubMembershipComposer());
                     SendPacket(new CfhTopicsInitComposer(PlusEnvironment.GetGame().GetModerationManager().UserActionPresets));
+                    _habbo.TrySendUserStatsUpdate(true);
 
                     SendPacket(new BadgeDefinitionsComposer(PlusEnvironment.GetGame().GetAchievementManager().Achievements));
                     SendPacket(new SoundSettingsComposer(_habbo.ClientVolume, _habbo.ChatPreference, _habbo.AllowMessengerInvites, _habbo.FocusPreference, FriendBarStateUtility.GetInt(_habbo.FriendBarState)));
