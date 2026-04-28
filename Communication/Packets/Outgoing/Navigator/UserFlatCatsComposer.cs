@@ -24,9 +24,9 @@ namespace Plus.Communication.Packets.Outgoing.Navigator
                 packet.WriteString(category.PublicName);
                 packet.WriteBoolean(category.RequiredRank <= Rank);
                 packet.WriteBoolean(false);
-                packet.WriteString(string.Empty);
-                packet.WriteString(string.Empty);
-                packet.WriteBoolean(false);
+                packet.WriteString(string.Empty); // caption again
+                packet.WriteString(string.Empty); // empty string
+                packet.WriteBoolean(false); // bool false
             }
         }
     }

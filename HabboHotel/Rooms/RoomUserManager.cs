@@ -229,7 +229,7 @@ namespace Plus.HabboHotel.Rooms
             {
                 user.SetStatus("flatctrl", "useradmin");
                 session.SendPacket(new YouAreOwnerComposer());
-                session.SendPacket(new YouAreControllerComposer(4));
+                session.SendPacket(new YouAreControllerComposer(5));
             }
             else if (_room.CheckRights(session, false) && _room.Group == null)
             {
