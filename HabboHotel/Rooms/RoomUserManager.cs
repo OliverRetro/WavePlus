@@ -187,8 +187,29 @@ namespace Plus.HabboHotel.Rooms
             else if (!user.IsBot && (user.GetClient().GetHabbo().IsTeleporting || user.GetClient().GetHabbo().IsHopping))
             {
                 Item item = null;
+                bool handledArrowArrival = false;
                 if (session.GetHabbo().IsTeleporting)
-                    item = _room.GetRoomItemHandler().GetItem(session.GetHabbo().TeleportId);
+                {
+                    if (Plus.HabboHotel.Items.Interactor.InteractorArrowTeleport.TryTakeArrivalData(session.GetHabbo().Id, _room.RoomId, out int targetItemId, out int bodyRotation, out int headRotation))
+                    {
+                        item = _room.GetRoomItemHandler().GetItem(targetItemId);
+                        if (item != null)
+                        {
+                            item.ExtraData = "2";
+                            item.UpdateState(false, true);
+                            user.SetPos(item.GetX, item.GetY, item.GetZ);
+                            user.SetRot(bodyRotation, false);
+                            user.RotHead = headRotation;
+                            item.InteractingUser2 = session.GetHabbo().Id;
+                            item.ExtraData = "0";
+                            item.UpdateState(false, true);
+                            handledArrowArrival = true;
+                        }
+                    }
+
+                    if (item == null)
+                        item = _room.GetRoomItemHandler().GetItem(session.GetHabbo().TeleportId);
+                }
                 else if (session.GetHabbo().IsHopping)
                     item = _room.GetRoomItemHandler().GetItem(session.GetHabbo().HopperId);
 
@@ -196,13 +217,20 @@ namespace Plus.HabboHotel.Rooms
                 {
                     if (session.GetHabbo().IsTeleporting)
                     {
-                        item.ExtraData = "2";
-                        item.UpdateState(false, true);
-                        user.SetPos(item.GetX, item.GetY, item.GetZ);
-                        user.SetRot(item.Rotation, false);
-                        item.InteractingUser2 = session.GetHabbo().Id;
-                        item.ExtraData = "0";
-                        item.UpdateState(false, true);
+                        if (!handledArrowArrival)
+                        {
+                            item.ExtraData = "2";
+                            item.UpdateState(false, true);
+                            user.SetPos(item.GetX, item.GetY, item.GetZ);
+                            user.SetRot(item.Rotation, false);
+                            item.InteractingUser2 = session.GetHabbo().Id;
+                            item.ExtraData = "0";
+                            item.UpdateState(false, true);
+                        }
+
+                        session.GetHabbo().IsTeleporting = false;
+                        session.GetHabbo().TeleportId = 0;
+                        session.GetHabbo().TeleportingRoomId = 0;
                     }
                     else if (session.GetHabbo().IsHopping)
                     {
@@ -737,6 +765,9 @@ namespace Plus.HabboHotel.Rooms
                             foreach (Item item in Items.ToList())
                             {
                                 item.UserWalksOnFurni(user);
+
+                                if (!user.IsBot && item.GetBaseItem()?.InteractionType == InteractionType.Arrow)
+                                    Plus.HabboHotel.Items.Interactor.InteractorArrowTeleport.BeginDelayedTeleport(user, item);
                             }
 
                             UpdateUserStatus(user, true);
@@ -861,12 +892,7 @@ namespace Plus.HabboHotel.Rooms
 
                                 if (!user.IsBot && !user.IsPet && user.GetClient() != null)
                                 {
-                                    if (user.GetClient().GetHabbo().IsTeleporting)
-                                    {
-                                        user.GetClient().GetHabbo().IsTeleporting = false;
-                                        user.GetClient().GetHabbo().TeleportId = 0;
-                                    }
-                                    else if (user.GetClient().GetHabbo().IsHopping)
+                                    if (user.GetClient().GetHabbo().IsHopping)
                                     {
                                         user.GetClient().GetHabbo().IsHopping = false;
                                         user.GetClient().GetHabbo().HopperId = 0;
@@ -1229,19 +1255,6 @@ namespace Plus.HabboHotel.Rooms
 
                         #endregion
 
-                        #region Arrows
-
-                        case InteractionType.Arrow:
-                        {
-                            if (user.Coordinate == item.Coordinate)
-                            {
-                                Plus.HabboHotel.Items.Interactor.InteractorArrowTeleport.TriggerInstantTeleport(user, item);
-                            }
-
-                            break;
-                        }
-
-                        #endregion
                     }
                 }
 

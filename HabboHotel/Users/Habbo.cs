@@ -191,7 +191,7 @@ namespace Plus.HabboHotel.Users
         public Habbo(int id, string username, int rank, string motto, string look, string gender, int credits, int activityPoints, int homeRoom,
             bool hasFriendRequestsDisabled, int lastOnline, bool appearOffline, bool hideInRoom, double createDate, int diamonds,
             string machineId, string clientVolume, bool chatPreference, bool focusPreference, bool petsMuted, bool botsMuted, bool advertisingReportBlocked, double lastNameChange,
-            int gotwPoints, bool ignoreInvites, double timeMuted, double tradingLock, bool allowGifts, int friendBarState, bool disableForcedEffects, bool allowMimic, int vipRank)
+            int gotwPoints, bool ignoreInvites, double timeMuted, double tradingLock, bool allowGifts, int friendBarState, bool disableForcedEffects, bool allowMimic, int vipRank, int bubble)
         {
             Id = id;
             Username = username;
@@ -296,7 +296,7 @@ namespace Plus.HabboHotel.Users
             InventoryAlert = false;
             IgnoreBobbaFilter = false;
             WiredTeleporting = false;
-            CustomBubbleId = 0;
+            CustomBubbleId = bubble;
             OnHelperDuty = false;
             FastFoodScore = 0;
             PetId = 0;
@@ -886,7 +886,7 @@ namespace Plus.HabboHotel.Users
             get
             {
                 _habboSaved = true;
-                return "UPDATE `users` SET `online` = '0', `last_online` = '" + PlusEnvironment.GetUnixTimestamp() + "', `activity_points` = '" + Duckets + "', `credits` = '" + Credits + "', `vip_points` = '" + Diamonds + "', `home_room` = '" + HomeRoom + "', `gotw_points` = '" + GotwPoints + "', `time_muted` = '" + TimeMuted + "',`friend_bar_state` = '" + FriendBarStateUtility.GetInt(FriendBarState) + "' WHERE id = '" + Id + "' LIMIT 1;UPDATE `user_stats` SET `roomvisits` = '" + _habboStats.RoomVisits + "', `onlineTime` = '" + (PlusEnvironment.GetUnixTimestamp() - SessionStart + _habboStats.OnlineTime) + "', `respect` = '" + _habboStats.Respect + "', `respectGiven` = '" + _habboStats.RespectGiven + "', `giftsGiven` = '" + _habboStats.GiftsGiven + "', `giftsReceived` = '" + _habboStats.GiftsReceived + "', `dailyRespectPoints` = '" + _habboStats.DailyRespectPoints + "', `dailyPetRespectPoints` = '" + _habboStats.DailyPetRespectPoints + "', `AchievementScore` = '" + _habboStats.AchievementPoints + "', `quest_id` = '" + _habboStats.QuestId + "', `quest_progress` = '" + _habboStats.QuestProgress + "', `groupid` = '" + _habboStats.FavouriteGroupId + "',`forum_posts` = '" + _habboStats.ForumPosts + "' WHERE `id` = '" + Id + "' LIMIT 1;";
+                return "UPDATE `users` SET `online` = '0', `last_online` = '" + PlusEnvironment.GetUnixTimestamp() + "', `activity_points` = '" + Duckets + "', `credits` = '" + Credits + "', `vip_points` = '" + Diamonds + "', `home_room` = '" + HomeRoom + "', `gotw_points` = '" + GotwPoints + "', `time_muted` = '" + TimeMuted + "',`friend_bar_state` = '" + FriendBarStateUtility.GetInt(FriendBarState) + "',`bubble` '" + CustomBubbleId + "' WHERE id = '" + Id + "' LIMIT 1;UPDATE `user_stats` SET `roomvisits` = '" + _habboStats.RoomVisits + "', `onlineTime` = '" + (PlusEnvironment.GetUnixTimestamp() - SessionStart + _habboStats.OnlineTime) + "', `respect` = '" + _habboStats.Respect + "', `respectGiven` = '" + _habboStats.RespectGiven + "', `giftsGiven` = '" + _habboStats.GiftsGiven + "', `giftsReceived` = '" + _habboStats.GiftsReceived + "', `dailyRespectPoints` = '" + _habboStats.DailyRespectPoints + "', `dailyPetRespectPoints` = '" + _habboStats.DailyPetRespectPoints + "', `AchievementScore` = '" + _habboStats.AchievementPoints + "', `quest_id` = '" + _habboStats.QuestId + "', `quest_progress` = '" + _habboStats.QuestProgress + "', `groupid` = '" + _habboStats.FavouriteGroupId + "',`forum_posts` = '" + _habboStats.ForumPosts + "' WHERE `id` = '" + Id + "' LIMIT 1;";
             }
         }
 
@@ -1004,7 +1004,7 @@ namespace Plus.HabboHotel.Users
                 _habboSaved = true;
                 using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                 {
-                    dbClient.SetQuery("UPDATE `users` SET `online` = '0', `last_online` = @last_online, `activity_points` = @activity_points, `credits` = @credits, `vip_points` = @vip_points, `home_room` = @home_room, `home_room_data` = @home_room_data, `gotw_points` = @gotw_points, `time_muted` = @time_muted, `friend_bar_state` = @friend_bar_state WHERE id = @id LIMIT 1;");
+                    dbClient.SetQuery("UPDATE `users` SET `online` = '0', `last_online` = @last_online, `activity_points` = @activity_points, `credits` = @credits, `vip_points` = @vip_points, `home_room` = @home_room, `home_room_data` = @home_room_data, `gotw_points` = @gotw_points, `time_muted` = @time_muted, `friend_bar_state` = @friend_bar_state, `bubble` = @bubble WHERE id = @id LIMIT 1;");
                     dbClient.AddParameter("last_online", PlusEnvironment.GetUnixTimestamp());
                     dbClient.AddParameter("activity_points", Duckets);
                     dbClient.AddParameter("credits", Credits);
@@ -1014,6 +1014,7 @@ namespace Plus.HabboHotel.Users
                     dbClient.AddParameter("gotw_points", GotwPoints);
                     dbClient.AddParameter("time_muted", TimeMuted);
                     dbClient.AddParameter("friend_bar_state", FriendBarStateUtility.GetInt(FriendBarState));
+                    dbClient.AddParameter("bubble", CustomBubbleId);
                     dbClient.AddParameter("id", Id);
                     dbClient.RunQuery();
 

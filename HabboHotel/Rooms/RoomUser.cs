@@ -453,6 +453,9 @@ namespace Plus.HabboHotel.Rooms
 
         public void MoveTo(int pX, int pY, bool pOverride)
         {
+            if (!IsBot && GetClient()?.GetHabbo() != null && (X != pX || Y != pY))
+                Plus.HabboHotel.Items.Interactor.InteractorArrowTeleport.CancelDelayedTeleport(GetClient().GetHabbo().Id);
+
             if (TeleportEnabled)
             {
                 UnIdle();

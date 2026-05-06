@@ -16,7 +16,7 @@ namespace Plus.HabboHotel.Users.Authenticator
                 PlusEnvironment.EnumToBool(row["advertising_report_blocked"].ToString()), Convert.ToDouble(row["last_change"].ToString()), Convert.ToInt32(row["gotw_points"]),
                 PlusEnvironment.EnumToBool(Convert.ToString(row["ignore_invites"])), Convert.ToDouble(row["time_muted"]), Convert.ToDouble(userInfo["trading_locked"]),
                 PlusEnvironment.EnumToBool(row["allow_gifts"].ToString()), Convert.ToInt32(row["friend_bar_state"]), PlusEnvironment.EnumToBool(row["disable_forced_effects"].ToString()),
-                PlusEnvironment.EnumToBool(row["allow_mimic"].ToString()), Convert.ToInt32(row["rank_vip"]));
+                PlusEnvironment.EnumToBool(row["allow_mimic"].ToString()), Convert.ToInt32(row["rank_vip"]), Convert.ToInt32(row["bubble"]));
 
                 habbo.LoadHomeRoomData(Convert.ToString(row["home_room_data"]));
 

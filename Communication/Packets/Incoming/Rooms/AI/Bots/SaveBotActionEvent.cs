@@ -103,6 +103,13 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Bots
                     {
                         dbClient.RunQuery("DELETE FROM `bots_speech` WHERE `bot_id` = '" + bot.BotData.Id + "'");
 
+                        dbClient.SetQuery("UPDATE `bots` SET `automatic_chat` = @AutomaticChat, `speaking_interval` = @SpeakingInterval, `mix_sentences` = @MixChat WHERE `id` = @id LIMIT 1");
+                        dbClient.AddParameter("id", botId);
+                        dbClient.AddParameter("AutomaticChat", automaticChat.ToLower());
+                        dbClient.AddParameter("SpeakingInterval", Convert.ToInt32(speakingInterval));
+                        dbClient.AddParameter("MixChat", PlusEnvironment.BoolToEnum(Convert.ToBoolean(mixChat)));
+                        dbClient.RunQuery();
+
                         #region Save Data - TODO: MAKE METHODS FOR THIS.
 
                         for (int i = 0; i <= speechData.Length - 1; i++)
@@ -110,13 +117,6 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Bots
                             dbClient.SetQuery("INSERT INTO `bots_speech` (`bot_id`, `text`) VALUES (@id, @data)");
                             dbClient.AddParameter("id", botId);
                             dbClient.AddParameter("data", speechData[i]);
-                            dbClient.RunQuery();
-
-                            dbClient.SetQuery("UPDATE `bots` SET `automatic_chat` = @AutomaticChat, `speaking_interval` = @SpeakingInterval, `mix_sentences` = @MixChat WHERE `id` = @id LIMIT 1");
-                            dbClient.AddParameter("id", botId);
-                            dbClient.AddParameter("AutomaticChat", automaticChat.ToLower());
-                            dbClient.AddParameter("SpeakingInterval", Convert.ToInt32(speakingInterval));
-                            dbClient.AddParameter("MixChat", PlusEnvironment.BoolToEnum(Convert.ToBoolean(mixChat)));
                             dbClient.RunQuery();
                         }
 

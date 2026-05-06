@@ -1,10 +1,26 @@
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Rooms;
+using System;
+using System.Collections.Concurrent;
+using System.Drawing;
+using System.Threading.Tasks;
 
 namespace Plus.HabboHotel.Items.Interactor
 {
     public class InteractorArrowTeleport : IFurniInteractor
     {
+        private const double TriggerDelaySeconds = 0.5;
+        private static readonly ConcurrentDictionary<int, int> PendingTeleports = new();
+        private static readonly ConcurrentDictionary<int, ArrowTeleportArrivalData> PendingArrivals = new();
+
+        private sealed class ArrowTeleportArrivalData
+        {
+            public int Rotation { get; init; }
+            public int HeadRotation { get; init; }
+            public int TargetItemId { get; init; }
+            public int TargetRoomId { get; init; }
+        }
+
         public void OnPlace(GameClient session, Item item)
         {
             item.ExtraData = "0";
@@ -63,21 +79,6 @@ namespace Plus.HabboHotel.Items.Interactor
 
         public void OnTrigger(GameClient session, Item item, int request, bool hasRights)
         {
-            if (item == null || item.GetRoom() == null || session == null || session.GetHabbo() == null)
-                return;
-
-            RoomUser user = item.GetRoom().GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id);
-            if (user == null)
-                return;
-
-            if (user.Coordinate == item.Coordinate)
-            {
-                TriggerInstantTeleport(user, item);
-                return;
-            }
-
-            if (user.CanWalk)
-                user.MoveTo(item.SquareInFront);
         }
 
         public void OnWiredTrigger(Item item)
@@ -90,44 +91,118 @@ namespace Plus.HabboHotel.Items.Interactor
                 return;
 
             Room room = item.GetRoom();
+            var userHabbo = user.GetClient().GetHabbo();
 
             if (!ItemTeleporterFinder.IsTeleLinked(item.Id, room))
             {
-                user.UnlockWalking();
+                user.GetClient().Disconnect();
                 return;
             }
 
             int linkedTele = ItemTeleporterFinder.GetLinkedTele(item.Id);
             if (linkedTele == 0)
             {
-                user.UnlockWalking();
+                user.GetClient().Disconnect();
                 return;
             }
 
             int teleRoomId = ItemTeleporterFinder.GetTeleRoomId(linkedTele, room);
             if (teleRoomId == 0)
             {
-                user.UnlockWalking();
+                user.GetClient().Disconnect();
                 return;
             }
+
+            PendingTeleports.TryRemove(userHabbo.Id, out _);
+            PendingArrivals[userHabbo.Id] = new ArrowTeleportArrivalData
+            {
+                Rotation = user.RotBody,
+                HeadRotation = user.RotHead,
+                TargetItemId = linkedTele,
+                TargetRoomId = teleRoomId
+            };
 
             if (teleRoomId == room.RoomId)
             {
                 Item targetItem = room.GetRoomItemHandler().GetItem(linkedTele);
                 if (targetItem == null)
                 {
-                    user.UnlockWalking();
+                    user.GetClient().Disconnect();
                     return;
                 }
 
                 room.GetGameMap().TeleportToItem(user, targetItem);
+                user.SetRot(user.RotBody, false);
+                if (PendingArrivals.TryRemove(userHabbo.Id, out ArrowTeleportArrivalData arrivalData))
+                {
+                    user.SetRot(arrivalData.Rotation, false);
+                    user.RotHead = arrivalData.HeadRotation;
+                }
                 return;
             }
 
-            user.GetClient().GetHabbo().IsTeleporting = true;
-            user.GetClient().GetHabbo().TeleportingRoomId = teleRoomId;
-            user.GetClient().GetHabbo().TeleportId = linkedTele;
-            user.GetClient().GetHabbo().PrepareRoom(teleRoomId, string.Empty);
+            userHabbo.IsTeleporting = true;
+            userHabbo.TeleportingRoomId = teleRoomId;
+            userHabbo.TeleportId = linkedTele;
+            userHabbo.PrepareRoom(teleRoomId, string.Empty);
+        }
+
+        public static void BeginDelayedTeleport(RoomUser user, Item item)
+        {
+            if (user?.GetClient()?.GetHabbo() == null)
+                return;
+
+            int userId = user.GetClient().GetHabbo().Id;
+            PendingTeleports[userId] = item.Id;
+            _ = CompleteDelayedTeleportAsync(userId, item.Id);
+        }
+
+        private static async Task CompleteDelayedTeleportAsync(int userId, int itemId)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(TriggerDelaySeconds));
+
+            if (!PendingTeleports.TryGetValue(userId, out int pendingItemId) || pendingItemId != itemId)
+                return;
+
+            PendingTeleports.TryRemove(userId, out _);
+
+            GameClient client = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(userId);
+            RoomUser user = client?.GetHabbo()?.CurrentRoom?.GetRoomUserManager().GetRoomUserByHabbo(userId);
+            if (user == null || user.IsWalking)
+                return;
+
+            Item item = client.GetHabbo().CurrentRoom?.GetRoomItemHandler().GetItem(itemId);
+            if (item == null || user.Coordinate != item.Coordinate)
+                return;
+
+            TriggerInstantTeleport(user, item);
+        }
+
+        public static void CancelDelayedTeleport(int userId)
+        {
+            PendingTeleports.TryRemove(userId, out _);
+        }
+
+        public static bool TryTakeArrivalData(int userId, int roomId, out int targetItemId, out int bodyRotation, out int headRotation)
+        {
+            targetItemId = 0;
+            bodyRotation = 0;
+            headRotation = 0;
+
+            if (!PendingArrivals.TryGetValue(userId, out ArrowTeleportArrivalData arrivalData) || arrivalData.TargetRoomId != roomId)
+                return false;
+
+            PendingArrivals.TryRemove(userId, out _);
+
+            targetItemId = arrivalData.TargetItemId;
+            bodyRotation = arrivalData.Rotation;
+            headRotation = arrivalData.HeadRotation;
+            return true;
+        }
+
+        public static void ClearArrivalData(int userId)
+        {
+            PendingArrivals.TryRemove(userId, out _);
         }
     }
 }
