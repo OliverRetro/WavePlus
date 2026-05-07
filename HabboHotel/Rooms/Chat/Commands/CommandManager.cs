@@ -127,6 +127,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
         private void RegisterUser()
         {
             // Roleplay
+            Register("wantedlist", new WantedListCommand());
             Register("hit", new HitCommand());
             Register("toggleskill", new ToggleSkillCommand());
             Register("bh", new BuildHeightCommand());
