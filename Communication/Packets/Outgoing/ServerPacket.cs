@@ -35,6 +35,11 @@ namespace Plus.Communication.Packets.Outgoing
             WriteString(d.ToString());
         }
 
+        public void WriteTrueDouble(double d)
+        {
+            Buffer.WriteDouble(d);
+        }
+
         public void WriteString(string s) // d
         {
             byte[] data = Encoding.UTF8.GetBytes(s);

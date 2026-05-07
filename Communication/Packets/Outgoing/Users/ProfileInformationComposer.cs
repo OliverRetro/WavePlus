@@ -46,12 +46,24 @@ namespace Plus.Communication.Packets.Outgoing.Users
                 packet.WriteString(PlusEnvironment.GetGame().GetGroupManager().GetColourCode(group.Colour1, true));
                 packet.WriteString(PlusEnvironment.GetGame().GetGroupManager().GetColourCode(group.Colour2, false));
                 packet.WriteBoolean(TargetHabbo.GetStats().FavouriteGroupId == group.Id); // todo favs
-                packet.WriteInteger(0); //what the fuck
-                packet.WriteBoolean(group != null ? group.ForumEnabled : true); //HabboTalk
+                packet.WriteInteger(group.CreatorId); // or OwnerId
+                packet.WriteBoolean(group.CreatorId == TargetHabbo.Id);
             }
 
             packet.WriteInteger(Convert.ToInt32(PlusEnvironment.GetUnixTimestamp() - TargetHabbo.LastOnline)); // Last online
             packet.WriteBoolean(true); // Show the profile
+            packet.WriteBoolean(true); // on duty
+            packet.WriteString("Pigs"); // Job name
+            packet.WriteString("Fuck da police"); // job description
+            packet.WriteString("N.W.A."); // gang name
+            packet.WriteInteger(TargetHabbo.GetRpStats().Knockouts);
+            packet.WriteInteger(TargetHabbo.GetRpStats().Deaths);
+            packet.WriteInteger(TargetHabbo.GetRpStats().Arrested);
+            packet.WriteTrueDouble(TargetHabbo.GetRpStats().Deaths > 0 ? Math.Round((double)TargetHabbo.GetRpStats().Knockouts / TargetHabbo.GetRpStats().Deaths, 2) : TargetHabbo.GetRpStats().Knockouts);
+            packet.WriteInteger(TargetHabbo.GetRpStats().Attacks);
+            packet.WriteInteger(TargetHabbo.GetRpStats().Attacked);
+            packet.WriteInteger(TargetHabbo.GetRpStats().DamageDealt);
+            packet.WriteInteger(TargetHabbo.GetRpStats().DamageTaken);
         }
     }
 }
