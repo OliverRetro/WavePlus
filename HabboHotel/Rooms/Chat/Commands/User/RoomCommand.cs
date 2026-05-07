@@ -42,7 +42,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                     list.AppendLine("Super Push: " + (room.SuperPushEnabled ? "enabled" : "disabled"));
                     list.AppendLine("Respect: " + (room.RespectNotificationsEnabled ? "enabled" : "disabled"));
                     list.AppendLine("Enables: " + (room.EnablesEnabled ? "enabled" : "disabled"));
-                    session.SendNotification(list.ToString());
+                    list.AppendLine("Safezone: " + (room.Safezone ? "enabled" : "disabled"));
+                        session.SendNotification(list.ToString());
                     break;
                 }
 
@@ -130,6 +131,21 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                     session.SendWhisper("Respect notifications mode set to " + (room.RespectNotificationsEnabled ? "enabled!" : "disabled!"));
                     break;
                 }
+
+                case "safezone":
+                {
+                    room.Safezone = !room.Safezone;
+                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                    {
+                        dbClient.SetQuery("UPDATE `rooms` SET `safezone` = @Safezone WHERE `id` = '" + room.Id + "' LIMIT 1");
+                        dbClient.AddParameter("Safezone", PlusEnvironment.BoolToEnum(room.Safezone));
+                        dbClient.RunQuery();
+                    }
+
+                     session.SendWhisper("Safezone mode set to " + (room.Safezone ? "enabled!" : "disabled!"));
+                     break;
+                }
+
 
                 case "pets":
                 case "morphs":

@@ -296,7 +296,7 @@ namespace Plus.HabboHotel.Rooms
             }
 
             RoomData data = new(roomId, name, model.Id, session.GetHabbo().Username, session.GetHabbo().Id, "", 0, "public", "open", 0, maxVisitors, category, description, string.Empty,
-                floor, landscape, 1, 1, 0, 0, wallThick, floorThick, wallpaper, 1, 1, 1, 1, 1, 1, 1, 8, tradeSettings, true, true, true, true, true, true, true, 0, 0, true, model);
+                floor, landscape, 1, 1, 0, 0, wallThick, floorThick, wallpaper, 1, 1, 1, 1, 1, 1, 1, 8, tradeSettings, true, true, true, true, true, true, true, 0, 0, true, model, false);
 
             return data;
         }

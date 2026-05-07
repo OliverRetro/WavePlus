@@ -13,7 +13,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (session == null || session.GetHabbo() == null)
+            if (session == null || session.GetHabbo() == null || room == null)
                 return;
 
             if (@params.Length == 1)
@@ -45,10 +45,16 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
                 session.SendWhisper("You cannot hit yourself!", 1);
                 return;
             }
-
+            
             if (targetClient.GetHabbo().CurrentRoomId != session.GetHabbo().CurrentRoomId)
             {
                 session.SendWhisper("The user is not in the same room as you.", 1);
+                return;
+            }
+
+            if (room.Safezone && !(targetClient.GetHabbo().GetRpStats().Aggression > 0 && session.GetHabbo().GetRpStats().Aggression > 0))
+            {
+                session.SendWhisper("You cannot attack the user in a safezone unless both of you have aggression.", 1);
                 return;
             }
 

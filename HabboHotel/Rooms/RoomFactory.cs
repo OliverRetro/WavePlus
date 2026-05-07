@@ -40,7 +40,7 @@ namespace Plus.HabboHotel.Rooms
                                 Convert.ToInt32(row["kick_settings"]), Convert.ToInt32(row["chat_mode"]), Convert.ToInt32(row["chat_size"]), Convert.ToInt32(row["chat_speed"]), Convert.ToInt32(row["chat_extra_flood"]),
                                 Convert.ToInt32(row["chat_hearing_distance"]), Convert.ToInt32(row["trade_settings"]), Convert.ToString(row["push_enabled"]) == "1", Convert.ToString(row["pull_enabled"]) == "1",
                                 Convert.ToString(row["spush_enabled"]) == "1", Convert.ToString(row["spull_enabled"]) == "1", Convert.ToString(row["enables_enabled"]) == "1", Convert.ToString(row["respect_notifications_enabled"]) == "1",
-                                Convert.ToString(row["pet_morphs_allowed"]) == "1", Convert.ToInt32(row["group_id"]), Convert.ToInt32(row["sale_price"]), Convert.ToString(row["lay_enabled"]) == "1", model));
+                                Convert.ToString(row["pet_morphs_allowed"]) == "1", Convert.ToInt32(row["group_id"]), Convert.ToInt32(row["sale_price"]), Convert.ToString(row["lay_enabled"]) == "1", model, Convert.ToString(row["safezone"]) == "1"));
                         }
                     }
                 }
@@ -82,7 +82,7 @@ namespace Plus.HabboHotel.Rooms
                         Convert.ToInt32(row["kick_settings"]), Convert.ToInt32(row["chat_mode"]), Convert.ToInt32(row["chat_size"]), Convert.ToInt32(row["chat_speed"]), Convert.ToInt32(row["chat_extra_flood"]),
                         Convert.ToInt32(row["chat_hearing_distance"]), Convert.ToInt32(row["trade_settings"]), Convert.ToInt32(row["push_enabled"]) == 1, Convert.ToInt32(row["pull_enabled"]) == 1,
                         Convert.ToInt32(row["spush_enabled"]) == 1, Convert.ToInt32(row["spull_enabled"]) == 1, Convert.ToInt32(row["enables_enabled"]) == 1, Convert.ToInt32(row["respect_notifications_enabled"]) == 1,
-                        Convert.ToString(row["pet_morphs_allowed"]) == "1", Convert.ToInt32(row["group_id"]), Convert.ToInt32(row["sale_price"]), Convert.ToString(row["lay_enabled"]) == "1", model);
+                        Convert.ToString(row["pet_morphs_allowed"]) == "1", Convert.ToInt32(row["group_id"]), Convert.ToInt32(row["sale_price"]), Convert.ToString(row["lay_enabled"]) == "1", model, Convert.ToString(row["safezone"]) == "1");
                     return true;
                 }
             }

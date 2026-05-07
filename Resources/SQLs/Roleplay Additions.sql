@@ -13,6 +13,15 @@ INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_u
 ALTER TABLE `users`
 ADD COLUMN `home_room_data` LONGTEXT NOT NULL DEFAULT '{"roomid":17,"x":18,"y":22,"z":0,"rotation":4,"weapon":0}';
 
+ALTER TABLE `rooms`
+ADD COLUMN `safezone` varchar(4) NOT NULL DEFAULT '0';
+
+ALTER TABLE `user_rp_statistics`
+ADD COLUMN `aggression` smallint(6) NOT NULL DEFAULT 0;
+
+ALTER TABLE `subscriptions`
+ADD COLUMN `static_aggression` smallint(6) NOT NULL DEFAULT 3;
+
 -- hospital
 ALTER TABLE `user_rp_statistics`
 ADD COLUMN `is_dead` int(11) NOT NULL DEFAULT 0,
@@ -22,6 +31,7 @@ ADD COLUMN `hospital_health_start` int(11) NOT NULL DEFAULT 0;
 
 -- server settings
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.hospital.room.id', '0', 'The hospital room.');
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('user.aggression_scheduler.tick', '5', 'The time (in minutes) users will get deducted aggression.');
 
 -- fix rooms?
 ALTER TABLE rooms 

@@ -28,9 +28,10 @@ namespace Plus.HabboHotel.Users
         public int HospitalHealthStart { get; set; }
         public double NextPassiveHospitalHealTick { get; set; }
         public UserRpWeapons Weapons { get; set; }
+        public int Aggression { get; set; }
         public DateTime NextHungerTick { get; set; }
 
-        public UserRpStats(int userId, int health, int shield, int energy, int hunger, int experience, int knockouts, int deaths, int arrested, int escapes, int damageDealt, int damageTaken, int attacks, int attacked, int knowledge, int strength, bool isDead, double hospitalReleaseTime, double hospitalHealStartTime, int hospitalHealthStart)
+        public UserRpStats(int userId, int health, int shield, int energy, int hunger, int experience, int knockouts, int deaths, int arrested, int escapes, int damageDealt, int damageTaken, int attacks, int attacked, int knowledge, int strength, bool isDead, double hospitalReleaseTime, double hospitalHealStartTime, int hospitalHealthStart, int aggression)
         {
             UserId = userId;
             Health = health;
@@ -53,6 +54,7 @@ namespace Plus.HabboHotel.Users
             HospitalHealStartTime = hospitalHealStartTime;
             HospitalHealthStart = hospitalHealthStart;
             NextPassiveHospitalHealTick = 0;
+            Aggression = aggression;
 
             NextHungerTick = DateTime.UtcNow.AddMinutes(10);
         }
@@ -69,6 +71,38 @@ namespace Plus.HabboHotel.Users
                 1 => 125,
                 2 => 150,
                 3 => 175,
+                _ => 100
+            };
+        }
+
+        public int GetMaxHunger(Habbo habbo)
+        {
+            if (habbo?.GetRpSkills() == null)
+            {
+                return 25;
+            }
+
+            return habbo.GetRpSkills().GetLevel(7, true) switch
+            {
+                1 => 50,
+                2 => 75,
+                3 => 100,
+                _ => 25
+            };
+        }
+
+        public int GetMaxEnergy(Habbo habbo)
+        {
+            if (habbo?.GetRpSkills() == null)
+            {
+                return 100;
+            }
+
+            return habbo.GetRpSkills().GetLevel(7, true) switch
+            {
+                1 => 110,
+                2 => 130,
+                3 => 150,
                 _ => 100
             };
         }
