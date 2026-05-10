@@ -33,6 +33,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator
                 return;
             }
 
+            if (session.GetHabbo().GetRpStats().PassiveMode)
+            {
+                session.SendWhisper("A pacifist does not fight. Try disabling passive mode, before combat!");
+                return;
+            }
+
             // set the weapon as active, this will also check if the user has the weapon in their inventory and if they are able to equip it.
             session.GetHabbo().GetRpWeapons().SetActiveWeaponId(weaponId);
 

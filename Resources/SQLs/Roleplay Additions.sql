@@ -11,18 +11,7 @@ INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_b
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_unlockall', 6);
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_wanted_list', 2);
 INSERT INTO `permissions_commands` (`command`) VALUES ('command_rp_bank');
-
-ALTER TABLE `users`
-ADD COLUMN `home_room_data` LONGTEXT NOT NULL DEFAULT '{"roomid":17,"x":18,"y":22,"z":0,"rotation":4,"weapon":0}';
-
-ALTER TABLE `rooms`
-ADD COLUMN `safezone` varchar(4) NOT NULL DEFAULT '0';
-
-ALTER TABLE `user_rp_statistics`
-ADD COLUMN `aggression` smallint(6) NOT NULL DEFAULT 0;
-
-ALTER TABLE `subscriptions`
-ADD COLUMN `static_aggression` smallint(6) NOT NULL DEFAULT 3;
+INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_passive_mode', 1);
 
 -- hospital
 ALTER TABLE `user_rp_statistics`
@@ -248,5 +237,22 @@ CREATE TABLE `user_rp_bank_logs`  (
   `timestamp` datetime(6) NOT NULL DEFAULT '0000-00-00 00:00:00.000000' ON UPDATE CURRENT_TIMESTAMP(6),
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
+
+
+ALTER TABLE `users`
+ADD COLUMN `home_room_data` LONGTEXT NOT NULL DEFAULT '{"roomid":17,"x":18,"y":22,"z":0,"rotation":4,"weapon":0}';
+
+ALTER TABLE `rooms`
+ADD COLUMN `safezone` varchar(4) NOT NULL DEFAULT '0';
+
+ALTER TABLE `user_rp_statistics`
+ADD COLUMN `aggression` smallint(6) NOT NULL DEFAULT 0;
+
+ALTER TABLE `subscriptions`
+ADD COLUMN `static_aggression` smallint(6) NOT NULL DEFAULT 3;
+
+ALTER TABLE `user_rp_statistics`
+ADD COLUMN `passive_mode` tinyint(4) NOT NULL DEFAULT 0;
+
 
 SET FOREIGN_KEY_CHECKS = 1;

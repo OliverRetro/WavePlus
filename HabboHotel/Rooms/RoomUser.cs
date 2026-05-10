@@ -8,8 +8,10 @@ using Plus.Communication.Packets.Outgoing.Rooms.Avatar;
 using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
+using Plus.HabboHotel.Items.Interactor;
 using Plus.HabboHotel.Items.Wired;
 using Plus.HabboHotel.Rooms.AI;
+using Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay;
 using Plus.HabboHotel.Rooms.Games.Freeze;
 using Plus.HabboHotel.Rooms.Games.Teams;
 using Plus.HabboHotel.Rooms.PathFinding;
@@ -454,7 +456,10 @@ namespace Plus.HabboHotel.Rooms
         public void MoveTo(int pX, int pY, bool pOverride)
         {
             if (!IsBot && GetClient()?.GetHabbo() != null && (X != pX || Y != pY))
-                Plus.HabboHotel.Items.Interactor.InteractorArrowTeleport.CancelDelayedTeleport(GetClient().GetHabbo().Id);
+            {
+                InteractorArrowTeleport.CancelDelayedTeleport(GetClient().GetHabbo().Id);
+                PassiveModeCommand.CancelPendingToggle(GetClient());
+            }
 
             if (TeleportEnabled)
             {

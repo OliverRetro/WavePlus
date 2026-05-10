@@ -58,6 +58,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
                 return;
             }
 
+            if (session.GetHabbo().GetRpStats().PassiveMode || targetClient.GetHabbo().GetRpStats().PassiveMode)
+            {
+                session.SendWhisper("You cannot attack other users while in passive mode.");
+                return;
+            }
+
             session.GetHabbo().LastHitTime = now + 3;
             PlusEnvironment.GetCombatManager().AttackUser(session.GetHabbo(), targetClient.GetHabbo());      
         }

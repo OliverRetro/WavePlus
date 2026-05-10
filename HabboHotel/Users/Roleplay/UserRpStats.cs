@@ -29,9 +29,10 @@ namespace Plus.HabboHotel.Users
         public double NextPassiveHospitalHealTick { get; set; }
         public UserRpWeapons Weapons { get; set; }
         public int Aggression { get; set; }
+        public bool PassiveMode { get; set; }
         public DateTime NextHungerTick { get; set; }
 
-        public UserRpStats(int userId, int health, int shield, int energy, int hunger, int experience, int knockouts, int deaths, int arrested, int escapes, int damageDealt, int damageTaken, int attacks, int attacked, int knowledge, int strength, bool isDead, double hospitalReleaseTime, double hospitalHealStartTime, int hospitalHealthStart, int aggression)
+        public UserRpStats(int userId, int health, int shield, int energy, int hunger, int experience, int knockouts, int deaths, int arrested, int escapes, int damageDealt, int damageTaken, int attacks, int attacked, int knowledge, int strength, bool isDead, double hospitalReleaseTime, double hospitalHealStartTime, int hospitalHealthStart, int aggression, bool passiveMode)
         {
             UserId = userId;
             Health = health;
@@ -55,6 +56,7 @@ namespace Plus.HabboHotel.Users
             HospitalHealthStart = hospitalHealthStart;
             NextPassiveHospitalHealTick = 0;
             Aggression = aggression;
+            PassiveMode = passiveMode;
 
             NextHungerTick = DateTime.UtcNow.AddMinutes(10);
         }
