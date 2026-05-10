@@ -181,6 +181,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
         private void RegisterModerator()
         {
             // Roleplay
+            Register("bank", new BankCommand());
             Register("rpstats", new RpuserRpInfoCommand());
             Register("roomheal", new RoomHealCommand());
             Register("globalheal", new GlobalHealCommand());

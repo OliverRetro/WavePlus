@@ -10,6 +10,7 @@ INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_h
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_buildheight', 1);
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_unlockall', 6);
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_wanted_list', 2);
+INSERT INTO `permissions_commands` (`command`) VALUES ('command_rp_bank');
 
 ALTER TABLE `users`
 ADD COLUMN `home_room_data` LONGTEXT NOT NULL DEFAULT '{"roomid":17,"x":18,"y":22,"z":0,"rotation":4,"weapon":0}';
@@ -33,6 +34,9 @@ ADD COLUMN `hospital_health_start` int(11) NOT NULL DEFAULT 0;
 -- server settings
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.hospital.room.id', '0', 'The hospital room.');
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('user.aggression_scheduler.tick', '5', 'The time (in minutes) users will get deducted aggression.');
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.bank.withdrawal.fee.default', '5', 'As percentage! :-) Used for ATMs.');
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.bank.deposit.fee.default', '5', 'As percentage! ATM usage.');
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.bank.account.opening.cost', '50', 'The cost for opening an account.');
 
 -- fix rooms?
 ALTER TABLE rooms 
@@ -222,5 +226,27 @@ CREATE TABLE `rp_weapon_skins`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
 
 INSERT INTO `rp_weapon_skins` VALUES (1, 3, 'Elden Wand', '*fires a fire blast at %username%, dealing %damage% damage*', '*fucking destroys %username%, dealing %damage% damage*', 0, 3, 26);
+
+-- bankingz
+DROP TABLE IF EXISTS `user_rp_bank`;
+CREATE TABLE `user_rp_bank`  (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `balance` int NOT NULL DEFAULT 0,
+  `account_opened` datetime(6) NOT NULL DEFAULT '0000-00-00 00:00:00.000000' ON UPDATE CURRENT_TIMESTAMP(6),
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
+
+DROP TABLE IF EXISTS `user_rp_bank_logs`;
+CREATE TABLE `user_rp_bank_logs`  (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `amount` int NOT NULL DEFAULT 0,
+  `action_type` varchar(32) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL DEFAULT 'DEPOSIT',
+  `management_type` varchar(32) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL DEFAULT 'ATM',
+  `fee_paid` int NOT NULL,
+  `timestamp` datetime(6) NOT NULL DEFAULT '0000-00-00 00:00:00.000000' ON UPDATE CURRENT_TIMESTAMP(6),
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
 
 SET FOREIGN_KEY_CHECKS = 1;

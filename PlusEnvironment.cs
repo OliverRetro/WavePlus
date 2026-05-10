@@ -21,6 +21,7 @@ using Plus.HabboHotel;
 using Plus.HabboHotel.Cache.Type;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Permissions;
+using Plus.HabboHotel.Roleplay.Banking;
 using Plus.HabboHotel.Roleplay.Combat;
 using Plus.HabboHotel.Roleplay.Hospital;
 using Plus.HabboHotel.Users;
@@ -54,6 +55,7 @@ namespace Plus
         private static CombatManager _combatManager;
         private static WeaponManager _weaponManager;
         private static HospitalManager _hospitalManager;
+        private static BankingManager _bankingManager;
 
         // TODO: Get rid?
         public static bool Event = false;
@@ -158,6 +160,8 @@ namespace Plus
 
                 _weaponManager = new WeaponManager();
                 _weaponManager.Init();
+
+                _bankingManager = new BankingManager();
 
                 //Have our encryption ready.
                 HabboEncryptionV2.Initialize(new RSAKeys());
@@ -443,6 +447,11 @@ namespace Plus
         public static WeaponManager GetWeaponManager()
         {
             return _weaponManager;
+        }
+
+        public static BankingManager GetBankingManager()
+        {
+            return _bankingManager;
         }
 
         public static ICollection<Habbo> GetUsersCached()

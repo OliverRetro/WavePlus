@@ -17,6 +17,7 @@ using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Rooms.Chat.Commands;
+using Plus.HabboHotel.Roleplay.Banking;
 using Plus.HabboHotel.Roleplay.RpItem.Weapon;
 using Plus.HabboHotel.Roleplay.Skill;
 using Plus.HabboHotel.Subscriptions;
@@ -108,6 +109,7 @@ namespace Plus.HabboHotel.Users
         public double MessengerSpamTime { get; set; }
         public int CreditsUpdateTick { get; set; }
         public int AggressionUpdateTick { get; set; }
+        public int BankSaveTick { get; set; }
 
         // Room related
         public int TentId { get; set; }
@@ -186,6 +188,7 @@ namespace Plus.HabboHotel.Users
         private UserRpSkills _rpSkills;
         private UserRpWeapons _rpWeapons;
         private UserRpWeaponSkins _rpWeaponSkins;
+        private UserRpBankAccount _bankAccount;
 
         public double CustomBuildHeight { get; set; }
 
@@ -277,6 +280,7 @@ namespace Plus.HabboHotel.Users
             MessengerSpamCount = 0;
             MessengerSpamTime = 0;
             CreditsUpdateTick = Convert.ToInt32(PlusEnvironment.GetSettingsManager().TryGetValue("user.currency_scheduler.tick"));
+            BankSaveTick = 900;
 
             TentId = 0;
             HopperId = 0;
@@ -382,6 +386,8 @@ namespace Plus.HabboHotel.Users
                     ExceptionLogger.LogException(e);
                 }
             }
+
+            _bankAccount = PlusEnvironment.GetBankingManager().LoadAccount(id);
 
             if (!PlusEnvironment.GetGame().GetGroupManager().TryGetGroup(_habboStats.FavouriteGroupId, out Group _))
                 _habboStats.FavouriteGroupId = 0;
@@ -509,6 +515,16 @@ namespace Plus.HabboHotel.Users
         public UserRpStats GetRpStats()
         {
             return _rpStats;
+        }
+
+        public UserRpBankAccount GetBankAccount()
+        {
+            return _bankAccount;
+        }
+
+        public void SetBankAccount(UserRpBankAccount account)
+        {
+            _bankAccount = account;
         }
 
         public int GetReconnectRoomId()
@@ -862,6 +878,11 @@ namespace Plus.HabboHotel.Users
             }
         }
 
+        public void SaveBank()
+        {
+            PlusEnvironment.GetBankingManager().Save(this);
+        }
+
         public bool InRoom => CurrentRoomId >= 1 && CurrentRoom != null;
 
         public Room CurrentRoom
@@ -1031,6 +1052,7 @@ namespace Plus.HabboHotel.Users
                 SaveRpWeapons();
                 SaveRpWeaponSkins();
                 SaveRpSkills();
+                SaveBank();
             }
 
             Dispose();
@@ -1116,6 +1138,22 @@ namespace Plus.HabboHotel.Users
                 {
                     Console.Error.WriteLine(e);
                 }
+            }
+        }
+
+        public void CheckBankSaveTimer()
+        {
+            try
+            {
+                BankSaveTick--;
+                if (BankSaveTick > 0)
+                    return;
+
+                SaveBank();
+                BankSaveTick = 900;
+            }
+            catch
+            {
             }
         }
 
