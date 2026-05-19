@@ -3,6 +3,7 @@
     public static class ServerPacketHeader
     {
         // Roleplay packets
+        public const int AnotherStatsMessageComposer = 6005;
         public const int UserStatsMessageComposer = 6004;
         public const int WantedListMessageComposer = 6003;
 

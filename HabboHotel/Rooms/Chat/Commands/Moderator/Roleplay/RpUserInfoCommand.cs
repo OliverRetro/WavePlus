@@ -1,10 +1,13 @@
-﻿using Plus.Database.Interfaces;
+﻿using Plus.Communication.Packets.Outgoing.Handshake;
+using Plus.Communication.Packets.Outgoing.Quests;
+using Plus.Database.Interfaces;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Roleplay.Skill;
+using Plus.HabboHotel.Users;
 using System;
 using System.Data;
-using System.Text;
 using System.Linq;
+using System.Text;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
 {
@@ -18,6 +21,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
+            session.SendPacket(new AnotherStatsComposer(session));
             if (@params.Length == 1)
             {
                 session.SendWhisper("Please enter the username of the user you wish to view.");

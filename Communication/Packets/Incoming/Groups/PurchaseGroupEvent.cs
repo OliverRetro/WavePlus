@@ -16,21 +16,21 @@ namespace Plus.Communication.Packets.Incoming.Groups
         {
             string name = PlusEnvironment.GetGame().GetChatManager().GetFilter().CheckMessage(packet.PopString());
             string description = PlusEnvironment.GetGame().GetChatManager().GetFilter().CheckMessage(packet.PopString());
+
             int roomId = packet.PopInt();
             int mainColour = packet.PopInt();
             int secondaryColour = packet.PopInt();
-            packet.PopInt(); //unknown
+
+            int count = packet.PopInt();
 
             int groupCost = Convert.ToInt32(PlusEnvironment.GetSettingsManager().TryGetValue("catalog.group.purchase.cost"));
 
             if (session.GetHabbo().Credits < groupCost)
             {
                 session.SendPacket(new BroadcastMessageAlertComposer("A group costs " + groupCost + " credits! You only have " + session.GetHabbo().Credits + "!"));
+
                 return;
             }
-
-            session.GetHabbo().Credits -= groupCost;
-            session.SendPacket(new CreditBalanceComposer(session.GetHabbo().Credits));
 
             if (!RoomFactory.TryGetData(roomId, out RoomData room))
                 return;
@@ -40,16 +40,34 @@ namespace Plus.Communication.Packets.Incoming.Groups
 
             string badge = string.Empty;
 
-            for (int i = 0; i < 5; i++)
+            int baseValue = 1;
+
+            while (baseValue < count)
             {
-                badge += BadgePartUtility.WorkBadgeParts(i == 0, packet.PopInt().ToString(), packet.PopInt().ToString(), packet.PopInt().ToString());
+                // Safety check
+                if (packet == null)
+                    return;
+
+                int id = packet.PopInt();
+                int color = packet.PopInt();
+                int position = packet.PopInt();
+
+                badge += BadgePartUtility.WorkBadgeParts(baseValue == 1, id.ToString(), color.ToString(), position.ToString());
+
+                baseValue += 3;
             }
 
             if (!PlusEnvironment.GetGame().GetGroupManager().TryCreateGroup(session.GetHabbo(), name, description, roomId, badge, mainColour, secondaryColour, out Group group))
             {
-                session.SendNotification("An error occured whilst trying to create this group.\n\nTry again. If you get this message more than once, report it at the link below.\r\rhttp://boonboards.com");
+                session.SendNotification("An error occured whilst trying to create this group.");
                 return;
             }
+
+            // Deduct credits AFTER successful creation
+            session.GetHabbo().Credits -= groupCost;
+
+            session.SendPacket(
+                new CreditBalanceComposer(session.GetHabbo().Credits));
 
             session.SendPacket(new PurchaseOkComposer());
 

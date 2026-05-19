@@ -192,7 +192,6 @@ namespace Plus.HabboHotel.Groups
             return groups;
         }
 
-
         public ICollection<GroupBadgeParts> BadgeBases => _bases;
 
         public ICollection<GroupBadgeParts> BadgeSymbols => _symbols;
