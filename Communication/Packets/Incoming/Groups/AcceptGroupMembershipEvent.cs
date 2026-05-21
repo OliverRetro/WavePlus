@@ -30,7 +30,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
 
             group.HandleRequest(userId, true);
 
-            session.SendPacket(new GroupMemberUpdatedComposer(groupId, habbo, 4));
+            session.SendPacket(new GroupMemberUpdatedComposer(group, habbo, 4));
         }
     }
 }

@@ -18,14 +18,11 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
             int onlineUsers = PlusEnvironment.GetGame().GetClientManager().Count;
             int roomCount = PlusEnvironment.GetGame().GetRoomManager().Count;
 
-            session.SendPacket(new RoomNotificationComposer("Powered by PlusEmulator",
-                "<b>Credits</b>:\n" +
-                "DevBest Community\n\n" +
+            session.SendPacket(new RoomNotificationComposer("Powered by Plus Emulator",
                 "<b>Current run time information</b>:\n" +
                 "Online Users: " + onlineUsers + "\n" +
                 "Rooms Loaded: " + roomCount + "\n" +
-                "Uptime: " + uptime.Days + " day(s), " + uptime.Hours + " hours and " + uptime.Minutes + " minutes.\n\n" +
-                "<b>SWF Revision</b>:\n" + PlusEnvironment.ClientRevision, "plus", ""));
+                "Uptime: " + uptime.Days + " day(s), " + uptime.Hours + " hours and " + uptime.Minutes + " minutes.\n\n", "plus", ""));
         }
     }
 }

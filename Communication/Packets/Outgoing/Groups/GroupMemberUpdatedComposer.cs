@@ -1,17 +1,20 @@
 ﻿using Plus.HabboHotel.Users;
+using GroupEntity = Plus.HabboHotel.Groups.Group;
 
 namespace Plus.Communication.Packets.Outgoing.Groups
 {
     internal class GroupMemberUpdatedComposer : MessageComposer
     {
+        public GroupEntity Group { get; }
         public int GroupId { get; }
         public Habbo Habbo { get; }
         public int Type { get; }
 
-        public GroupMemberUpdatedComposer(int groupId, Habbo habbo, int type)
+        public GroupMemberUpdatedComposer(GroupEntity group, Habbo habbo, int type)
             : base(ServerPacketHeader.GroupMemberUpdatedMessageComposer)
         {
-            GroupId = groupId;
+            Group = group;
+            GroupId = group.Id;
             Habbo = habbo;
             Type = type;
         }
@@ -24,7 +27,7 @@ namespace Plus.Communication.Packets.Outgoing.Groups
                 packet.WriteInteger(Habbo.Id); //UserId
                 packet.WriteString(Habbo.Username);
                 packet.WriteString(Habbo.Look);
-                packet.WriteString(string.Empty);
+                packet.WriteString(Group.GetMemberRoleName(Habbo.Id));
             }
         }
     }

@@ -14,6 +14,8 @@ namespace Plus.HabboHotel.Groups
 
         private readonly object _groupLoadingSync;
         private readonly ConcurrentDictionary<int, Group> _groups;
+        private const int RoleSaveIntervalTicks = 24000;
+        private int _roleSaveTick;
 
         private readonly List<GroupBadgeParts> _bases;
         private readonly List<GroupBadgeParts> _symbols;
@@ -25,6 +27,7 @@ namespace Plus.HabboHotel.Groups
         {
             _groupLoadingSync = new object();
             _groups = new ConcurrentDictionary<int, Group>();
+            _roleSaveTick = RoleSaveIntervalTicks;
 
             _bases = new List<GroupBadgeParts>();
             _symbols = new List<GroupBadgeParts>();
@@ -96,7 +99,7 @@ namespace Plus.HabboHotel.Groups
                     {
                         group = new Group(
                             Convert.ToInt32(row["id"]), Convert.ToString(row["name"]), Convert.ToString(row["desc"]), Convert.ToString(row["badge"]), Convert.ToInt32(row["room_id"]), Convert.ToInt32(row["owner_id"]),
-                            Convert.ToInt32(row["created"]), Convert.ToInt32(row["state"]), Convert.ToInt32(row["colour1"]), Convert.ToInt32(row["colour2"]), Convert.ToInt32(row["admindeco"]), Convert.ToInt32(row["forum_enabled"]) == 1);
+                            Convert.ToInt32(row["created"]), Convert.ToInt32(row["state"]), Convert.ToInt32(row["group_type"]), Convert.ToInt32(row["colour1"]), Convert.ToInt32(row["colour2"]), Convert.ToInt32(row["admindeco"]), Convert.ToInt32(row["forum_enabled"]) == 1);
                         _groups.TryAdd(group.Id, group);
                         return true;
                     }
@@ -108,13 +111,13 @@ namespace Plus.HabboHotel.Groups
 
         public bool TryCreateGroup(Habbo player, string name, string description, int roomId, string badge, int colour1, int colour2, out Group group)
         {
-            group = new Group(0, name, description, badge, roomId, player.Id, (int) PlusEnvironment.GetUnixTimestamp(), 0, colour1, colour2, 0, false);
+            group = new Group(0, name, description, badge, roomId, player.Id, (int) PlusEnvironment.GetUnixTimestamp(), 0, 0, colour1, colour2, 0, false);
             if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(badge))
                 return false;
 
             using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
             {
-                dbClient.SetQuery("INSERT INTO `groups` (`name`, `desc`, `badge`, `owner_id`, `created`, `room_id`, `state`, `colour1`, `colour2`, `admindeco`) VALUES (@name, @desc, @badge, @owner, UNIX_TIMESTAMP(), @room, '0', @colour1, @colour2, '0')");
+                dbClient.SetQuery("INSERT INTO `groups` (`name`, `desc`, `badge`, `owner_id`, `created`, `room_id`, `state`, `group_type`, `colour1`, `colour2`, `admindeco`) VALUES (@name, @desc, @badge, @owner, UNIX_TIMESTAMP(), @room, '0', '0', @colour1, @colour2, '0')");
                 dbClient.AddParameter("name", group.Name);
                 dbClient.AddParameter("desc", group.Description);
                 dbClient.AddParameter("owner", group.CreatorId);
@@ -124,8 +127,8 @@ namespace Plus.HabboHotel.Groups
                 dbClient.AddParameter("colour2", group.Colour2);
                 group.Id = Convert.ToInt32(dbClient.InsertQuery());
 
-                group.AddMember(player.Id);
-                group.MakeAdmin(player.Id);
+                group.AddMember(player.Id, 0);
+                group.AddRole("Member", 0, string.Empty, string.Empty, 5, true);
 
                 if (!_groups.TryAdd(group.Id, group))
                     return false;
@@ -139,6 +142,18 @@ namespace Plus.HabboHotel.Groups
             }
 
             return true;
+        }
+
+        public void OnCycle()
+        {
+            _roleSaveTick--;
+            if (_roleSaveTick > 0)
+                return;
+
+            foreach (Group group in _groups.Values)
+                group.SaveRoles();
+
+            _roleSaveTick = RoleSaveIntervalTicks;
         }
 
         public string GetColourCode(int id, bool colourOne)

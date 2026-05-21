@@ -135,6 +135,7 @@ namespace Plus.HabboHotel
 
                 PlusEnvironment.GetGame().GetRoomManager().OnCycle();
                 PlusEnvironment.GetGame().GetClientManager().OnCycle();
+                PlusEnvironment.GetGame().GetGroupManager().OnCycle();
                 PlusEnvironment.GetHospitalManager().OnCycle();
 
                 _cycleEnded = true;

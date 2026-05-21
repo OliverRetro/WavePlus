@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -21,14 +22,16 @@ namespace Plus.HabboHotel.Groups
         public int Colour2 { get; set; }
         public bool ForumEnabled { get; set; }
         public GroupType Type { get; set; }
+        public GroupKind Kind { get; set; }
         public bool HasForum;
-        private readonly List<int> _members;
+        private readonly ConcurrentDictionary<int, int> _memberLevels;
         private readonly List<int> _requests;
-        private readonly List<int> _administrators;
+        private readonly ConcurrentDictionary<int, GroupRole> _roles;
+        private readonly List<int> _deletedRoleIds;
 
         private RoomData _room;
 
-        public Group(int id, string name, string description, string badge, int roomId, int owner, int time, int type, int colour1, int colour2, int adminOnlyDeco, bool hasForum)
+        public Group(int id, string name, string description, string badge, int roomId, int owner, int time, int type, int groupType, int colour1, int colour2, int adminOnlyDeco, bool hasForum)
         {
             Id = id;
             Name = name;
@@ -41,15 +44,18 @@ namespace Plus.HabboHotel.Groups
             Colour2 = colour2 == 0 ? 1 : colour2;
             HasForum = hasForum;
             Type = (GroupType) type;
+            Kind = (GroupKind) groupType;
 
             AdminOnlyDeco = adminOnlyDeco;
             ForumEnabled = ForumEnabled;
 
-            _members = new List<int>();
+            _memberLevels = new ConcurrentDictionary<int, int>();
             _requests = new List<int>();
-            _administrators = new List<int>();
+            _roles = new ConcurrentDictionary<int, GroupRole>();
+            _deletedRoleIds = new List<int>();
 
             InitMembers();
+            InitRoles();
         }
 
         public void InitMembers()
@@ -65,19 +71,31 @@ namespace Plus.HabboHotel.Groups
                     foreach (DataRow row in members.Rows)
                     {
                         int userId = Convert.ToInt32(row["user_id"]);
-                        bool isAdmin = Convert.ToInt32(row["rank"]) != 0;
+                        int level = Convert.ToInt32(row["rank"]);
+                        if (userId == CreatorId)
+                            level = 0;
+                        else if (level < 1)
+                            level = 1;
 
-                        if (isAdmin)
+                        _memberLevels[userId] = level;
+
+                        if (userId == CreatorId && Convert.ToInt32(row["rank"]) != 0)
                         {
-                            if (!_administrators.Contains(userId))
-                                _administrators.Add(userId);
-                        }
-                        else
-                        {
-                            if (!_members.Contains(userId))
-                                _members.Add(userId);
+                            dbClient.SetQuery("UPDATE `group_memberships` SET `rank` = '0' WHERE `user_id` = @uid AND `group_id` = @gid LIMIT 1");
+                            dbClient.AddParameter("uid", userId);
+                            dbClient.AddParameter("gid", Id);
+                            dbClient.RunQuery();
                         }
                     }
+                }
+
+                if (!_memberLevels.ContainsKey(CreatorId))
+                {
+                    dbClient.SetQuery("INSERT INTO `group_memberships` (`user_id`, `group_id`, `rank`) VALUES (@uid, @gid, '0')");
+                    dbClient.AddParameter("uid", CreatorId);
+                    dbClient.AddParameter("gid", Id);
+                    dbClient.RunQuery();
+                    _memberLevels[CreatorId] = 0;
                 }
 
                 dbClient.SetQuery("SELECT `user_id` FROM `group_requests` WHERE `group_id` = @id");
@@ -90,7 +108,7 @@ namespace Plus.HabboHotel.Groups
                     {
                         int userId = Convert.ToInt32(row["user_id"]);
 
-                        if (_members.Contains(userId) || _administrators.Contains(userId))
+                        if (_memberLevels.ContainsKey(userId))
                         {
                             dbClient.RunQuery("DELETE FROM `group_requests` WHERE `group_id` = '" + Id + "' AND `user_id` = '" + userId + "'");
                         }
@@ -103,35 +121,66 @@ namespace Plus.HabboHotel.Groups
             }
         }
 
-        public List<int> GetMembers => _members.ToList();
+        public void InitRoles()
+        {
+            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            {
+                dbClient.SetQuery("SELECT `id`, `group_id`, `level`, `name`, `shift_pay`, `shift_costume`, `shift_duration`, `shift_motto`, `created_at` FROM `group_roles` WHERE `group_id` = @group_id ORDER BY `level` ASC");
+                dbClient.AddParameter("group_id", Id);
+                DataTable roles = dbClient.GetTable();
+
+                if (roles != null)
+                {
+                    foreach (DataRow row in roles.Rows)
+                    {
+                        GroupRole role = new GroupRole(
+                            Convert.ToInt32(row["id"]),
+                            Convert.ToInt32(row["group_id"]),
+                            Convert.ToInt32(row["level"]),
+                            Convert.ToString(row["name"]),
+                            Convert.ToInt32(row["shift_pay"]),
+                            Convert.ToString(row["shift_costume"]),
+                            row["shift_duration"] == DBNull.Value ? 5 : Convert.ToInt32(row["shift_duration"]),
+                            Convert.ToString(row["shift_motto"]),
+                            Convert.ToDateTime(row["created_at"]));
+
+                        _roles[role.Level] = role;
+                    }
+                }
+            }
+
+            if (!_roles.ContainsKey(1))
+                AddRole("Member", 0, string.Empty, string.Empty, 5, true);
+        }
+
+        public List<int> GetMembers => _memberLevels.Where(x => x.Value == 1).Select(x => x.Key).ToList();
 
         public List<int> GetRequests => _requests.ToList();
 
-        public List<int> GetAdministrators => _administrators.ToList();
+        public List<int> GetAdministrators => _memberLevels.Where(x => x.Key == CreatorId || x.Value > 1).Select(x => x.Key).ToList();
+
+        public ICollection<GroupRole> GetRoles => _roles.Values.OrderBy(x => x.Level).ToList();
 
         public List<int> GetAllMembers
         {
             get
             {
-                List<int> members = new(_administrators.ToList());
-                members.AddRange(_members.ToList());
-
-                return members;
+                return _memberLevels.Keys.ToList();
             }
         }
 
-        public int MemberCount => _members.Count + _administrators.Count;
+        public int MemberCount => _memberLevels.Count;
 
         public int RequestCount => _requests.Count;
 
         public bool IsMember(int id)
         {
-            return _members.Contains(id) || _administrators.Contains(id);
+            return _memberLevels.ContainsKey(id);
         }
 
         public bool IsAdmin(int id)
         {
-            return _administrators.Contains(id);
+            return _memberLevels.TryGetValue(id, out int level) && level > 1;
         }
 
         public bool HasRequest(int id)
@@ -139,84 +188,75 @@ namespace Plus.HabboHotel.Groups
             return _requests.Contains(id);
         }
 
+        public int GetMemberLevel(int id)
+        {
+            return _memberLevels.TryGetValue(id, out int level) ? level : -1;
+        }
+
+        public string GetMemberRoleName(int id)
+        {
+            if (!_memberLevels.TryGetValue(id, out int level))
+                return string.Empty;
+
+            if (id == CreatorId || level == 0)
+                return "Owner";
+
+            return _roles.TryGetValue(level, out GroupRole role) ? role.Name : level.ToString();
+        }
+
         public void MakeAdmin(int id)
         {
-            if (_members.Contains(id))
-                _members.Remove(id);
+            if (!IsMember(id) || id == CreatorId)
+                return;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("UPDATE group_memberships SET `rank` = '1' WHERE `user_id` = @uid AND `group_id` = @gid LIMIT 1");
-                dbClient.AddParameter("gid", Id);
-                dbClient.AddParameter("uid", id);
-                dbClient.RunQuery();
-            }
+            int targetLevel = _roles.Keys.Where(level => level > 1).DefaultIfEmpty(0).Min();
+            if (targetLevel <= 1)
+                targetLevel = AddRole("Administrator", 0, string.Empty, string.Empty, 5, true).Level;
 
-            if (!_administrators.Contains(id))
-                _administrators.Add(id);
+            UpdateMemberLevel(id, targetLevel);
         }
 
         public void TakeAdmin(int userId)
         {
-            if (!_administrators.Contains(userId))
+            if (!IsAdmin(userId) || userId == CreatorId)
                 return;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("UPDATE group_memberships SET `rank` = '0' WHERE user_id = @uid AND group_id = @gid");
-                dbClient.AddParameter("gid", Id);
-                dbClient.AddParameter("uid", userId);
-                dbClient.RunQuery();
-            }
-
-            _administrators.Remove(userId);
-            _members.Add(userId);
+            UpdateMemberLevel(userId, 1);
         }
 
-        public void AddMember(int id)
+        public void AddMember(int id, int level = 1)
         {
             if (IsMember(id) || Type == GroupType.Locked && _requests.Contains(id))
                 return;
 
             using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
             {
-                if (IsAdmin(id))
-                {
-                    dbClient.SetQuery("UPDATE `group_memberships` SET `rank` = '0' WHERE user_id = @uid AND group_id = @gid");
-                    _administrators.Remove(id);
-                    _members.Add(id);
-                }
-                else if (Type == GroupType.Locked)
+                if (Type == GroupType.Locked)
                 {
                     dbClient.SetQuery("INSERT INTO `group_requests` (user_id, group_id) VALUES (@uid, @gid)");
                     _requests.Add(id);
                 }
                 else
                 {
-                    dbClient.SetQuery("INSERT INTO `group_memberships` (user_id, group_id) VALUES (@uid, @gid)");
-                    _members.Add(id);
+                    dbClient.SetQuery("INSERT INTO `group_memberships` (`user_id`, `group_id`, `rank`) VALUES (@uid, @gid, @rank)");
+                    dbClient.AddParameter("rank", level);
                 }
 
                 dbClient.AddParameter("gid", Id);
                 dbClient.AddParameter("uid", id);
                 dbClient.RunQuery();
             }
+
+            if (Type != GroupType.Locked)
+                _memberLevels[id] = level;
         }
 
         public void DeleteMember(int id)
         {
-            if (IsMember(id))
-            {
-                if (_members.Contains(id))
-                    _members.Remove(id);
-            }
-            else if (IsAdmin(id))
-            {
-                if (_administrators.Contains(id))
-                    _administrators.Remove(id);
-            }
-            else
+            if (id == CreatorId || !IsMember(id))
                 return;
+
+            _memberLevels.TryRemove(id, out _);
 
             using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
             {
@@ -233,12 +273,12 @@ namespace Plus.HabboHotel.Groups
             {
                 if (accepted)
                 {
-                    dbClient.SetQuery("INSERT INTO group_memberships (user_id, group_id) VALUES (@uid, @gid)");
+                    dbClient.SetQuery("INSERT INTO `group_memberships` (`user_id`, `group_id`, `rank`) VALUES (@uid, @gid, '1')");
                     dbClient.AddParameter("gid", Id);
                     dbClient.AddParameter("uid", id);
                     dbClient.RunQuery();
 
-                    _members.Add(id);
+                    _memberLevels[id] = 1;
                 }
 
                 dbClient.SetQuery("DELETE FROM group_requests WHERE user_id=@uid AND group_id=@gid LIMIT 1");
@@ -265,6 +305,93 @@ namespace Plus.HabboHotel.Groups
             return _room;
         }
 
+        public bool UpdateRole(int level, string name, int shiftPay, string shiftCostume, int shiftDuration, string shiftMotto)
+        {
+            if (!_roles.TryGetValue(level, out GroupRole role))
+                return false;
+
+            NormalizeRoleValues(ref shiftPay, ref shiftCostume, ref shiftDuration, ref shiftMotto);
+            role.Update(name, shiftPay, shiftCostume, shiftDuration, shiftMotto);
+            return true;
+        }
+
+        public GroupRole AddRole(string name, int shiftPay, string shiftCostume, string shiftMotto, int shiftDuration, bool saveImmediately = false)
+        {
+            int level = _roles.Keys.DefaultIfEmpty(0).Max() + 1;
+            NormalizeRoleValues(ref shiftPay, ref shiftCostume, ref shiftDuration, ref shiftMotto);
+
+            GroupRole role = new GroupRole(0, Id, level, name, shiftPay, shiftCostume, shiftDuration, shiftMotto, DateTime.UtcNow, true);
+            _roles[level] = role;
+
+            if (saveImmediately)
+                SaveRoles();
+
+            return role;
+        }
+
+        public bool RemoveRole(int actorUserId, int level)
+        {
+            if (actorUserId != CreatorId || level <= 1 || !_roles.TryRemove(level, out GroupRole role))
+                return false;
+
+            foreach (int userId in _memberLevels.Where(x => x.Value == level).Select(x => x.Key).ToList())
+                UpdateMemberLevel(userId, 1);
+
+            if (role.Id > 0)
+                _deletedRoleIds.Add(role.Id);
+
+            return true;
+        }
+
+        public void SaveRoles()
+        {
+            if (_deletedRoleIds.Count == 0 && _roles.Values.All(x => !x.Dirty && !x.IsNew))
+                return;
+
+            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            {
+                foreach (int deletedRoleId in _deletedRoleIds.ToList())
+                {
+                    dbClient.SetQuery("DELETE FROM `group_roles` WHERE `id` = @id LIMIT 1");
+                    dbClient.AddParameter("id", deletedRoleId);
+                    dbClient.RunQuery();
+                }
+
+                _deletedRoleIds.Clear();
+
+                foreach (GroupRole role in _roles.Values.OrderBy(x => x.Level))
+                {
+                    if (role.IsNew)
+                    {
+                        dbClient.SetQuery("INSERT INTO `group_roles` (`group_id`, `level`, `name`, `shift_pay`, `shift_costume`, `shift_duration`, `shift_motto`, `created_at`) VALUES (@group_id, @level, @name, @shift_pay, @shift_costume, @shift_duration, @shift_motto, @created_at)");
+                        dbClient.AddParameter("group_id", role.GroupId);
+                        dbClient.AddParameter("level", role.Level);
+                        dbClient.AddParameter("name", role.Name);
+                        dbClient.AddParameter("shift_pay", role.ShiftPay);
+                        dbClient.AddParameter("shift_costume", role.ShiftCostume);
+                        dbClient.AddParameter("shift_duration", role.ShiftDuration);
+                        dbClient.AddParameter("shift_motto", role.ShiftMotto);
+                        dbClient.AddParameter("created_at", role.CreatedAt);
+                        role.MarkPersisted(Convert.ToInt32(dbClient.InsertQuery()));
+                        continue;
+                    }
+
+                    if (!role.Dirty)
+                        continue;
+
+                    dbClient.SetQuery("UPDATE `group_roles` SET `name` = @name, `shift_pay` = @shift_pay, `shift_costume` = @shift_costume, `shift_duration` = @shift_duration, `shift_motto` = @shift_motto WHERE `id` = @id LIMIT 1");
+                    dbClient.AddParameter("id", role.Id);
+                    dbClient.AddParameter("name", role.Name);
+                    dbClient.AddParameter("shift_pay", role.ShiftPay);
+                    dbClient.AddParameter("shift_costume", role.ShiftCostume);
+                    dbClient.AddParameter("shift_duration", role.ShiftDuration);
+                    dbClient.AddParameter("shift_motto", role.ShiftMotto);
+                    dbClient.RunQuery();
+                    role.MarkSaved();
+                }
+            }
+        }
+
 
         public void ClearRequests()
         {
@@ -273,9 +400,36 @@ namespace Plus.HabboHotel.Groups
 
         public void Dispose()
         {
+            SaveRoles();
             _requests.Clear();
-            _members.Clear();
-            _administrators.Clear();
+            _memberLevels.Clear();
+            _roles.Clear();
+            _deletedRoleIds.Clear();
+        }
+
+        private void UpdateMemberLevel(int userId, int level)
+        {
+            if (!_memberLevels.ContainsKey(userId))
+                return;
+
+            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            {
+                dbClient.SetQuery("UPDATE `group_memberships` SET `rank` = @rank WHERE `user_id` = @uid AND `group_id` = @gid LIMIT 1");
+                dbClient.AddParameter("rank", level);
+                dbClient.AddParameter("gid", Id);
+                dbClient.AddParameter("uid", userId);
+                dbClient.RunQuery();
+            }
+
+            _memberLevels[userId] = level;
+        }
+
+        private void NormalizeRoleValues(ref int shiftPay, ref string shiftCostume, ref int shiftDuration, ref string shiftMotto)
+        {
+            shiftPay = Math.Max(0, shiftPay);
+            shiftDuration = shiftDuration <= 0 ? 5 : shiftDuration;
+            shiftCostume ??= string.Empty;
+            shiftMotto ??= string.Empty;
         }
     }
 }

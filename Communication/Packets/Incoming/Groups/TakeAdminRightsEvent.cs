@@ -42,7 +42,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
                 }
             }
 
-            session.SendPacket(new GroupMemberUpdatedComposer(groupId, habbo, 2));
+            session.SendPacket(new GroupMemberUpdatedComposer(group, habbo, 2));
         }
     }
 }

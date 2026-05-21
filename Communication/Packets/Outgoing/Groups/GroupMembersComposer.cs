@@ -43,7 +43,7 @@ namespace Plus.Communication.Packets.Outgoing.Groups
                     packet.WriteInteger(data.Id);
                     packet.WriteString(data.Username);
                     packet.WriteString(data.Look);
-                    packet.WriteString(string.Empty);
+                    packet.WriteString(Group.GetMemberRoleName(data.Id));
                 }
             }
 

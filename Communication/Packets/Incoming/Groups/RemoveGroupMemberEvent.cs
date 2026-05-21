@@ -22,6 +22,12 @@ namespace Plus.Communication.Packets.Incoming.Groups
 
             if (userId == session.GetHabbo().Id)
             {
+                if (group.CreatorId == userId)
+                {
+                    session.SendNotification("Oops, the group owner cannot leave the group.");
+                    return;
+                }
+
                 if (group.IsMember(userId))
                     group.DeleteMember(userId);
 
@@ -42,15 +48,6 @@ namespace Plus.Communication.Packets.Incoming.Groups
                         if (user.GetClient() != null)
                             user.GetClient().SendPacket(new YouAreControllerComposer(0));
                     }
-                }
-
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                {
-                    dbClient.SetQuery(
-                        "DELETE FROM `group_memberships` WHERE `group_id` = @GroupId AND `user_id` = @UserId");
-                    dbClient.AddParameter("GroupId", groupId);
-                    dbClient.AddParameter("UserId", userId);
-                    dbClient.RunQuery();
                 }
 
                 session.SendPacket(new GroupInfoComposer(group, session));
@@ -100,6 +97,9 @@ namespace Plus.Communication.Packets.Incoming.Groups
             if (group.CreatorId == session.GetHabbo().Id || group.IsAdmin(session.GetHabbo().Id))
             {
                 if (!group.IsMember(userId))
+                    return;
+
+                if (userId == group.CreatorId)
                     return;
 
                 if (group.IsAdmin(userId) && group.CreatorId != session.GetHabbo().Id)

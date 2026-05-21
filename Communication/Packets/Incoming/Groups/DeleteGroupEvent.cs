@@ -44,6 +44,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
             {
                 dbClient.RunQuery("DELETE FROM `groups` WHERE `id` = '" + group.Id + "'");
                 dbClient.RunQuery("DELETE FROM `group_memberships` WHERE `group_id` = '" + group.Id + "'");
+                dbClient.RunQuery("DELETE FROM `group_roles` WHERE `group_id` = '" + group.Id + "'");
                 dbClient.RunQuery("DELETE FROM `group_requests` WHERE `group_id` = '" + group.Id + "'");
                 dbClient.RunQuery("UPDATE `rooms` SET `group_id` = '0' WHERE `group_id` = '" + group.Id + "' LIMIT 1");
                 dbClient.RunQuery("UPDATE `user_stats` SET `groupid` = '0' WHERE `groupid` = '" + group.Id + "' LIMIT 1");
