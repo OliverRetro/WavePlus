@@ -30,6 +30,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
             if (_rpstats == null || roomUser == null)
                 return;
 
+            if (session.GetHabbo().GetRpStats().Aggression > 0)
+            {
+                session.SendWhisper("You cannot toggle passive mode while you have aggression.", 1);
+                return;
+            }
+
             if (roomUser.IsWalking || roomUser.GoalX != roomUser.X || roomUser.GoalY != roomUser.Y)
             {
                 session.SendWhisper("You need to stand still to toggle passive mode.", 1);
@@ -67,7 +73,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
             stats.PassiveMode = !stats.PassiveMode;
             if (stats.PassiveMode)
             {
-                roomUser.ApplyEffect(1);
+                roomUser.ApplyEffect(1057);
                 session.GetHabbo().GetRpWeapons().SetActiveWeaponId(0);
             }
 
