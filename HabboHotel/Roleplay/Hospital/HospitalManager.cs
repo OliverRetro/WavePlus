@@ -259,7 +259,7 @@ namespace Plus.HabboHotel.Roleplay.Hospital
                 return;
 
             _bleedoutUsers.TryRemove(habbo.Id, out _);
-            BeginHospitalStay(habbo, false);
+            BeginHospitalStay(habbo, true);
         }
 
         private void BeginHospitalStay(Habbo habbo, bool sendImmediately)
@@ -269,9 +269,10 @@ namespace Plus.HabboHotel.Roleplay.Hospital
                 return;
 
             double now = PlusEnvironment.GetUnixTimestamp();
+            stats.Health = 0;
             stats.HospitalReleaseTime = now + GetDeathDurationSeconds();
             stats.HospitalHealStartTime = now;
-            stats.HospitalHealthStart = stats.Health;
+            stats.HospitalHealthStart = 0;
             stats.NextPassiveHospitalHealTick = 0;
             habbo.SaveRpStats();
 

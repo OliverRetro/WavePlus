@@ -33,6 +33,8 @@ using Plus.HabboHotel.Users.Permissions;
 using Plus.HabboHotel.Users.Process;
 using Plus.HabboHotel.Users.Relationships;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Plus.HabboHotel.Users
 {
@@ -108,7 +110,6 @@ namespace Plus.HabboHotel.Users
         public int MessengerSpamCount { get; set; }
         public double MessengerSpamTime { get; set; }
         public int CreditsUpdateTick { get; set; }
-        public int AggressionUpdateTick { get; set; }
         public int BankSaveTick { get; set; }
 
         // Room related
@@ -189,6 +190,8 @@ namespace Plus.HabboHotel.Users
         private UserRpWeapons _rpWeapons;
         private UserRpWeaponSkins _rpWeaponSkins;
         private UserRpBankAccount _bankAccount;
+        private CancellationTokenSource _aggressionTimerTokenSource;
+        private DateTime? _aggressionExpiresAtUtc;
 
         public double CustomBuildHeight { get; set; }
 
@@ -274,6 +277,8 @@ namespace Plus.HabboHotel.Users
                     dbClient.RunQuery();
                 }
             }
+
+            StartAggressionTimer(_rpStats?.Aggression ?? 0);
 
             BannedPhraseCount = 0;
             SessionStart = PlusEnvironment.GetUnixTimestamp();
@@ -515,12 +520,39 @@ namespace Plus.HabboHotel.Users
 
         public UserRpStats GetRpStats()
         {
+            SyncAggressionState();
             return _rpStats;
         }
 
         public UserRpBankAccount GetBankAccount()
         {
             return _bankAccount;
+        }
+
+        public int GetAggressionSecondsRemaining()
+        {
+            SyncAggressionState();
+            return _rpStats?.Aggression ?? 0;
+        }
+
+        public void ResetAggressionTimer()
+        {
+            int aggressionDuration = 30;
+            if (PlusEnvironment.GetGame().GetSubscriptionManager().TryGetSubscriptionData(VipRank, out SubscriptionData subData))
+                aggressionDuration = Math.Max(0, aggressionDuration - subData.StaticAggression);
+
+            StartAggressionTimer(aggressionDuration);
+        }
+
+        public void ClearAggressionTimer()
+        {
+            _aggressionTimerTokenSource?.Cancel();
+            _aggressionTimerTokenSource?.Dispose();
+            _aggressionTimerTokenSource = null;
+            _aggressionExpiresAtUtc = null;
+
+            if (_rpStats != null)
+                _rpStats.Aggression = 0;
         }
 
         public void SetBankAccount(UserRpBankAccount account)
@@ -745,7 +777,7 @@ namespace Plus.HabboHotel.Users
                             query.AddParameter("hospital_release_time", _rpStats.HospitalReleaseTime);
                             query.AddParameter("hospital_heal_start_time", _rpStats.HospitalHealStartTime);
                             query.AddParameter("hospital_health_start", _rpStats.HospitalHealthStart);
-                            query.AddParameter("aggression", _rpStats.Aggression);
+                            query.AddParameter("aggression", GetAggressionSecondsRemaining());
                             query.AddParameter("passive_mode", _rpStats.PassiveMode ? 1 : 0);
                             query.AddParameter("user_id", Id);
                         },
@@ -911,7 +943,6 @@ namespace Plus.HabboHotel.Users
         {
             get
             {
-                _habboSaved = true;
                 return "UPDATE `users` SET `online` = '0', `last_online` = '" + PlusEnvironment.GetUnixTimestamp() + "', `activity_points` = '" + Duckets + "', `credits` = '" + Credits + "', `vip_points` = '" + Diamonds + "', `home_room` = '" + HomeRoom + "', `gotw_points` = '" + GotwPoints + "', `time_muted` = '" + TimeMuted + "',`friend_bar_state` = '" + FriendBarStateUtility.GetInt(FriendBarState) + "',`bubble` '" + CustomBubbleId + "' WHERE id = '" + Id + "' LIMIT 1;UPDATE `user_stats` SET `roomvisits` = '" + _habboStats.RoomVisits + "', `onlineTime` = '" + (PlusEnvironment.GetUnixTimestamp() - SessionStart + _habboStats.OnlineTime) + "', `respect` = '" + _habboStats.Respect + "', `respectGiven` = '" + _habboStats.RespectGiven + "', `giftsGiven` = '" + _habboStats.GiftsGiven + "', `giftsReceived` = '" + _habboStats.GiftsReceived + "', `dailyRespectPoints` = '" + _habboStats.DailyRespectPoints + "', `dailyPetRespectPoints` = '" + _habboStats.DailyPetRespectPoints + "', `AchievementScore` = '" + _habboStats.AchievementPoints + "', `quest_id` = '" + _habboStats.QuestId + "', `quest_progress` = '" + _habboStats.QuestProgress + "', `groupid` = '" + _habboStats.FavouriteGroupId + "',`forum_posts` = '" + _habboStats.ForumPosts + "' WHERE `id` = '" + Id + "' LIMIT 1;";
             }
         }
@@ -1080,6 +1111,8 @@ namespace Plus.HabboHotel.Users
             _clothing?.Dispose();
 
             _permissions?.Dispose();
+            _aggressionTimerTokenSource?.Cancel();
+            _aggressionTimerTokenSource?.Dispose();
 
             if (_ignores != null)
                 _permissions.Dispose();
@@ -1116,33 +1149,6 @@ namespace Plus.HabboHotel.Users
             }
         }
 
-        public void CheckAggressionTimer()
-        {
-            try
-            {
-                AggressionUpdateTick--;
-                if (AggressionUpdateTick <= 0)
-                {
-                    int aggressionUpdate = 3;
-
-                    if (PlusEnvironment.GetGame().GetSubscriptionManager().TryGetSubscriptionData(VipRank, out SubscriptionData subData))
-                    {
-                        aggressionUpdate -= subData.StaticAggression;
-                    }
-
-                    _rpStats.Aggression = Math.Max(0, _rpStats.Aggression - aggressionUpdate);
-
-                    AggressionUpdateTick = Convert.ToInt32(PlusEnvironment.GetSettingsManager().TryGetValue("user.aggression_scheduler.tick"));
-                }
-            }
-            catch (Exception e)
-            {
-                {
-                    Console.Error.WriteLine(e);
-                }
-            }
-        }
-
         public void CheckBankSaveTimer()
         {
             try
@@ -1157,6 +1163,65 @@ namespace Plus.HabboHotel.Users
             catch
             {
             }
+        }
+
+        private void StartAggressionTimer(int seconds)
+        {
+            ClearAggressionTimer();
+
+            if (_rpStats == null || seconds <= 0)
+                return;
+
+            _rpStats.Aggression = seconds;
+            _aggressionExpiresAtUtc = DateTime.UtcNow.AddSeconds(seconds);
+            _aggressionTimerTokenSource = new CancellationTokenSource();
+            _ = RunAggressionTimerAsync(seconds, _aggressionTimerTokenSource.Token);
+        }
+
+        private async Task RunAggressionTimerAsync(int seconds, CancellationToken cancellationToken)
+        {
+            try
+            {
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    SyncAggressionState();
+                    if ((_rpStats?.Aggression ?? 0) <= 0)
+                    {
+                        ClearAggressionTimer();
+                        return;
+                    }
+
+                    await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
+                }
+            }
+            catch (TaskCanceledException)
+            {
+            }
+        }
+
+        private void SyncAggressionState()
+        {
+            if (_rpStats == null)
+                return;
+
+            int secondsRemaining = CalculateAggressionSecondsRemaining();
+            _rpStats.Aggression = secondsRemaining;
+
+            if (secondsRemaining > 0 || _aggressionExpiresAtUtc.HasValue)
+                return;
+
+            _aggressionTimerTokenSource?.Cancel();
+            _aggressionTimerTokenSource?.Dispose();
+            _aggressionTimerTokenSource = null;
+        }
+
+        private int CalculateAggressionSecondsRemaining()
+        {
+            if (!_aggressionExpiresAtUtc.HasValue)
+                return 0;
+
+            double secondsRemaining = (_aggressionExpiresAtUtc.Value - DateTime.UtcNow).TotalSeconds;
+            return secondsRemaining <= 0 ? 0 : (int)Math.Ceiling(secondsRemaining);
         }
 
         public GameClient GetClient()

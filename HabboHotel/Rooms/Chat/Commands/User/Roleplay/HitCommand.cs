@@ -54,7 +54,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 
             if (room.Safezone && !(targetClient.GetHabbo().GetRpStats().Aggression > 0 && session.GetHabbo().GetRpStats().Aggression > 0))
             {
-                session.SendWhisper("You cannot attack the user in a safezone unless both of you have aggression.", 1);
+                session.SendWhisper("You cannot attack a user in a safezone, unless both of you have aggression.", 1);
                 return;
             }
 

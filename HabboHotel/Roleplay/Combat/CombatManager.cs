@@ -68,18 +68,16 @@ namespace Plus.HabboHotel.Roleplay.Combat
 
             if (isFinalBlow)
             {
-                attackerStats.Aggression = Math.Min(100, attackerStats.Aggression + 10);
+                attacker.ResetAggressionTimer();
                 targetStats.Health = 0;
                 attackerStats.Kill(target, targetRoomUser);
             } else {
-                attackerStats.Aggression = Math.Min(100, attackerStats.Aggression + 5);
-                targetStats.Aggression = Math.Min(100, targetStats.Aggression + 3);
+                attacker.ResetAggressionTimer();
             }
 
             // Send shout about the attack after damage is resolved so it reflects the final result.
             string shoutResult = isFinalBlow
-                ? "*deals the final blow to " + target.Username + " with " + actualDamageDealt + " damage*"
-                : FormatAttackMessage(skin, weapon, target.Username, actualDamageDealt, result.IsCritical);
+                ? "*deals the final blow to " + target.Username + " with " + actualDamageDealt + " damage*" : FormatAttackMessage(skin, weapon, target.Username, actualDamageDealt, result.IsCritical);
             attacker.CurrentRoom.SendPacket(new ShoutComposer(attackerRoomUser.VirtualId, shoutResult, 0, 29));
 
             // stun

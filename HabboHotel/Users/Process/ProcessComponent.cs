@@ -144,7 +144,6 @@ namespace Plus.HabboHotel.Users.Process
                     PlusEnvironment.GetGame().GetAchievementManager().ProgressAchievement(_player.GetClient(), "ACH_AllTimeHotelPresence", 1);
 
                 _player.CheckCreditsTimer();
-                _player.CheckAggressionTimer();
                 _player.CheckBankSaveTimer();
                 
                 _player.Effects().CheckEffectExpiry(_player);
