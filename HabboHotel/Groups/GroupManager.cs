@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using log4net;
 using Plus.Database.Interfaces;
 using Plus.HabboHotel.Users;
@@ -16,6 +17,8 @@ namespace Plus.HabboHotel.Groups
         private readonly ConcurrentDictionary<int, Group> _groups;
         private const int RoleSaveIntervalTicks = 24000;
         private int _roleSaveTick;
+        private readonly ConcurrentDictionary<int, GroupPermissionKey> _permissionKeys;
+        private readonly ConcurrentDictionary<string, GroupPermissionKey> _permissionKeysByKey;
 
         private readonly List<GroupBadgeParts> _bases;
         private readonly List<GroupBadgeParts> _symbols;
@@ -28,6 +31,8 @@ namespace Plus.HabboHotel.Groups
             _groupLoadingSync = new object();
             _groups = new ConcurrentDictionary<int, Group>();
             _roleSaveTick = RoleSaveIntervalTicks;
+            _permissionKeys = new ConcurrentDictionary<int, GroupPermissionKey>();
+            _permissionKeysByKey = new ConcurrentDictionary<string, GroupPermissionKey>(StringComparer.OrdinalIgnoreCase);
 
             _bases = new List<GroupBadgeParts>();
             _symbols = new List<GroupBadgeParts>();
@@ -43,6 +48,8 @@ namespace Plus.HabboHotel.Groups
             _baseColours.Clear();
             _symbolColours.Clear();
             _backgroundColours.Clear();
+            _permissionKeys.Clear();
+            _permissionKeysByKey.Clear();
 
             using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
             {
@@ -72,6 +79,24 @@ namespace Plus.HabboHotel.Groups
                         case "color3":
                             _backgroundColours.Add(Convert.ToInt32(groupItem["id"]), new GroupColours(Convert.ToInt32(groupItem["id"]), groupItem["firstvalue"].ToString()));
                             break;
+                    }
+                }
+
+                dbClient.SetQuery("SELECT `id`,`name`,`key`,`description`,`type_specific` FROM `group_permission_keys`");
+                DataTable permissionKeys = dbClient.GetTable();
+                if (permissionKeys != null)
+                {
+                    foreach (DataRow row in permissionKeys.Rows)
+                    {
+                        GroupPermissionKey permissionKey = new GroupPermissionKey(
+                            Convert.ToInt32(row["id"]),
+                            Convert.ToString(row["name"]),
+                            Convert.ToString(row["key"]),
+                            Convert.ToString(row["description"]),
+                            Convert.ToString(row["type_specific"]));
+
+                        _permissionKeys[permissionKey.Id] = permissionKey;
+                        _permissionKeysByKey[permissionKey.Key] = permissionKey;
                     }
                 }
             }
@@ -151,10 +176,26 @@ namespace Plus.HabboHotel.Groups
                 return;
 
             foreach (Group group in _groups.Values)
+            {
                 group.SaveRoles();
+                group.SavePermissions();
+            }
 
             _roleSaveTick = RoleSaveIntervalTicks;
         }
+
+        public bool TryGetPermissionKey(int permissionId, out GroupPermissionKey permissionKey)
+        {
+            return _permissionKeys.TryGetValue(permissionId, out permissionKey);
+        }
+
+        public bool TryGetPermissionKey(string permissionKeyName, out GroupPermissionKey permissionKey)
+        {
+            permissionKey = null;
+            return !string.IsNullOrWhiteSpace(permissionKeyName) && _permissionKeysByKey.TryGetValue(permissionKeyName, out permissionKey);
+        }
+
+        public ICollection<GroupPermissionKey> PermissionKeys => _permissionKeys.Values.ToList();
 
         public string GetColourCode(int id, bool colourOne)
         {

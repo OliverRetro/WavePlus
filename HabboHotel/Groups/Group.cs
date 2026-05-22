@@ -28,6 +28,8 @@ namespace Plus.HabboHotel.Groups
         private readonly List<int> _requests;
         private readonly ConcurrentDictionary<int, GroupRole> _roles;
         private readonly List<int> _deletedRoleIds;
+        private readonly ConcurrentDictionary<string, GroupPermissionAssignment> _permissions;
+        private readonly List<int> _deletedPermissionIds;
 
         private RoomData _room;
 
@@ -53,16 +55,19 @@ namespace Plus.HabboHotel.Groups
             _requests = new List<int>();
             _roles = new ConcurrentDictionary<int, GroupRole>();
             _deletedRoleIds = new List<int>();
+            _permissions = new ConcurrentDictionary<string, GroupPermissionAssignment>(StringComparer.OrdinalIgnoreCase);
+            _deletedPermissionIds = new List<int>();
 
             InitMembers();
             InitRoles();
+            InitPermissions();
         }
 
         public void InitMembers()
         {
             using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
             {
-                dbClient.SetQuery("SELECT `user_id`, `rank` FROM `group_memberships` WHERE `group_id` = @id");
+                dbClient.SetQuery("SELECT `user_id`, `level` FROM `group_memberships` WHERE `group_id` = @id");
                 dbClient.AddParameter("id", Id);
                 DataTable members = dbClient.GetTable();
 
@@ -71,17 +76,15 @@ namespace Plus.HabboHotel.Groups
                     foreach (DataRow row in members.Rows)
                     {
                         int userId = Convert.ToInt32(row["user_id"]);
-                        int level = Convert.ToInt32(row["rank"]);
+                        int level = Convert.ToInt32(row["level"]);
                         if (userId == CreatorId)
                             level = 0;
-                        else if (level < 1)
-                            level = 1;
 
                         _memberLevels[userId] = level;
 
-                        if (userId == CreatorId && Convert.ToInt32(row["rank"]) != 0)
+                        if (userId == CreatorId && Convert.ToInt32(row["level"]) != 0)
                         {
-                            dbClient.SetQuery("UPDATE `group_memberships` SET `rank` = '0' WHERE `user_id` = @uid AND `group_id` = @gid LIMIT 1");
+                            dbClient.SetQuery("UPDATE `group_memberships` SET `level` = '0' WHERE `user_id` = @uid AND `group_id` = @gid LIMIT 1");
                             dbClient.AddParameter("uid", userId);
                             dbClient.AddParameter("gid", Id);
                             dbClient.RunQuery();
@@ -91,7 +94,7 @@ namespace Plus.HabboHotel.Groups
 
                 if (!_memberLevels.ContainsKey(CreatorId))
                 {
-                    dbClient.SetQuery("INSERT INTO `group_memberships` (`user_id`, `group_id`, `rank`) VALUES (@uid, @gid, '0')");
+                    dbClient.SetQuery("INSERT INTO `group_memberships` (`user_id`, `group_id`, `level`) VALUES (@uid, @gid, '0')");
                     dbClient.AddParameter("uid", CreatorId);
                     dbClient.AddParameter("gid", Id);
                     dbClient.RunQuery();
@@ -153,6 +156,31 @@ namespace Plus.HabboHotel.Groups
                 AddRole("Member", 0, string.Empty, string.Empty, 5, true);
         }
 
+        public void InitPermissions()
+        {
+            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            {
+                dbClient.SetQuery("SELECT `id`, `group_id`, `level_id`, `permission_id`, `created_at` FROM `group_permissions` WHERE `group_id` = @group_id");
+                dbClient.AddParameter("group_id", Id);
+                DataTable permissions = dbClient.GetTable();
+
+                if (permissions == null)
+                    return;
+
+                foreach (DataRow row in permissions.Rows)
+                {
+                    GroupPermissionAssignment assignment = new GroupPermissionAssignment(
+                        Convert.ToInt32(row["id"]),
+                        Convert.ToInt32(row["group_id"]),
+                        Convert.ToInt32(row["level_id"]),
+                        Convert.ToInt32(row["permission_id"]),
+                        Convert.ToDateTime(row["created_at"]));
+
+                    _permissions[BuildPermissionKey(assignment.LevelId, assignment.PermissionId)] = assignment;
+                }
+            }
+        }
+
         public List<int> GetMembers => _memberLevels.Where(x => x.Value == 1).Select(x => x.Key).ToList();
 
         public List<int> GetRequests => _requests.ToList();
@@ -160,6 +188,20 @@ namespace Plus.HabboHotel.Groups
         public List<int> GetAdministrators => _memberLevels.Where(x => x.Key == CreatorId || x.Value > 1).Select(x => x.Key).ToList();
 
         public ICollection<GroupRole> GetRoles => _roles.Values.OrderBy(x => x.Level).ToList();
+
+        public ICollection<GroupPermissionAssignment> GetPermissions => _permissions.Values.ToList();
+
+        public ICollection<GroupPermissionKey> GetActivePermissionsForUser(int userId)
+        {
+            if (userId != CreatorId && !IsMember(userId))
+                return Array.Empty<GroupPermissionKey>();
+
+            ICollection<GroupPermissionKey> permissionKeys = PlusEnvironment.GetGame().GetGroupManager().PermissionKeys;
+            return permissionKeys
+                .Where(permission => HasPermission(userId, permission.Id))
+                .OrderBy(permission => permission.Name)
+                .ToList();
+        }
 
         public List<int> GetAllMembers
         {
@@ -186,6 +228,72 @@ namespace Plus.HabboHotel.Groups
         public bool HasRequest(int id)
         {
             return _requests.Contains(id);
+        }
+
+        public bool HasPermission(int userId, string permissionKey)
+        {
+            if (!PlusEnvironment.GetGame().GetGroupManager().TryGetPermissionKey(permissionKey, out GroupPermissionKey permission))
+                return false;
+
+            return HasPermission(userId, permission.Id);
+        }
+
+        public bool IsOwnerOrHasPermission(int userId, string permissionKey)
+        {
+            return userId == CreatorId || HasPermission(userId, permissionKey);
+        }
+
+        public bool HasPermission(int userId, int permissionId)
+        {
+            if (!PlusEnvironment.GetGame().GetGroupManager().TryGetPermissionKey(permissionId, out GroupPermissionKey permission))
+                return false;
+
+            if (!permission.SupportsGroupKind(Kind))
+                return false;
+
+            if (userId == CreatorId)
+                return true;
+
+            int level = GetMemberLevel(userId);
+            if (level < 1)
+                return false;
+
+            return _permissions.ContainsKey(BuildPermissionKey(level, permissionId));
+        }
+
+        public bool SetPermission(int levelId, int permissionId, bool enabled)
+        {
+            if (levelId < 1 || !_roles.ContainsKey(levelId))
+                return false;
+
+            if (!PlusEnvironment.GetGame().GetGroupManager().TryGetPermissionKey(permissionId, out GroupPermissionKey permission))
+                return false;
+
+            string assignmentKey = BuildPermissionKey(levelId, permissionId);
+            if (!permission.SupportsGroupKind(Kind))
+            {
+                if (!enabled)
+                    return true;
+
+                return false;
+            }
+
+            if (!enabled)
+            {
+                if (!_permissions.TryRemove(assignmentKey, out GroupPermissionAssignment removed))
+                    return true;
+
+                if (removed.Id > 0)
+                    _deletedPermissionIds.Add(removed.Id);
+
+                return true;
+            }
+
+            if (_permissions.ContainsKey(assignmentKey))
+                return true;
+
+            _permissions[assignmentKey] = new GroupPermissionAssignment(0, Id, levelId, permissionId, DateTime.UtcNow, true);
+            return true;
         }
 
         public int GetMemberLevel(int id)
@@ -238,7 +346,7 @@ namespace Plus.HabboHotel.Groups
                 }
                 else
                 {
-                    dbClient.SetQuery("INSERT INTO `group_memberships` (`user_id`, `group_id`, `rank`) VALUES (@uid, @gid, @rank)");
+                    dbClient.SetQuery("INSERT INTO `group_memberships` (`user_id`, `group_id`, `level`) VALUES (@uid, @gid, @rank)");
                     dbClient.AddParameter("rank", level);
                 }
 
@@ -273,7 +381,7 @@ namespace Plus.HabboHotel.Groups
             {
                 if (accepted)
                 {
-                    dbClient.SetQuery("INSERT INTO `group_memberships` (`user_id`, `group_id`, `rank`) VALUES (@uid, @gid, '1')");
+                    dbClient.SetQuery("INSERT INTO `group_memberships` (`user_id`, `group_id`, `level`) VALUES (@uid, @gid, 1)");
                     dbClient.AddParameter("gid", Id);
                     dbClient.AddParameter("uid", id);
                     dbClient.RunQuery();
@@ -392,6 +500,37 @@ namespace Plus.HabboHotel.Groups
             }
         }
 
+        public void SavePermissions()
+        {
+            if (_deletedPermissionIds.Count == 0 && _permissions.Values.All(x => !x.IsNew))
+                return;
+
+            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            {
+                foreach (int deletedPermissionId in _deletedPermissionIds.ToList())
+                {
+                    dbClient.SetQuery("DELETE FROM `group_permissions` WHERE `id` = @id LIMIT 1");
+                    dbClient.AddParameter("id", deletedPermissionId);
+                    dbClient.RunQuery();
+                }
+
+                _deletedPermissionIds.Clear();
+
+                foreach (GroupPermissionAssignment assignment in _permissions.Values.ToList())
+                {
+                    if (!assignment.IsNew)
+                        continue;
+
+                    dbClient.SetQuery("INSERT INTO `group_permissions` (`group_id`, `level_id`, `permission_id`, `created_at`) VALUES (@group_id, @level_id, @permission_id, @created_at)");
+                    dbClient.AddParameter("group_id", assignment.GroupId);
+                    dbClient.AddParameter("level_id", assignment.LevelId);
+                    dbClient.AddParameter("permission_id", assignment.PermissionId);
+                    dbClient.AddParameter("created_at", assignment.CreatedAt);
+                    assignment.MarkPersisted(Convert.ToInt32(dbClient.InsertQuery()));
+                }
+            }
+        }
+
 
         public void ClearRequests()
         {
@@ -401,10 +540,13 @@ namespace Plus.HabboHotel.Groups
         public void Dispose()
         {
             SaveRoles();
+            SavePermissions();
             _requests.Clear();
             _memberLevels.Clear();
             _roles.Clear();
             _deletedRoleIds.Clear();
+            _permissions.Clear();
+            _deletedPermissionIds.Clear();
         }
 
         private void UpdateMemberLevel(int userId, int level)
@@ -430,6 +572,11 @@ namespace Plus.HabboHotel.Groups
             shiftDuration = shiftDuration <= 0 ? 5 : shiftDuration;
             shiftCostume ??= string.Empty;
             shiftMotto ??= string.Empty;
+        }
+
+        private static string BuildPermissionKey(int levelId, int permissionId)
+        {
+            return levelId + ":" + permissionId;
         }
     }
 }

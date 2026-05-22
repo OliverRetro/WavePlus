@@ -12,6 +12,23 @@ INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_u
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_wanted_list', 2);
 INSERT INTO `permissions_commands` (`command`) VALUES ('command_rp_bank');
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_passive_mode', 1);
+INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_group_permissions', 6);
+
+-- corps n such
+DROP TABLE IF EXISTS `group_roles`;
+CREATE TABLE `group_roles`  (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `group_id` int NOT NULL COMMENT 'Group\'s ID.',
+  `level` int NOT NULL DEFAULT 1 COMMENT 'Levels go in order of Slave -> CEO. 1 = Slave, 100 = CEO.',
+  `name` varchar(55) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL DEFAULT '' COMMENT 'Literal name displayed; ex. general manager',
+  `shift_pay` int NOT NULL DEFAULT 0 COMMENT 'Credits paid via intervals.',
+  `shift_costume` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL DEFAULT '' COMMENT 'Shift-Costume (full) to replace users own clothes. Blank for no swap.',
+  `shift_duration` smallint NULL DEFAULT 5 COMMENT 'The duration at which worker will be auto-rewarded. In minutes.',
+  `shift_motto` varchar(40) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL DEFAULT '' COMMENT 'Replace users motto for the duration of shift? Blank for no swap.',
+  `created_at` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `updated_at` datetime NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
 
 -- hospital
 ALTER TABLE `user_rp_statistics`

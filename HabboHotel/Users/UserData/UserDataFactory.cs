@@ -210,7 +210,7 @@ namespace Plus.HabboHotel.Users.UserData
                     userInfo = dbClient.GetRow();
                 }
 
-                dbClient.SetQuery("SELECT group_id,rank FROM group_memberships WHERE user_id=@id");
+                dbClient.SetQuery("SELECT group_id,level FROM group_memberships WHERE user_id=@id");
                 dbClient.AddParameter("id", userId);
                 dGroups = dbClient.GetTable();
 

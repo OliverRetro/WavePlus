@@ -15,7 +15,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
             if (!PlusEnvironment.GetGame().GetGroupManager().TryGetGroup(groupId, out Group group))
                 return;
 
-            if (session.GetHabbo().Id != group.CreatorId && !group.IsAdmin(session.GetHabbo().Id) && !session.GetHabbo().GetPermissions().HasRight("fuse_group_accept_any"))
+            if (!group.IsOwnerOrHasPermission(session.GetHabbo().Id, "hire_user") && !session.GetHabbo().GetPermissions().HasRight("fuse_group_accept_any"))
                 return;
 
             if (!group.HasRequest(userId))
