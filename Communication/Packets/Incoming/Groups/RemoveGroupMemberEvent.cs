@@ -104,8 +104,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
 
                 if (group.IsAdmin(userId) && group.CreatorId != session.GetHabbo().Id)
                 {
-                    session.SendNotification(
-                        "Sorry, only group creators can remove other administrators from the group.");
+                    session.SendNotification("Sorry, only group creators can remove other administrators from the group.");
                     return;
                 }
 

@@ -448,6 +448,7 @@ namespace Plus.Communication.Packets
 
         private void RegisterGroups()
         {
+            _incomingPackets.Add(ClientPacketHeader.KickMemberMessageEvent, new LeaveGroupEvent());
             _incomingPackets.Add(ClientPacketHeader.JoinGroupMessageEvent, new JoinGroupEvent());
             _incomingPackets.Add(ClientPacketHeader.RemoveGroupFavouriteMessageEvent, new RemoveGroupFavouriteEvent());
             _incomingPackets.Add(ClientPacketHeader.SetGroupFavouriteMessageEvent, new SetGroupFavouriteEvent());

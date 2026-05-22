@@ -2,6 +2,9 @@
 {
     public static class ClientPacketHeader
     {
+        // wave 
+        public const int KickMemberMessageEvent = 593; // PRODUCTION-201611291003-338511768
+
         // credit to Keorich##1440 for the headers
         public const int MakeOfferMessageEvent = 3447; // PRODUCTION-201611291003-338511768
         public const int GetRoomBannedUsersMessageEvent = 2267; // PRODUCTION-201611291003-338511768

@@ -13,6 +13,7 @@ INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_w
 INSERT INTO `permissions_commands` (`command`) VALUES ('command_rp_bank');
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_passive_mode', 1);
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_group_permissions', 6);
+INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_hire_anygroup', 6);
 
 -- corps n such
 DROP TABLE IF EXISTS `group_roles`;
