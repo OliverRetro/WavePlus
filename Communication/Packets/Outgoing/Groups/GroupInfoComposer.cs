@@ -15,7 +15,9 @@ namespace Plus.Communication.Packets.Outgoing.Groups
         public GroupInfoComposer(Group group, GameClient session, bool newWindow = false)
             : base(ServerPacketHeader.GroupInfoMessageComposer)
         {
-            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(group.CreateTime);
+            Origin = DateTimeOffset
+    .FromUnixTimeSeconds(group.CreateTime)
+    .DateTime;
             Group = group;
             NewWindow = newWindow;
             Habbo = session.GetHabbo();
@@ -34,7 +36,7 @@ namespace Plus.Communication.Packets.Outgoing.Groups
             packet.WriteInteger(Group.CreatorId == Habbo.Id ? 3 : Group.HasRequest(Habbo.Id) ? 2 : Group.IsMember(Habbo.Id) ? 1 : 0);
             packet.WriteInteger(Group.MemberCount); // Members
             packet.WriteBoolean(false); //?? CHANGED
-            packet.WriteString(Origin.Day + "-" + Origin.Month + "-" + Origin.Year);
+            packet.WriteString(Origin.ToString("dd-MM-yyyy"));
             packet.WriteBoolean(Group.CreatorId == Habbo.Id);
             packet.WriteBoolean(Group.IsAdmin(Habbo.Id)); // admin
             packet.WriteString(PlusEnvironment.GetUsernameById(Group.CreatorId));

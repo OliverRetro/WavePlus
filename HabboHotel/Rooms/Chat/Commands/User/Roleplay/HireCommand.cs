@@ -40,7 +40,6 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
                 return;
             }
 
-
             if (!group.HasRequest(targetHabbo.Id))
             {
                 session.SendWhisper("That user does not have a pending request for this group.", 1);
@@ -50,6 +49,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
             group.HandleRequest(targetHabbo.Id, true);
 
             session.SendPacket(new GroupMemberUpdatedComposer(group, targetHabbo, 4));
+            session.SendPacket(new GroupInfoComposer(group, targetClient));
             session.SendWhisper("You hired " + targetHabbo.Username + ".", 1);
             targetHabbo.GetClient()?.SendWhisper("Your request to join '" + group.Name + "' was accepted.", 1);
         }
