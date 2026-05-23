@@ -6,6 +6,7 @@
         public const int AnotherStatsMessageComposer = 6005;
         public const int UserStatsMessageComposer = 6004;
         public const int WantedListMessageComposer = 6003;
+        public const int OfferItemMessageComposer = 6002;
 
         // credit to Keorich##1440 for the headers for Production-201611291003-338511768
         public const int AvatarEffectActivatedMessageComposer = 1959; // PRODUCTION-201611291003-338511768

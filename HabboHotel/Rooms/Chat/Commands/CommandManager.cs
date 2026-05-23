@@ -1,6 +1,7 @@
 ﻿using Plus.Communication.Packets.Outgoing.Notifications;
 using Plus.Database.Interfaces;
 using Plus.HabboHotel.GameClients;
+using Plus.HabboHotel.Groups;
 using Plus.HabboHotel.Items.Wired;
 using Plus.HabboHotel.Rooms.Chat.Commands.Administrator;
 using Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay;
@@ -64,9 +65,9 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
                 list.Append("This is the list of commands you have available:\n");
                 foreach (var cmdList in _commands.ToList())
                 {
-                    if (!string.IsNullOrEmpty(cmdList.Value.PermissionRequired))
+                    if (!string.IsNullOrEmpty(cmdList.Value.PermissionRequired) || !string.IsNullOrEmpty(cmdList.Value.GroupPermissionRequired))
                     {
-                        if (!session.GetHabbo().GetPermissions().HasCommand(cmdList.Value.PermissionRequired))
+                        if (!CanExecuteCommand(session, cmdList.Key.ToLower(), cmdList.Value))
                             continue;
                     }
 
@@ -88,9 +89,9 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
                 if (session.GetHabbo().GetPermissions().HasRight("mod_tool"))
                     LogCommand(session.GetHabbo().Id, message, session.GetHabbo().MachineId);
 
-                if (!string.IsNullOrEmpty(cmd.PermissionRequired))
+                if (!string.IsNullOrEmpty(cmd.PermissionRequired) || !string.IsNullOrEmpty(cmd.GroupPermissionRequired))
                 {
-                    if (!session.GetHabbo().GetPermissions().HasCommand(cmd.PermissionRequired))
+                    if (!CanExecuteCommand(session, split[0].ToLower(), cmd))
                         return false;
                 }
 
@@ -110,6 +111,21 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
         private void RegisterVip()
         {
             Register("spull", new SuperPullCommand());
+        }
+
+        private static bool CanExecuteCommand(GameClient session, string commandKey, IChatCommand command)
+        {
+            if (session?.GetHabbo() == null || command == null)
+                return false;
+
+            if (!string.IsNullOrEmpty(command.PermissionRequired) && session.GetHabbo().GetPermissions().HasCommand(command.PermissionRequired))
+                return true;
+
+            if (string.IsNullOrEmpty(command.GroupPermissionRequired))
+                return false;
+
+            Group group = session.GetHabbo().CurrentRoom?.Group;
+            return group != null && group.IsOwnerOrHasPermission(session.GetHabbo().Id, command.GroupPermissionRequired);
         }
 
         /// <summary>

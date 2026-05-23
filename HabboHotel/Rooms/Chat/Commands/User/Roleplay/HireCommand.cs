@@ -8,6 +8,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
     internal class HireCommand : IChatCommand
     {
         public string PermissionRequired => "command_rp_hire_anygroup";
+        public string GroupPermissionRequired => "hire_user";
 
         public string Parameters => "%username%";
 
@@ -20,12 +21,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 
             if (@params.Length < 2)
             {
-                session.SendWhisper("Please enter the username you want to hire.", 1);
+                session.SendWhisper("Please enter the username of the person you want to hire.", 1);
                 return;
             }
 
             Group group = room.Group;
-            if (!group.IsOwnerOrHasPermission(session.GetHabbo().Id, "hire_user"))
+            if (!session.GetHabbo().GetPermissions().HasCommand(PermissionRequired) && !group.IsOwnerOrHasPermission(session.GetHabbo().Id, GroupPermissionRequired))
             {
                 session.SendWhisper("Oops, you do not have permission to hire users for this group.", 1);
                 return;
@@ -38,6 +39,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
                 session.SendWhisper("Oops, couldn't find that user.", 1);
                 return;
             }
+
 
             if (!group.HasRequest(targetHabbo.Id))
             {
