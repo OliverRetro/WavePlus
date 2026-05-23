@@ -31,6 +31,51 @@ CREATE TABLE `group_roles`  (
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
 
+DROP TABLE IF EXISTS `group_permission_keys`;
+CREATE TABLE `group_permission_keys`  (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(55) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
+  `key` varchar(55) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
+  `description` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL DEFAULT 'nodesc',
+  `type_specific` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 23 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
+
+INSERT INTO `group_permission_keys` VALUES (1, 'Decorate', 'edit_room', 'Edit the room furni.', '{0,1,2,3,4,5}');
+INSERT INTO `group_permission_keys` VALUES (2, 'Hire', 'hire_user', 'Hire new players / accept membership requests.', '{1,5}');
+INSERT INTO `group_permission_keys` VALUES (3, 'Promote', 'promote_user', 'Promote in the food chain, only works upto your level.', '{1,2,3,4,5}');
+INSERT INTO `group_permission_keys` VALUES (4, 'Kick', 'kick_from_group', 'Kick from Group entirely.', '{0,1,2,3,4,5}');
+INSERT INTO `group_permission_keys` VALUES (5, 'Edit Group', 'edit_group', 'Edit Group', '{1,2,3,4,5}');
+INSERT INTO `group_permission_keys` VALUES (6, 'Edit Levels', 'edit_levels', 'Literally demote the players, pretty simple.', '{1,2,3,4,5}');
+INSERT INTO `group_permission_keys` VALUES (7, 'Demote', 'demote_players', 'Demote them down the foodchain.', '{1,2,3,4,5}');
+INSERT INTO `group_permission_keys` VALUES (8, 'Send Home', 'end_shift', 'Fuck \'em. Go sleep.', '{1}');
+INSERT INTO `group_permission_keys` VALUES (9, 'Offer Item', 'offer_item', 'sell n shit', '{1,2,3,4,5}');
+INSERT INTO `group_permission_keys` VALUES (10, 'Escort', 'escort_user', 'i mean yeah', '{1}');
+INSERT INTO `group_permission_keys` VALUES (11, 'Stars', 'wanted_list_update', 'yeah for cops n shit ig', '{1}');
+INSERT INTO `group_permission_keys` VALUES (12, 'Unescort', 'unescort_user', 'Unescort yeah', '{1}');
+INSERT INTO `group_permission_keys` VALUES (13, 'Cuff', 'cuff_user', 'Cuff user yeah', '{1}');
+INSERT INTO `group_permission_keys` VALUES (14, 'Invite', 'gang_invite', 'Invite to the gang', '{2,3,4}');
+INSERT INTO `group_permission_keys` VALUES (15, 'Item Prices', 'alter_offer_prices', 'Alter prices for offer.', '{1,2,3,4,5}');
+INSERT INTO `group_permission_keys` VALUES (16, 'Offerable Items', 'manage_offer_item', 'Manage offerable items from stock.', '{1,2,3,4,5}');
+INSERT INTO `group_permission_keys` VALUES (17, 'Craft', 'craft_item', 'Craft stock for items.', '{1,2,3,4,5}');
+INSERT INTO `group_permission_keys` VALUES (18, 'Arrest', 'arrest_user', 'Arrest users yea', '{1}');
+INSERT INTO `group_permission_keys` VALUES (19, 'Fine', 'fine_user', 'Fine/ticket user.', '{1}');
+INSERT INTO `group_permission_keys` VALUES (20, 'Release Prisoner', 'release_user', 'Uncharge user. Duh.', '{1}');
+INSERT INTO `group_permission_keys` VALUES (21, 'Pardon', 'pardon_user', 'Remove from Wanted List etc.', '{1}');
+INSERT INTO `group_permission_keys` VALUES (22, 'Membership Management', 'manage_group_acceptance', 'nodesc', '{0,1,2,3,4,5}');
+INSERT INTO `group_permission_keys` VALUES (23, 'Heal', 'heal_user', 'For Hospital', '{1}');
+
+DROP TABLE IF EXISTS `group_permissions`;
+CREATE TABLE `group_permissions`  (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `group_id` int NOT NULL COMMENT 'groups.id',
+  `level_id` int NOT NULL COMMENT 'groups_roles.level',
+  `permission_id` int NOT NULL COMMENT 'group_permissiosn_keys.id',
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
+
 -- hospital
 ALTER TABLE `user_rp_statistics`
 ADD COLUMN `is_dead` int(11) NOT NULL DEFAULT 0,

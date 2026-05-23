@@ -14,15 +14,25 @@ namespace Plus.Communication.Packets.Incoming.Groups
             if (!PlusEnvironment.GetGame().GetGroupManager().TryGetGroup(groupId, out Group group))
                 return;
 
-            if (group.CreatorId != session.GetHabbo().Id)
+            if (session.GetHabbo() == null)
+                return;
+
+            if (!session.GetHabbo().GetPermissions().HasRight("group_management_override") && group.CreatorId != session.GetHabbo().Id)
                 return;
 
             int count = packet.PopInt();
 
             string badge = "";
-            for (int i = 0; i < count; i++)
+
+            int baseValue = 1;
+            while (baseValue < count)
             {
-                badge += BadgePartUtility.WorkBadgeParts(i == 0, packet.PopInt().ToString(), packet.PopInt().ToString(), packet.PopInt().ToString());
+                int partId = packet.PopInt();
+                int colour = packet.PopInt();
+                int position = packet.PopInt();
+
+                badge += BadgePartUtility.WorkBadgeParts(baseValue == 1, partId.ToString(), colour.ToString(), position.ToString());
+                baseValue += 3;
             }
 
             group.Badge = (string.IsNullOrWhiteSpace(badge) ? "b05114s06114" : badge);
