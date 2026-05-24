@@ -3,7 +3,7 @@ using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
 using Plus.HabboHotel.Users;
 
-namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
+namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
 {
     internal class HireCommand : IChatCommand
     {

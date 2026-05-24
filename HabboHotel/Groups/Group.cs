@@ -58,9 +58,12 @@ namespace Plus.HabboHotel.Groups
             _permissions = new ConcurrentDictionary<string, GroupPermissionAssignment>(StringComparer.OrdinalIgnoreCase);
             _deletedPermissionIds = new List<int>();
 
-            InitMembers();
-            InitRoles();
-            InitPermissions();
+            if (Id > 0)
+            {
+                InitMembers();
+                InitRoles();
+                InitPermissions();
+            }
         }
 
         public void InitMembers()
@@ -152,8 +155,6 @@ namespace Plus.HabboHotel.Groups
                 }
             }
 
-            if (!_roles.ContainsKey(1))
-                AddRole("Member", 0, string.Empty, string.Empty, 5, true);
         }
 
         public void InitPermissions()
@@ -330,6 +331,25 @@ namespace Plus.HabboHotel.Groups
                 return;
 
             UpdateMemberLevel(userId, 1);
+        }
+
+        public bool TryPromoteMember(int userId, out GroupRole nextRole)
+        {
+            nextRole = null;
+
+            if (userId == CreatorId || !_memberLevels.TryGetValue(userId, out int currentLevel) || currentLevel < 1)
+                return false;
+
+            nextRole = _roles.Values
+                .Where(role => role.Level > currentLevel)
+                .OrderBy(role => role.Level)
+                .FirstOrDefault();
+
+            if (nextRole == null)
+                return false;
+
+            UpdateMemberLevel(userId, nextRole.Level);
+            return true;
         }
 
         public void AddMember(int id, int level = 1)
@@ -556,8 +576,8 @@ namespace Plus.HabboHotel.Groups
 
             using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
             {
-                dbClient.SetQuery("UPDATE `group_memberships` SET `rank` = @rank WHERE `user_id` = @uid AND `group_id` = @gid LIMIT 1");
-                dbClient.AddParameter("rank", level);
+                dbClient.SetQuery("UPDATE `group_memberships` SET `level` = @level WHERE `user_id` = @uid AND `group_id` = @gid LIMIT 1");
+                dbClient.AddParameter("level", level);
                 dbClient.AddParameter("gid", Id);
                 dbClient.AddParameter("uid", userId);
                 dbClient.RunQuery();

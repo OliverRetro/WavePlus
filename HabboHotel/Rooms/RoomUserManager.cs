@@ -148,6 +148,10 @@ namespace Plus.HabboHotel.Rooms
             if (session?.GetHabbo().CurrentRoom == null)
                 return false;
 
+            // Entry packets can be retriggered while the session is already present in the room.
+            if (GetRoomUserByHabbo(session.GetHabbo().Id) != null)
+                return true;
+
             RoomUser user = new(session.GetHabbo().Id, _room.RoomId, _primaryPrivateUserId++, _room);
 
             if (user == null || user.GetClient() == null)

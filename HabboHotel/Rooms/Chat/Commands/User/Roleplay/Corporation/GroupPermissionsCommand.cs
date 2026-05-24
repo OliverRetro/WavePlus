@@ -3,7 +3,7 @@ using System.Text;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
 
-namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
+namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
 {
     internal class GroupPermissionsCommand : IChatCommand
     {

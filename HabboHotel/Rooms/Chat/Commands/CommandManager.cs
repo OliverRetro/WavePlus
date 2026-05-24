@@ -12,6 +12,7 @@ using Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay;
 using Plus.HabboHotel.Rooms.Chat.Commands.User;
 using Plus.HabboHotel.Rooms.Chat.Commands.User.Fun;
 using Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay;
+using Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -38,6 +39,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             _prefix = prefix;
             _commands = new Dictionary<string, IChatCommand>();
 
+            RegisterRoleplay();
             RegisterVip();
             RegisterUser();
             RegisterEvents();
@@ -105,6 +107,28 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             return false;
         }
 
+        private void RegisterRoleplay()
+        {
+            Register("set", new AttributeEditCommand());
+            Register("bank", new BankCommand());
+            Register("rpstats", new RpuserRpInfoCommand());
+            Register("roomheal", new RoomHealCommand());
+            Register("globalheal", new GlobalHealCommand());
+            Register("tempinventory", new TempRpInventoryCommand());
+            Register("setweapon", new EquipWeaponCommand());
+            Register("setweaponskin", new ToggleWeaponSkinCommand());
+            Register("unlockall", new UnlockEverythingCommand());
+            Register("promote", new PromoteCommand());
+            Register("passive", new PassiveModeCommand());
+            Register("wantedlist", new WantedListCommand());
+            Register("hire", new HireCommand());
+            Register("groupperms", new GroupPermissionsCommand());
+            Register("hit", new HitCommand());
+            Register("toggleskill", new ToggleSkillCommand());
+            Register("bh", new BuildHeightCommand());
+            Register("suicide", new SuicideCommand());
+        }
+
         /// <summary>
         /// Registers the VIP set of commands.
         /// </summary>
@@ -142,16 +166,6 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
         /// </summary>
         private void RegisterUser()
         {
-            // Roleplay
-            Register("passive", new PassiveModeCommand());
-            Register("wantedlist", new WantedListCommand());
-            Register("hire", new HireCommand());
-            Register("groupperms", new GroupPermissionsCommand());
-            Register("hit", new HitCommand());
-            Register("toggleskill", new ToggleSkillCommand());
-            Register("bh", new BuildHeightCommand());
-            Register("suicide", new SuicideCommand());
-
             Register("about", new InfoCommand());
             Register("pickall", new PickAllCommand());
             Register("ejectall", new EjectAllCommand());
@@ -199,17 +213,6 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
         /// </summary>
         private void RegisterModerator()
         {
-            // Roleplay
-            Register("bank", new BankCommand());
-            Register("rpstats", new RpuserRpInfoCommand());
-            Register("roomheal", new RoomHealCommand());
-            Register("globalheal", new GlobalHealCommand());
-            Register("tempinventory", new TempRpInventoryCommand());
-            Register("setweapon", new EquipWeaponCommand());
-            Register("setweaponskin", new ToggleWeaponSkinCommand());
-            Register("unlockall", new UnlockEverythingCommand());
-
-            // rest
             Register("ban", new BanCommand());
             Register("mip", new MipCommand());
             Register("ipban", new IpBanCommand());
@@ -265,9 +268,6 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
         /// </summary>
         private void RegisterAdministrator()
         {
-            // Roleplay
-            Register("set", new AttributeEditCommand());
-
             Register("bubble", new BubbleCommand());
             Register("update", new UpdateCommand());
             Register("deletegroup", new DeleteGroupCommand());
