@@ -26,16 +26,16 @@ namespace Plus.HabboHotel.Groups
             return _typeSpecific.Contains(kind);
         }
 
-        public ICollection<GroupKind> TypeSpecific => _typeSpecific.ToList();
+        public ICollection<GroupKind> TypeSpecific => [.. _typeSpecific];
 
         private static HashSet<GroupKind> ParseTypeSpecific(string raw)
         {
-            HashSet<GroupKind> supportedKinds = new();
+            HashSet<GroupKind> supportedKinds = [];
             if (string.IsNullOrWhiteSpace(raw))
                 return supportedKinds;
 
             string trimmed = raw.Trim().TrimStart('{').TrimEnd('}');
-            foreach (string value in trimmed.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            foreach (string value in trimmed.Split([','], StringSplitOptions.RemoveEmptyEntries))
             {
                 if (int.TryParse(value.Trim(), out int kindValue) && Enum.IsDefined(typeof(GroupKind), kindValue))
                     supportedKinds.Add((GroupKind)kindValue);

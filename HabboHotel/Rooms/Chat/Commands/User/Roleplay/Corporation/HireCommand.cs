@@ -1,4 +1,6 @@
 using Plus.Communication.Packets.Outgoing.Groups;
+using Plus.Communication.Packets.Outgoing.Users;
+using Plus.Database.Interfaces;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
 using Plus.HabboHotel.Users;
@@ -44,6 +46,29 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
             {
                 session.SendWhisper("That user does not have a pending request for this group.", 1);
                 return;
+            }
+
+            if (targetHabbo.GetStats().FavouriteGroupId == 0 && (group.Kind == GroupKind.Gang || group.Kind == GroupKind.Cartel || group.Kind == GroupKind.Mafia))
+            {
+                targetHabbo.GetStats().FavouriteGroupId = group.Id;
+                using IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor();
+                dbClient.SetQuery("UPDATE `user_stats` SET `groupid` = @groupId WHERE `id` = @userId LIMIT 1");
+                dbClient.AddParameter("groupId", targetHabbo.GetStats().FavouriteGroupId);
+                dbClient.AddParameter("userId", targetHabbo.Id);
+                dbClient.RunQuery();
+
+                if (targetHabbo.InRoom && targetHabbo.CurrentRoom != null)
+                {
+                    targetHabbo.CurrentRoom.SendPacket(new RefreshFavouriteGroupComposer(targetHabbo.Id));
+                    targetHabbo.CurrentRoom.SendPacket(new HabboGroupBadgesComposer(group));
+
+                    RoomUser user = targetHabbo.CurrentRoom.GetRoomUserManager()
+                        .GetRoomUserByHabbo(targetHabbo.Id);
+                    if (user != null)
+                        targetHabbo.CurrentRoom.SendPacket(new UpdateFavouriteGroupComposer(group, user.VirtualId));
+                }
+                else
+                    session.SendPacket(new RefreshFavouriteGroupComposer(targetHabbo.Id));
             }
 
             group.HandleRequest(targetHabbo.Id, true);

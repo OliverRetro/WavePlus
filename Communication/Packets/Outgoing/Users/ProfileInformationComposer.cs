@@ -12,6 +12,7 @@ namespace Plus.Communication.Packets.Outgoing.Users
         public List<Group> Groups { get; }
         public int FriendCount { get; }
         public Habbo MyHabbo { get; }
+        public Group Gang { get; }
 
         public ProfileInformationComposer(Habbo habbo, GameClient session, List<Group> groups, int friendCount)
             : base(ServerPacketHeader.ProfileInformationMessageComposer)
@@ -20,6 +21,7 @@ namespace Plus.Communication.Packets.Outgoing.Users
             Groups = groups;
             FriendCount = friendCount;
             MyHabbo = session.GetHabbo();
+            Gang = session.GetHabbo().GetStats().FavouriteGroupId != 0 && PlusEnvironment.GetGame().GetGroupManager().TryGetGroup(session.GetHabbo().GetStats().FavouriteGroupId, out Group gang) ? gang : null;
         }
 
         public override void Compose(ServerPacket packet)
@@ -49,13 +51,12 @@ namespace Plus.Communication.Packets.Outgoing.Users
                 packet.WriteInteger(group.CreatorId); // or OwnerId
                 packet.WriteBoolean(group.CreatorId == TargetHabbo.Id);
             }
-
             packet.WriteInteger(Convert.ToInt32(PlusEnvironment.GetUnixTimestamp() - TargetHabbo.LastOnline)); // Last online
             packet.WriteBoolean(true); // Show the profile
             packet.WriteBoolean(true); // on duty
             packet.WriteString("Pigs"); // Job name
             packet.WriteString("Fuck da police"); // job description
-            packet.WriteString("N.W.A."); // gang name
+            packet.WriteString(Gang?.Name ?? "No gang"); // gang name
             packet.WriteInteger(TargetHabbo.GetRpStats().Knockouts);
             packet.WriteInteger(TargetHabbo.GetRpStats().Deaths);
             packet.WriteInteger(TargetHabbo.GetRpStats().Arrested);

@@ -21,6 +21,8 @@ namespace Plus.Communication.Packets.Incoming.Groups
             if (!PlusEnvironment.GetGame().GetGroupManager().TryGetGroup(groupId, out Group group))
                 return;
 
+            return;
+            /*
             session.GetHabbo().GetStats().FavouriteGroupId = group.Id;
             using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
             {
@@ -42,6 +44,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
             }
             else
                 session.SendPacket(new RefreshFavouriteGroupComposer(session.GetHabbo().Id));
+            */
         }
     }
 }
