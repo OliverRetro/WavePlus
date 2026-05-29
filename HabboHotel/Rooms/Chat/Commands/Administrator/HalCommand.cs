@@ -22,7 +22,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator
             string url = @params[1];
 
             string message = CommandManager.MergeParams(@params, 2);
-            PlusEnvironment.GetGame().GetClientManager().SendPacket(new RoomNotificationComposer("Habboon Hotel Alert!", message + "\r\n" + "- " + session.GetHabbo().Username, "", url, url));
+            PlusEnvironment.GetGame().GetClientManager().SendPacket(new RoomNotificationComposer("WaveRP Hotel Alert!", message + "\r\n" + "- " + session.GetHabbo().Username, "", url, url));
         }
     }
 }
