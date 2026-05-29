@@ -118,6 +118,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             Register("setweapon", new EquipWeaponCommand());
             Register("setweaponskin", new ToggleWeaponSkinCommand());
             Register("unlockall", new UnlockEverythingCommand());
+            Register("demote", new DemoteCommand());
             Register("promote", new PromoteCommand());
             Register("passive", new PassiveModeCommand());
             Register("wantedlist", new WantedListCommand());

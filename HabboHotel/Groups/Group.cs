@@ -352,6 +352,25 @@ namespace Plus.HabboHotel.Groups
             return true;
         }
 
+        public bool TryDemoteMember(int userId, out GroupRole nextRole)
+        {
+            nextRole = null;
+
+            if (userId == CreatorId || !_memberLevels.TryGetValue(userId, out int currentLevel) || currentLevel < 1)
+                return false;
+
+            nextRole = _roles.Values
+                .Where(role => role.Level < currentLevel)
+                .OrderByDescending(role => role.Level)
+                .FirstOrDefault();
+
+            if (nextRole == null)
+                return false;
+
+            UpdateMemberLevel(userId, nextRole.Level);
+            return true;
+        }
+
         public void AddMember(int id, int level = 1)
         {
             if (IsMember(id) || Type == GroupType.Locked && _requests.Contains(id))
