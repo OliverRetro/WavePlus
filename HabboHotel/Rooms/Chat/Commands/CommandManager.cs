@@ -271,6 +271,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
         /// </summary>
         private void RegisterAdministrator()
         {
+            Register("chatbubble", new AddChatBubbleCommand());
             Register("bubble", new BubbleCommand());
             Register("update", new UpdateCommand());
             Register("deletegroup", new DeleteGroupCommand());

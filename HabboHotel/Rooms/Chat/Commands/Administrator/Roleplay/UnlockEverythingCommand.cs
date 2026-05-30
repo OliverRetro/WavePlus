@@ -4,7 +4,7 @@ using Plus.HabboHotel.Roleplay.Skill;
 using System;
 using System.Linq;
 
-namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator
+namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 {
     internal class UnlockEverythingCommand : IChatCommand
     {

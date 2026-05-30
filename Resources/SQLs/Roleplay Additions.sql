@@ -15,6 +15,7 @@ INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_p
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_group_permissions', 6);
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_hire_anygroup', 6);
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_gang_chat', 1);
+INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_add_chat_bubble', 6);
 
 -- corps n such
 DROP TABLE IF EXISTS `group_roles`;
@@ -319,5 +320,19 @@ ADD COLUMN `static_aggression` smallint(6) NOT NULL DEFAULT 3;
 ALTER TABLE `user_rp_statistics`
 ADD COLUMN `passive_mode` tinyint(4) NOT NULL DEFAULT 0;
 
+-- chat bubbles
+DROP TABLE IF EXISTS `user_chat_bubbles`;
+CREATE TABLE `user_chat_bubbles` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `chat_bubble_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `created_at` datetime NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE KEY `uniq_user_bubble` (`user_id`, `chat_bubble_id`),
+  KEY `idx_user_chat_bubbles_user_id` (`user_id`),
+  CONSTRAINT `fk_user_chat_bubbles_user`
+    FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci ROW_FORMAT=Dynamic;
 
 SET FOREIGN_KEY_CHECKS = 1;

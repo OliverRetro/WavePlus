@@ -3,7 +3,7 @@ using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Roleplay.RpItem.Weapon;
 using System;
 
-namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator
+namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 {
     internal class ToggleWeaponSkinCommand : IChatCommand
     {

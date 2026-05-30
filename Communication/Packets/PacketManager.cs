@@ -341,6 +341,7 @@ namespace Plus.Communication.Packets
 
         private void RegisterRoomChat()
         {
+            _incomingPackets.Add(ClientPacketHeader.GetUserNftChatStylesMessageEvent, new GetUserNftChatStylesEvent());
             _incomingPackets.Add(ClientPacketHeader.ChatMessageEvent, new ChatEvent());
             _incomingPackets.Add(ClientPacketHeader.ShoutMessageEvent, new ShoutEvent());
             _incomingPackets.Add(ClientPacketHeader.WhisperMessageEvent, new WhisperEvent());

@@ -29,7 +29,19 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator
                 return;
             }
 
-            if (!PlusEnvironment.GetGame().GetChatManager().GetChatStyles().TryGetStyle(bubble, out ChatStyle style) || (style.RequiredRight.Length > 0 && !session.GetHabbo().GetPermissions().HasRight(style.RequiredRight)))
+            if (!session.GetHabbo().HasChatBubble(bubble))
+            {
+                session.SendWhisper("Oops, you do not own that bubble.");
+                return;
+            }
+
+            if (!PlusEnvironment.GetGame().GetChatManager().GetChatStyles().TryGetStyle(bubble, out ChatStyle style))
+            {
+                session.SendWhisper("Oops, that bubble does not exist.");
+                return;
+            }
+
+            if (style.RequiredRight.Length > 0 && !session.GetHabbo().GetPermissions().HasRight(style.RequiredRight))
             {
                 session.SendWhisper("Oops, you cannot use this bubble due to a rank requirement, sorry!");
                 return;

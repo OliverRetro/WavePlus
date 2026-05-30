@@ -135,6 +135,7 @@ namespace Plus.HabboHotel.Users
         public bool IgnoreBobbaFilter { get; set; }
         public bool WiredTeleporting { get; set; }
         public int CustomBubbleId { get; set; }
+        public List<int> OwnedChatBubbleIds { get; set; }
         public int TempInt { get; set; }
         public double LastHitTime { get; set; }
         public double LastUserStatsUpdate { get; set; }
@@ -307,6 +308,7 @@ namespace Plus.HabboHotel.Users
             IgnoreBobbaFilter = false;
             WiredTeleporting = false;
             CustomBubbleId = bubble;
+            OwnedChatBubbleIds = new List<int>();
             OnHelperDuty = false;
             FastFoodScore = 0;
             PetId = 0;
@@ -389,6 +391,21 @@ namespace Plus.HabboHotel.Users
                 catch (Exception e)
                 {
                     ExceptionLogger.LogException(e);
+                }
+
+                dbClient.SetQuery("SELECT `chat_bubble_id` FROM `user_chat_bubbles` WHERE `user_id` = @user_id");
+                dbClient.AddParameter("user_id", id);
+                DataTable chatBubbleTable = dbClient.GetTable();
+                if (chatBubbleTable != null)
+                {
+                    foreach (DataRow row in chatBubbleTable.Rows)
+                    {
+                        int chatBubbleId = Convert.ToInt32(row["chat_bubble_id"]);
+                        if (!OwnedChatBubbleIds.Contains(chatBubbleId))
+                            OwnedChatBubbleIds.Add(chatBubbleId);
+                    }
+
+                    OwnedChatBubbleIds.Add(0);
                 }
             }
 
@@ -680,6 +697,16 @@ namespace Plus.HabboHotel.Users
                 return 5;
 
             return 3;
+        }
+
+        public bool HasChatBubble(int bubbleId)
+        {
+            return bubbleId == 0 || OwnedChatBubbleIds.Contains(bubbleId);
+        }
+
+        public int[] GetOwnedChatBubbleIds()
+        {
+            return OwnedChatBubbleIds.ToArray();
         }
 
         public UserRpSkills GetRpSkills()
