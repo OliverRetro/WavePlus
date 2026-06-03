@@ -138,6 +138,7 @@ namespace Plus.HabboHotel.Users
         public List<int> OwnedChatBubbleIds { get; set; }
         public int TempInt { get; set; }
         public double LastHitTime { get; set; }
+        public double LastRobTime { get; set; }
         public double LastUserStatsUpdate { get; set; }
         public bool OnHelperDuty { get; set; }
         public HomeRoomDataState HomeRoomData { get; set; }
@@ -446,7 +447,9 @@ namespace Plus.HabboHotel.Users
                         statRow.Table.Columns.Contains("hospital_heal_start_time") ? Convert.ToDouble(statRow["hospital_heal_start_time"]) : 0,
                         statRow.Table.Columns.Contains("hospital_health_start") ? Convert.ToInt32(statRow["hospital_health_start"]) : 0,
                         Convert.ToInt32(statRow["aggression"]),
-                        Convert.ToInt32(statRow["passive_mode"]) == 1
+                        Convert.ToInt32(statRow["passive_mode"]) == 1,
+                        Convert.ToInt32(statRow["robberies"]),
+                        Convert.ToInt32(statRow["robbed"])
                     );
                 }
                 catch (Exception e)
@@ -782,7 +785,7 @@ namespace Plus.HabboHotel.Users
                 using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                 {
                     dbClient.UpdateOrInsert(
-                        "UPDATE `user_rp_statistics` SET `health` = @health, `shield` = @shield, `energy` = @energy, `hunger` = @hunger, `experience` = @experience, `knockouts` = @knockouts, `deaths` = @deaths, `arrested` = @arrested, `escapes` = @escapes, `damage_dealt` = @damage_dealt, `damage_taken` = @damage_taken, `attacks` = @attacks, `attacked` = @attacked, `knowledge` = @knowledge, `strength` = @strength, `is_dead` = @is_dead, `hospital_release_time` = @hospital_release_time, `hospital_heal_start_time` = @hospital_heal_start_time, `hospital_health_start` = @hospital_health_start, `aggression` = @aggression, `passive_mode` = @passive_mode WHERE `user_id` = @user_id LIMIT 1",
+                        "UPDATE `user_rp_statistics` SET `health` = @health, `shield` = @shield, `energy` = @energy, `hunger` = @hunger, `experience` = @experience, `knockouts` = @knockouts, `deaths` = @deaths, `arrested` = @arrested, `escapes` = @escapes, `damage_dealt` = @damage_dealt, `damage_taken` = @damage_taken, `attacks` = @attacks, `attacked` = @attacked, `knowledge` = @knowledge, `strength` = @strength, `is_dead` = @is_dead, `hospital_release_time` = @hospital_release_time, `hospital_heal_start_time` = @hospital_heal_start_time, `hospital_health_start` = @hospital_health_start, `aggression` = @aggression, `passive_mode` = @passive_mode, `robberies` = @robberies, `robbed` = @robbed WHERE `user_id` = @user_id LIMIT 1",
                         query =>
                         {
                             query.AddParameter("health", _rpStats.Health);
@@ -806,6 +809,8 @@ namespace Plus.HabboHotel.Users
                             query.AddParameter("hospital_health_start", _rpStats.HospitalHealthStart);
                             query.AddParameter("aggression", GetAggressionSecondsRemaining());
                             query.AddParameter("passive_mode", _rpStats.PassiveMode ? 1 : 0);
+                            query.AddParameter("robberies", _rpStats.Robberies);
+                            query.AddParameter("robbed", _rpStats.Robbed);
                             query.AddParameter("user_id", Id);
                         },
                         "INSERT INTO `user_rp_statistics` (`user_id`) VALUES (@user_id)",

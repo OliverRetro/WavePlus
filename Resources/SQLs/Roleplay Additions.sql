@@ -16,6 +16,7 @@ INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_g
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_hire_anygroup', 6);
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_gang_chat', 1);
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_add_chat_bubble', 6);
+INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_rob', 1);
 
 -- corps n such
 DROP TABLE IF EXISTS `group_roles`;
@@ -156,6 +157,8 @@ CREATE TABLE `user_rp_statistics`  (
   `attacked` int NOT NULL DEFAULT 0,
   `knowledge` int NOT NULL DEFAULT 0,
   `strength` int NOT NULL DEFAULT 0,
+  `robberies` int NOT NULL DEFAULT 0,
+  `robbed` int NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
 

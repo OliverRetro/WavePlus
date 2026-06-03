@@ -109,6 +109,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
 
         private void RegisterRoleplay()
         {
+            Register("rob", new RobUserCommand());
             Register("gchat", new GangChatCommand());
             Register("set", new AttributeEditCommand());
             Register("bank", new BankCommand());

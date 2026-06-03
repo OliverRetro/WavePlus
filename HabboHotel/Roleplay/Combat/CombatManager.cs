@@ -1,6 +1,8 @@
+using Plus.Communication.Packets.Outgoing.Inventory.Purse;
 using Plus.Communication.Packets.Outgoing.Rooms.Chat;
-using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Roleplay.RpItem.Weapon;
+using Plus.HabboHotel.Roleplay.Skill;
+using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
 using System;
 
@@ -71,7 +73,9 @@ namespace Plus.HabboHotel.Roleplay.Combat
                 attacker.ResetAggressionTimer();
                 targetStats.Health = 0;
                 attackerStats.Kill(target, targetRoomUser);
-            } else {
+            }
+            else
+            {
                 attacker.ResetAggressionTimer();
             }
 
@@ -127,9 +131,39 @@ namespace Plus.HabboHotel.Roleplay.Combat
                 ? skin?.CriticalHitMessage ?? weapon?.CriticalHitMessage ?? "*lands a critical hit on %username%, dealing %damage% damage*"
                 : skin?.HitMessage ?? weapon?.HitMessage ?? "*swings at %username%, dealing %damage% damage*";
 
-            return message
-                .Replace("%username%", targetUsername)
-                .Replace("%damage%", damage.ToString());
+            return message.Replace("%username%", targetUsername).Replace("%damage%", damage.ToString());
+        }
+
+        public void RobUser(Habbo attacker, Habbo target, int percentage)
+        {
+            if(attacker == null || target == null)
+                return;
+
+            // the chance of success
+            if(attacker.GetRpStats().GetRobberyChance(attacker) < Random.Shared.Next(0, 100) || target.Credits <= 0)
+            {
+                attacker.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, "*Attempts to rob " + target.Username + ", but fails*", 0, 6));
+                return;
+            }
+                
+            int amountToSteal = (int)Math.Round(target.Credits * (percentage / 100.0));
+
+            // stolen credits are added to the attacker and removed from the target
+            attacker.Credits = attacker.Credits + amountToSteal;
+            target.Credits = target.Credits - amountToSteal;
+
+            // packets
+            target.GetClient().SendPacket(new CreditBalanceComposer(target.Credits));
+            attacker.GetClient().SendPacket(new CreditBalanceComposer(attacker.Credits));
+
+            // stats
+            target.GetRpStats().Robbed++;
+            attacker.GetRpStats().Robberies++;
+            attacker.GetRpSkills().ProgressSkill(3, 1);
+
+            // notification
+            attacker.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, "*Robs " + target.Username + " of " + amountToSteal + " credits*", 0, 6));
+            return;
         }
     }
 }

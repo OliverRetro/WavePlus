@@ -30,9 +30,11 @@ namespace Plus.HabboHotel.Users
         public UserRpWeapons Weapons { get; set; }
         public int Aggression { get; set; }
         public bool PassiveMode { get; set; }
+        public int Robberies { get; set; }
+        public int Robbed { get; set; }
         public DateTime NextHungerTick { get; set; }
 
-        public UserRpStats(int userId, int health, int shield, int energy, int hunger, int experience, int knockouts, int deaths, int arrested, int escapes, int damageDealt, int damageTaken, int attacks, int attacked, int knowledge, int strength, bool isDead, double hospitalReleaseTime, double hospitalHealStartTime, int hospitalHealthStart, int aggression, bool passiveMode)
+        public UserRpStats(int userId, int health, int shield, int energy, int hunger, int experience, int knockouts, int deaths, int arrested, int escapes, int damageDealt, int damageTaken, int attacks, int attacked, int knowledge, int strength, bool isDead, double hospitalReleaseTime, double hospitalHealStartTime, int hospitalHealthStart, int aggression, bool passiveMode, int robberies, int robbed)
         {
             UserId = userId;
             Health = health;
@@ -57,6 +59,8 @@ namespace Plus.HabboHotel.Users
             NextPassiveHospitalHealTick = 0;
             Aggression = aggression;
             PassiveMode = passiveMode;
+            Robberies = robberies;
+            Robbed = robbed;
 
             NextHungerTick = DateTime.UtcNow.AddMinutes(10);
         }
@@ -119,6 +123,22 @@ namespace Plus.HabboHotel.Users
             if (target == null || user == null) { return; }
 
             PlusEnvironment.GetHospitalManager().HandleDeath(this, target, user);
+        }
+
+        public int GetRobberyChance(Habbo habbo)
+        {
+            if (habbo?.GetRpSkills() == null)
+            {
+                return 50;
+            }
+
+            return habbo.GetRpSkills().GetLevel(3, true) switch
+            {
+                1 => 52,
+                2 => 55,
+                3 => 60,
+                _ => 50
+            };
         }
 
         public UserWeapon ActiveWeapon()
