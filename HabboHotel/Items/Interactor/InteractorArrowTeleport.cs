@@ -9,7 +9,7 @@ namespace Plus.HabboHotel.Items.Interactor
 {
     public class InteractorArrowTeleport : IFurniInteractor
     {
-        private const double TriggerDelaySeconds = 0.5;
+        private const double TriggerDelaySeconds = 0.1;
         private static readonly ConcurrentDictionary<int, int> PendingTeleports = new();
         private static readonly ConcurrentDictionary<int, ArrowTeleportArrivalData> PendingArrivals = new();
 
