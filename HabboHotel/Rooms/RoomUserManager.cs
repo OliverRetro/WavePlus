@@ -764,12 +764,6 @@ namespace Plus.HabboHotel.Rooms
                                 }
                             }
 
-                            if (user.X == _room.GetGameMap().Model.DoorX && user.Y == _room.GetGameMap().Model.DoorY && !ToRemove.Contains(user) && !user.IsBot)
-                            {
-                                ToRemove.Add(user);
-                                continue;
-                            }
-
                             List<Item> Items = _room.GetGameMap().GetCoordinatedItems(new Point(user.X, user.Y));
                             foreach (Item item in Items.ToList())
                             {
