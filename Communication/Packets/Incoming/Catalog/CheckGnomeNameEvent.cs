@@ -82,7 +82,7 @@ namespace Plus.Communication.Packets.Incoming.Catalog
             }
 
             //Make a RoomUser of the pet.
-            room.GetRoomUserManager().DeployBot(new RoomBot(pet.PetId, pet.RoomId, "pet", "freeroam", pet.Name, "", pet.Look, x, y, 0, 0, 0, 0, 0, 0, ref rndSpeechList, "", 0, pet.OwnerId, false, 0, false, 0), pet);
+            room.GetRoomUserManager().DeployBot(new RoomBot(pet.PetId, pet.RoomId, "pet", "freeroam", pet.Name, "", pet.Look, x, y, 0, 0, 0, 0, 0, 0, ref rndSpeechList, "", 0, pet.OwnerId, false, 0, false, 0, 0), pet);
 
             //Give the food.
             if (PlusEnvironment.GetGame().GetItemManager().GetItem(320, out ItemData petFood))

@@ -1,4 +1,7 @@
-﻿using Plus.HabboHotel.GameClients;
+﻿using System;
+using System.Drawing;
+using System.Linq;
+using Plus.HabboHotel.GameClients;
 
 namespace Plus.HabboHotel.Rooms.AI
 {
@@ -36,6 +39,42 @@ namespace Plus.HabboHotel.Rooms.AI
                 return null;
 
             return GetRoomUser().BotData;
+        }
+
+        protected Point? GetBestAdjacentSquare(RoomUser target)
+        {
+            if (target == null || GetRoom() == null)
+                return null;
+
+            Point[] candidates = new[]
+            {
+                new Point(target.X, target.Y - 1),
+                new Point(target.X + 1, target.Y),
+                new Point(target.X, target.Y + 1),
+                new Point(target.X - 1, target.Y),
+                new Point(target.X + 1, target.Y - 1),
+                new Point(target.X + 1, target.Y + 1),
+                new Point(target.X - 1, target.Y + 1),
+                new Point(target.X - 1, target.Y - 1)
+            };
+
+            return candidates
+                .Where(point => GetRoom().GetGameMap().ValidTile(point.X, point.Y) && GetRoom().GetGameMap().SquareIsOpen(point.X, point.Y, false))
+                .OrderBy(point => Math.Abs(point.X - GetRoomUser().X) + Math.Abs(point.Y - GetRoomUser().Y))
+                .Cast<Point?>()
+                .FirstOrDefault();
+        }
+
+        public Point? GetFarAwayWalkableSquare(Point origin, int minimumDistance)
+        {
+            if (GetRoom() == null)
+                return null;
+
+            return Enumerable.Range(0, 40)
+                .Select(_ => GetRoom().GetGameMap().GetRandomWalkableSquare())
+                .Where(point => point.X > 0 || point.Y > 0)
+                .OrderByDescending(point => Math.Abs(point.X - origin.X) + Math.Abs(point.Y - origin.Y))
+                .FirstOrDefault(point => Math.Abs(point.X - origin.X) + Math.Abs(point.Y - origin.Y) >= minimumDistance);
         }
 
         public abstract void OnSelfEnterRoom();

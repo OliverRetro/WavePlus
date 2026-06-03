@@ -760,7 +760,7 @@ namespace Plus.HabboHotel.Rooms
             return _mClient;
         }
 
-        private Room GetRoom()
+        public Room GetRoom()
         {
             if (_mRoom == null)
                 if (PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(RoomId, out _mRoom))

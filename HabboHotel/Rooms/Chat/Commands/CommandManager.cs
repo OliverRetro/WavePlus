@@ -131,6 +131,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             Register("toggleskill", new ToggleSkillCommand());
             Register("bh", new BuildHeightCommand());
             Register("suicide", new SuicideCommand());
+            Register("settaxipoint", new SetTaxiPointCommand());
         }
 
         /// <summary>
@@ -210,6 +211,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             Register("pet", new PetCommand());
             Register("spush", new SuperPushCommand());
             Register("superpush", new SuperPushCommand());
+            Register("taxi", new TaxiCommand());
         }
 
         /// <summary>

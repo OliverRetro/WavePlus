@@ -115,7 +115,8 @@
         Counter,
         CameraPicture,
         FxProvider,
-        Exchange
+        Exchange,
+        TaxiPole
     }
 
     public static class InteractionTypes
@@ -348,6 +349,8 @@
                     return InteractionType.FxProvider;
                 case "exchange":
                     return InteractionType.Exchange;
+                case "taxi_pole":
+                    return InteractionType.TaxiPole;
                 case "pet":
                     return InteractionType.Pet;
                 default:

@@ -104,6 +104,9 @@ namespace Plus.HabboHotel.Rooms
                     _bots.TryAdd(user.BotData.Id, user);
 
                 _room.SendPacket(new DanceComposer(user.VirtualId, user.BotData.DanceId));
+
+                if (user.BotData.EffectId > 0)
+                    user.ApplyEffect(user.BotData.EffectId);
             }
 
             return user;
@@ -391,6 +394,8 @@ namespace Plus.HabboHotel.Rooms
                 GameClient session = user.GetClient();
                 if (session == null)
                     return;
+
+                PlusEnvironment.GetGame().GetBotManager().HandleUserRoomLeave(session, _room);
 
                 List<RoomUser> bots = new();
 

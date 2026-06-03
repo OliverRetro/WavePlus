@@ -16,6 +16,7 @@ namespace Plus.HabboHotel.Rooms.AI
         public BotAIType AiType;
 
         public int DanceId;
+        public int EffectId;
         public string Gender;
 
         public string Look;
@@ -52,7 +53,7 @@ namespace Plus.HabboHotel.Rooms.AI
 
         public RoomBot(int id, int roomId, string type, string walkingMode, string name, string motto, string look, int x, int y, double z, int rotation,
             int minX, int minY, int maxX, int maxY, ref List<RandomSpeech> speeches, string gender, int dance, int ownerId,
-            bool automaticChat, int speakingInterval, bool mixSentences, int chatBubble)
+            bool automaticChat, int speakingInterval, bool mixSentences, int chatBubble, int effectId = 0)
         {
             Id = id;
             BotId = id;
@@ -78,6 +79,7 @@ namespace Plus.HabboHotel.Rooms.AI
             VirtualId = -1;
             RoomUser = null;
             DanceId = dance;
+            EffectId = effectId;
 
             LoadRandomSpeech(speeches);
 

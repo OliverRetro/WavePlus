@@ -208,7 +208,7 @@ namespace Plus.HabboHotel.Rooms
         {
             using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
             {
-                dbClient.SetQuery("SELECT `id`,`room_id`,`name`,`motto`,`look`,`x`,`y`,`z`,`rotation`,`gender`,`user_id`,`ai_type`,`walk_mode`,`automatic_chat`,`speaking_interval`,`mix_sentences`,`chat_bubble` FROM `bots` WHERE `room_id` = '" + RoomId + "' AND `ai_type` != 'pet'");
+                dbClient.SetQuery("SELECT `id`,`room_id`,`name`,`motto`,`look`,`x`,`y`,`z`,`rotation`,`gender`,`user_id`,`ai_type`,`walk_mode`,`automatic_chat`,`speaking_interval`,`mix_sentences`,`chat_bubble`,`effect_id` FROM `bots` WHERE `room_id` = '" + RoomId + "' AND `ai_type` != 'pet'");
                 DataTable data = dbClient.GetTable();
                 if (data == null)
                     return;
@@ -225,7 +225,7 @@ namespace Plus.HabboHotel.Rooms
                         speeches.Add(new RandomSpeech(Convert.ToString(speech["text"]), Convert.ToInt32(bot["id"])));
                     }
 
-                    _roomUserManager.DeployBot(new RoomBot(Convert.ToInt32(bot["id"]), Convert.ToInt32(bot["room_id"]), Convert.ToString(bot["ai_type"]), Convert.ToString(bot["walk_mode"]), Convert.ToString(bot["name"]), Convert.ToString(bot["motto"]), Convert.ToString(bot["look"]), int.Parse(bot["x"].ToString()), int.Parse(bot["y"].ToString()), int.Parse(bot["z"].ToString()), int.Parse(bot["rotation"].ToString()), 0, 0, 0, 0, ref speeches, "M", 0, Convert.ToInt32(bot["user_id"].ToString()), Convert.ToBoolean(bot["automatic_chat"]), Convert.ToInt32(bot["speaking_interval"]), PlusEnvironment.EnumToBool(bot["mix_sentences"].ToString()), Convert.ToInt32(bot["chat_bubble"])), null);
+                    _roomUserManager.DeployBot(new RoomBot(Convert.ToInt32(bot["id"]), Convert.ToInt32(bot["room_id"]), Convert.ToString(bot["ai_type"]), Convert.ToString(bot["walk_mode"]), Convert.ToString(bot["name"]), Convert.ToString(bot["motto"]), Convert.ToString(bot["look"]), int.Parse(bot["x"].ToString()), int.Parse(bot["y"].ToString()), int.Parse(bot["z"].ToString()), int.Parse(bot["rotation"].ToString()), 0, 0, 0, 0, ref speeches, Convert.ToString(bot["gender"]), 0, Convert.ToInt32(bot["user_id"].ToString()), Convert.ToBoolean(bot["automatic_chat"]), Convert.ToInt32(bot["speaking_interval"]), PlusEnvironment.EnumToBool(bot["mix_sentences"].ToString()), Convert.ToInt32(bot["chat_bubble"]), Convert.ToInt32(bot["effect_id"])), null);
                 }
             }
         }
@@ -253,7 +253,7 @@ namespace Plus.HabboHotel.Rooms
 
                     var rndSpeechList = new List<RandomSpeech>();
 
-                    _roomUserManager.DeployBot(new RoomBot(pet.PetId, RoomId, "pet", "freeroam", pet.Name, "", pet.Look, pet.X, pet.Y, Convert.ToInt32(pet.Z), 0, 0, 0, 0, 0, ref rndSpeechList, "", 0, pet.OwnerId, false, 0, false, 0), pet);
+                    _roomUserManager.DeployBot(new RoomBot(pet.PetId, RoomId, "pet", "freeroam", pet.Name, "", pet.Look, pet.X, pet.Y, Convert.ToInt32(pet.Z), 0, 0, 0, 0, 0, ref rndSpeechList, "", 0, pet.OwnerId, false, 0, false, 0, 0), pet);
                 }
             }
         }
@@ -563,6 +563,9 @@ namespace Plus.HabboHotel.Rooms
                     session.SendPacket(new DanceComposer(user.VirtualId, user.BotData.DanceId));
                 else if (!user.IsBot && !user.IsPet && user.IsDancing)
                     session.SendPacket(new DanceComposer(user.VirtualId, user.DanceId));
+
+                if (user.IsBot && user.BotData.EffectId > 0)
+                    session.SendPacket(new AvatarEffectComposer(user.VirtualId, user.BotData.EffectId));
 
                 if (user.IsAsleep)
                     session.SendPacket(new SleepComposer(user.VirtualId, true));

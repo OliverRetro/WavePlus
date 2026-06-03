@@ -50,6 +50,8 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
             if (session.GetHabbo().GetRpStats()?.IsDead != true)
                 session.GetHabbo().ApplyHomeRoomData();
 
+            PlusEnvironment.GetGame().GetBotManager().TryHandleTaxiArrival(session);
+
             if (PlusEnvironment.GetUnixTimestamp() < session.GetHabbo().FloodTime && session.GetHabbo().FloodTime != 0)
                 session.SendPacket(new FloodControlComposer((int) session.GetHabbo().FloodTime - (int) PlusEnvironment.GetUnixTimestamp()));
         }

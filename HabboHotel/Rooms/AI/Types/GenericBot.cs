@@ -95,26 +95,9 @@ namespace Plus.HabboHotel.Rooms.AI.Types
                             }
                             else
                             {
-                                var sq = new Point(target.X, target.Y);
-
-                                if (target.RotBody == 0)
-                                {
-                                    sq.Y--;
-                                }
-                                else if (target.RotBody == 2)
-                                {
-                                    sq.X++;
-                                }
-                                else if (target.RotBody == 4)
-                                {
-                                    sq.Y++;
-                                }
-                                else if (target.RotBody == 6)
-                                {
-                                    sq.X--;
-                                }
-
-                                GetRoomUser().MoveTo(sq);
+                                Point? sq = GetBestAdjacentSquare(target);
+                                if (sq.HasValue)
+                                    GetRoomUser().MoveTo(sq.Value);
                             }
                         }
                         else if (GetBotData().TargetUser == 0)

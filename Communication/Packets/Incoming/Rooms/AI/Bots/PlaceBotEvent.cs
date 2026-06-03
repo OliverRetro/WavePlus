@@ -71,7 +71,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Bots
             DataRow getData;
             using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
             {
-                dbClient.SetQuery("SELECT `ai_type`,`rotation`,`walk_mode`,`automatic_chat`,`speaking_interval`,`mix_sentences`,`chat_bubble` FROM `bots` WHERE `id` = @BotId LIMIT 1");
+                dbClient.SetQuery("SELECT `ai_type`,`rotation`,`walk_mode`,`automatic_chat`,`speaking_interval`,`mix_sentences`,`chat_bubble`,`effect_id`,`gender`,`motto` FROM `bots` WHERE `id` = @BotId LIMIT 1");
                 dbClient.AddParameter("BotId", bot.Id);
                 getData = dbClient.GetRow();
 
@@ -85,8 +85,10 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Bots
                 }
             }
 
-            RoomUser botUser = room.GetRoomUserManager().DeployBot(new RoomBot(bot.Id, session.GetHabbo().CurrentRoomId, Convert.ToString(getData["ai_type"]), Convert.ToString(getData["walk_mode"]), bot.Name, "", bot.Figure, x, y, 0, Convert.ToInt32(getData["rotation"]), 0, 0, 0, 0, ref botSpeechList, "", 0, bot.OwnerId, PlusEnvironment.EnumToBool(getData["automatic_chat"].ToString()), Convert.ToInt32(getData["speaking_interval"]), PlusEnvironment.EnumToBool(getData["mix_sentences"].ToString()), Convert.ToInt32(getData["chat_bubble"])), null);
-            botUser.Chat("Hello!");
+            RoomUser botUser = room.GetRoomUserManager().DeployBot(new RoomBot(bot.Id, session.GetHabbo().CurrentRoomId, Convert.ToString(getData["ai_type"]), Convert.ToString(getData["walk_mode"]), bot.Name, Convert.ToString(getData["motto"]), bot.Figure, x, y, 0, Convert.ToInt32(getData["rotation"]), 0, 0, 0, 0, ref botSpeechList, Convert.ToString(getData["gender"]), 0, bot.OwnerId, PlusEnvironment.EnumToBool(getData["automatic_chat"].ToString()), Convert.ToInt32(getData["speaking_interval"]), PlusEnvironment.EnumToBool(getData["mix_sentences"].ToString()), Convert.ToInt32(getData["chat_bubble"]), Convert.ToInt32(getData["effect_id"])), null);
+
+            if (botUser.BotData.RandomSpeech.Count > 0)
+                botUser.Chat(botUser.BotData.GetRandomSpeech().Message);
 
             room.GetGameMap().UpdateUserMovement(new Point(x, y), new Point(x, y), botUser);
 
