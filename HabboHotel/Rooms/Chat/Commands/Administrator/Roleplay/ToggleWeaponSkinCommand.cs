@@ -40,7 +40,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
             if (activeWeapon != null && activeWeapon.WeaponId == userSkin.SkinData.WeaponId)
                 session.GetHabbo().Effects().ApplyEffect(equipped ? userSkin.SkinData.EffectId : activeWeapon.WeaponData.Effect);
 
-            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, equipped ? "*Equips the " + userSkin.SkinData.Name + " skin*" : "*Unequips the " + userSkin.SkinData.Name + " skin*", 0, 11));
+            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, equipped ? "*" + session.GetHabbo().Username + " equips the " + userSkin.SkinData.Name + " skin*" : "*" + session.GetHabbo().Username + " unequips the " + userSkin.SkinData.Name + " skin*", 0, 11));
         }
     }
 }

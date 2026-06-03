@@ -96,7 +96,7 @@ namespace Plus.HabboHotel.Rooms.AI
                 Room.SendPacket(new AddExperiencePointsComposer(PetId, VirtualId, amount));
 
                 if (Experience >= ExperienceGoal)
-                    Room.SendPacket(new ChatComposer(VirtualId, "*leveled up to level " + Level + " *", 0, 0));
+                    Room.SendPacket(new ChatComposer(VirtualId, "*" + Name + " leveled up to level " + Level + "*", 0, 0));
             }
         }
 

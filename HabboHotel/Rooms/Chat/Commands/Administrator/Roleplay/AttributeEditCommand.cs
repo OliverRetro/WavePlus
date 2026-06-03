@@ -49,7 +49,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
                         }
 
                         targetClient.GetHabbo().GetRpStats().Health = + Convert.ToInt32(@params[3]);
-                        room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*Sets " + targetClient.GetHabbo().Username + "\'s Health to " + @params[3] + "*", 0, 23));
+                        room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*" + session.GetHabbo().Username + " sets " + targetClient.GetHabbo().Username + "'s Health to " + @params[3] + "*", 0, 23));
                         break;
                     }
 
@@ -68,7 +68,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
                         }
 
                         targetClient.GetHabbo().GetRpStats().Shield = + Convert.ToInt32(@params[3]);
-                        room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*Sets " + targetClient.GetHabbo().Username + "\'s Shield to " + @params[3] + "*", 0, 23));
+                        room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*" + session.GetHabbo().Username + " sets " + targetClient.GetHabbo().Username + "'s Shield to " + @params[3] + "*", 0, 23));
                         break;
                     }
                 case "energy":
@@ -86,7 +86,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
                         }
 
                         targetClient.GetHabbo().GetRpStats().Energy = + Convert.ToInt32(@params[3]);
-                        room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*Sets " + targetClient.GetHabbo().Username + "\'s Energy to " + @params[3] + "*", 0, 23));
+                        room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*" + session.GetHabbo().Username + " sets " + targetClient.GetHabbo().Username + "'s Energy to " + @params[3] + "*", 0, 23));
                         break;
                     }
                 case "hunger":
@@ -105,7 +105,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
                         }
 
                         targetClient.GetHabbo().GetRpStats().Hunger = + Convert.ToInt32(@params[3]);
-                        room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*Sets " + targetClient.GetHabbo().Username + "\'s Hunger to " + @params[3] + "*", 0, 23));
+                        room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*" + session.GetHabbo().Username + " sets " + targetClient.GetHabbo().Username + "'s Hunger to " + @params[3] + "*", 0, 23));
                         break;
                     }
                 case "xp":
@@ -119,7 +119,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
                         }
 
                         targetClient.GetHabbo().GetRpStats().Experience = + Convert.ToInt32(@params[3]);
-                        room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*Sets " + targetClient.GetHabbo().Username + "\'s Experience to " + @params[3] + "*", 0, 23));
+                        room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*" + session.GetHabbo().Username + " sets " + targetClient.GetHabbo().Username + "'s Experience to " + @params[3] + "*", 0, 23));
                         break;
                     }
 
@@ -148,7 +148,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 
                         targetClient.GetHabbo().GetRpSkills().ProgressSkill(skillId, progressAmount);
                         Skill skill = PlusEnvironment.GetSkillManager().GetSkillById(skillId);
-                        room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*Added " + targetClient.GetHabbo().Username + "\'s " + skill.Name + " Skill progress with " + progressAmount + "*", 0, 23));
+                        room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*" + session.GetHabbo().Username + " added " + progressAmount + " " + skill.Name + " skill progress to " + targetClient.GetHabbo().Username + "*", 0, 23));
                         break;
                     }
             }

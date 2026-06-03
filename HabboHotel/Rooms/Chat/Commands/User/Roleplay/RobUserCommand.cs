@@ -65,7 +65,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
             }
 
             session.GetHabbo().LastRobTime = now + 90;
-            PlusEnvironment.GetCombatManager().RobUser(session.GetHabbo(), targetClient.GetHabbo(), targetClient.GetHabbo().GetRpStats().IsDead ? 100 : 50);
+            PlusEnvironment.GetCombatManager().RobUser(session.GetHabbo(), targetClient.GetHabbo(), room, targetClient.GetHabbo().GetRpStats().IsDead ? 100 : 50);
         }
     }
 }

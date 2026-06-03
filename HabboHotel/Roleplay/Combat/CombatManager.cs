@@ -5,6 +5,7 @@ using Plus.HabboHotel.Roleplay.Skill;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
 using System;
+using static System.Collections.Specialized.BitVector32;
 
 namespace Plus.HabboHotel.Roleplay.Combat
 {
@@ -42,7 +43,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
 
             if (!inRange)
             {
-                attacker.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, "*swings at " + target.Username + ", but misses*", 0, 29));
+                attacker.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, "*" + attacker.Username + " swings at " + target.Username + ", but misses*", 0, 29));
                 return;
             }
 
@@ -81,14 +82,14 @@ namespace Plus.HabboHotel.Roleplay.Combat
 
             // Send shout about the attack after damage is resolved so it reflects the final result.
             string shoutResult = isFinalBlow
-                ? "*deals the final blow to " + target.Username + " with " + actualDamageDealt + " damage*" : FormatAttackMessage(skin, weapon, target.Username, actualDamageDealt, result.IsCritical);
+                ? "*" + attacker.Username + " deals the final blow to " + target.Username + " with " + actualDamageDealt + " damage*" : FormatAttackMessage(attacker.Username, skin, weapon, target.Username, actualDamageDealt, result.IsCritical);
             attacker.CurrentRoom.SendPacket(new ShoutComposer(attackerRoomUser.VirtualId, shoutResult, 0, 29));
 
             // stun
             bool stunTarget = Random.Shared.NextDouble() < ((weapon?.StunChance ?? 0) / 100.0);
             if (stunTarget && !targetStats.IsDead)
             {
-                target.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(target.Id).VirtualId, "*Gets stunned by the hit*", 0, 29));
+                target.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(target.Id).VirtualId, "*" + target.Username + " gets stunned by the hit*", 0, 29));
                 StunUser(targetRoomUser);
             }
 
@@ -125,24 +126,29 @@ namespace Plus.HabboHotel.Roleplay.Combat
             targetRoomUser.ApplyTimedFreeze(StunDuration, 53);
         }
 
-        private static string FormatAttackMessage(WeaponSkin skin, Weapon weapon, string targetUsername, int damage, bool isCritical)
+        private static string FormatAttackMessage(string attackerUsername, WeaponSkin skin, Weapon weapon, string targetUsername, int damage, bool isCritical)
         {
             string message = isCritical
-                ? skin?.CriticalHitMessage ?? weapon?.CriticalHitMessage ?? "*lands a critical hit on %username%, dealing %damage% damage*"
-                : skin?.HitMessage ?? weapon?.HitMessage ?? "*swings at %username%, dealing %damage% damage*";
+                ? skin?.CriticalHitMessage ?? weapon?.CriticalHitMessage ?? "*%attacker% lands a critical hit on %username%, dealing %damage% damage*"
+                : skin?.HitMessage ?? weapon?.HitMessage ?? "*%attacker% swings at %username%, dealing %damage% damage*";
 
-            return message.Replace("%username%", targetUsername).Replace("%damage%", damage.ToString());
+            message = message.Replace("%attacker%", attackerUsername).Replace("%username%", targetUsername).Replace("%damage%", damage.ToString());
+
+            if (message.StartsWith("*") && !message.StartsWith("*" + attackerUsername + " "))
+                message = "*" + attackerUsername + " " + message.Substring(1);
+
+            return message;
         }
 
-        public void RobUser(Habbo attacker, Habbo target, int percentage)
+        public void RobUser(Habbo attacker, Habbo target, Room room, int percentage)
         {
-            if(attacker == null || target == null)
+            if(attacker == null || target == null || room == null)
                 return;
 
             // the chance of success
             if(attacker.GetRpStats().GetRobberyChance(attacker) < Random.Shared.Next(0, 100) || target.Credits <= 0)
             {
-                attacker.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, "*Attempts to rob " + target.Username + ", but fails*", 0, 6));
+                attacker.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, "*" + attacker.Username + " attempts to rob " + target.Username + ", but fails*", 0, 6));
                 return;
             }
                 
@@ -151,7 +157,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
             // stolen credits are added to the attacker and removed from the target
             attacker.Credits = attacker.Credits + amountToSteal;
             target.Credits = target.Credits - amountToSteal;
-
+                
             // packets
             target.GetClient().SendPacket(new CreditBalanceComposer(target.Credits));
             attacker.GetClient().SendPacket(new CreditBalanceComposer(attacker.Credits));
@@ -162,7 +168,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
             attacker.GetRpSkills().ProgressSkill(3, 1);
 
             // notification
-            attacker.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, "*Robs " + target.Username + " of " + amountToSteal + " credits*", 0, 6));
+            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, "*" + attacker.Username + " robs " + target.Username + " of " + amountToSteal + " credits*", 0, 6));
             return;
         }
     }

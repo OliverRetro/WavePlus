@@ -50,15 +50,15 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
             //if its hands we fuck it all
             if (weaponId == 0)
             {
-                room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*Unequips weapons*", 0, 11));
+                room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*" + session.GetHabbo().Username + " unequips weapons*", 0, 11));
             }
             else if (equippedSkin != null)
             {
-                room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*Equips " + equippedSkin.SkinData.Name + " as their active weapon skin*", 0, 11));
+                room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*" + session.GetHabbo().Username + " equips " + equippedSkin.SkinData.Name + " as their active weapon skin*", 0, 11));
             }
             else
             {
-                room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*Equips " + weapon.WeaponData.Name + " as their active weapon*", 0, 11));
+                room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*" + session.GetHabbo().Username + " equips " + weapon.WeaponData.Name + " as their active weapon*", 0, 11));
             }
         }
     }
