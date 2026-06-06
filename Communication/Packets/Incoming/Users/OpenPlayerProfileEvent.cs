@@ -17,7 +17,7 @@ namespace Plus.Communication.Packets.Incoming.Users
             Habbo targetData = PlusEnvironment.GetHabboById(userId);
             if (targetData == null)
             {
-                session.SendNotification("An error occured whilst finding that user's profile.");
+                session.SendNotification("An error occurred while finding that user's profile.");
                 return;
             }
 

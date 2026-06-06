@@ -208,6 +208,7 @@ namespace Plus.HabboHotel.GameClients
             if (!TryGetClient(clientId, out GameClient client))
                 return;
 
+            client?.Disconnect();
             client?.Dispose();
 
             _clients.TryRemove(clientId, out client);

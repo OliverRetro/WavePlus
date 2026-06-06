@@ -152,8 +152,16 @@ namespace Plus.HabboHotel.Rooms
                 return false;
 
             // Entry packets can be retriggered while the session is already present in the room.
-            if (GetRoomUserByHabbo(session.GetHabbo().Id) != null)
-                return true;
+            // If the cached room user belongs to a stale client/session, remove it and recreate
+            // the avatar so the new session can move normally.
+            RoomUser existingUser = GetRoomUserByHabbo(session.GetHabbo().Id);
+            if (existingUser != null)
+            {
+                if (ReferenceEquals(existingUser.GetClient(), session))
+                    return true;
+
+                RemoveRoomUser(existingUser);
+            }
 
             RoomUser user = new(session.GetHabbo().Id, _room.RoomId, _primaryPrivateUserId++, _room);
 

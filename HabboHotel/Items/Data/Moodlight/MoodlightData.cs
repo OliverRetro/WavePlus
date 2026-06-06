@@ -95,8 +95,9 @@ namespace Plus.HabboHotel.Items.Data.Moodlight
 
             using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
             {
-                dbClient.SetQuery("UPDATE room_items_moodlight SET preset_" + pr + " = '@color," + intensity + "," + PlusEnvironment.BoolToEnum(bgOnly) + "' WHERE item_id = '" + ItemId + "' LIMIT 1");
-                dbClient.AddParameter("color", color);
+                dbClient.SetQuery("UPDATE room_items_moodlight SET preset_" + pr + " = @preset WHERE item_id = @itemId LIMIT 1");
+                dbClient.AddParameter("preset", color + "," + intensity + "," + PlusEnvironment.BoolToEnum(bgOnly));
+                dbClient.AddParameter("itemId", ItemId);
                 dbClient.RunQuery();
             }
 

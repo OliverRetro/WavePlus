@@ -180,6 +180,10 @@ namespace Plus.HabboHotel.Users.UserData
 
         public static UserData GetUserData(int userId)
         {
+            GameClients.GameClient onlineClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(userId);
+            if (onlineClient?.GetHabbo() != null)
+                return new UserData(userId, new ConcurrentDictionary<string, UserAchievement>(), new List<int>(), new List<Badge>(), new Dictionary<int, MessengerBuddy>(), new Dictionary<int, MessengerRequest>(), new Dictionary<int, int>(), onlineClient.GetHabbo(), onlineClient.GetHabbo().Relationships ?? new Dictionary<int, Relationship>());
+
             DataRow dUserInfo = null;
             DataRow userInfo = null;
             DataTable dRelations = null;
@@ -191,12 +195,7 @@ namespace Plus.HabboHotel.Users.UserData
                 dbClient.AddParameter("id", userId);
                 dUserInfo = dbClient.GetRow();
 
-                PlusEnvironment.GetGame().GetClientManager().LogClonesOut(Convert.ToInt32(userId));
-
                 if (dUserInfo == null)
-                    return null;
-
-                if (PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(userId) != null)
                     return null;
 
 

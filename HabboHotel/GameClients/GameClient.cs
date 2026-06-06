@@ -206,16 +206,28 @@ namespace Plus.HabboHotel.GameClients
 
         public void Disconnect()
         {
+            if (_disconnected)
+                return;
+
+            _disconnected = true;
+
             try
             {
                 if (GetHabbo() != null)
                 {
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                    try
                     {
-                        dbClient.RunQuery(GetHabbo().GetQueryString);
+                        using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                        {
+                            dbClient.RunQuery(GetHabbo().GetQueryString);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        ExceptionLogger.LogException(e);
                     }
 
-                    GetHabbo().OnDisconnect();
+                    GetHabbo()?.OnDisconnect();
                 }
             }
             catch (Exception e)
@@ -223,11 +235,7 @@ namespace Plus.HabboHotel.GameClients
                 ExceptionLogger.LogException(e);
             }
 
-            if (!_disconnected)
-            {
-                _channel?.CloseAsync();
-                _disconnected = true;
-            }
+            _channel?.CloseAsync();
         }
 
         public void Dispose()
