@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
+using Plus.HabboHotel.Roleplay.Skill;
 using Plus.HabboHotel.Users;
 
 namespace Plus.Communication.Packets.Outgoing.Users
@@ -34,9 +36,9 @@ namespace Plus.Communication.Packets.Outgoing.Users
             packet.WriteString(TargetHabbo.Motto);
             packet.WriteString(origin.ToString("dd/MM/yyyy"));
             packet.WriteInteger(TargetHabbo.GetStats().AchievementPoints);
-            packet.WriteInteger(FriendCount); // Friend Count
-            packet.WriteBoolean(TargetHabbo.Id != MyHabbo.Id && MyHabbo.GetMessenger().FriendshipExists(TargetHabbo.Id)); //  Is friend
-            packet.WriteBoolean(TargetHabbo.Id != MyHabbo.Id && !MyHabbo.GetMessenger().FriendshipExists(TargetHabbo.Id) && MyHabbo.GetMessenger().RequestExists(TargetHabbo.Id)); // Sent friend request
+            packet.WriteInteger(FriendCount);
+            packet.WriteBoolean(TargetHabbo.Id != MyHabbo.Id && MyHabbo.GetMessenger().FriendshipExists(TargetHabbo.Id));
+            packet.WriteBoolean(TargetHabbo.Id != MyHabbo.Id && !MyHabbo.GetMessenger().FriendshipExists(TargetHabbo.Id) && MyHabbo.GetMessenger().RequestExists(TargetHabbo.Id));
             packet.WriteBoolean((PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(TargetHabbo.Id)) != null);
 
             packet.WriteInteger(Groups.Count);
@@ -47,16 +49,17 @@ namespace Plus.Communication.Packets.Outgoing.Users
                 packet.WriteString(group.Badge);
                 packet.WriteString(PlusEnvironment.GetGame().GetGroupManager().GetColourCode(group.Colour1, true));
                 packet.WriteString(PlusEnvironment.GetGame().GetGroupManager().GetColourCode(group.Colour2, false));
-                packet.WriteBoolean(TargetHabbo.GetStats().FavouriteGroupId == group.Id); // todo favs
-                packet.WriteInteger(group.CreatorId); // or OwnerId
+                packet.WriteBoolean(TargetHabbo.GetStats().FavouriteGroupId == group.Id);
+                packet.WriteInteger(group.CreatorId);
                 packet.WriteBoolean(group.CreatorId == TargetHabbo.Id);
+                packet.WriteInteger((int)group.Kind);
             }
-            packet.WriteInteger(Convert.ToInt32(PlusEnvironment.GetUnixTimestamp() - TargetHabbo.LastOnline)); // Last online
-            packet.WriteBoolean(true); // Show the profile
-            packet.WriteBoolean(true); // on duty
-            packet.WriteString("Pigs"); // Job name
-            packet.WriteString("Fuck da police"); // job description
-            packet.WriteString(Gang?.Name ?? "No gang"); // gang name
+            packet.WriteInteger(Convert.ToInt32(PlusEnvironment.GetUnixTimestamp() - TargetHabbo.LastOnline));
+            packet.WriteBoolean(true);
+            packet.WriteBoolean(false);
+            packet.WriteString("Pigs");
+            packet.WriteString("Police officer");
+            packet.WriteString(Gang?.Name ?? "No gang");
             packet.WriteInteger(TargetHabbo.GetRpStats().Knockouts);
             packet.WriteInteger(TargetHabbo.GetRpStats().Deaths);
             packet.WriteInteger(TargetHabbo.GetRpStats().Arrested);
@@ -65,6 +68,35 @@ namespace Plus.Communication.Packets.Outgoing.Users
             packet.WriteInteger(TargetHabbo.GetRpStats().Attacked);
             packet.WriteInteger(TargetHabbo.GetRpStats().DamageDealt);
             packet.WriteInteger(TargetHabbo.GetRpStats().DamageTaken);
+            packet.WriteInteger(3);
+            packet.WriteInteger(TargetHabbo.GetRpStats().Strength);
+            packet.WriteInteger(TargetHabbo.GetRpStats().Knowledge);
+
+            var equippedSkills = new List<Skill>();
+            foreach (var s in TargetHabbo.GetRpSkills().Skills)
+            {
+                if (!s.Equipped) continue;
+                if (PlusEnvironment.GetSkillManager().TryGetSkill(s.SkillId, out Skill skill))
+                    equippedSkills.Add(skill);
+            }
+
+            packet.WriteInteger(equippedSkills.Count);
+            foreach (var skill in equippedSkills)
+            {
+                packet.WriteString(skill.BadgeCode);
+                packet.WriteInteger(skill.Id);
+                packet.WriteInteger(TargetHabbo.GetRpSkills().GetLevel(skill.Id));
+            }
+
+            packet.WriteInteger(LevelManager.GetLevelFromXp(TargetHabbo.GetRpStats().Experience));
+            packet.WriteInteger(TargetHabbo.GetRpStats().Experience);
+            packet.WriteInteger(3000);
+            packet.WriteInteger(1); // job group id, if none show 0
+            packet.WriteString("test name"); // name
+            packet.WriteString("b08054"); // badge
+            packet.WriteInteger(1); // type
+            packet.WriteInteger(2); // weekly shifts
+            packet.WriteInteger(67); // all shifts
         }
     }
 }

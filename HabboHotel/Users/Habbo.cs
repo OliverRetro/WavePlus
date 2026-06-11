@@ -55,7 +55,9 @@ namespace Plus.HabboHotel.Users
         public string Username { get; set; }
         public int Rank { get; set; }
         public string Motto { get; set; }
+        public string OldMotto { get; set; }
         public string Look { get; set; }
+        public string OldLook { get; set; }
         public string Gender { get; set; }
         public string FootballLook { get; set; }
         public string FootballGender { get; set; }
@@ -281,6 +283,9 @@ namespace Plus.HabboHotel.Users
             }
 
             StartAggressionTimer(_rpStats?.Aggression ?? 0);
+
+            OldMotto = "Citizen";
+            OldLook = "Citizen";
 
             BannedPhraseCount = 0;
             SessionStart = PlusEnvironment.GetUnixTimestamp();

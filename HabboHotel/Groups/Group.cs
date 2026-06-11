@@ -313,6 +313,27 @@ namespace Plus.HabboHotel.Groups
             return _roles.TryGetValue(level, out GroupRole role) ? role.Name : level.ToString();
         }
 
+        public bool TryGetRoleData(int id, out GroupRole role)
+        {
+            role = null;
+
+            if (!_memberLevels.TryGetValue(id, out int level))
+                return false;
+
+            if (id == CreatorId || level == 0)
+            {
+                return true;
+            }
+
+            if (_roles.TryGetValue(level, out GroupRole foundRole))
+            {
+                role = foundRole;
+                return true;
+            }
+
+            return false;
+        }
+
         public void MakeAdmin(int id)
         {
             if (!IsMember(id) || id == CreatorId)

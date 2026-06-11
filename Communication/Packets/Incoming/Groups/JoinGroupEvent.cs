@@ -32,7 +32,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
                 return;
             }
 
-            if(session.GetHabbo().GetStats().FavouriteGroupId != 0)
+            if(session.GetHabbo().GetStats().FavouriteGroupId != 0 && (group.Kind == GroupKind.Gang || group.Kind == GroupKind.Cartel || group.Kind == GroupKind.Mafia))
             {
                 session.SendPacket(new BroadcastMessageAlertComposer("Sorry, you can only join one gang at a time."));
                 return;
