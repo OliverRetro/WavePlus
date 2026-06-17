@@ -88,7 +88,7 @@ namespace Plus.HabboHotel.Users.UserData
                     userInfo = dbClient.GetRow();
                 }
 
-                dbClient.RunQuery("UPDATE `users` SET `online` = '1', `auth_ticket` = '' WHERE `id` = '" + userId + "' LIMIT 1");
+                dbClient.RunQuery("UPDATE `users` SET `online` = '1' WHERE `id` = '" + userId + "' LIMIT 1");
             }
 
             ConcurrentDictionary<string, UserAchievement> achievements = new();

@@ -76,8 +76,9 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
                 habboInfo.Append("Health: " + targetClient.GetHabbo().GetRpStats().Health + "\r");
                 habboInfo.Append("Shield: " + targetClient.GetHabbo().GetRpStats().Shield + "\r");
                 habboInfo.Append("Energy: " + targetClient.GetHabbo().GetRpStats().Energy + "\r");
-                habboInfo.Append("Hunger: " + targetClient.GetHabbo().GetRpStats().Hunger + "\r");
-                habboInfo.Append("Experience: " + targetClient.GetHabbo().GetRpStats().Experience + " [LVL: <b>" + LevelManager.GetLevelFromXp(targetClient.GetHabbo().GetRpStats().Experience) + "</b>]\r");
+                habboInfo.Append("Hunger: " + targetClient.GetHabbo().GetRpStats().Hunger + "\r"); 
+                var (Level, NextLevelXP, XPRemaining) = LevelManager.GetXPInfo(targetClient.GetHabbo().GetRpStats().Experience);
+                habboInfo.Append("Experience: " + targetClient.GetHabbo().GetRpStats().Experience + " [LVL: <b>" + Level + "</b>]\r");
                 habboInfo.Append("Kills: " + targetClient.GetHabbo().GetRpStats().Knockouts + "\r");
                 habboInfo.Append("Deaths: " + targetClient.GetHabbo().GetRpStats().Deaths + "\r");
                 habboInfo.Append("Aggression Timer: " + targetClient.GetHabbo().GetRpStats().Aggression + " seconds\r");

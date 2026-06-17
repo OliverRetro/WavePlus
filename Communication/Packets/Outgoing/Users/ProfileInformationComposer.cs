@@ -57,8 +57,8 @@ namespace Plus.Communication.Packets.Outgoing.Users
             packet.WriteInteger(Convert.ToInt32(PlusEnvironment.GetUnixTimestamp() - TargetHabbo.LastOnline));
             packet.WriteBoolean(true);
             packet.WriteBoolean(false);
-            packet.WriteString("Pigs");
-            packet.WriteString("Police officer");
+            packet.WriteString("");
+            packet.WriteString("Tää paska");
             packet.WriteString(Gang?.Name ?? "No gang");
             packet.WriteInteger(TargetHabbo.GetRpStats().Knockouts);
             packet.WriteInteger(TargetHabbo.GetRpStats().Deaths);
@@ -87,13 +87,13 @@ namespace Plus.Communication.Packets.Outgoing.Users
                 packet.WriteInteger(skill.Id);
                 packet.WriteInteger(TargetHabbo.GetRpSkills().GetLevel(skill.Id));
             }
-
-            packet.WriteInteger(LevelManager.GetLevelFromXp(TargetHabbo.GetRpStats().Experience));
+            var (Level, NextLevelXP, XPRemaining) = LevelManager.GetXPInfo(TargetHabbo.GetRpStats().Experience);
+            packet.WriteInteger(Level);
             packet.WriteInteger(TargetHabbo.GetRpStats().Experience);
-            packet.WriteInteger(3000);
-            packet.WriteInteger(1); // job group id, if none show 0
-            packet.WriteString("test name"); // name
-            packet.WriteString("b08054"); // badge
+            packet.WriteInteger(NextLevelXP);
+            packet.WriteInteger(Gang.Id); // job group id, if none show 0
+            packet.WriteString(Gang.Name); // name
+            packet.WriteString(Gang.Badge); // badge
             packet.WriteInteger(1); // type
             packet.WriteInteger(2); // weekly shifts
             packet.WriteInteger(67); // all shifts

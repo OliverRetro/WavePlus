@@ -1,7 +1,9 @@
 ﻿using Plus.Communication.Packets.Outgoing.Rooms.Engine;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
+using Plus.HabboHotel.Items;
 using Plus.HabboHotel.Users;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -38,7 +40,6 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
             {
                 session.SendWhisper("Your role is: " + role.Name + ". Motto: " + role.ShiftMotto + ". Look " + role.ShiftCostume + ". Shift length: " + role.ShiftDuration + " minutes.", 1);
 
-                // Motto handling. We cache the old motto, and then we set the new one. When the user finishes their shift, we can revert it back to the old one.
                 if (role.ShiftMotto != string.Empty || role.ShiftMotto != null) {
                     habbo.OldMotto = habbo.Motto;
                     habbo.Motto = role.ShiftMotto;
@@ -47,7 +48,72 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
                 if (role.ShiftCostume != string.Empty || role.ShiftCostume != null)
                 {
                     habbo.OldLook = habbo.Look;
-                    habbo.Look = role.ShiftCostume;
+
+                    string gender = habbo.Gender.ToLower();
+                    string figureString = role.ShiftCostume;
+
+                    string selectedFigure = null;
+
+                    if (figureString.Contains('|'))
+                    {
+                        Dictionary<string, string> figures = new();
+
+                        foreach (string part in figureString.Split(';'))
+                        {
+                            if (string.IsNullOrWhiteSpace(part))
+                                continue;
+
+                            string[] split = part.Split('|');
+
+                            if (split.Length != 2)
+                                continue;
+
+                            figures[split[0].ToLower()] = split[1];
+                        }
+
+                        if (figures.TryGetValue(gender, out string fig))
+                        {
+                            selectedFigure = fig;
+                        } else if (figures.TryGetValue("m", out fig))
+                        {
+                            selectedFigure = fig;
+                        }
+                    } else {
+                        selectedFigure = figureString;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(selectedFigure))
+                        return;
+
+                    Dictionary<string, string> lookParts = new();
+
+                    foreach (string part in habbo.Look.Split('.'))
+                    {
+                        if (string.IsNullOrWhiteSpace(part))
+                            continue;
+
+                        string[] split = part.Split('-');
+
+                        if (split.Length == 0)
+                            continue;
+
+                        lookParts[split[0]] = part;
+                    }
+
+                    foreach (string part in selectedFigure.Split('.'))
+                    {
+                        if (string.IsNullOrWhiteSpace(part))
+                            continue;
+
+                        string[] split = part.Split('-');
+
+                        if (split.Length == 0)
+                            continue;
+
+                        lookParts[split[0]] = part;
+                    }
+
+                    habbo.Look = string.Join(".", lookParts.Values);
                 }
 
                 // update the user, regardless if they have a costume or motto change

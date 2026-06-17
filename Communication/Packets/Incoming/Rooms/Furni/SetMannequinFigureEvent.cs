@@ -20,7 +20,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
                 return;
 
             string gender = session.GetHabbo().Gender.ToLower();
-            string figure = session.GetHabbo().Look.Split('.').Where(str => !str.Contains("hr") && !str.Contains("hd") && !str.Contains("he") && !str.Contains("ea") && !str.Contains("ha")).Aggregate("", (current, str) => current + (str + "."));
+            string figure = session.GetHabbo().Look.Split('.').Where(str => !str.Contains("hr") && !str.Contains("hd") && !str.Contains("he") && !str.Contains("ea") && !str.Contains("pt")).Aggregate("", (current, str) => current + (str + "."));
 
             figure = figure.TrimEnd('.');
             if (item.ExtraData.Contains(Convert.ToChar(5)))

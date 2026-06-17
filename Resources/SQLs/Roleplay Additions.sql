@@ -1,6 +1,11 @@
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
+-- disable clothing validation for staff
+INSERT INTO `permissions` (`id`, `permission`, `description`) VALUES (53, 'clothing_no_validation', 'Doesn\'t validate sellable clothing.');
+INSERT INTO `permissions_rights` (`group_id`, `permission_id`) VALUES (9, 53);
+INSERT INTO `permissions_rights` (`group_id`, `permission_id`) VALUES (8, 53);
+
 INSERT INTO `permissions_commands` (`command`) VALUES ('command_rp_user_info');
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_master_edit_rp', 6);
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_room_heal', 5);

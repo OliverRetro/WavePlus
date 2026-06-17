@@ -18,7 +18,7 @@ namespace Plus.Communication.Packets.Incoming.Users
                 return;
 
             string gender = packet.PopString().ToUpper();
-            string look = PlusEnvironment.GetFigureManager().ProcessFigure(packet.PopString(), gender, session.GetHabbo().GetClothing().GetClothingParts, true);
+            string look = PlusEnvironment.GetFigureManager().ProcessFigure(packet.PopString(), gender, session.GetHabbo().GetClothing().GetClothingParts, true, session.GetHabbo().GetPermissions().HasRight("clothing_no_validation"));
 
             if (look == session.GetHabbo().Look)
                 return;

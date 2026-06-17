@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 public static class LevelManager
 {
@@ -27,23 +29,24 @@ public static class LevelManager
         {20, 5000}
     };
 
-    public static int GetRequiredXp(int level)
-    {
-        return Levels.TryGetValue(level, out int xp) ? xp : int.MaxValue;
-    }
-
-    public static int GetLevelFromXp(int xp)
+    public static (int Level, int NextLevelXP, int XPRemaining) GetXPInfo(int xp)
     {
         int level = 0;
+        int nextLevelXP = Levels[Levels.Keys.Max()];
 
-        foreach (var entry in Levels)
+        foreach (var entry in Levels.OrderBy(l => l.Key))
         {
             if (xp >= entry.Value)
+            {
                 level = entry.Key;
+            }
             else
+            {
+                nextLevelXP = entry.Value;
                 break;
+            }
         }
 
-        return level;
+        return (level, nextLevelXP, Math.Max(0, nextLevelXP - xp));
     }
 }

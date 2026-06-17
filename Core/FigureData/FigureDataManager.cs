@@ -86,10 +86,13 @@ namespace Plus.Core.FigureData
             Log.Info("Loaded " + _setTypes.Count + " Set Types");
         }
 
-        public string ProcessFigure(string figure, string gender, ICollection<ClothingParts> clothingParts, bool hasHabboClub)
+        public string ProcessFigure(string figure, string gender, ICollection<ClothingParts> clothingParts, bool hasHabboClub, bool bypassValidation = false)
         {
             figure = figure.ToLower();
             gender = gender.ToUpper();
+            
+            if (bypassValidation)
+                return figure;
 
             string rebuildFigure = string.Empty;
 
