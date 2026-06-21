@@ -22,6 +22,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
                 return;
             }
 
+            if (session.GetHabbo().GetRpStats().Energy < 1)
+            {
+                session.SendWhisper("You don't have enough energy!", 1);
+                return;
+            }
+
             double now = PlusEnvironment.GetUnixTimestamp();
 
             if (session.GetHabbo().LastRobTime > now)

@@ -23,6 +23,8 @@ INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_g
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_add_chat_bubble', 6);
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_rob', 1);
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_start_work', 1);
+INSERT INTO `permissions_commands` (`command`) VALUES ('command_rp_give_item');
+INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_use_item', 1);
 
 -- corps n such
 DROP TABLE IF EXISTS `group_roles`;

@@ -19,6 +19,7 @@ using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Rooms.Chat.Commands;
 using Plus.HabboHotel.Roleplay.Banking;
 using Plus.HabboHotel.Roleplay.RpItem.Weapon;
+using Plus.HabboHotel.Roleplay.RpItem.Item;
 using Plus.HabboHotel.Roleplay.Skill;
 using Plus.HabboHotel.Subscriptions;
 using Plus.HabboHotel.Users.Badges;
@@ -193,6 +194,7 @@ namespace Plus.HabboHotel.Users
         private UserRpSkills _rpSkills;
         private UserRpWeapons _rpWeapons;
         private UserRpWeaponSkins _rpWeaponSkins;
+        private UserRpItems _rpItems;
         private UserRpBankAccount _bankAccount;
         private CancellationTokenSource _aggressionTimerTokenSource;
         private DateTime? _aggressionExpiresAtUtc;
@@ -533,6 +535,30 @@ namespace Plus.HabboHotel.Users
                 _rpSkills.MarkSaved();
             }
 
+            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            {
+                dbClient.SetQuery("SELECT `id`,`item_id`,`uses` FROM `user_rp_items` WHERE `user_id` = @user_id");
+                dbClient.AddParameter("user_id", id);
+                DataTable itemTable = dbClient.GetTable();
+
+                List<UserRpItem> loadedItems = new();
+                if (itemTable != null)
+                {
+                    foreach (DataRow row in itemTable.Rows)
+                    {
+                        int itemId = Convert.ToInt32(row["item_id"]);
+                        RpItemData itemData = PlusEnvironment.GetRpItemManager().GetItemById(itemId);
+                        if (itemData == null)
+                            continue;
+
+                        loadedItems.Add(new UserRpItem(Convert.ToInt32(row["id"]), id, itemId, Convert.ToInt32(row["uses"]), itemData));
+                    }
+                }
+
+                _rpItems = new UserRpItems(id, PlusEnvironment.GetRpItemManager(), loadedItems);
+                _rpItems.MarkSaved();
+            }
+
             #endregion
         }
 
@@ -732,6 +758,11 @@ namespace Plus.HabboHotel.Users
             return _rpWeaponSkins;
         }
 
+        public UserRpItems GetRpItems()
+        {
+            return _rpItems;
+        }
+
         public int ProgressSkill(string progressCategory, int progress)
         {
             return _rpSkills.ProgressSkillByCategory(progressCategory, progress);
@@ -904,6 +935,51 @@ namespace Plus.HabboHotel.Users
                 }
 
                 _rpWeapons.MarkSaved();
+            }
+            catch (Exception e)
+            {
+                ExceptionLogger.LogException(e);
+            }
+        }
+
+        public void SaveRpItems()
+        {
+            if (_rpItems == null || !_rpItems.Dirty)
+                return;
+
+            try
+            {
+                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                {
+                    foreach (int removedId in _rpItems.RemovedIds.ToList())
+                    {
+                        dbClient.SetQuery("DELETE FROM `user_rp_items` WHERE `id` = @id LIMIT 1");
+                        dbClient.AddParameter("id", removedId);
+                        dbClient.RunQuery();
+                    }
+
+                    foreach (UserRpItem item in _rpItems.Items.ToList())
+                    {
+                        if (item.Id > 0)
+                        {
+                            dbClient.SetQuery("UPDATE `user_rp_items` SET `uses` = @uses WHERE `id` = @id LIMIT 1");
+                            dbClient.AddParameter("uses", item.Uses);
+                            dbClient.AddParameter("id", item.Id);
+                            dbClient.RunQuery();
+                            continue;
+                        }
+
+                        dbClient.SetQuery("INSERT INTO `user_rp_items` (`user_id`, `item_id`, `uses`) VALUES (@user_id, @item_id, @uses)");
+                        dbClient.AddParameter("user_id", Id);
+                        dbClient.AddParameter("item_id", item.ItemId);
+                        dbClient.AddParameter("uses", item.Uses);
+                        int oldId = item.Id;
+                        item.Id = (int)dbClient.InsertQuery();
+                        _rpItems.RekeyItem(oldId, item.Id);
+                    }
+                }
+
+                _rpItems.MarkSaved();
             }
             catch (Exception e)
             {
@@ -1122,6 +1198,7 @@ namespace Plus.HabboHotel.Users
                 SaveRpWeapons();
                 SaveRpWeaponSkins();
                 SaveRpSkills();
+                SaveRpItems();
                 SaveBank();
             }
 

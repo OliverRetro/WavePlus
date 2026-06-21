@@ -65,7 +65,7 @@ namespace Plus.HabboHotel.Users
             NextHungerTick = DateTime.UtcNow.AddMinutes(10);
         }
 
-        public int GetMaxHealth(Habbo habbo)
+        public static int GetMaxHealth(Habbo habbo)
         {
             if (habbo?.GetRpSkills() == null)
             {
@@ -81,7 +81,7 @@ namespace Plus.HabboHotel.Users
             };
         }
 
-        public int GetMaxHunger(Habbo habbo)
+        public static int GetMaxHunger(Habbo habbo)
         {
             if (habbo?.GetRpSkills() == null)
             {
@@ -97,7 +97,7 @@ namespace Plus.HabboHotel.Users
             };
         }
 
-        public int GetMaxEnergy(Habbo habbo)
+        public static int GetMaxEnergy(Habbo habbo)
         {
             if (habbo?.GetRpSkills() == null)
             {
@@ -118,14 +118,20 @@ namespace Plus.HabboHotel.Users
             Health = Math.Min(Health + health, GetMaxHealth(habbo));
         }
 
-        public void Kill(Habbo target, RoomUser user)
+        public void Kill(Habbo victim, RoomUser victimUser, UserRpStats attacker = null)
         {
-            if (target == null || user == null) { return; }
+            if (victim == null || victimUser == null) { return; }
 
-            PlusEnvironment.GetHospitalManager().HandleDeath(this, target, user);
+            PlusEnvironment.GetHospitalManager().HandleDeath(victim, victimUser, attacker);
         }
 
-        public int GetRobberyChance(Habbo habbo)
+        public void InteractionEnergy()
+        {
+            int energyLoss = Random.Shared.Next(1, 6); // 1-5 dmg
+            Energy = Math.Max(0, Energy - energyLoss);
+        }
+
+        public static int GetRobberyChance(Habbo habbo)
         {
             if (habbo?.GetRpSkills() == null)
             {

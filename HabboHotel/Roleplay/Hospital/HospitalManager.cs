@@ -35,9 +35,9 @@ namespace Plus.HabboHotel.Roleplay.Hospital
             return _deadUsers.ContainsKey(userId);
         }
 
-        public void HandleDeath(UserRpStats attackerStats, Habbo target, RoomUser targetUser)
+        public void HandleDeath(Habbo target, RoomUser targetUser, UserRpStats attackerStats = null)
         {
-            if (attackerStats == null || target == null || targetUser == null)
+            if (target == null || targetUser == null)
                 return;
 
             UserRpStats targetStats = target.GetRpStats();
@@ -52,7 +52,9 @@ namespace Plus.HabboHotel.Roleplay.Hospital
             targetStats.HospitalHealStartTime = 0;
             targetStats.HospitalHealthStart = 0;
             targetStats.NextPassiveHospitalHealTick = 0;
-            attackerStats.Knockouts++;
+
+            if (attackerStats != null)
+                attackerStats.Knockouts++;
 
             _deadUsers[target.Id] = 0;
             _bleedoutUsers[target.Id] = now + GetDeathDurationSeconds();
@@ -170,7 +172,7 @@ namespace Plus.HabboHotel.Roleplay.Hospital
             if (releaseTime <= 0)
                 return;
 
-            int maxHealth = stats.GetMaxHealth(habbo);
+            int maxHealth = UserRpStats.GetMaxHealth(habbo);
             double now = PlusEnvironment.GetUnixTimestamp();
             double totalDuration = Math.Max(1, releaseTime - stats.HospitalHealStartTime);
             double elapsed = Math.Clamp(now - stats.HospitalHealStartTime, 0, totalDuration);
@@ -200,7 +202,7 @@ namespace Plus.HabboHotel.Roleplay.Hospital
                 return;
 
             UserRpStats stats = habbo.GetRpStats();
-            int maxHealth = stats.GetMaxHealth(habbo);
+            int maxHealth = UserRpStats.GetMaxHealth(habbo);
             if (stats.Health >= maxHealth)
                 return;
 

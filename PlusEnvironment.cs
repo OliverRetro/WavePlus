@@ -24,6 +24,7 @@ using Plus.HabboHotel.Permissions;
 using Plus.HabboHotel.Roleplay.Banking;
 using Plus.HabboHotel.Roleplay.Combat;
 using Plus.HabboHotel.Roleplay.Hospital;
+using Plus.HabboHotel.Roleplay.RpItem.Item;
 using Plus.HabboHotel.Users;
 using Plus.HabboHotel.Users.UserData;
 using Plus.Network;
@@ -54,6 +55,7 @@ namespace Plus
         private static SkillManager _skillManager;
         private static CombatManager _combatManager;
         private static WeaponManager _weaponManager;
+        private static RpItemManager _rpItemManager;
         private static HospitalManager _hospitalManager;
         private static BankingManager _bankingManager;
 
@@ -160,6 +162,9 @@ namespace Plus
 
                 _weaponManager = new WeaponManager();
                 _weaponManager.Init();
+
+                _rpItemManager = new RpItemManager();
+                _rpItemManager.Init();
 
                 _bankingManager = new BankingManager();
 
@@ -447,6 +452,11 @@ namespace Plus
         public static WeaponManager GetWeaponManager()
         {
             return _weaponManager;
+        }
+
+        public static RpItemManager GetRpItemManager()
+        {
+            return _rpItemManager;
         }
 
         public static BankingManager GetBankingManager()

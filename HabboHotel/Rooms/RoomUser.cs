@@ -101,6 +101,9 @@ namespace Plus.HabboHotel.Rooms
         private int _timedFreezeId;
         private int _timedFreezePreviousEffect;
 
+        private int _itemConsumptionId;
+        private int _fastwalkId;
+
         public RoomUser(int habboId, int roomId, int virtualId, Room room)
         {
             Freezed = false;
@@ -533,6 +536,57 @@ namespace Plus.HabboHotel.Rooms
             }
         }
 
+
+        /// <summary>
+        /// Caches the user's current effect + handitem, swaps in the item's (which may be 0),
+        /// then restores the cached values after <paramref name="duration"/>.
+        /// </summary>
+        public void ApplyTimedItemConsumption(TimeSpan duration, int effectId, int handitemId)
+        {
+            int cachedEffect = GetClient()?.GetHabbo()?.Effects()?.CurrentEffect ?? 0;
+            int cachedHanditem = CarryItemId;
+
+            ApplyEffect(effectId);
+            CarryItem(handitemId);
+
+            int consumptionId = ++_itemConsumptionId;
+            _ = ClearItemConsumptionAsync(consumptionId, duration, cachedEffect, cachedHanditem);
+        }
+
+        private async Task ClearItemConsumptionAsync(int consumptionId, TimeSpan duration, int cachedEffect, int cachedHanditem)
+        {
+            await Task.Delay(duration);
+
+            // Only restore if no newer consumption has happened in the meantime.
+            if (_itemConsumptionId != consumptionId)
+                return;
+
+            ApplyEffect(cachedEffect);
+            CarryItem(cachedHanditem);
+        }
+
+        /// <summary>
+        /// Grants temporary fast walking for <paramref name="duration"/>, then restores the
+        /// previous walking mode.
+        /// </summary>
+        public void ApplyTimedFastwalk(TimeSpan duration)
+        {
+            bool previousFastWalking = FastWalking;
+            FastWalking = true;
+
+            int fastwalkId = ++_fastwalkId;
+            _ = ClearTimedFastwalkAsync(fastwalkId, duration, previousFastWalking);
+        }
+
+        private async Task ClearTimedFastwalkAsync(int fastwalkId, TimeSpan duration, bool previousFastWalking)
+        {
+            await Task.Delay(duration);
+
+            if (_fastwalkId != fastwalkId)
+                return;
+
+            FastWalking = previousFastWalking;
+        }
 
         public void SetPos(int pX, int pY, double pZ)
         {

@@ -24,7 +24,13 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
             Habbo habbo = session.GetHabbo();
             Group group = room.Group;
 
-            if(group.Kind != GroupKind.Corporation)
+            if (session.GetHabbo().GetRpStats().Energy < 1)
+            {
+                session.SendWhisper("You don't have enough energy!", 1);
+                return;
+            }
+
+            if (group.Kind != GroupKind.Corporation)
             {
                 session.SendWhisper("This command can only be used in corporation room!", 1);
                 return;

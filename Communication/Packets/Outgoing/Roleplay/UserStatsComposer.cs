@@ -42,7 +42,7 @@ namespace Plus.Communication.Packets.Outgoing.Quests
             message.WriteString(habbo.Username);
             message.WriteString(habbo.Look);
             message.WriteInteger(rpStats.Health);
-            message.WriteInteger(rpStats.GetMaxHealth(habbo));
+            message.WriteInteger(UserRpStats.GetMaxHealth(habbo));
             message.WriteInteger(rpStats.Shield);
             message.WriteInteger(100); // Max shield, hardcoded for now
             message.WriteInteger(rpStats.Energy);

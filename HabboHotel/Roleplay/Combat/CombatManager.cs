@@ -22,6 +22,9 @@ namespace Plus.HabboHotel.Roleplay.Combat
             var attackerStats = attacker.GetRpStats();
             var targetStats = target.GetRpStats();
 
+            // take away energy
+            attackerStats.InteractionEnergy();
+
             // Room users
             RoomUser targetRoomUser = target.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(target.Id);
             RoomUser attackerRoomUser = attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id);
@@ -73,7 +76,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
             {
                 attacker.ResetAggressionTimer();
                 targetStats.Health = 0;
-                attackerStats.Kill(target, targetRoomUser);
+                targetStats.Kill(target, targetRoomUser, attackerStats);
             }
             else
             {
@@ -145,8 +148,15 @@ namespace Plus.HabboHotel.Roleplay.Combat
             if(attacker == null || target == null || room == null)
                 return;
 
+            // stats
+            var attackerStats = attacker.GetRpStats();
+            var targetStats = attacker.GetRpStats();
+
+            // take away energy
+            attackerStats.InteractionEnergy();
+
             // the chance of success
-            if(attacker.GetRpStats().GetRobberyChance(attacker) < Random.Shared.Next(0, 100) || target.Credits <= 0)
+            if (UserRpStats.GetRobberyChance(attacker) < Random.Shared.Next(0, 100) || target.Credits <= 0)
             {
                 attacker.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, "*" + attacker.Username + " attempts to rob " + target.Username + ", but fails*", 0, 6));
                 return;
@@ -163,8 +173,8 @@ namespace Plus.HabboHotel.Roleplay.Combat
             attacker.GetClient().SendPacket(new CreditBalanceComposer(attacker.Credits));
 
             // stats
-            target.GetRpStats().Robbed++;
-            attacker.GetRpStats().Robberies++;
+            targetStats.Robbed++;
+            attackerStats.Robberies++;
             attacker.GetRpSkills().ProgressSkill(3, 1);
 
             // notification

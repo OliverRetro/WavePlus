@@ -1,6 +1,8 @@
-﻿using Plus.Communication.Packets.Outgoing.Quests;
+﻿using Plus.Communication.Packets.Incoming.Rooms.FloorPlan;
+using Plus.Communication.Packets.Outgoing.Quests;
 using Plus.Database.Interfaces;
 using Plus.HabboHotel.GameClients;
+using Plus.HabboHotel.Roleplay.RpItem.Item;
 using Plus.HabboHotel.Roleplay.RpItem.Weapon;
 using Plus.HabboHotel.Roleplay.Skill;
 using System;
@@ -51,8 +53,15 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
                     habboInfo.Append($"ID: {skinData.Id} - {skin.Name} - Weapon: {baseWeapon?.Name ?? "Unknown"} - Equipped: {(skinData.Equipped ? "Yes" : "No")}\r");
                 }
 
-                habboInfo.Append("\r<b>Other Items:</b>\r");
-                habboInfo.Append("Not coded yet.");
+                habboInfo.Append("\r<b>Other RP Items:</b>\r");
+
+                foreach (UserRpItem item in session.GetHabbo().GetRpItems().Items)
+                {
+                    if (item == null)
+                        continue;
+
+                    habboInfo.Append($"ID: {item.Id} - {item.ItemData.Name} - Used: {item.Uses} / {item.ItemData.MaxUses}\r");
+                }
             }
             else
             {

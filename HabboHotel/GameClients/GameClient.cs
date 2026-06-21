@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using DotNetty.Transport.Channels;
+﻿using DotNetty.Transport.Channels;
 using Plus.Communication.Packets.Outgoing;
 using Plus.Communication.Packets.Outgoing.BuildersClub;
 using Plus.Communication.Packets.Outgoing.Handshake;
@@ -20,6 +18,9 @@ using Plus.HabboHotel.Users;
 using Plus.HabboHotel.Users.Messenger.FriendBar;
 using Plus.HabboHotel.Users.UserData;
 using Plus.Network.Codec;
+using System;
+using System.Collections.Generic;
+using static System.Collections.Specialized.BitVector32;
 
 namespace Plus.HabboHotel.GameClients
 {
@@ -141,7 +142,7 @@ namespace Plus.HabboHotel.GameClients
                     if (!PlusEnvironment.GetGame().GetCacheManager().ContainsUser(_habbo.Id))
                         PlusEnvironment.GetGame().GetCacheManager().GenerateUser(_habbo.Id);
 
-                    _habbo.Look = PlusEnvironment.GetFigureManager().ProcessFigure(_habbo.Look, _habbo.Gender, _habbo.GetClothing().GetClothingParts, true);
+                    _habbo.Look = PlusEnvironment.GetFigureManager().ProcessFigure(_habbo.Look, _habbo.Gender, _habbo.GetClothing().GetClothingParts, true, _habbo.GetPermissions().HasRight("clothing_no_validation"));
                     _habbo.InitProcess();
 
                     if (userData.User.GetPermissions().HasRight("mod_tickets"))

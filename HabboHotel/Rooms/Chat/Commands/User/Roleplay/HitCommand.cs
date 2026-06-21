@@ -13,12 +13,18 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (session == null || session.GetHabbo() == null || room == null)
+            if (session == null || session.GetHabbo() == null || room == null || session?.GetHabbo().GetRpStats() == null)
                 return;
 
             if (@params.Length == 1)
             {
                 session.SendWhisper("Please enter the username of the user you wish attack.");
+                return;
+            }
+
+            if(session.GetHabbo().GetRpStats().Energy < 1)
+            {
+                session.SendWhisper("You don't have enough energy!", 1);
                 return;
             }
 
@@ -65,7 +71,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
             }
 
             session.GetHabbo().LastHitTime = now + 3;
-            PlusEnvironment.GetCombatManager().AttackUser(session.GetHabbo(), targetClient.GetHabbo());      
+            PlusEnvironment.GetCombatManager().AttackUser(session.GetHabbo(), targetClient.GetHabbo());
         }
     }
 }
