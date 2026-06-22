@@ -125,6 +125,35 @@ namespace Plus.HabboHotel.Users
             PlusEnvironment.GetHospitalManager().HandleDeath(victim, victimUser, attacker);
         }
 
+        public void TickHunger(Habbo habbo)
+        {
+            if (DateTime.UtcNow < NextHungerTick)
+                return;
+
+            if (Hunger > 0)
+            {
+                int loss = Random.Shared.Next(1, 6);
+                Hunger = Math.Max(0, Hunger - loss);
+                NextHungerTick = DateTime.UtcNow.AddMinutes(10);
+            }
+            else
+            {
+                int damage = Random.Shared.Next(5, 51);
+                Health = Math.Max(0, Health - damage);
+                NextHungerTick = DateTime.UtcNow.AddMinutes(1);
+
+                if (Health <= 0 && !IsDead)
+                {
+                    Room room = habbo.CurrentRoom;
+                    RoomUser roomUser = room?.GetRoomUserManager().GetRoomUserByHabbo(habbo.Id);
+                    if (roomUser != null)
+                        Kill(habbo, roomUser);
+                }
+            }
+
+            habbo.TrySendUserStatsUpdate(true);
+        }
+
         public void InteractionEnergy()
         {
             int energyLoss = Random.Shared.Next(1, 6); // 1-5 dmg

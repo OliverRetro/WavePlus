@@ -145,8 +145,10 @@ namespace Plus.HabboHotel.Users.Process
 
                 _player.CheckCreditsTimer();
                 _player.CheckBankSaveTimer();
-                
+
                 _player.Effects().CheckEffectExpiry(_player);
+
+                _player.GetRpStats()?.TickHunger(_player);
 
                 // END CODE
 
