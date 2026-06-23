@@ -711,6 +711,10 @@ namespace Plus.HabboHotel.Rooms
                     {
                         user.IsAsleep = true;
                         _room.SendPacket(new SleepComposer(user.VirtualId, true));
+
+                        // Going idle ends any active work shift.
+                        if (user.GetClient()?.GetHabbo() != null)
+                            PlusEnvironment.GetGame().GetShiftManager().InterruptShift(user.GetClient().GetHabbo(), _room);
                     }
 
                     if (user.CarryItemId > 0)

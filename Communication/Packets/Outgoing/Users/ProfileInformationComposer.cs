@@ -95,8 +95,9 @@ namespace Plus.Communication.Packets.Outgoing.Users
             packet.WriteString(Gang.Name); // name
             packet.WriteString(Gang.Badge); // badge
             packet.WriteInteger(1); // type
-            packet.WriteInteger(2); // weekly shifts
-            packet.WriteInteger(67); // all shifts
+            var (weeklyShifts, totalShifts) = PlusEnvironment.GetGame().GetShiftManager().GetShiftCounts(Gang.Id, TargetHabbo.Id);
+            packet.WriteInteger(weeklyShifts); // weekly shifts (Mon-Sun, current IRL week)
+            packet.WriteInteger(totalShifts);
         }
     }
 }

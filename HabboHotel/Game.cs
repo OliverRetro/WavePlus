@@ -21,6 +21,7 @@ using Plus.HabboHotel.Rewards;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Rooms.Chat;
 using Plus.HabboHotel.Subscriptions;
+using Plus.HabboHotel.Roleplay.Corporation;
 using Plus.HabboHotel.Talents;
 
 namespace Plus.HabboHotel
@@ -49,6 +50,7 @@ namespace Plus.HabboHotel
         private readonly BadgeManager _badgeManager;
         private readonly PermissionManager _permissionManager;
         private readonly SubscriptionManager _subscriptionManager;
+        private readonly ShiftManager _shiftManager;
 
         private bool _cycleEnded;
         private bool _cycleActive;
@@ -117,6 +119,8 @@ namespace Plus.HabboHotel
 
             _subscriptionManager = new SubscriptionManager();
             _subscriptionManager.Init();
+
+            _shiftManager = new ShiftManager();
         }
 
         public void StartGameLoop()
@@ -257,6 +261,11 @@ namespace Plus.HabboHotel
         public BadgeManager GetBadgeManager()
         {
             return _badgeManager;
+        }
+
+        public ShiftManager GetShiftManager()
+        {
+            return _shiftManager;
         }
     }
 }

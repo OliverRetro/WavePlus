@@ -1151,6 +1151,9 @@ namespace Plus.HabboHotel.Users
             if (_disconnected)
                 return;
 
+            // End any active work shift: pay accrued bonus, restore look/motto, flush logs.
+            PlusEnvironment.GetGame().GetShiftManager().OnDisconnect(this);
+
             if (GetRpStats()?.IsDead == true && GetRpStats().HospitalReleaseTime <= 0)
                 PlusEnvironment.GetHospitalManager().SkipBleedout(this);
 

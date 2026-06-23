@@ -346,4 +346,43 @@ CREATE TABLE `user_chat_bubbles` (
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci ROW_FORMAT=Dynamic;
 
+-- corporation shift logs
+DROP TABLE IF EXISTS `rp_shift_logs`;
+CREATE TABLE `rp_shift_logs` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `group_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `credits_paid` int NOT NULL DEFAULT 0,
+  `shift_finished` datetime NOT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  KEY `idx_rp_shift_logs_group_user` (`group_id`, `user_id`),
+  KEY `idx_rp_shift_logs_finished` (`shift_finished`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci ROW_FORMAT=Dynamic;
+
+-- rp items
+DROP TABLE IF EXISTS `rp_items`;
+CREATE TABLE `rp_items`  (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `item_name` varchar(55) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
+  `handitem_data` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `effect_data` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `base_price` int NOT NULL DEFAULT 0,
+  `attribute_effects` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `image_url` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
+
+-- example data
+INSERT INTO `rp_items` VALUES (1, 'Bandage', '0', '69', 50, '{\"hp\": 15, \"consume_length\": 100, \"uses\": 1}', '');
+INSERT INTO `rp_items` VALUES (2, 'Red Bull', '14', '0', 12, '{\"hp\": -1, \"energy\": 25, \"hunger\": 5, \"hunger_saturation\": 0.5, \"consume_length\": 400, \"shield\": 50, \"experience\": 10, \"uses\": 1}', '');
+
+DROP TABLE IF EXISTS `user_rp_items`;
+CREATE TABLE `user_rp_items`  (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `item_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `uses` smallint NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
+
 SET FOREIGN_KEY_CHECKS = 1;

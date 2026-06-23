@@ -59,6 +59,9 @@ namespace Plus.HabboHotel.Roleplay.Hospital
             _deadUsers[target.Id] = 0;
             _bleedoutUsers[target.Id] = now + GetDeathDurationSeconds();
 
+            // Death ends any active work shift.
+            PlusEnvironment.GetGame().GetShiftManager().InterruptShift(target, target.CurrentRoom);
+
             targetUser.ClearMovement(true);
             if (!targetUser.IsLying)
                 targetUser.Lay();

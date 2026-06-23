@@ -150,6 +150,8 @@ namespace Plus.HabboHotel.Users.Process
 
                 _player.GetRpStats()?.TickHunger(_player);
 
+                PlusEnvironment.GetGame().GetShiftManager().Tick(_player);
+
                 // END CODE
 
                 // Reset the values
