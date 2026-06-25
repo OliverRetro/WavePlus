@@ -3,10 +3,13 @@
     public static class ServerPacketHeader
     {
         // Roleplay packets
+        public const int PhoneBankMessageComposer = 6007;
+        public const int AtmBankMessageComposer = 6006;
         public const int AnotherStatsMessageComposer = 6005;
         public const int UserStatsMessageComposer = 6004;
         public const int WantedListMessageComposer = 6003;
         public const int OfferItemMessageComposer = 6002;
+        public const int TargetLockMessageComposer = 6000;
 
         // credit to Keorich##1440 for the headers for Production-201611291003-338511768
         public const int UserNftChatStylesMessageComposer = 6100;

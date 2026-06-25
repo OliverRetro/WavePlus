@@ -15,6 +15,7 @@ namespace Plus.Communication.Packets.Outgoing.Users
         public int FriendCount { get; }
         public Habbo MyHabbo { get; }
         public Group Gang { get; }
+        public Group Corporation { get; }
 
         public ProfileInformationComposer(Habbo habbo, GameClient session, List<Group> groups, int friendCount)
             : base(ServerPacketHeader.ProfileInformationMessageComposer)
@@ -24,6 +25,7 @@ namespace Plus.Communication.Packets.Outgoing.Users
             FriendCount = friendCount;
             MyHabbo = session.GetHabbo();
             Gang = session.GetHabbo().GetStats().FavouriteGroupId != 0 && PlusEnvironment.GetGame().GetGroupManager().TryGetGroup(session.GetHabbo().GetStats().FavouriteGroupId, out Group gang) ? gang : null;
+            Corporation = groups.FirstOrDefault(g => g != null && GroupManager.IsWorkableKind(g.Kind));
         }
 
         public override void Compose(ServerPacket packet)
@@ -56,9 +58,9 @@ namespace Plus.Communication.Packets.Outgoing.Users
             }
             packet.WriteInteger(Convert.ToInt32(PlusEnvironment.GetUnixTimestamp() - TargetHabbo.LastOnline));
             packet.WriteBoolean(true);
-            packet.WriteBoolean(false);
+            packet.WriteBoolean(PlusEnvironment.GetGame().GetShiftManager().IsWorking(TargetHabbo.Id));
             packet.WriteString("");
-            packet.WriteString("Tää paska");
+            packet.WriteString(Corporation != null && Corporation.TryGetRoleData(TargetHabbo.Id, out GroupRole corpRole) ? corpRole.Name : "");
             packet.WriteString(Gang?.Name ?? "No gang");
             packet.WriteInteger(TargetHabbo.GetRpStats().Knockouts);
             packet.WriteInteger(TargetHabbo.GetRpStats().Deaths);
@@ -91,13 +93,20 @@ namespace Plus.Communication.Packets.Outgoing.Users
             packet.WriteInteger(Level);
             packet.WriteInteger(TargetHabbo.GetRpStats().Experience);
             packet.WriteInteger(NextLevelXP);
-            packet.WriteInteger(Gang.Id); // job group id, if none show 0
-            packet.WriteString(Gang.Name); // name
-            packet.WriteString(Gang.Badge); // badge
-            packet.WriteInteger(1); // type
-            var (weeklyShifts, totalShifts) = PlusEnvironment.GetGame().GetShiftManager().GetShiftCounts(Gang.Id, TargetHabbo.Id);
-            packet.WriteInteger(weeklyShifts); // weekly shifts (Mon-Sun, current IRL week)
-            packet.WriteInteger(totalShifts);
+            if (Corporation != null)
+            {
+                packet.WriteInteger(Corporation.Id); // job group id
+                packet.WriteString(Corporation.Name); // name
+                packet.WriteString(Corporation.Badge); // badge
+                packet.WriteInteger((int)Corporation.Kind); // type
+                var (weeklyShifts, totalShifts) = PlusEnvironment.GetGame().GetShiftManager().GetShiftCounts(Corporation.Id, TargetHabbo.Id);
+                packet.WriteInteger(weeklyShifts); // weekly shifts (Mon-Sun, current IRL week)
+                packet.WriteInteger(totalShifts); // all shifts (any time)
+            }
+            else
+            {
+                packet.WriteInteger(0); // no corporation
+            }
         }
     }
 }

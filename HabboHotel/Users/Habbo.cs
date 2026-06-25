@@ -36,6 +36,8 @@ using Plus.HabboHotel.Users.Relationships;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Plus.HabboHotel.Roleplay.TargetLock;
+using Plus.Communication.Packets.Outgoing.Quests;
 
 namespace Plus.HabboHotel.Users
 {
@@ -59,6 +61,8 @@ namespace Plus.HabboHotel.Users
         public string OldMotto { get; set; }
         public string Look { get; set; }
         public string OldLook { get; set; }
+        // Cached corporation/business group the user works for (0 = none). A user can only have one.
+        public int CorporationId { get; set; }
         public string Gender { get; set; }
         public string FootballLook { get; set; }
         public string FootballGender { get; set; }
@@ -537,7 +541,7 @@ namespace Plus.HabboHotel.Users
 
             using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
             {
-                dbClient.SetQuery("SELECT `id`,`item_id`,`uses` FROM `user_rp_items` WHERE `user_id` = @user_id");
+                dbClient.SetQuery("SELECT `id`,`item_id`,`uses`,`slot` FROM `user_rp_items` WHERE `user_id` = @user_id");
                 dbClient.AddParameter("user_id", id);
                 DataTable itemTable = dbClient.GetTable();
 
@@ -551,7 +555,8 @@ namespace Plus.HabboHotel.Users
                         if (itemData == null)
                             continue;
 
-                        loadedItems.Add(new UserRpItem(Convert.ToInt32(row["id"]), id, itemId, Convert.ToInt32(row["uses"]), itemData));
+                        int slot = row.Table.Columns.Contains("slot") && row["slot"] != DBNull.Value ? Convert.ToInt32(row["slot"]) : -1;
+                        loadedItems.Add(new UserRpItem(Convert.ToInt32(row["id"]), id, itemId, Convert.ToInt32(row["uses"]), itemData, slot));
                     }
                 }
 
@@ -673,7 +678,9 @@ namespace Plus.HabboHotel.Users
             if (!force && LastUserStatsUpdate > now)
                 return;
 
-            GetClient().SendPacket(new Plus.Communication.Packets.Outgoing.Quests.UserStatsComposer(GetClient(), null));
+            // Include the currently clicked/locked target (if any & online) so the client shows both.
+            Habbo target = TargetLockService.GetClickedHabbo(Id);
+            GetClient().SendPacket(new UserStatsComposer(GetClient(), target));
             LastUserStatsUpdate = now + 1;
         }
 
@@ -962,17 +969,19 @@ namespace Plus.HabboHotel.Users
                     {
                         if (item.Id > 0)
                         {
-                            dbClient.SetQuery("UPDATE `user_rp_items` SET `uses` = @uses WHERE `id` = @id LIMIT 1");
+                            dbClient.SetQuery("UPDATE `user_rp_items` SET `uses` = @uses, `slot` = @slot WHERE `id` = @id LIMIT 1");
                             dbClient.AddParameter("uses", item.Uses);
+                            dbClient.AddParameter("slot", item.Slot);
                             dbClient.AddParameter("id", item.Id);
                             dbClient.RunQuery();
                             continue;
                         }
 
-                        dbClient.SetQuery("INSERT INTO `user_rp_items` (`user_id`, `item_id`, `uses`) VALUES (@user_id, @item_id, @uses)");
+                        dbClient.SetQuery("INSERT INTO `user_rp_items` (`user_id`, `item_id`, `uses`, `slot`) VALUES (@user_id, @item_id, @uses, @slot)");
                         dbClient.AddParameter("user_id", Id);
                         dbClient.AddParameter("item_id", item.ItemId);
                         dbClient.AddParameter("uses", item.Uses);
+                        dbClient.AddParameter("slot", item.Slot);
                         int oldId = item.Id;
                         item.Id = (int)dbClient.InsertQuery();
                         _rpItems.RekeyItem(oldId, item.Id);
@@ -1134,6 +1143,9 @@ namespace Plus.HabboHotel.Users
             InitFx();
             InitClothing();
             InitIgnores();
+
+            // Resolve which corporation/business the user works for (if any).
+            CorporationId = PlusEnvironment.GetGame().GetGroupManager().TryGetWorkGroupForUser(Id, out Group workGroup) ? workGroup.Id : 0;
         }
 
         public PermissionComponent GetPermissions()
@@ -1153,6 +1165,10 @@ namespace Plus.HabboHotel.Users
 
             // End any active work shift: pay accrued bonus, restore look/motto, flush logs.
             PlusEnvironment.GetGame().GetShiftManager().OnDisconnect(this);
+
+            // Drop cached web-overlay macros + target lock state.
+            PlusEnvironment.GetGame().GetMacroManager().Unload(Id);
+            Plus.HabboHotel.Roleplay.TargetLock.TargetLockService.Clear(Id);
 
             if (GetRpStats()?.IsDead == true && GetRpStats().HospitalReleaseTime <= 0)
                 PlusEnvironment.GetHospitalManager().SkipBleedout(this);

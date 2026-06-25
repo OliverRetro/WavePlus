@@ -22,6 +22,7 @@ using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Rooms.Chat;
 using Plus.HabboHotel.Subscriptions;
 using Plus.HabboHotel.Roleplay.Corporation;
+using Plus.HabboHotel.Roleplay.Macros;
 using Plus.HabboHotel.Talents;
 
 namespace Plus.HabboHotel
@@ -51,6 +52,7 @@ namespace Plus.HabboHotel
         private readonly PermissionManager _permissionManager;
         private readonly SubscriptionManager _subscriptionManager;
         private readonly ShiftManager _shiftManager;
+        private readonly MacroManager _macroManager;
 
         private bool _cycleEnded;
         private bool _cycleActive;
@@ -121,6 +123,8 @@ namespace Plus.HabboHotel
             _subscriptionManager.Init();
 
             _shiftManager = new ShiftManager();
+
+            _macroManager = new MacroManager();
         }
 
         public void StartGameLoop()
@@ -266,6 +270,11 @@ namespace Plus.HabboHotel
         public ShiftManager GetShiftManager()
         {
             return _shiftManager;
+        }
+
+        public MacroManager GetMacroManager()
+        {
+            return _macroManager;
         }
     }
 }

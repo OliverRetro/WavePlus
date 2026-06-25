@@ -48,6 +48,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
                 return;
             }
 
+            if (GroupManager.IsWorkableKind(group.Kind) && targetHabbo.CorporationId != 0)
+            {
+                session.SendWhisper("That user already works for another corporation.", 1);
+                return;
+            }
+
             if (targetHabbo.GetStats().FavouriteGroupId == 0 && (group.Kind == GroupKind.Gang || group.Kind == GroupKind.Cartel || group.Kind == GroupKind.Mafia))
             {
                 targetHabbo.GetStats().FavouriteGroupId = group.Id;
@@ -72,6 +78,9 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
             }
 
             group.HandleRequest(targetHabbo.Id, true);
+
+            if (GroupManager.IsWorkableKind(group.Kind))
+                targetHabbo.CorporationId = group.Id;
 
             session.SendPacket(new GroupMemberUpdatedComposer(group, targetHabbo, 4));
             session.SendPacket(new GroupInfoComposer(group, targetClient));

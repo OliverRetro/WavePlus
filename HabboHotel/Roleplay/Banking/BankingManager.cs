@@ -1,13 +1,69 @@
 using Plus.Communication.Packets.Outgoing.Inventory.Purse;
+using Plus.Communication.Packets.Outgoing.Roleplay;
 using Plus.Database.Interfaces;
 using Plus.HabboHotel.Users;
 using System;
+using System.Collections.Generic;
 using System.Data;
 
 namespace Plus.HabboHotel.Roleplay.Banking
 {
     public class BankingManager
     {
+        private const int RecentLogLimit = 25;
+
+        /// <summary>
+        /// Sends both the ATM (6006) and Phone (6007) bank snapshots to a user.
+        /// </summary>
+        public void SendBankSnapshot(Habbo habbo)
+        {
+            if (habbo?.GetClient() == null)
+                return;
+
+            UserRpBankAccount account = habbo.GetBankAccount();
+            bool hasAccount = account != null;
+            int bankBalance = account?.Balance ?? 0;
+            int walletBalance = habbo.Credits;
+            string accountNumber = hasAccount ? habbo.Id.ToString("D8") : string.Empty;
+            double feePercentage = GetDepositFeeFraction();
+
+            habbo.GetClient().SendPacket(new AtmBankComposer(hasAccount, accountNumber, bankBalance, walletBalance, feePercentage, hasAccount, hasAccount));
+            habbo.GetClient().SendPacket(new PhoneBankComposer(hasAccount, accountNumber, bankBalance, walletBalance, feePercentage, hasAccount, hasAccount, hasAccount ? LoadRecentLogs(habbo.Id) : new List<UserRpBankLog>()));
+        }
+
+        public List<UserRpBankLog> LoadRecentLogs(int userId)
+        {
+            List<UserRpBankLog> logs = new();
+            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            {
+                dbClient.SetQuery("SELECT `user_id`,`amount`,`action_type`,`management_type`,`fee_paid`,`timestamp` FROM `user_rp_bank_logs` WHERE `user_id` = @user_id ORDER BY `timestamp` DESC LIMIT @limit");
+                dbClient.AddParameter("user_id", userId);
+                dbClient.AddParameter("limit", RecentLogLimit);
+                DataTable table = dbClient.GetTable();
+                if (table != null)
+                {
+                    foreach (DataRow row in table.Rows)
+                    {
+                        logs.Add(new UserRpBankLog(
+                            Convert.ToInt32(row["user_id"]),
+                            Convert.ToInt32(row["amount"]),
+                            Convert.ToString(row["action_type"]),
+                            Convert.ToString(row["management_type"]),
+                            Convert.ToInt32(row["fee_paid"]),
+                            Convert.ToDateTime(row["timestamp"])));
+                    }
+                }
+            }
+
+            return logs;
+        }
+
+        private static double GetDepositFeeFraction()
+        {
+            int percent = int.TryParse(PlusEnvironment.GetSettingsManager().TryGetValue("rp.bank.deposit.fee.default"), out int p) ? p : 0;
+            return percent / 100.0;
+        }
+
         public UserRpBankAccount LoadAccount(int userId)
         {
             using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())

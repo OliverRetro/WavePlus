@@ -226,6 +226,31 @@ namespace Plus.HabboHotel.Groups
             group?.Dispose();
         }
 
+        /// <summary>
+        /// Group kinds a user can hold a job / work shifts in.
+        /// Only Corporation (1) and Business (5) — never a gang/cartel/mafia.
+        /// </summary>
+        public static bool IsWorkableKind(GroupKind kind) => kind == GroupKind.Corporation || kind == GroupKind.Business;
+
+        /// <summary>
+        /// Returns the single corporation/business group a user belongs to (if any).
+        /// A user can only be in one workable group at a time.
+        /// </summary>
+        public bool TryGetWorkGroupForUser(int userId, out Group workGroup)
+        {
+            workGroup = null;
+            foreach (Group group in GetGroupsForUser(userId))
+            {
+                if (group != null && IsWorkableKind(group.Kind))
+                {
+                    workGroup = group;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public List<Group> GetGroupsForUser(int userId)
         {
             List<Group> groups = new();

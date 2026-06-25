@@ -38,7 +38,16 @@ namespace Plus.Communication.Packets.Incoming.Groups
                 return;
             }
 
+            if (GroupManager.IsWorkableKind(group.Kind) && session.GetHabbo().CorporationId != 0)
+            {
+                session.SendPacket(new BroadcastMessageAlertComposer("Sorry, you can only work for one corporation at a time."));
+                return;
+            }
+
             group.AddMember(session.GetHabbo().Id);
+
+            if (GroupManager.IsWorkableKind(group.Kind))
+                session.GetHabbo().CorporationId = group.Id;
 
             if (group.Type == GroupType.Locked)
             {

@@ -271,6 +271,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             Register("flaguser", new FlagUserCommand());
 
             Register("useitem", new UseItemCommand());
+            Register("inv", new InvCommand());
             Register("giveitem", new GiveItemCommand());
         }
 

@@ -33,6 +33,9 @@ namespace Plus.HabboHotel.Groups
 
         private RoomData _room;
 
+        // Hardcoded role for the owner (always level 0). Never persisted to the DB.
+        private GroupRole _ownerRole;
+
         public Group(int id, string name, string description, string badge, int roomId, int owner, int time, int type, int groupType, int colour1, int colour2, int adminOnlyDeco, bool hasForum)
         {
             Id = id;
@@ -139,16 +142,7 @@ namespace Plus.HabboHotel.Groups
                 {
                     foreach (DataRow row in roles.Rows)
                     {
-                        GroupRole role = new GroupRole(
-                            Convert.ToInt32(row["id"]),
-                            Convert.ToInt32(row["group_id"]),
-                            Convert.ToInt32(row["level"]),
-                            Convert.ToString(row["name"]),
-                            Convert.ToInt32(row["shift_pay"]),
-                            Convert.ToString(row["shift_costume"]),
-                            row["shift_duration"] == DBNull.Value ? 5 : Convert.ToInt32(row["shift_duration"]),
-                            Convert.ToString(row["shift_motto"]),
-                            Convert.ToDateTime(row["created_at"]));
+                        GroupRole role = new(Convert.ToInt32(row["id"]), Convert.ToInt32(row["group_id"]), Convert.ToInt32(row["level"]), Convert.ToString(row["name"]), Convert.ToInt32(row["shift_pay"]), Convert.ToString(row["shift_costume"]), row["shift_duration"] == DBNull.Value ? 5 : Convert.ToInt32(row["shift_duration"]), Convert.ToString(row["shift_motto"]), Convert.ToDateTime(row["created_at"]));
 
                         _roles[role.Level] = role;
                     }
@@ -322,6 +316,7 @@ namespace Plus.HabboHotel.Groups
 
             if (id == CreatorId || level == 0)
             {
+                role = GetOwnerRole();
                 return true;
             }
 
@@ -332,6 +327,15 @@ namespace Plus.HabboHotel.Groups
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Returns the hardcoded level-0 role used by the group owner.
+        /// This row is generated in-memory and never written to `group_roles`.
+        /// </summary>
+        private GroupRole GetOwnerRole()
+        {
+            return _ownerRole ??= new GroupRole(0, Id, 0, "Owner", 0, string.Empty, 5, string.Empty, DateTime.UtcNow);
         }
 
         public void MakeAdmin(int id)

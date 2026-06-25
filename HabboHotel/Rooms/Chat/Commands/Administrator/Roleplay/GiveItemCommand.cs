@@ -8,7 +8,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
     {
         public string PermissionRequired => "command_rp_give_item";
 
-        public string Parameters => "%itemId% [%username%]";
+        public string Parameters => "%username% %itemId%";
 
         public string Description => "Give an RP item to yourself or another user.";
 

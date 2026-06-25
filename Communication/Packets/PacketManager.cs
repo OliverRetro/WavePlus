@@ -28,6 +28,7 @@ using Plus.Communication.Packets.Incoming.Misc;
 using Plus.Communication.Packets.Incoming.Moderation;
 using Plus.Communication.Packets.Incoming.Navigator;
 using Plus.Communication.Packets.Incoming.Quests;
+using Plus.Communication.Packets.Incoming.Roleplay;
 using Plus.Communication.Packets.Incoming.Rooms.Action;
 using Plus.Communication.Packets.Incoming.Rooms.AI.Bots;
 using Plus.Communication.Packets.Incoming.Rooms.AI.Pets;
@@ -91,7 +92,7 @@ namespace Plus.Communication.Packets
 
             _eventDispatcher = new TaskFactory(TaskCreationOptions.PreferFairness, TaskContinuationOptions.None);
             _runningTasks = new ConcurrentDictionary<int, Task>();
-            _packetNames = new Dictionary<int, string>();
+            _packetNames = [];
 
             RegisterHandshake();
             RegisterLandingView();
@@ -123,6 +124,14 @@ namespace Plus.Communication.Packets
             RegisterModeration();
             RegisterGameCenter();
             RegisterNames();
+            RegisterRoleplay();
+        }
+
+        private void RegisterRoleplay()
+        {
+            _incomingPackets.Add(ClientPacketHeader.RequestBankDataMessageEvent, new RequestBankDataEvent());
+            _incomingPackets.Add(ClientPacketHeader.RequestWearingBadgesMessageEvent, new RequestWearingBadgesEvent());
+            _incomingPackets.Add(ClientPacketHeader.JavascriptCallbackMessageEvent, new WebOverlayCallbackEvent());
         }
 
         public void TryExecutePacket(GameClient session, ClientPacket packet)

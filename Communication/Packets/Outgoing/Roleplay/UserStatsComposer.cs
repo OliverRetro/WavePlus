@@ -8,23 +8,27 @@ namespace Plus.Communication.Packets.Outgoing.Quests
     public class UserStatsComposer : MessageComposer
     {
         public Habbo Habbo { get; }
-        public Habbo targetHabbo { get; }
+        public Habbo TargetHabbo { get; }
 
         public UserStatsComposer(GameClient session, Habbo targetHabbo)
             : base(ServerPacketHeader.UserStatsMessageComposer)
         {
             Habbo = session.GetHabbo();
-            this.targetHabbo = targetHabbo;
+            TargetHabbo = targetHabbo;
         }
 
         public override void Compose(ServerPacket packet)
         {
             SerializeUserData(packet, Habbo);
-            bool hasOther = targetHabbo != null;
+
+            // Only advertise a target the client can actually read. If the target has no RP
+            // stats we must NOT write hasOther=true with no following bytes, or the packet
+            // desyncs and the client drops the whole stats update (incl. our own stats).
+            bool hasOther = TargetHabbo != null && TargetHabbo.GetRpStats() != null;
             packet.WriteBoolean(hasOther);
             if (hasOther)
             {
-                SerializeUserData(packet, targetHabbo);
+                SerializeUserData(packet, TargetHabbo);
             }
         }
 

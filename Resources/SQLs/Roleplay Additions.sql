@@ -385,4 +385,25 @@ CREATE TABLE `user_rp_items`  (
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
 
+-- web overlay (gaz-js) macros: keybind -> command sets
+CREATE TABLE IF NOT EXISTS `users_macros` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `name` tinytext NOT NULL,
+  `configs` varchar(16000) NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE KEY `uniq_user_macro` (`user_id`, `name`(15))
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci ROW_FORMAT=Dynamic;
+
+-- inventory grid positions (overlay drag & drop)
+ALTER TABLE `user_rp_items`
+ADD COLUMN `slot` int NOT NULL DEFAULT -1;
+
+-- web overlay macros: per-user global enabled flag
+CREATE TABLE IF NOT EXISTS `users_macro_settings` (
+  `user_id` int NOT NULL,
+  `enabled` tinyint(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`user_id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci ROW_FORMAT=Dynamic;
+
 SET FOREIGN_KEY_CHECKS = 1;

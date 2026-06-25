@@ -1,4 +1,5 @@
 ﻿using Plus.HabboHotel.GameClients;
+using Plus.HabboHotel.Users;
 using System;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
@@ -16,12 +17,6 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
             if (session == null || session.GetHabbo() == null || room == null || session?.GetHabbo().GetRpStats() == null)
                 return;
 
-            if (@params.Length == 1)
-            {
-                session.SendWhisper("Please enter the username of the user you wish attack.");
-                return;
-            }
-
             if(session.GetHabbo().GetRpStats().Energy < 1)
             {
                 session.SendWhisper("You don't have enough energy!", 1);
@@ -38,12 +33,20 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
                 return;
             }
 
+            // The target username is supplied explicitly (":hit name") or auto-filled by
+            // the keybind path (WebOverlayCallbackEvent.ExecuteMacro) from the user's target.
+            if (@params.Length < 2)
+            {
+                session.SendWhisper("Enter a username, or use a keybind while targeting a user.", 1);
+                return;
+            }
+
             GameClient targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(@params[1]);
 
             if (targetClient == null)
             {
                 session.SendWhisper("The user could not be found.", 1);
-                return; 
+                return;
             }
 
             if (targetClient == session)

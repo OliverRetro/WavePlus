@@ -14,20 +14,14 @@ namespace Plus.HabboHotel.Roleplay.Corporation
 {
     public class ShiftManager
     {
-        private readonly ConcurrentDictionary<int, ActiveShift> _activeShifts = new();
+        public readonly ConcurrentDictionary<int, ActiveShift> _activeShifts = new();
 
-        // In-memory log cache: (groupId, userId) → (weeklyCount, totalCount)
         private readonly ConcurrentDictionary<(int, int), (int weekly, int total)> _countCache = new();
 
-        // Pending DB logs per user, flushed on disconnect
         private readonly ConcurrentDictionary<int, List<(int groupId, int credits, DateTime finished)>> _pendingLogs = new();
 
         public bool IsWorking(int userId) => _activeShifts.ContainsKey(userId);
 
-        /// <summary>
-        /// Handles the full "start work" flow (moved out of StartWorkCommand):
-        /// validation, costume/motto swap, weapon unequip and cycle creation.
-        /// </summary>
         public void TryStartWork(GameClient session, Room room)
         {
             if (session?.GetHabbo() == null || room?.Group == null)
@@ -42,7 +36,7 @@ namespace Plus.HabboHotel.Roleplay.Corporation
                 return;
             }
 
-            if (group.Kind != GroupKind.Corporation)
+            if (!GroupManager.IsWorkableKind(group.Kind))
             {
                 session.SendWhisper("This command can only be used in corporation room!", 1);
                 return;
@@ -88,7 +82,7 @@ namespace Plus.HabboHotel.Roleplay.Corporation
             Habbo habbo = session.GetHabbo();
             Group group = room.Group;
 
-            if (group.Kind != GroupKind.Corporation)
+            if (!GroupManager.IsWorkableKind(group.Kind))
             {
                 session.SendWhisper("This command can only be used in corporation room!", 1);
                 return;

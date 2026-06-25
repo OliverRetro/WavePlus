@@ -2,7 +2,14 @@
 {
     public static class ClientPacketHeader
     {
-        // wave 
+        // wave
+        // Roleplay custom incoming packets
+        public const int RequestBankDataMessageEvent = 3325;
+        public const int RequestWearingBadgesMessageEvent = 3326;
+
+        // Web overlay (gaz-js) habblet JSON callback bridge
+        public const int JavascriptCallbackMessageEvent = 314;
+
         public const int KickMemberMessageEvent = 593; // PRODUCTION-201611291003-338511768
         public const int GetUserNftChatStylesMessageEvent = 5100; // PRODUCTION-201611291003-338511768
 

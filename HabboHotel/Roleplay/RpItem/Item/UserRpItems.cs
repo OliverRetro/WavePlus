@@ -44,6 +44,57 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             MarkDirty();
             return userItem;
         }
+        /// <summary>
+        /// Builds the ordered slot view the overlay shows: items with an assigned slot are
+        /// placed at that index, the rest fill the first free slots in insertion order.
+        /// </summary>
+        public UserRpItem[] GetSlotView(int slotCount)
+        {
+            UserRpItem[] view = new UserRpItem[slotCount];
+            List<UserRpItem> overflow = new();
+
+            foreach (UserRpItem item in _items.Values)
+            {
+                int slot = item.Slot;
+                if (slot >= 0 && slot < slotCount && view[slot] == null)
+                    view[slot] = item;
+                else
+                    overflow.Add(item);
+            }
+
+            int next = 0;
+            foreach (UserRpItem item in overflow)
+            {
+                while (next < slotCount && view[next] != null)
+                    next++;
+                if (next >= slotCount)
+                    break;
+                view[next] = item;
+            }
+
+            return view;
+        }
+
+        /// <summary>Returns the item shown at a 0-based slot index, or null if empty.</summary>
+        public UserRpItem GetItemAtSlot(int slotIndex, int slotCount)
+        {
+            if (slotIndex < 0 || slotIndex >= slotCount)
+                return null;
+
+            return GetSlotView(slotCount)[slotIndex];
+        }
+
+        /// <summary>Persists a new grid position for an owned item.</summary>
+        public void SetSlot(int userItemId, int slot)
+        {
+            UserRpItem item = GetItem(userItemId);
+            if (item == null || item.Slot == slot)
+                return;
+
+            item.Slot = slot;
+            MarkDirty();
+        }
+
         public bool Use(int userItemId, Habbo habbo)
         {
             if (habbo == null)
