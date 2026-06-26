@@ -4,6 +4,7 @@
     {
         // wave
         // Roleplay custom incoming packets
+        public const int RequestWantedListMessageEvent = 6008;
         public const int RequestBankDataMessageEvent = 3325;
         public const int RequestWearingBadgesMessageEvent = 3326;
 

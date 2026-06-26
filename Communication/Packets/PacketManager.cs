@@ -129,6 +129,7 @@ namespace Plus.Communication.Packets
 
         private void RegisterRoleplay()
         {
+            _incomingPackets.Add(ClientPacketHeader.RequestWantedListMessageEvent, new RequestWantedListEvent());
             _incomingPackets.Add(ClientPacketHeader.RequestBankDataMessageEvent, new RequestBankDataEvent());
             _incomingPackets.Add(ClientPacketHeader.RequestWearingBadgesMessageEvent, new RequestWearingBadgesEvent());
             _incomingPackets.Add(ClientPacketHeader.JavascriptCallbackMessageEvent, new WebOverlayCallbackEvent());
