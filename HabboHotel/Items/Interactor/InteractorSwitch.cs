@@ -23,8 +23,7 @@ namespace Plus.HabboHotel.Items.Interactor
             if (user == null)
                 return;
 
-            if (Gamemap.TilesTouching(item.GetX, item.GetY, user.X, user.Y))
-            {
+            if (Gamemap.TilesTouching(item.GetX, item.GetY, user.X, user.Y)) {
                 int modes = item.GetBaseItem().Modes - 1;
 
                 if (modes <= 0)
@@ -35,8 +34,7 @@ namespace Plus.HabboHotel.Items.Interactor
                 int currentMode = 0;
                 int newMode = 0;
 
-                if (!int.TryParse(item.ExtraData, out currentMode))
-                {
+                if (!int.TryParse(item.ExtraData, out currentMode)) {
                 }
 
                 if (currentMode <= 0)
@@ -48,8 +46,7 @@ namespace Plus.HabboHotel.Items.Interactor
 
                 item.ExtraData = newMode.ToString();
                 item.UpdateState();
-            }
-            else
+            } else
                 user.MoveTo(item.SquareInFront);
         }
 

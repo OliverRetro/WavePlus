@@ -35,8 +35,7 @@ namespace Plus.HabboHotel.Quests
                 dbClient.SetQuery("SELECT `id`,`type`,`level_num`,`goal_type`,`goal_data`,`action`,`pixel_reward`,`data_bit`,`reward_type`,`timestamp_unlock`,`timestamp_lock` FROM `quests`");
                 DataTable dTable = dbClient.GetTable();
 
-                if (dTable != null)
-                {
+                if (dTable != null) {
                     foreach (DataRow dRow in dTable.Rows)
                     {
                         int id = Convert.ToInt32(dRow["id"]);
@@ -62,12 +61,9 @@ namespace Plus.HabboHotel.Quests
 
         private void AddToCounter(string category)
         {
-            if (_questCount.TryGetValue(category, out int count))
-            {
+            if (_questCount.TryGetValue(category, out int count)) {
                 _questCount[category] = count + 1;
-            }
-            else
-            {
+            } else {
                 _questCount.Add(category, 1);
             }
         }
@@ -86,15 +82,13 @@ namespace Plus.HabboHotel.Quests
 
         public void ProgressUserQuest(GameClient session, QuestType type, int data = 0)
         {
-            if (session == null || session.GetHabbo() == null || session.GetHabbo().GetStats().QuestId <= 0)
-            {
+            if (session == null || session.GetHabbo() == null || session.GetHabbo().GetStats().QuestId <= 0) {
                 return;
             }
 
             Quest quest = GetQuest(session.GetHabbo().GetStats().QuestId);
 
-            if (quest == null || quest.GoalType != type)
-            {
+            if (quest == null || quest.GoalType != type) {
                 return;
             }
 
@@ -107,8 +101,7 @@ namespace Plus.HabboHotel.Quests
                 default:
                     totalProgress++;
 
-                    if (totalProgress >= quest.GoalData)
-                    {
+                    if (totalProgress >= quest.GoalData) {
                         completeQuest = true;
                     }
 
@@ -156,8 +149,7 @@ namespace Plus.HabboHotel.Quests
             session.GetHabbo().Quests[session.GetHabbo().GetStats().QuestId] = totalProgress;
             session.SendPacket(new QuestStartedComposer(session, quest));
 
-            if (completeQuest)
-            {
+            if (completeQuest) {
                 session.GetHabbo().GetMessenger().BroadcastAchievement(session.GetHabbo().Id, MessengerEventTypes.QuestCompleted, quest.Category + "." + quest.Name);
 
                 session.GetHabbo().GetStats().QuestId = 0;
@@ -173,8 +165,7 @@ namespace Plus.HabboHotel.Quests
         {
             foreach (Quest quest in _quests.Values)
             {
-                if (quest.Category == category && quest.Number == number)
-                {
+                if (quest.Category == category && quest.Number == number) {
                     return quest;
                 }
             }
@@ -192,18 +183,15 @@ namespace Plus.HabboHotel.Quests
                 if (quest.Category.Contains("xmas2012"))
                     continue;
 
-                if (!userQuestGoals.ContainsKey(quest.Category))
-                {
+                if (!userQuestGoals.ContainsKey(quest.Category)) {
                     userQuestGoals.Add(quest.Category, 1);
                     userQuests.Add(quest.Category, null);
                 }
 
-                if (quest.Number >= userQuestGoals[quest.Category])
-                {
+                if (quest.Number >= userQuestGoals[quest.Category]) {
                     int userProgress = session.GetHabbo().GetQuestProgress(quest.Id);
 
-                    if (session.GetHabbo().GetStats().QuestId != quest.Id && userProgress >= quest.GoalData)
-                    {
+                    if (session.GetHabbo().GetStats().QuestId != quest.Id && userProgress >= quest.GoalData) {
                         userQuestGoals[quest.Category] = quest.Number + 1;
                     }
                 }
@@ -216,8 +204,7 @@ namespace Plus.HabboHotel.Quests
                     if (quest.Category.Contains("xmas2012"))
                         continue;
 
-                    if (quest.Category == goal.Key && quest.Number == goal.Value)
-                    {
+                    if (quest.Category == goal.Key && quest.Number == goal.Value) {
                         userQuests[goal.Key] = quest;
                         break;
                     }

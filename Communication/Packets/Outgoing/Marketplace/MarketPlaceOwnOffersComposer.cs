@@ -25,15 +25,13 @@ namespace Plus.Communication.Packets.Outgoing.Marketplace
                 int i = dbClient.GetInteger();
 
                 packet.WriteInteger(i);
-                if (table != null)
-                {
+                if (table != null) {
                     packet.WriteInteger(table.Rows.Count);
                     foreach (DataRow row in table.Rows)
                     {
                         int num2 = Convert.ToInt32(Math.Floor(((double) row["timestamp"] + 172800.0 - PlusEnvironment.GetUnixTimestamp()) / 60.0));
                         int num3 = int.Parse(row["state"].ToString());
-                        if ((num2 <= 0) && (num3 != 2))
-                        {
+                        if ((num2 <= 0) && (num3 != 2)) {
                             num3 = 3;
                             num2 = 0;
                         }
@@ -52,9 +50,7 @@ namespace Plus.Communication.Packets.Outgoing.Marketplace
                         packet.WriteInteger(num2);
                         packet.WriteInteger(Convert.ToInt32(row["sprite_id"]));
                     }
-                }
-                else
-                {
+                } else {
                     packet.WriteInteger(0);
                 }
             }

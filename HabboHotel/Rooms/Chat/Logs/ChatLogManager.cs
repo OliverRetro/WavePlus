@@ -38,8 +38,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Logs
         {
             _lock.EnterWriteLock();
 
-            if (_chatLogs.Count > 0)
-            {
+            if (_chatLogs.Count > 0) {
                 using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                 {
                     foreach (ChatLogEntry entry in _chatLogs)

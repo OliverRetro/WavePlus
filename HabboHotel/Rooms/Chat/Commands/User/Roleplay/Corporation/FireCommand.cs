@@ -1,6 +1,8 @@
 ﻿using Plus.Communication.Packets.Outgoing.Groups;
+using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
+using Plus.HabboHotel.Roleplay.Utilities;
 using Plus.HabboHotel.Users;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
@@ -19,35 +21,30 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
             if (session?.GetHabbo() == null || room?.Group == null)
                 return;
 
-            if (@params.Length < 2)
-            {
+            if (@params.Length < 2) {
                 session.SendWhisper("Please enter the username of the person you want to fire.", 1);
                 return;
             }
 
             Group group = room.Group;
-            if (!session.GetHabbo().GetPermissions().HasCommand(PermissionRequired) && !group.IsOwnerOrHasPermission(session.GetHabbo().Id, GroupPermissionRequired))
-            {
+            if (!session.GetHabbo().GetPermissions().HasCommand(PermissionRequired) && !group.IsOwnerOrHasPermission(session.GetHabbo().Id, GroupPermissionRequired)) {
                 session.SendWhisper("Oops, you do not have permission to fire users for this group.", 1);
                 return;
             }
 
             GameClient targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(@params[1]);
             Habbo targetHabbo = targetClient?.GetHabbo() ?? PlusEnvironment.GetHabboByUsername(@params[1]);
-            if (targetHabbo == null)
-            {
+            if (targetHabbo == null) {
                 session.SendWhisper("Oops, couldn't find that user.", 1);
                 return;
             }
 
-            if (!group.IsMember(targetHabbo.Id))
-            {
+            if (!group.IsMember(targetHabbo.Id)) {
                 session.SendWhisper("That user is not a member of this group.", 1);
                 return;
             }
 
-            if (targetHabbo.Id == group.CreatorId)
-            {
+            if (targetHabbo.Id == group.CreatorId) {
                 session.SendWhisper("You cannot fire the group owner.", 1);
                 return;
             }
@@ -55,10 +52,19 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
             if (group.IsMember(targetHabbo.Id))
                 group.DeleteMember(targetHabbo.Id);
 
+            // Leaving the job clears their employment immediately (no reload needed) and ends
+            // any shift they were on, so they're free to apply/be hired elsewhere right away.
+            if (GroupManager.IsWorkableKind(group.Kind) && targetHabbo.CorporationId == group.Id) {
+                targetHabbo.CorporationId = 0;
+                if (PlusEnvironment.GetGame().GetShiftManager().IsWorkingFor(targetHabbo.Id, group.Id))
+                    PlusEnvironment.GetGame().GetShiftManager().InterruptShift(targetHabbo, targetHabbo.CurrentRoom);
+            }
+
             session.SendPacket(new GroupMemberUpdatedComposer(group, targetHabbo, 2));
             session.SendPacket(new GroupInfoComposer(group, targetClient));
             targetHabbo.GetClient()?.SendPacket(new GroupInfoComposer(group, targetHabbo.GetClient()));
-            session.SendWhisper("You fired " + targetHabbo.Username + ".", 1);
+            LiveFeedService.LiveFeed(LiveFeedService.Name(session.GetHabbo().Username, "green") + " fired " + LiveFeedService.Name(targetHabbo.Username, "lightblue") + " from <b>" + group.Name + "</b>");
+            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*" + session.GetHabbo().Username + " fired " + targetHabbo.Username + " from " + group.Name + "*", 0, session.GetHabbo().CustomBubbleId));
             targetHabbo.GetClient()?.SendWhisper("You've been removed from your role in '" + group.Name + "'.", 1);
         }
     }

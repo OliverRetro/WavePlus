@@ -84,8 +84,7 @@ namespace Plus.HabboHotel.Groups
 
                 dbClient.SetQuery("SELECT `id`,`name`,`key`,`description`,`type_specific` FROM `group_permission_keys`");
                 DataTable permissionKeys = dbClient.GetTable();
-                if (permissionKeys != null)
-                {
+                if (permissionKeys != null) {
                     foreach (DataRow row in permissionKeys.Rows)
                     {
                         GroupPermissionKey permissionKey = new GroupPermissionKey(
@@ -99,6 +98,21 @@ namespace Plus.HabboHotel.Groups
                         _permissionKeysByKey[permissionKey.Key] = permissionKey;
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Hot-reload everything group related: badge/permission-key definitions plus the
+        /// roles and permissions of every already-loaded group.
+        /// </summary>
+        public void ReloadAll()
+        {
+            Init();
+
+            foreach (Group group in _groups.Values)
+            {
+                group.InitRoles();
+                group.InitPermissions();
             }
         }
 
@@ -120,8 +134,7 @@ namespace Plus.HabboHotel.Groups
                     dbClient.AddParameter("id", id);
                     DataRow row = dbClient.GetRow();
 
-                    if (row != null)
-                    {
+                    if (row != null) {
                         group = new Group(
                             Convert.ToInt32(row["id"]), Convert.ToString(row["name"]), Convert.ToString(row["desc"]), Convert.ToString(row["badge"]), Convert.ToInt32(row["room_id"]), Convert.ToInt32(row["owner_id"]),
                             Convert.ToInt32(row["created"]), Convert.ToInt32(row["state"]), Convert.ToInt32(row["group_type"]), Convert.ToInt32(row["colour1"]), Convert.ToInt32(row["colour2"]), Convert.ToInt32(row["admindeco"]), Convert.ToInt32(row["forum_enabled"]) == 1);
@@ -199,17 +212,12 @@ namespace Plus.HabboHotel.Groups
 
         public string GetColourCode(int id, bool colourOne)
         {
-            if (colourOne)
-            {
-                if (_symbolColours.ContainsKey(id))
-                {
+            if (colourOne) {
+                if (_symbolColours.ContainsKey(id)) {
                     return _symbolColours[id].Colour;
                 }
-            }
-            else
-            {
-                if (_backgroundColours.ContainsKey(id))
-                {
+            } else {
+                if (_backgroundColours.ContainsKey(id)) {
                     return _backgroundColours[id].Colour;
                 }
             }
@@ -241,8 +249,7 @@ namespace Plus.HabboHotel.Groups
             workGroup = null;
             foreach (Group group in GetGroupsForUser(userId))
             {
-                if (group != null && IsWorkableKind(group.Kind))
-                {
+                if (group != null && IsWorkableKind(group.Kind)) {
                     workGroup = group;
                     return true;
                 }
@@ -260,8 +267,7 @@ namespace Plus.HabboHotel.Groups
                 dbClient.AddParameter("user", userId);
                 DataTable getGroups = dbClient.GetTable();
 
-                if (getGroups != null)
-                {
+                if (getGroups != null) {
                     foreach (DataRow row in getGroups.Rows)
                     {
                         if (TryGetGroup(Convert.ToInt32(row["id"]), out Group group))

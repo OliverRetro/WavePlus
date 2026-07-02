@@ -15,15 +15,12 @@ namespace Plus.HabboHotel.Catalog.Clothing
             ClothingName = name;
 
             PartIds = new List<int>();
-            if (partIds.Contains(","))
-            {
+            if (partIds.Contains(",")) {
                 foreach (string partId in partIds.Split(','))
                 {
                     PartIds.Add(int.Parse(partId));
                 }
-            }
-            else if (!string.IsNullOrEmpty(partIds) && (int.Parse(partIds)) > 0)
-            {
+            } else if (!string.IsNullOrEmpty(partIds) && (int.Parse(partIds)) > 0) {
                 PartIds.Add(int.Parse(partIds));
             }
         }

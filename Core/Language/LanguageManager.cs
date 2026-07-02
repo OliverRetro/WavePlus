@@ -26,8 +26,7 @@ namespace Plus.Core.Language
                 dbClient.SetQuery("SELECT * FROM `server_locale`");
                 DataTable table = dbClient.GetTable();
 
-                if (table != null)
-                {
+                if (table != null) {
                     foreach (DataRow row in table.Rows)
                     {
                         _values.Add(row["key"].ToString(), row["value"].ToString());

@@ -22,8 +22,7 @@ namespace Plus.HabboHotel.Subscriptions
                 dbClient.SetQuery("SELECT * FROM `subscriptions`;");
                 DataTable getSubscriptions = dbClient.GetTable();
 
-                if (getSubscriptions != null)
-                {
+                if (getSubscriptions != null) {
                     foreach (DataRow row in getSubscriptions.Rows)
                     {
                         if (!_subscriptions.ContainsKey(Convert.ToInt32(row["id"])))

@@ -34,10 +34,8 @@ namespace Plus.Communication.Packets.Incoming.Users
                     badges.Add(group.Id, group.Badge);
             }
 
-            if (session.GetHabbo().GetStats().FavouriteGroupId > 0)
-            {
-                if (PlusEnvironment.GetGame().GetGroupManager().TryGetGroup(session.GetHabbo().GetStats().FavouriteGroupId, out Group group))
-                {
+            if (session.GetHabbo().GetStats().FavouriteGroupId > 0) {
+                if (PlusEnvironment.GetGame().GetGroupManager().TryGetGroup(session.GetHabbo().GetStats().FavouriteGroupId, out Group group)) {
                     if (!badges.ContainsKey(group.Id))
                         badges.Add(group.Id, group.Badge);
                 }

@@ -26,6 +26,7 @@ INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_s
 INSERT INTO `permissions_commands` (`command`) VALUES ('command_rp_give_item');
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_use_item', 1);
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_stop_work', 1);
+INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_livefeed_test', 6);
 
 -- corps n such
 DROP TABLE IF EXISTS `group_roles`;
@@ -102,6 +103,11 @@ INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('user.aggr
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.bank.withdrawal.fee.default', '5', 'As percentage! :-) Used for ATMs.');
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.bank.deposit.fee.default', '5', 'As percentage! ATM usage.');
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.bank.account.opening.cost', '50', 'The cost for opening an account.');
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.police.corporation.id', '1', 'This is for police corporation (group id).');
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.jail.room.id', '1', 'Jail room ID.');
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.jail.outfit', 'outfit lol', 'Jail outfit.');
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.staff.corporation.id', '0', 'Staff corporation (group id). Working here grants the staff effect (102) and blocks weapons.');
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('livefeed.discord.webhook', '', 'Discord Webhook for Live Feed. Leave blank If disabled.');
 
 -- fix rooms?
 ALTER TABLE rooms 
@@ -406,5 +412,71 @@ CREATE TABLE IF NOT EXISTS `users_macro_settings` (
   `enabled` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`user_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci ROW_FORMAT=Dynamic;
+
+-- ── RP item stacking + item types (shields) ──────────────────────────────
+-- stack_limit: how many copies stack into a single inventory slot (1 = never stacks).
+-- item_type: 'consumable' (default), 'secondary' (shield slot), 'primary' (replaces weapon).
+ALTER TABLE `rp_items`
+ADD COLUMN `stack_limit` int NOT NULL DEFAULT 1,
+ADD COLUMN `item_type` varchar(32) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL DEFAULT 'consumable';
+
+-- example secondary (shield) item: 100 shield / durability, occupies the secondary equipped slot.
+INSERT INTO `rp_items` (`item_name`, `handitem_data`, `effect_data`, `base_price`, `attribute_effects`, `image_url`, `stack_limit`, `item_type`)
+VALUES ('Riot Shield', '0', '0', 250, '{\"shield\": 100}', '', 1, 'secondary');
+
+-- per-owned-item durability (shields) + which item is equipped in the secondary slot.
+ALTER TABLE `user_rp_items`
+ADD COLUMN `durability_left` int NOT NULL DEFAULT -1,
+ADD COLUMN `equipped` tinyint(1) NOT NULL DEFAULT 0;
+
+-- weapons share the same draggable grid as items, so they need a persisted slot too.
+ALTER TABLE `user_rp_weapons`
+ADD COLUMN `slot` int NOT NULL DEFAULT -1;
+
+
+-- crimes
+DROP TABLE IF EXISTS `rp_crime_log`;
+CREATE TABLE `rp_crime_log`  (
+  `id` int NOT NULL,
+  `crime_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `timestamp` datetime(6) NOT NULL,
+  `expired` tinyint NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
+
+DROP TABLE IF EXISTS `rp_crime_penalties`;
+CREATE TABLE `rp_crime_penalties`  (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `star_level` int NOT NULL,
+  `fine_amount` int NOT NULL DEFAULT 0,
+  `jail_time` smallint NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
+
+INSERT INTO `rp_crime_penalties` VALUES (1, 1, 5, 3);
+INSERT INTO `rp_crime_penalties` VALUES (2, 2, 10, 6);
+INSERT INTO `rp_crime_penalties` VALUES (3, 3, 15, 9);
+INSERT INTO `rp_crime_penalties` VALUES (4, 4, 20, 12);
+INSERT INTO `rp_crime_penalties` VALUES (5, 5, 50, 15);
+
+DROP TABLE IF EXISTS `rp_crimes`;
+CREATE TABLE `rp_crimes`  (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `crime_tag` varchar(32) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
+  `crime_name` varchar(55) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
+  `severity` smallint NOT NULL DEFAULT 1,
+  `time_active` smallint NOT NULL DEFAULT 1,
+  `automatic_report` tinyint NOT NULL DEFAULT 0,
+  `police_alert` tinyint NOT NULL DEFAULT 0,
+  `note` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
+
+INSERT INTO `rp_crimes` VALUES (1, 'murder', 'Murder', 1, 20, 1, 1, '');
+INSERT INTO `rp_crimes` VALUES (2, 'rob', 'Theft', 1, 10, 0, 0, '');
+
+-- crime logs are inserted by the server on disconnect/reload; give the id auto-increment.
+ALTER TABLE `rp_crime_log` MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 SET FOREIGN_KEY_CHECKS = 1;

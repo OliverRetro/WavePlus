@@ -22,8 +22,7 @@ namespace Plus.Communication.Packets.Incoming.Messenger
                 {
                     int id = packet.PopInt();
 
-                    if (session.GetHabbo().Relationships.Count(x => x.Value.UserId == id) > 0)
-                    {
+                    if (session.GetHabbo().Relationships.Count(x => x.Value.UserId == id) > 0) {
                         dbClient.SetQuery("DELETE FROM `user_relationships` WHERE `user_id` = @id AND `target` = @target OR `target` = @id AND `user_id` = @target");
                         dbClient.AddParameter("id", session.GetHabbo().Id);
                         dbClient.AddParameter("target", id);
@@ -34,8 +33,7 @@ namespace Plus.Communication.Packets.Incoming.Messenger
                         session.GetHabbo().Relationships.Remove(id);
 
                     GameClient target = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(id);
-                    if (target != null)
-                    {
+                    if (target != null) {
                         if (target.GetHabbo().Relationships.ContainsKey(session.GetHabbo().Id))
                             target.GetHabbo().Relationships.Remove(session.GetHabbo().Id);
                     }

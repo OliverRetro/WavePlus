@@ -25,15 +25,13 @@ namespace Plus.Communication.Packets.Incoming.Groups
                 return;
 
             Habbo habbo = PlusEnvironment.GetHabboById(userId);
-            if (habbo == null)
-            {
+            if (habbo == null) {
                 session.SendNotification("Oops, an error occurred whilst finding this user.");
                 return;
             }
 
             // check for gang configuration, if they are trying to accept a gang request, but gangs are disabled, don't let them.
-            if (habbo.GetStats().FavouriteGroupId == 0 && (group.Kind == GroupKind.Gang || group.Kind == GroupKind.Cartel || group.Kind == GroupKind.Mafia))
-            {
+            if (habbo.GetStats().FavouriteGroupId == 0 && (group.Kind == GroupKind.Gang || group.Kind == GroupKind.Cartel || group.Kind == GroupKind.Mafia)) {
                 session.GetHabbo().GetStats().FavouriteGroupId = group.Id;
                 using IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor();
                 dbClient.SetQuery("UPDATE `user_stats` SET `groupid` = @groupId WHERE `id` = @userId LIMIT 1");
@@ -41,8 +39,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
                 dbClient.AddParameter("userId", session.GetHabbo().Id);
                 dbClient.RunQuery();
 
-                if (habbo.InRoom && habbo.CurrentRoom != null)
-                {
+                if (habbo.InRoom && habbo.CurrentRoom != null) {
                     habbo.CurrentRoom.SendPacket(new RefreshFavouriteGroupComposer(habbo.Id));
                     habbo.CurrentRoom.SendPacket(new HabboGroupBadgesComposer(group));
 
@@ -50,8 +47,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
                         .GetRoomUserByHabbo(habbo.Id);
                     if (user != null)
                         habbo.CurrentRoom.SendPacket(new UpdateFavouriteGroupComposer(group, user.VirtualId));
-                }
-                else
+                } else
                     session.SendPacket(new RefreshFavouriteGroupComposer(habbo.Id));
             }
              

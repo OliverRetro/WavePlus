@@ -1,14 +1,17 @@
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Globalization;
 using Plus.Communication.Packets.Outgoing.Inventory.Purse;
+using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.Communication.Packets.Outgoing.Rooms.Engine;
 using Plus.Database.Interfaces;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
+using Plus.HabboHotel.Roleplay.Utilities;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
+using StackExchange.Redis;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Globalization;
 
 namespace Plus.HabboHotel.Roleplay.Corporation
 {
@@ -22,6 +25,22 @@ namespace Plus.HabboHotel.Roleplay.Corporation
 
         public bool IsWorking(int userId) => _activeShifts.ContainsKey(userId);
 
+        /// <summary>True when the user is currently on shift for the given corporation.</summary>
+        public bool IsWorkingFor(int userId, int groupId) =>
+            _activeShifts.TryGetValue(userId, out ActiveShift shift) && shift.GroupId == groupId;
+
+        /// <summary>The corporation id the user is currently working for, or 0 when off shift.</summary>
+        public int GetWorkingGroupId(int userId) =>
+            _activeShifts.TryGetValue(userId, out ActiveShift shift) ? shift.GroupId : 0;
+
+        /// <summary>Every user currently on shift for the given corporation.</summary>
+        public IEnumerable<int> GetWorkersForGroup(int groupId)
+        {
+            foreach (var kv in _activeShifts)
+                if (kv.Value.GroupId == groupId)
+                    yield return kv.Key;
+        }
+
         public void TryStartWork(GameClient session, Room room)
         {
             if (session?.GetHabbo() == null || room?.Group == null)
@@ -30,43 +49,44 @@ namespace Plus.HabboHotel.Roleplay.Corporation
             Habbo habbo = session.GetHabbo();
             Group group = room.Group;
 
-            if (habbo.GetRpStats().Energy < 1)
-            {
+            if (habbo.GetRpStats().Energy < 1) {
                 session.SendWhisper("You don't have enough energy!", 1);
                 return;
             }
 
-            if (!GroupManager.IsWorkableKind(group.Kind))
-            {
+            if (!GroupManager.IsWorkableKind(group.Kind)) {
                 session.SendWhisper("This command can only be used in corporation room!", 1);
                 return;
             }
 
-            if (!group.IsMember(habbo.Id))
-            {
+            if (!group.IsMember(habbo.Id)) {
                 session.SendWhisper("You don't work here! Feel free to apply to join the corporation.", 1);
                 return;
             }
 
-            if (!group.TryGetRoleData(habbo.Id, out GroupRole role))
-            {
+            if (!group.TryGetRoleData(habbo.Id, out GroupRole role)) {
                 session.SendWhisper("You don't have a role in this corporation! Contact your superior to get assigned a role.", 1);
                 return;
             }
 
-            if (IsWorking(habbo.Id))
-            {
+            if (IsWorking(habbo.Id)) {
                 session.SendWhisper("You are already working!", 1);
                 return;
             }
 
-            session.SendWhisper("Your role is: " + role.Name + ". Motto: " + role.ShiftMotto + ". Look " + role.ShiftCostume + ". Shift length: " + role.ShiftDuration + " minutes.", 1);
+            //session.SendWhisper("Your role is: " + role.Name + ". Motto: " + role.ShiftMotto + ". Look " + role.ShiftCostume + ". Shift length: " + role.ShiftDuration + " minutes.", 1);
 
             ApplyShiftAppearance(habbo, role);
 
+            // Going on shift forcibly unequips any weapon (staff/corp policy).
             habbo.GetRpWeapons()?.SetActiveWeaponId(0);
 
             _activeShifts[habbo.Id] = new ActiveShift(habbo.Id, group.Id, role.ShiftPay, role.ShiftDuration);
+
+            // Refresh the avatar effect (e.g. apply the staff effect, drop the weapon effect).
+            RpEffectService.Refresh(habbo);
+
+            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*" + habbo.Username + " starts work as " + role.Name + "*", 0, session.GetHabbo().CustomBubbleId));
 
             // Update the user regardless of whether costume/motto changed.
             RoomUser user = room.GetRoomUserManager().GetRoomUserByHabbo(habbo.Id);
@@ -82,46 +102,44 @@ namespace Plus.HabboHotel.Roleplay.Corporation
             Habbo habbo = session.GetHabbo();
             Group group = room.Group;
 
-            if (!GroupManager.IsWorkableKind(group.Kind))
-            {
+            if (!GroupManager.IsWorkableKind(group.Kind)) {
                 session.SendWhisper("This command can only be used in corporation room!", 1);
                 return;
             }
 
-            if (!group.IsMember(habbo.Id))
-            {
+            if (!group.IsMember(habbo.Id)) {
                 session.SendWhisper("You don't work here! Feel free to apply to join the corporation.", 1);
                 return;
             }
 
-            if (!group.TryGetRoleData(habbo.Id, out GroupRole _))
-            {
+            if (!group.TryGetRoleData(habbo.Id, out GroupRole _)) {
                 session.SendWhisper("You don't have a role in this corporation! Contact your superior to get assigned a role.", 1);
                 return;
             }
 
+            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*" + habbo.Username + " stops working*", 0, session.GetHabbo().CustomBubbleId));
             InterruptShift(habbo, room);
         }
 
         private static void ApplyShiftAppearance(Habbo habbo, GroupRole role)
         {
+            // Always snapshot the current motto/look first — even when the role has no costume
+            // or motto — so stopping work restores exactly what the user was wearing rather
+            // than a stale value left over from a previous shift.
+            habbo.OldMotto = habbo.Motto;
+            habbo.OldLook = habbo.Look;
+
             if (!string.IsNullOrEmpty(role.ShiftMotto))
-            {
-                habbo.OldMotto = habbo.Motto;
                 habbo.Motto = role.ShiftMotto;
-            }
 
             if (string.IsNullOrEmpty(role.ShiftCostume))
                 return;
-
-            habbo.OldLook = habbo.Look;
 
             string gender = habbo.Gender.ToLower();
             string figureString = role.ShiftCostume;
             string selectedFigure = null;
 
-            if (figureString.Contains('|'))
-            {
+            if (figureString.Contains('|')) {
                 Dictionary<string, string> figures = new();
                 foreach (string part in figureString.Split(';'))
                 {
@@ -139,9 +157,7 @@ namespace Plus.HabboHotel.Roleplay.Corporation
                     selectedFigure = fig;
                 else if (figures.TryGetValue("m", out fig))
                     selectedFigure = fig;
-            }
-            else
-            {
+            } else {
                 selectedFigure = figureString;
             }
 
@@ -201,22 +217,22 @@ namespace Plus.HabboHotel.Roleplay.Corporation
             if (!_activeShifts.TryRemove(habbo.Id, out ActiveShift shift))
                 return;
 
-            if (shift.BonusCredits > 0)
-            {
+            if (shift.BonusCredits > 0) {
                 GivePay(habbo, shift.BonusCredits);
                 AddPendingLog(habbo.Id, shift.GroupId, shift.BonusCredits);
                 IncrementCountCache(shift.GroupId, habbo.Id);
             }
 
             RestoreAppearance(habbo, room);
+
+            // Leaving the shift drops effect (falls back to weapon/passive/none).
+            RpEffectService.Refresh(habbo);
         }
 
         public void OnDisconnect(Habbo habbo)
         {
-            if (_activeShifts.TryRemove(habbo.Id, out ActiveShift shift))
-            {
-                if (shift.BonusCredits > 0)
-                {
+            if (_activeShifts.TryRemove(habbo.Id, out ActiveShift shift)) {
+                if (shift.BonusCredits > 0) {
                     habbo.Credits += shift.BonusCredits;
                     AddPendingLog(habbo.Id, shift.GroupId, shift.BonusCredits);
                     IncrementCountCache(shift.GroupId, habbo.Id);

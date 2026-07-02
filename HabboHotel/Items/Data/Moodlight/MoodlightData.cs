@@ -26,8 +26,7 @@ namespace Plus.HabboHotel.Items.Data.Moodlight
                 row = dbClient.GetRow();
             }
 
-            if (row == null)
-            {
+            if (row == null) {
                 using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                 {
                     dbClient.RunQuery("INSERT INTO `room_items_moodlight` (item_id,enabled,current_preset,preset_one,preset_two,preset_three) VALUES (" + itemId + ",0,1,'#000000,255,0','#000000,255,0','#000000,255,0')");
@@ -67,8 +66,7 @@ namespace Plus.HabboHotel.Items.Data.Moodlight
 
         public void UpdatePreset(int preset, string color, int intensity, bool bgOnly, bool hax = false)
         {
-            if (!IsValidColor(color) || !IsValidIntensity(intensity) && !hax)
-            {
+            if (!IsValidColor(color) || !IsValidIntensity(intensity) && !hax) {
                 return;
             }
 
@@ -110,8 +108,7 @@ namespace Plus.HabboHotel.Items.Data.Moodlight
         {
             string[] bits = data.Split(',');
 
-            if (!IsValidColor(bits[0]))
-            {
+            if (!IsValidColor(bits[0])) {
                 bits[0] = "#000000";
             }
 
@@ -122,8 +119,7 @@ namespace Plus.HabboHotel.Items.Data.Moodlight
         {
             i--;
 
-            if (Presets[i] != null)
-            {
+            if (Presets[i] != null) {
                 return Presets[i];
             }
 

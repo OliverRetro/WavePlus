@@ -15,8 +15,7 @@ namespace Plus.Communication.Packets.Incoming.GameCenter
 
             int gameId = packet.PopInt();
 
-            if (PlusEnvironment.GetGame().GetGameDataManager().TryGetGame(gameId, out GameData gameData))
-            {
+            if (PlusEnvironment.GetGame().GetGameDataManager().TryGetGame(gameId, out GameData gameData)) {
                 string ssoTicket = "HABBOON-Fastfood-" + GenerateSso(32) + "-" + session.GetHabbo().Id;
 
                 session.SendPacket(new JoinQueueComposer(gameData.Id));

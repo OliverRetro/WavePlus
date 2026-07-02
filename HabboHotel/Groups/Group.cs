@@ -61,8 +61,7 @@ namespace Plus.HabboHotel.Groups
             _permissions = new ConcurrentDictionary<string, GroupPermissionAssignment>(StringComparer.OrdinalIgnoreCase);
             _deletedPermissionIds = new List<int>();
 
-            if (Id > 0)
-            {
+            if (Id > 0) {
                 InitMembers();
                 InitRoles();
                 InitPermissions();
@@ -77,8 +76,7 @@ namespace Plus.HabboHotel.Groups
                 dbClient.AddParameter("id", Id);
                 DataTable members = dbClient.GetTable();
 
-                if (members != null)
-                {
+                if (members != null) {
                     foreach (DataRow row in members.Rows)
                     {
                         int userId = Convert.ToInt32(row["user_id"]);
@@ -88,8 +86,7 @@ namespace Plus.HabboHotel.Groups
 
                         _memberLevels[userId] = level;
 
-                        if (userId == CreatorId && Convert.ToInt32(row["level"]) != 0)
-                        {
+                        if (userId == CreatorId && Convert.ToInt32(row["level"]) != 0) {
                             dbClient.SetQuery("UPDATE `group_memberships` SET `level` = '0' WHERE `user_id` = @uid AND `group_id` = @gid LIMIT 1");
                             dbClient.AddParameter("uid", userId);
                             dbClient.AddParameter("gid", Id);
@@ -98,8 +95,7 @@ namespace Plus.HabboHotel.Groups
                     }
                 }
 
-                if (!_memberLevels.ContainsKey(CreatorId))
-                {
+                if (!_memberLevels.ContainsKey(CreatorId)) {
                     dbClient.SetQuery("INSERT INTO `group_memberships` (`user_id`, `group_id`, `level`) VALUES (@uid, @gid, '0')");
                     dbClient.AddParameter("uid", CreatorId);
                     dbClient.AddParameter("gid", Id);
@@ -111,18 +107,14 @@ namespace Plus.HabboHotel.Groups
                 dbClient.AddParameter("id", Id);
                 DataTable requests = dbClient.GetTable();
 
-                if (requests != null)
-                {
+                if (requests != null) {
                     foreach (DataRow row in requests.Rows)
                     {
                         int userId = Convert.ToInt32(row["user_id"]);
 
-                        if (_memberLevels.ContainsKey(userId))
-                        {
+                        if (_memberLevels.ContainsKey(userId)) {
                             dbClient.RunQuery("DELETE FROM `group_requests` WHERE `group_id` = '" + Id + "' AND `user_id` = '" + userId + "'");
-                        }
-                        else if (!_requests.Contains(userId))
-                        {
+                        } else if (!_requests.Contains(userId)) {
                             _requests.Add(userId);
                         }
                     }
@@ -138,8 +130,7 @@ namespace Plus.HabboHotel.Groups
                 dbClient.AddParameter("group_id", Id);
                 DataTable roles = dbClient.GetTable();
 
-                if (roles != null)
-                {
+                if (roles != null) {
                     foreach (DataRow row in roles.Rows)
                     {
                         GroupRole role = new(Convert.ToInt32(row["id"]), Convert.ToInt32(row["group_id"]), Convert.ToInt32(row["level"]), Convert.ToString(row["name"]), Convert.ToInt32(row["shift_pay"]), Convert.ToString(row["shift_costume"]), row["shift_duration"] == DBNull.Value ? 5 : Convert.ToInt32(row["shift_duration"]), Convert.ToString(row["shift_motto"]), Convert.ToDateTime(row["created_at"]));
@@ -265,16 +256,14 @@ namespace Plus.HabboHotel.Groups
                 return false;
 
             string assignmentKey = BuildPermissionKey(levelId, permissionId);
-            if (!permission.SupportsGroupKind(Kind))
-            {
+            if (!permission.SupportsGroupKind(Kind)) {
                 if (!enabled)
                     return true;
 
                 return false;
             }
 
-            if (!enabled)
-            {
+            if (!enabled) {
                 if (!_permissions.TryRemove(assignmentKey, out GroupPermissionAssignment removed))
                     return true;
 
@@ -314,14 +303,12 @@ namespace Plus.HabboHotel.Groups
             if (!_memberLevels.TryGetValue(id, out int level))
                 return false;
 
-            if (id == CreatorId || level == 0)
-            {
+            if (id == CreatorId || level == 0) {
                 role = GetOwnerRole();
                 return true;
             }
 
-            if (_roles.TryGetValue(level, out GroupRole foundRole))
-            {
+            if (_roles.TryGetValue(level, out GroupRole foundRole)) {
                 role = foundRole;
                 return true;
             }
@@ -403,13 +390,10 @@ namespace Plus.HabboHotel.Groups
 
             using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
             {
-                if (Type == GroupType.Locked)
-                {
+                if (Type == GroupType.Locked) {
                     dbClient.SetQuery("INSERT INTO `group_requests` (user_id, group_id) VALUES (@uid, @gid)");
                     _requests.Add(id);
-                }
-                else
-                {
+                } else {
                     dbClient.SetQuery("INSERT INTO `group_memberships` (`user_id`, `group_id`, `level`) VALUES (@uid, @gid, @rank)");
                     dbClient.AddParameter("rank", level);
                 }
@@ -443,8 +427,7 @@ namespace Plus.HabboHotel.Groups
         {
             using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
             {
-                if (accepted)
-                {
+                if (accepted) {
                     dbClient.SetQuery("INSERT INTO `group_memberships` (`user_id`, `group_id`, `level`) VALUES (@uid, @gid, 1)");
                     dbClient.AddParameter("gid", Id);
                     dbClient.AddParameter("uid", id);
@@ -465,8 +448,7 @@ namespace Plus.HabboHotel.Groups
 
         public RoomData GetRoom()
         {
-            if (_room == null)
-            {
+            if (_room == null) {
                 if (!RoomFactory.TryGetData(RoomId, out RoomData data))
                     return null;
 
@@ -533,8 +515,7 @@ namespace Plus.HabboHotel.Groups
 
                 foreach (GroupRole role in _roles.Values.OrderBy(x => x.Level))
                 {
-                    if (role.IsNew)
-                    {
+                    if (role.IsNew) {
                         dbClient.SetQuery("INSERT INTO `group_roles` (`group_id`, `level`, `name`, `shift_pay`, `shift_costume`, `shift_duration`, `shift_motto`, `created_at`) VALUES (@group_id, @level, @name, @shift_pay, @shift_costume, @shift_duration, @shift_motto, @created_at)");
                         dbClient.AddParameter("group_id", role.GroupId);
                         dbClient.AddParameter("level", role.Level);

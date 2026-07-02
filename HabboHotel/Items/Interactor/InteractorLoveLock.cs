@@ -26,10 +26,8 @@ namespace Plus.HabboHotel.Items.Interactor
             if (user == null)
                 return;
 
-            if (Gamemap.TilesTouching(item.GetX, item.GetY, user.X, user.Y))
-            {
-                if (item.ExtraData == null || item.ExtraData.Length <= 1 || !item.ExtraData.Contains(Convert.ToChar(5).ToString()))
-                {
+            if (Gamemap.TilesTouching(item.GetX, item.GetY, user.X, user.Y)) {
+                if (item.ExtraData == null || item.ExtraData.Length <= 1 || !item.ExtraData.Contains(Convert.ToChar(5).ToString())) {
                     Point pointOne;
                     Point pointTwo;
 
@@ -58,8 +56,7 @@ namespace Plus.HabboHotel.Items.Interactor
                         session.SendNotification("We couldn't find a valid user to lock this love lock with.");
                     else if (userOne.HabboId != item.UserId && userTwo.HabboId != item.UserId)
                         session.SendNotification("You can only use this item with the item owner.");
-                    else
-                    {
+                    else {
                         userOne.CanWalk = false;
                         userTwo.CanWalk = false;
 
@@ -69,12 +66,9 @@ namespace Plus.HabboHotel.Items.Interactor
                         userOne.GetClient().SendPacket(new LoveLockDialogueMessageComposer(item.Id));
                         userTwo.GetClient().SendPacket(new LoveLockDialogueMessageComposer(item.Id));
                     }
-                }
-                else
+                } else
                     return;
-            }
-            else
-            {
+            } else {
                 user.MoveTo(item.SquareInFront);
             }
         }

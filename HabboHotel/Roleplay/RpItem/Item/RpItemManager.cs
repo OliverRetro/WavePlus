@@ -24,8 +24,10 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
                 dbClient.SetQuery("SELECT * FROM `rp_items`");
                 DataTable table = dbClient.GetTable();
 
-                if (table != null)
-                {
+                if (table != null) {
+                    bool hasStackLimit = table.Columns.Contains("stack_limit");
+                    bool hasItemType = table.Columns.Contains("item_type");
+
                     foreach (DataRow row in table.Rows)
                     {
                         RpItemData item = new(
@@ -35,7 +37,9 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
                             Convert.ToInt32(row["effect_data"]),
                             Convert.ToInt32(row["base_price"]),
                             Convert.ToString(row["image_url"]),
-                            Convert.ToString(row["attribute_effects"])
+                            Convert.ToString(row["attribute_effects"]),
+                            hasStackLimit && row["stack_limit"] != DBNull.Value ? Convert.ToInt32(row["stack_limit"]) : 1,
+                            hasItemType && row["item_type"] != DBNull.Value ? Convert.ToString(row["item_type"]) : "consumable"
                         );
 
                         _items[item.Id] = item;

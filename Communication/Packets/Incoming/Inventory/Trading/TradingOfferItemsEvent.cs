@@ -24,14 +24,12 @@ namespace Plus.Communication.Packets.Incoming.Inventory.Trading
             int amount = packet.PopInt();
             int itemId = packet.PopInt();
 
-            if (!roomUser.IsTrading)
-            {
+            if (!roomUser.IsTrading) {
                 session.SendPacket(new TradingClosedComposer(session.GetHabbo().Id));
                 return;
             }
 
-            if (!room.GetTrading().TryGetTrade(roomUser.TradeId, out Trade trade))
-            {
+            if (!room.GetTrading().TryGetTrade(roomUser.TradeId, out Trade trade)) {
                 session.SendPacket(new TradingClosedComposer(session.GetHabbo().Id));
                 return;
             }

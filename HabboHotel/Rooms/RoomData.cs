@@ -186,8 +186,7 @@ namespace Plus.HabboHotel.Rooms
                 dbClient.SetQuery("SELECT * FROM `room_promotions` WHERE `room_id` = " + Id + " LIMIT 1;");
                 DataRow getPromotion = dbClient.GetRow();
 
-                if (getPromotion != null)
-                {
+                if (getPromotion != null) {
                     if (Convert.ToDouble(getPromotion["timestamp_expire"]) > UnixTimestamp.GetNow())
                         Promotion = new RoomPromotion(Convert.ToString(getPromotion["title"]), Convert.ToString(getPromotion["description"]), Convert.ToDouble(getPromotion["timestamp_start"]), Convert.ToDouble(getPromotion["timestamp_expire"]), Convert.ToInt32(getPromotion["category_id"]));
                 }

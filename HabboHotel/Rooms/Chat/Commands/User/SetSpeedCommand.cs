@@ -15,17 +15,14 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
             if (!room.CheckRights(session, true))
                 return;
 
-            if (@params.Length == 1)
-            {
+            if (@params.Length == 1) {
                 session.SendWhisper("Please enter a value for the roller speed.");
                 return;
             }
 
-            if (int.TryParse(@params[1], out int speed))
-            {
+            if (int.TryParse(@params[1], out int speed)) {
                 session.GetHabbo().CurrentRoom.GetRoomItemHandler().SetSpeed(speed);
-            }
-            else
+            } else
                 session.SendWhisper("Invalid amount, please enter a valid number.");
         }
     }

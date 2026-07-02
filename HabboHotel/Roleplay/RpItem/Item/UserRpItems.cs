@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Plus.HabboHotel.Roleplay.Utilities;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
 
@@ -95,6 +96,120 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             MarkDirty();
         }
 
+        /// <summary>The shield/secondary item currently equipped in the secondary slot, if any.</summary>
+        public UserRpItem GetEquippedShield() =>
+            _items.Values.FirstOrDefault(x => x.Equipped && x.ItemData != null && x.ItemData.IsSecondary);
+
+        /// <summary>The item currently equipped in the primary slot (replaces the weapon), if any.</summary>
+        public UserRpItem GetEquippedPrimaryItem() =>
+            _items.Values.FirstOrDefault(x => x.Equipped && x.ItemData != null && x.ItemData.IsPrimary);
+
+        /// <summary>Equip a shield/secondary item, syncing the live shield stat.</summary>
+        public bool EquipShield(int userItemId, Habbo habbo)
+        {
+            UserRpItem item = GetItem(userItemId);
+            if (item == null || item.ItemData == null || !item.ItemData.IsSecondary)
+                return false;
+
+            // Only replace other secondary items — leave the primary slot untouched.
+            foreach (UserRpItem other in _items.Values)
+                if (other.ItemData != null && other.ItemData.IsSecondary)
+                    other.Equipped = false;
+
+            item.Equipped = true;
+            // Keep the item's grid slot so it returns to the same place when unequipped
+            // (the slot is reserved while equipped — see RpInventory.BuildSlotView).
+
+            UserRpStats stats = habbo?.GetRpStats();
+            if (stats != null)
+                stats.Shield = item.EffectiveDurability;
+
+            MarkDirty();
+            habbo?.TrySendUserStatsUpdate(true);
+            return true;
+        }
+
+        /// <summary>Equip a primary item — this replaces (unequips) the active weapon.</summary>
+        public bool EquipPrimaryItem(int userItemId, Habbo habbo)
+        {
+            UserRpItem item = GetItem(userItemId);
+            if (item == null || item.ItemData == null || !item.ItemData.IsPrimary)
+                return false;
+
+            foreach (UserRpItem other in _items.Values)
+                if (other.ItemData != null && other.ItemData.IsPrimary)
+                    other.Equipped = false;
+
+            item.Equipped = true;
+            // Keep the item's grid slot so it returns to the same place when unequipped
+            // (the slot is reserved while equipped — see RpInventory.BuildSlotView).
+
+            // The primary slot holds a weapon OR a primary item — never both.
+            habbo?.GetRpWeapons()?.SetActiveWeaponId(0);
+
+            MarkDirty();
+            RpEffectService.Refresh(habbo);
+            habbo?.TrySendUserStatsUpdate(true);
+            return true;
+        }
+
+        /// <summary>Unequip the primary item, returning it to the grid.</summary>
+        public void UnequipPrimaryItem(Habbo habbo)
+        {
+            UserRpItem item = GetEquippedPrimaryItem();
+            if (item == null)
+                return;
+
+            item.Equipped = false;
+            MarkDirty();
+            RpEffectService.Refresh(habbo);
+            habbo?.TrySendUserStatsUpdate(true);
+        }
+
+        /// <summary>Unequip the active shield, persisting its remaining durability.</summary>
+        public void UnequipShield(Habbo habbo)
+        {
+            UserRpItem shield = GetEquippedShield();
+            if (shield == null)
+                return;
+
+            UserRpStats stats = habbo?.GetRpStats();
+            if (stats != null) {
+                shield.DurabilityLeft = Math.Max(0, stats.Shield);
+                stats.Shield = 0;
+            }
+
+            shield.Equipped = false;
+            MarkDirty();
+            habbo?.TrySendUserStatsUpdate(true);
+        }
+
+        /// <summary>
+        /// Pull the live shield stat back into the equipped shield's durability. A depleted
+        /// shield breaks (is removed). Called before serialising/saving the inventory.
+        /// </summary>
+        public void SyncEquippedShield(Habbo habbo)
+        {
+            UserRpItem shield = GetEquippedShield();
+            if (shield == null)
+                return;
+
+            UserRpStats stats = habbo?.GetRpStats();
+            if (stats == null)
+                return;
+
+            shield.DurabilityLeft = Math.Max(0, stats.Shield);
+            if (stats.Shield <= 0) {
+                shield.Equipped = false;
+                Remove(shield);
+            }
+            MarkDirty();
+        }
+
+        /// <summary>Count of distinct stackable item-ids the user owns (for stack limits).</summary>
+        public int DistinctStackCount() =>
+            _items.Values.Where(x => !x.Equipped).Select(x => x.ItemId).Distinct().Count();
+
         public bool Use(int userItemId, Habbo habbo)
         {
             if (habbo == null)
@@ -116,6 +231,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             // an item that drops you to 0 health kills you (no attacker)
             bool died = stats != null && stats.Health <= 0 && !stats.IsDead && roomUser != null;
             if (died)
+                LiveFeedService.LiveFeed("💀 " + LiveFeedService.Name(habbo.Username, "green") + " died of item over usage.", "red");
                 stats.Kill(habbo, roomUser);
 
             // effect or handitem, if 1 exists (skipped if the item just killed us)

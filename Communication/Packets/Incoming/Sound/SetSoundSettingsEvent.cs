@@ -11,8 +11,7 @@ namespace Plus.Communication.Packets.Incoming.Sound
             for (int i = 0; i < 3; i++)
             {
                 int vol = packet.PopInt();
-                if (vol < 0 || vol > 100)
-                {
+                if (vol < 0 || vol > 100) {
                     vol = 100;
                 }
 

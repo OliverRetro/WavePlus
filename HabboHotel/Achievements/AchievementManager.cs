@@ -32,14 +32,12 @@ namespace Plus.HabboHotel.Achievements
                 return false;
 
             Achievement data = Achievements[group];
-            if (data == null)
-            {
+            if (data == null) {
                 return false;
             }
 
             UserAchievement userData = session.GetHabbo().GetAchievementData(group);
-            if (userData == null)
-            {
+            if (userData == null) {
                 userData = new UserAchievement(group, 0, 0);
                 session.GetHabbo().Achievements.TryAdd(group, userData);
             }
@@ -67,22 +65,19 @@ namespace Plus.HabboHotel.Achievements
             if (newTarget > totalLevels)
                 newTarget = totalLevels;
 
-            if (newProgress >= level.Requirement)
-            {
+            if (newProgress >= level.Requirement) {
                 newLevel++;
                 newTarget++;
                 newProgress = 0;
 
                 if (targetLevel == 1)
                     session.GetHabbo().GetBadgeComponent().GiveBadge(group + targetLevel, true, session);
-                else
-                {
+                else {
                     session.GetHabbo().GetBadgeComponent().RemoveBadge(Convert.ToString(group + (targetLevel - 1)));
                     session.GetHabbo().GetBadgeComponent().GiveBadge(group + targetLevel, true, session);
                 }
 
-                if (newTarget > totalLevels)
-                {
+                if (newTarget > totalLevels) {
                     newTarget = totalLevels;
                 }
 

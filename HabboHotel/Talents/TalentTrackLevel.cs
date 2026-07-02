@@ -19,8 +19,7 @@ namespace Plus.HabboHotel.Talents
 
             foreach (string str in dataActions.Split('|'))
             {
-                if (Actions == null)
-                {
+                if (Actions == null) {
                     Actions = new List<string>();
                 }
 
@@ -29,8 +28,7 @@ namespace Plus.HabboHotel.Talents
 
             foreach (string str in dataGifts.Split('|'))
             {
-                if (Gifts == null)
-                {
+                if (Gifts == null) {
                     Gifts = new List<string>();
                 }
 
@@ -56,8 +54,7 @@ namespace Plus.HabboHotel.Talents
                 getTable = dbClient.GetTable();
             }
 
-            if (getTable != null)
-            {
+            if (getTable != null) {
                 foreach (DataRow row in getTable.Rows)
                 {
                     _subLevels.Add(Convert.ToInt32(row["sub_level"]), new TalentTrackSubLevel(Convert.ToInt32(row["sub_level"]), Convert.ToString(row["badge_code"]), Convert.ToInt32(row["required_progress"])));

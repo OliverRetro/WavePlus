@@ -18,14 +18,12 @@ namespace Plus.Communication.Packets.Incoming.Moderation
             packet.PopString(); //unk2
 
             Habbo habbo = PlusEnvironment.GetHabboById(userId);
-            if (habbo == null)
-            {
+            if (habbo == null) {
                 session.SendWhisper("An error occoured whilst finding that user in the database.");
                 return;
             }
 
-            if (habbo.GetPermissions().HasRight("mod_mute") && !session.GetHabbo().GetPermissions().HasRight("mod_mute_any"))
-            {
+            if (habbo.GetPermissions().HasRight("mod_mute") && !session.GetHabbo().GetPermissions().HasRight("mod_mute_any")) {
                 session.SendWhisper("Oops, you cannot mute that user.");
                 return;
             }
@@ -35,8 +33,7 @@ namespace Plus.Communication.Packets.Incoming.Moderation
                 dbClient.RunQuery("UPDATE `users` SET `time_muted` = '" + length + "' WHERE `id` = '" + habbo.Id + "' LIMIT 1");
             }
 
-            if (habbo.GetClient() != null)
-            {
+            if (habbo.GetClient() != null) {
                 habbo.TimeMuted = length;
                 habbo.GetClient().SendNotification("You have been muted by a moderator for " + length + " seconds!");
             }

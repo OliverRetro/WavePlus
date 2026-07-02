@@ -40,8 +40,7 @@ namespace Plus.HabboHotel.Roleplay.Banking
                 dbClient.AddParameter("user_id", userId);
                 dbClient.AddParameter("limit", RecentLogLimit);
                 DataTable table = dbClient.GetTable();
-                if (table != null)
-                {
+                if (table != null) {
                     foreach (DataRow row in table.Rows)
                     {
                         logs.Add(new UserRpBankLog(
@@ -194,8 +193,7 @@ namespace Plus.HabboHotel.Roleplay.Banking
 
             using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
             {
-                if (account.Dirty)
-                {
+                if (account.Dirty) {
                     dbClient.SetQuery("UPDATE `user_rp_bank` SET `balance` = @balance WHERE `user_id` = @user_id LIMIT 1");
                     dbClient.AddParameter("balance", account.Balance);
                     dbClient.AddParameter("user_id", habbo.Id);

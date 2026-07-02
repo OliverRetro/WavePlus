@@ -169,8 +169,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Bots
                 {
                     if (bot.BotData.DanceId > 0)
                         bot.BotData.DanceId = 0;
-                    else
-                    {
+                    else {
                         Random randomDance = new();
                         bot.BotData.DanceId = randomDance.Next(1, 4);
                     }
@@ -185,20 +184,17 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Bots
 
                 case 5:
                 {
-                    if (dataString.Length == 0)
-                    {
+                    if (dataString.Length == 0) {
                         session.SendWhisper("Come on, atleast give the bot a name!");
                         return;
                     }
 
-                    if (dataString.Length >= 16)
-                    {
+                    if (dataString.Length >= 16) {
                         session.SendWhisper("Come on, the bot doesn't need a name that long!");
                         return;
                     }
 
-                    if (dataString.Contains("<img src") || dataString.Contains("<font ") || dataString.Contains("</font>") || dataString.Contains("</a>") || dataString.Contains("<i>"))
-                    {
+                    if (dataString.Contains("<img src") || dataString.Contains("<font ") || dataString.Contains("</font>") || dataString.Contains("</a>") || dataString.Contains("<i>")) {
                         session.SendWhisper("No HTML, please :<");
                         return;
                     }

@@ -28,9 +28,15 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
         public int BasePrice { get; }
         public string ImageUrl { get; }
 
+        /// <summary>How many owned copies stack into a single inventory slot. 1 = never stacks.</summary>
+        public int StackLimit { get; }
+
+        /// <summary>Category of the item: "consumable" (default), "shield", etc.</summary>
+        public string ItemType { get; }
+
         private readonly Dictionary<string, double> _attributes;
 
-        public RpItemData(int id, string name, int handitemData, int effectData, int basePrice, string imageUrl, string attributeJson)
+        public RpItemData(int id, string name, int handitemData, int effectData, int basePrice, string imageUrl, string attributeJson, int stackLimit = 1, string itemType = "consumable")
         {
             Id = id;
             Name = name;
@@ -38,6 +44,8 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             EffectData = effectData;
             BasePrice = basePrice;
             ImageUrl = imageUrl;
+            StackLimit = stackLimit < 1 ? 1 : stackLimit;
+            ItemType = string.IsNullOrWhiteSpace(itemType) ? "consumable" : itemType;
             _attributes = ParseAttributes(attributeJson);
         }
 
@@ -45,6 +53,32 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
         /// How many times an owned copy can be used before it is destroyed. Defaults to 1.
         /// </summary>
         public int MaxUses => GetInt("uses", 1);
+
+        /// <summary>Equips to the primary slot (replaces the weapon while equipped).</summary>
+        public bool IsPrimary => string.Equals(ItemType, "primary", StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// Equips to the secondary slot. NOTE: the legacy "shield" alias was intentionally
+        /// removed — shield items are now plain consumables that grant the `shield` stat on
+        /// use (see <see cref="UserRpItems.ApplyStatEffects"/>), not equippable vests.
+        /// </summary>
+        public bool IsSecondary =>
+            string.Equals(ItemType, "secondary", StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>Any item that occupies an equipped slot (primary or secondary).</summary>
+        public bool IsEquippable => IsPrimary || IsSecondary;
+
+        /// <summary>Back-compat alias: the secondary slot behaves as a shield (durability + shield stat).</summary>
+        public bool IsShield => IsSecondary;
+
+        /// <summary>Maximum shield/durability for a secondary (shield) item (from the `shield` attribute).</summary>
+        public int MaxShield => GetInt("shield", 0);
+
+        /// <summary>
+        /// Whether copies of this item collapse into a stack. Items with their own per-copy
+        /// state — durability/equip slots, or a stack limit of 1 — never stack.
+        /// </summary>
+        public bool IsStackable => StackLimit > 1 && !IsEquippable;
 
         public bool Has(string key) => _attributes.ContainsKey(key);
 

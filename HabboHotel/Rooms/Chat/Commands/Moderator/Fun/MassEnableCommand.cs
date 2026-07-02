@@ -14,30 +14,25 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Fun
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length == 1)
-            {
+            if (@params.Length == 1) {
                 session.SendWhisper("Please enter an effect ID.");
                 return;
             }
 
             int enableId = 0;
-            if (int.TryParse(@params[1], out enableId))
-            {
-                if (enableId == 102 || enableId == 178)
-                {
+            if (int.TryParse(@params[1], out enableId)) {
+                if (enableId == 102 || enableId == 178) {
                     session.Disconnect();
                     return;
                 }
 
-                if (!session.GetHabbo().GetPermissions().HasCommand("command_override_massenable") && room.OwnerId != session.GetHabbo().Id)
-                {
+                if (!session.GetHabbo().GetPermissions().HasCommand("command_override_massenable") && room.OwnerId != session.GetHabbo().Id) {
                     session.SendWhisper("You can only use this command in your own room.");
                     return;
                 }
 
                 List<RoomUser> users = room.GetRoomUserManager().GetRoomUsers();
-                if (users.Count > 0)
-                {
+                if (users.Count > 0) {
                     foreach (RoomUser u in users.ToList())
                     {
                         if (u == null || u.RidingHorse)
@@ -46,9 +41,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Fun
                         u.ApplyEffect(enableId);
                     }
                 }
-            }
-            else
-            {
+            } else {
                 session.SendWhisper("Please enter an effect ID.");
             }
         }

@@ -17,8 +17,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (!room.CheckRights(session, true))
-            {
+            if (!room.CheckRights(session, true)) {
                 session.SendWhisper("Oops, only the room owner can run this command!");
                 return;
             }

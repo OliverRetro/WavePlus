@@ -17,8 +17,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
             if (room == null)
                 return;
 
-            if (!room.GetRoomUserManager().AddAvatarToRoom(session))
-            {
+            if (!room.GetRoomUserManager().AddAvatarToRoom(session)) {
                 room.GetRoomUserManager().RemoveUserFromRoom(session, false);
                 return; //TODO: Remove?
             }
@@ -35,8 +34,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
             session.SendPacket(new RoomVisualizationSettingsComposer(room.WallThickness, room.FloorThickness, PlusEnvironment.EnumToBool(room.HideWall.ToString())));
 
             RoomUser user = room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Username);
-            if (user != null && session.GetHabbo().PetId == 0)
-            {
+            if (user != null && session.GetHabbo().PetId == 0) {
                 room.SendPacket(new UserChangeComposer(user, false));
             }
 
@@ -46,6 +44,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
                 room.GetWired().TriggerEvent(WiredBoxType.TriggerRoomEnter, session.GetHabbo());
 
             PlusEnvironment.GetHospitalManager().HandleRoomEntry(session.GetHabbo());
+            PlusEnvironment.GetJailManager().HandleRoomEntry(session.GetHabbo());
 
             if (session.GetHabbo().GetRpStats()?.IsDead != true)
                 session.GetHabbo().ApplyHomeRoomData();

@@ -25,8 +25,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
             if (moveX == user.X && moveY == user.Y)
                 return;
 
-            if (user.RidingHorse)
-            {
+            if (user.RidingHorse) {
                 RoomUser horse = room.GetRoomUserManager().GetRoomUserByVirtualId(user.HorseId);
                 horse?.MoveTo(moveX, moveY);
             }

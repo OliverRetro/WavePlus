@@ -17,15 +17,13 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length <= 3)
-            {
+            if (@params.Length <= 3) {
                 session.SendWhisper("Usage of command is :medit <username> <statistic> <amount>. ");
                 return;
             }
 
             GameClient targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(@params[1]);
-            if (targetClient == null)
-            {
+            if (targetClient == null) {
                 session.SendWhisper("An error occoured whilst finding that user, maybe they're not online.");
                 return;
             }
@@ -36,14 +34,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
                 case "health":
                 case "hp":
                     {
-                        if (!session.GetHabbo().GetPermissions().HasCommand("command_master_edit_rp"))
-                        {
+                        if (!session.GetHabbo().GetPermissions().HasCommand("command_master_edit_rp")) {
                             session.SendWhisper("Oops, you do not have the 'command_update_catalog' permission.", 1);
                             break;
                         }
 
-                        if (Convert.ToInt32(@params[3]) > 125 || Convert.ToInt32(@params[3]) < 0)
-                        {
+                        if (Convert.ToInt32(@params[3]) > 125 || Convert.ToInt32(@params[3]) < 0) {
                             session.SendWhisper("Health must be between 0 and 125.");
                             break;
                         }
@@ -55,14 +51,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 
                 case "shield":
                     {
-                        if (!session.GetHabbo().GetPermissions().HasCommand("command_master_edit_rp"))
-                        {
+                        if (!session.GetHabbo().GetPermissions().HasCommand("command_master_edit_rp")) {
                             session.SendWhisper("Oops, you do not have the 'command_master_edit_rp' permission.");
                             break;
                         }
 
-                        if (Convert.ToInt32(@params[3]) > 500 || Convert.ToInt32(@params[3]) < 0)
-                        {
+                        if (Convert.ToInt32(@params[3]) > 500 || Convert.ToInt32(@params[3]) < 0) {
                             session.SendWhisper("Shield must be between 0 and 500.");
                             break;
                         }
@@ -73,14 +67,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
                     }
                 case "energy":
                     {
-                        if (!session.GetHabbo().GetPermissions().HasCommand("command_master_edit_rp"))
-                        {
+                        if (!session.GetHabbo().GetPermissions().HasCommand("command_master_edit_rp")) {
                             session.SendWhisper("Oops, you do not have the 'command_master_edit_rp' permission.");
                             break;
                         }
 
-                        if (Convert.ToInt32(@params[3]) > 250 || Convert.ToInt32(@params[3]) < 0)
-                        {
+                        if (Convert.ToInt32(@params[3]) > 250 || Convert.ToInt32(@params[3]) < 0) {
                             session.SendWhisper("Energy must be between 0 and 250.");
                             break;
                         }
@@ -92,14 +84,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
                 case "hunger":
                 case "hungry":
                     {
-                        if (!session.GetHabbo().GetPermissions().HasCommand("command_master_edit_rp"))
-                        {
+                        if (!session.GetHabbo().GetPermissions().HasCommand("command_master_edit_rp")) {
                             session.SendWhisper("Oops, you do not have the 'command_master_edit_rp' permission.");
                             break;
                         }
                         
-                        if(Convert.ToInt32(@params[3]) > 100 || Convert.ToInt32(@params[3]) < 0)
-                        {
+                        if(Convert.ToInt32(@params[3]) > 100 || Convert.ToInt32(@params[3]) < 0) {
                             session.SendWhisper("Hunger must be between 0 and 100.");
                             break;
                         }
@@ -112,8 +102,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
                 case "experience":
                 case "level":
                     {
-                        if (!session.GetHabbo().GetPermissions().HasCommand("command_master_edit_rp"))
-                        {
+                        if (!session.GetHabbo().GetPermissions().HasCommand("command_master_edit_rp")) {
                             session.SendWhisper("Oops, you do not have the 'command_master_edit_rp' permission.");
                             break;
                         }
@@ -125,8 +114,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 
                 case "skill":
                     {
-                        if (!session.GetHabbo().GetPermissions().HasCommand("command_master_edit_rp"))
-                        {
+                        if (!session.GetHabbo().GetPermissions().HasCommand("command_master_edit_rp")) {
                             session.SendWhisper("Oops, you do not have the 'command_master_edit_rp' permission.");
                             break;
                         }
@@ -134,14 +122,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
                         int skillId = Convert.ToInt32(@params[3]);
                         int progressAmount = Convert.ToInt32(@params[4]);
 
-                        if (skillId > 8 || skillId < 1)
-                        {
+                        if (skillId > 8 || skillId < 1) {
                             session.SendWhisper("Skill must be between 1-8.");
                             break;
                         }
 
-                        if (progressAmount > 10000 || progressAmount < 1)
-                        {
+                        if (progressAmount > 10000 || progressAmount < 1) {
                             session.SendWhisper("Skill progress must be between 1-6967.");
                             break;
                         }

@@ -28,8 +28,7 @@ namespace Plus.HabboHotel.Items.Televisions
                 dbClient.SetQuery("SELECT * FROM `items_youtube` ORDER BY `id` DESC");
                 getData = dbClient.GetTable();
 
-                if (getData != null)
-                {
+                if (getData != null) {
                     foreach (DataRow row in getData.Rows)
                     {
                         Televisions.Add(Convert.ToInt32(row["id"]), new TelevisionItem(Convert.ToInt32(row["id"]), row["youtube_id"].ToString(), row["title"].ToString(), row["description"].ToString(), PlusEnvironment.EnumToBool(row["enabled"].ToString())));

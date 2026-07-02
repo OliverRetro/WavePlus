@@ -20,8 +20,7 @@ namespace Plus.HabboHotel.Catalog.Pets
                 dbClient.SetQuery("SELECT * FROM `catalog_pet_races`");
                 DataTable data = dbClient.GetTable();
 
-                if (data != null)
-                {
+                if (data != null) {
                     foreach (DataRow row in data.Rows)
                     {
                         PetRace race = new(Convert.ToInt32(row["raceid"]), Convert.ToInt32(row["color1"]), Convert.ToInt32(row["color2"]), (Convert.ToString(row["has1color"]) == "1"), (Convert.ToString(row["has2color"]) == "1"));

@@ -11,13 +11,10 @@ namespace Plus.Communication.Packets.Incoming.Messenger
         {
             Room instance = PlusEnvironment.GetGame().GetRoomManager().TryGetRandomLoadedRoom();
 
-            if (instance != null)
-            {
+            if (instance != null) {
                 session.SendPacket(new FindFriendsProcessResultComposer(true));
                 session.SendPacket(new RoomForwardComposer(instance.Id));
-            }
-            else
-            {
+            } else {
                 session.SendPacket(new FindFriendsProcessResultComposer(false));
             }
         }

@@ -31,15 +31,12 @@ namespace Plus.HabboHotel.Navigator
                 {
                     #region Query
 
-                    if (query.ToLower().StartsWith("owner:"))
-                    {
-                        if (query.Length > 0)
-                        {
+                    if (query.ToLower().StartsWith("owner:")) {
+                        if (query.Length > 0) {
                             DataTable getRooms = null;
                             using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                             {
-                                if (query.ToLower().StartsWith("owner:"))
-                                {
+                                if (query.ToLower().StartsWith("owner:")) {
                                     dbClient.SetQuery("SELECT `id` FROM `users` WHERE `username` = @username LIMIT 1");
                                     dbClient.AddParameter("username", query.Remove(0, 6));
                                     int userId = dbClient.GetInteger();
@@ -50,8 +47,7 @@ namespace Plus.HabboHotel.Navigator
                             }
 
                             List<RoomData> results = new();
-                            if (getRooms != null)
-                            {
+                            if (getRooms != null) {
                                 foreach (DataRow row in getRooms.Rows)
                                 {
                                     if (!RoomFactory.TryGetData(Convert.ToInt32(row["id"]), out RoomData data))
@@ -68,9 +64,7 @@ namespace Plus.HabboHotel.Navigator
                                 RoomAppender.WriteRoom(packet, data, data.Promotion);
                             }
                         }
-                    }
-                    else if (query.ToLower().StartsWith("tag:"))
-                    {
+                    } else if (query.ToLower().StartsWith("tag:")) {
                         query = query.Remove(0, 4);
                         ICollection<Room> tagMatches = PlusEnvironment.GetGame().GetRoomManager().SearchTaggedRooms(query);
 
@@ -79,9 +73,7 @@ namespace Plus.HabboHotel.Navigator
                         {
                             RoomAppender.WriteRoom(packet, data, data.Promotion);
                         }
-                    }
-                    else if (query.ToLower().StartsWith("group:"))
-                    {
+                    } else if (query.ToLower().StartsWith("group:")) {
                         query = query.Remove(0, 6);
                         ICollection<Room> groupRooms = PlusEnvironment.GetGame().GetRoomManager().SearchGroupRooms(query);
 
@@ -90,11 +82,8 @@ namespace Plus.HabboHotel.Navigator
                         {
                             RoomAppender.WriteRoom(packet, data, data.Promotion);
                         }
-                    }
-                    else
-                    {
-                        if (query.Length > 0)
-                        {
+                    } else {
+                        if (query.Length > 0) {
                             DataTable table;
                             using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                             {
@@ -104,8 +93,7 @@ namespace Plus.HabboHotel.Navigator
                             }
 
                             List<RoomData> results = new();
-                            if (table != null)
-                            {
+                            if (table != null) {
                                 foreach (DataRow row in table.Rows)
                                 {
                                     if (Convert.ToString(row["state"]) == "invisible")
@@ -242,8 +230,7 @@ namespace Plus.HabboHotel.Navigator
                 {
                     List<RoomData> myRights = new();
 
-                    if (habbo != null)
-                    {
+                    if (habbo != null) {
                         using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                         {
                             dbClient.SetQuery("SELECT `room_id` FROM `room_rights` WHERE `user_id` = @UserId LIMIT @FetchLimit");

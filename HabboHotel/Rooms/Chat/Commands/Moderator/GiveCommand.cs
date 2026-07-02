@@ -13,15 +13,13 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length == 1)
-            {
+            if (@params.Length == 1) {
                 session.SendWhisper("Please enter a currency type! (coins, duckets, diamonds, gotw)");
                 return;
             }
 
             GameClient target = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(@params[1]);
-            if (target == null)
-            {
+            if (target == null) {
                 session.SendWhisper("Oops, couldn't find that user!");
                 return;
             }
@@ -32,14 +30,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
                 case "coins":
                 case "credits":
                 {
-                    if (!session.GetHabbo().GetPermissions().HasCommand("command_give_coins"))
-                    {
+                    if (!session.GetHabbo().GetPermissions().HasCommand("command_give_coins")) {
                         session.SendWhisper("Oops, it appears that you do not have the permissions to use this command!");
                         break;
                     }
 
-                    if (int.TryParse(@params[3], out int amount))
-                    {
+                    if (int.TryParse(@params[3], out int amount)) {
                         target.GetHabbo().Credits = target.GetHabbo().Credits += amount;
                         target.SendPacket(new CreditBalanceComposer(target.GetHabbo().Credits));
 
@@ -56,14 +52,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
                 case "pixels":
                 case "duckets":
                 {
-                    if (!session.GetHabbo().GetPermissions().HasCommand("command_give_pixels"))
-                    {
+                    if (!session.GetHabbo().GetPermissions().HasCommand("command_give_pixels")) {
                         session.SendWhisper("Oops, it appears that you do not have the permissions to use this command!");
                         break;
                     }
 
-                    if (int.TryParse(@params[3], out int amount))
-                    {
+                    if (int.TryParse(@params[3], out int amount)) {
                         target.GetHabbo().Duckets += amount;
                         target.SendPacket(new HabboActivityPointNotificationComposer(target.GetHabbo().Duckets, amount));
 
@@ -79,14 +73,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
 
                 case "diamonds":
                 {
-                    if (!session.GetHabbo().GetPermissions().HasCommand("command_give_diamonds"))
-                    {
+                    if (!session.GetHabbo().GetPermissions().HasCommand("command_give_diamonds")) {
                         session.SendWhisper("Oops, it appears that you do not have the permissions to use this command!");
                         break;
                     }
 
-                    if (int.TryParse(@params[3], out int amount))
-                    {
+                    if (int.TryParse(@params[3], out int amount)) {
                         target.GetHabbo().Diamonds += amount;
                         target.SendPacket(new HabboActivityPointNotificationComposer(target.GetHabbo().Diamonds, amount, 5));
 
@@ -103,14 +95,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
                 case "gotw":
                 case "gotwpoints":
                 {
-                    if (!session.GetHabbo().GetPermissions().HasCommand("command_give_gotw"))
-                    {
+                    if (!session.GetHabbo().GetPermissions().HasCommand("command_give_gotw")) {
                         session.SendWhisper("Oops, it appears that you do not have the permissions to use this command!");
                         break;
                     }
 
-                    if (int.TryParse(@params[3], out int amount))
-                    {
+                    if (int.TryParse(@params[3], out int amount)) {
                         target.GetHabbo().GotwPoints = target.GetHabbo().GotwPoints + amount;
                         target.SendPacket(new HabboActivityPointNotificationComposer(target.GetHabbo().GotwPoints, amount, 103));
 

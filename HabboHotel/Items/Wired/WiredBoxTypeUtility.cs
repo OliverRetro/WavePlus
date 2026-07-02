@@ -221,8 +221,7 @@ namespace Plus.HabboHotel.Items.Wired
 
             foreach (IWiredItem item in triggers)
             {
-                if (item.Type == WiredBoxType.TriggerRepeat)
-                {
+                if (item.Type == WiredBoxType.TriggerRepeat) {
                     if (!blockedItems.Contains(item.Item.GetBaseItem().SpriteId))
                         blockedItems.Add(item.Item.GetBaseItem().SpriteId);
                     else continue;
@@ -245,14 +244,11 @@ namespace Plus.HabboHotel.Items.Wired
 
             foreach (IWiredItem item in effects)
             {
-                if (item.Type == WiredBoxType.EffectKickUser || item.Type == WiredBoxType.EffectMuteTriggerer || item.Type == WiredBoxType.EffectShowMessage || item.Type == WiredBoxType.EffectTeleportToFurni || item.Type == WiredBoxType.EffectBotFollowsUserBox)
-                {
+                if (item.Type == WiredBoxType.EffectKickUser || item.Type == WiredBoxType.EffectMuteTriggerer || item.Type == WiredBoxType.EffectShowMessage || item.Type == WiredBoxType.EffectTeleportToFurni || item.Type == WiredBoxType.EffectBotFollowsUserBox) {
                     if (!blockedItems.Contains(item.Item.GetBaseItem().SpriteId))
                         blockedItems.Add(item.Item.GetBaseItem().SpriteId);
                     else continue;
-                }
-                else if ((item.Type == WiredBoxType.EffectMoveFurniToNearestUser && hasMoveRotate) || (item.Type == WiredBoxType.EffectMoveAndRotate && hasMoveNear))
-                {
+                } else if ((item.Type == WiredBoxType.EffectMoveFurniToNearestUser && hasMoveRotate) || (item.Type == WiredBoxType.EffectMoveAndRotate && hasMoveNear)) {
                     if (!blockedItems.Contains(item.Item.GetBaseItem().SpriteId))
                         blockedItems.Add(item.Item.GetBaseItem().SpriteId);
                     else continue;

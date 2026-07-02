@@ -38,8 +38,7 @@ namespace Plus.HabboHotel.Users.Badges
 
                 foreach (Badge badge in _badges.Values)
                 {
-                    if (badge.Slot <= 0)
-                    {
+                    if (badge.Slot <= 0) {
                         continue;
                     }
 
@@ -78,8 +77,7 @@ namespace Plus.HabboHotel.Users.Badges
             if (!PlusEnvironment.GetGame().GetBadgeManager().TryGetBadge(code.ToUpper(), out BadgeDefinition badge) || badge.RequiredRight.Length > 0 && !session.GetHabbo().GetPermissions().HasRight(badge.RequiredRight))
                 return;
 
-            if (inDatabase)
-            {
+            if (inDatabase) {
                 using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                 {
                     dbClient.SetQuery("REPLACE INTO `user_badges` (`user_id`,`badge_id`,`badge_slot`) VALUES (@userId, @badge, @slot)");
@@ -92,8 +90,7 @@ namespace Plus.HabboHotel.Users.Badges
 
             _badges.Add(code, new Badge(code, 0));
 
-            if (session != null)
-            {
+            if (session != null) {
                 session.SendPacket(new BadgesComposer(session.GetHabbo().GetBadgeComponent().GetBadges()));
                 session.SendPacket(new FurniListNotificationComposer(1, 4));
             }
@@ -109,8 +106,7 @@ namespace Plus.HabboHotel.Users.Badges
 
         public void RemoveBadge(string badge)
         {
-            if (!HasBadge(badge))
-            {
+            if (!HasBadge(badge)) {
                 return;
             }
 

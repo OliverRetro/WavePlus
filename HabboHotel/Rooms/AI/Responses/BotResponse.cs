@@ -26,8 +26,7 @@ namespace Plus.HabboHotel.Rooms.AI.Responses
             ResponseType = responseMode;
 
             BeverageIds = new List<int>();
-            if (responseBeverages.Contains(","))
-            {
+            if (responseBeverages.Contains(",")) {
                 foreach (string vendingId in responseBeverages.Split(','))
                 {
                     try
@@ -38,8 +37,7 @@ namespace Plus.HabboHotel.Rooms.AI.Responses
                     {
                     }
                 }
-            }
-            else if (!string.IsNullOrEmpty(responseBeverages) && (int.Parse(responseBeverages)) > 0)
+            } else if (!string.IsNullOrEmpty(responseBeverages) && (int.Parse(responseBeverages)) > 0)
                 BeverageIds.Add(int.Parse(responseBeverages));
         }
 

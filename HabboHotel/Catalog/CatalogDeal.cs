@@ -20,8 +20,7 @@ namespace Plus.HabboHotel.Catalog
             RoomId = roomId;
             ItemDataList = new List<CatalogItem>();
 
-            if (roomId != 0)
-            {
+            if (roomId != 0) {
                 DataTable data = null;
                 using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                 {
@@ -31,8 +30,7 @@ namespace Plus.HabboHotel.Catalog
                 }
 
                 Dictionary<int, int> roomItems = new();
-                if (data != null)
-                {
+                if (data != null) {
                     foreach (DataRow dRow in data.Rows)
                     {
                         int itemId = Convert.ToInt32(dRow["base_item"]);
@@ -48,8 +46,7 @@ namespace Plus.HabboHotel.Catalog
                     items += roomItem.Key + "*" + roomItem.Value + ";";
                 }
 
-                if (roomItems.Count > 0)
-                {
+                if (roomItems.Count > 0) {
                     items = items.Remove(items.Length - 1);
                 }
             }

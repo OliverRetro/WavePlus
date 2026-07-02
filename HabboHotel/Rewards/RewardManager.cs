@@ -25,8 +25,7 @@ namespace Plus.HabboHotel.Rewards
             {
                 dbClient.SetQuery("SELECT * FROM `server_rewards` WHERE enabled = '1'");
                 DataTable dTable = dbClient.GetTable();
-                if (dTable != null)
-                {
+                if (dTable != null) {
                     foreach (DataRow dRow in dTable.Rows)
                     {
                         _rewards.TryAdd((int) dRow["id"], new Reward(Convert.ToDouble(dRow["reward_start"]), Convert.ToDouble(dRow["reward_end"]), Convert.ToString(dRow["reward_type"]), Convert.ToString(dRow["reward_data"]), Convert.ToString(dRow["message"])));
@@ -35,8 +34,7 @@ namespace Plus.HabboHotel.Rewards
 
                 dbClient.SetQuery("SELECT * FROM `server_reward_logs`");
                 dTable = dbClient.GetTable();
-                if (dTable != null)
-                {
+                if (dTable != null) {
                     foreach (DataRow dRow in dTable.Rows)
                     {
                         int id = (int) dRow["user_id"];
@@ -87,8 +85,7 @@ namespace Plus.HabboHotel.Rewards
                 if (HasReward(session.GetHabbo().Id, id))
                     continue;
 
-                if (reward.Active)
-                {
+                if (reward.Active) {
                     switch (reward.Type)
                     {
                         case RewardType.Badge:
@@ -124,8 +121,7 @@ namespace Plus.HabboHotel.Rewards
                         session.SendNotification(reward.Message);
 
                     LogReward(session.GetHabbo().Id, id);
-                }
-                else
+                } else
                     continue;
             }
         }

@@ -26,8 +26,7 @@ namespace Plus.HabboHotel.Permissions
                 dbClient.SetQuery("SELECT * FROM `rp_weapons`");
                 DataTable getWeapons = dbClient.GetTable();
 
-                if (getWeapons != null)
-                {
+                if (getWeapons != null) {
                     foreach (DataRow row in getWeapons.Rows)
                     {
                         var weapon = new Weapon(
@@ -54,8 +53,7 @@ namespace Plus.HabboHotel.Permissions
                 dbClient.SetQuery("SELECT * FROM `rp_weapon_skins`");
                 DataTable getSkins = dbClient.GetTable();
 
-                if (getSkins != null)
-                {
+                if (getSkins != null) {
                     foreach (DataRow row in getSkins.Rows)
                     {
                         WeaponSkin skin = new(

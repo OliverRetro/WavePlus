@@ -17,8 +17,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator
             if (room == null)
                 return;
 
-            if (room.Group == null)
-            {
+            if (room.Group == null) {
                 session.SendWhisper("Oops, there is no group here?");
                 return;
             }

@@ -26,8 +26,7 @@ namespace Plus.HabboHotel.Users.Navigator.SavedSearches
                 dbClient.AddParameter("UserId", habbo.Id);
                 DataTable getSearches = dbClient.GetTable();
 
-                if (getSearches != null)
-                {
+                if (getSearches != null) {
                     foreach (DataRow row in getSearches.Rows)
                     {
                         _savedSearches.TryAdd(Convert.ToInt32(row["id"]), new SavedSearch(Convert.ToInt32(row["id"]), Convert.ToString(row["filter"]), Convert.ToString(row["search_code"])));

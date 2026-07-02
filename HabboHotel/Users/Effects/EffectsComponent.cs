@@ -32,12 +32,10 @@ namespace Plus.HabboHotel.Users.Effects
                 dbClient.AddParameter("id", habbo.Id);
                 DataTable getEffects = dbClient.GetTable();
 
-                if (getEffects != null)
-                {
+                if (getEffects != null) {
                     foreach (DataRow row in getEffects.Rows)
                     {
-                        if (_effects.TryAdd(Convert.ToInt32(row["id"]), new AvatarEffect(Convert.ToInt32(row["id"]), Convert.ToInt32(row["user_id"]), Convert.ToInt32(row["effect_id"]), Convert.ToDouble(row["total_duration"]), PlusEnvironment.EnumToBool(row["is_activated"].ToString()), Convert.ToDouble(row["activated_stamp"]), Convert.ToInt32(row["quantity"]))))
-                        {
+                        if (_effects.TryAdd(Convert.ToInt32(row["id"]), new AvatarEffect(Convert.ToInt32(row["id"]), Convert.ToInt32(row["user_id"]), Convert.ToInt32(row["effect_id"]), Convert.ToDouble(row["total_duration"]), PlusEnvironment.EnumToBool(row["is_activated"].ToString()), Convert.ToDouble(row["activated_stamp"]), Convert.ToInt32(row["quantity"])))) {
                             //umm?
                         }
                     }
@@ -77,8 +75,7 @@ namespace Plus.HabboHotel.Users.Effects
         {
             foreach (AvatarEffect effect in _effects.Values.ToList())
             {
-                if (!effect.HasExpired && effect.SpriteId == spriteId && (!activatedOnly || effect.Activated) && (!unactivatedOnly || !effect.Activated))
-                {
+                if (!effect.HasExpired && effect.SpriteId == spriteId && (!activatedOnly || effect.Activated) && (!unactivatedOnly || !effect.Activated)) {
                     return effect;
                 }
             }
@@ -94,8 +91,7 @@ namespace Plus.HabboHotel.Users.Effects
         {
             foreach (AvatarEffect effect in _effects.Values.ToList())
             {
-                if (effect.HasExpired)
-                {
+                if (effect.HasExpired) {
                     effect.HandleExpiration(habbo);
                 }
             }

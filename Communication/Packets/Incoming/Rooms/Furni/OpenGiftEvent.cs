@@ -38,8 +38,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
                 data = dbClient.GetRow();
             }
 
-            if (data == null)
-            {
+            if (data == null) {
                 session.SendNotification("Oops! Appears there was a bug with this gift.\nWe'll just get rid of it for you.");
                 room.GetRoomItemHandler().RemoveFurniture(null, present.Id);
 
@@ -53,8 +52,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
                 return;
             }
 
-            if (!int.TryParse(present.ExtraData.Split(Convert.ToChar(5))[2], out int purchaserId))
-            {
+            if (!int.TryParse(present.ExtraData.Split(Convert.ToChar(5))[2], out int purchaserId)) {
                 session.SendNotification("Oops! Appears there was a bug with this gift.\nWe'll just get rid of it for you.");
                 room.GetRoomItemHandler().RemoveFurniture(null, present.Id);
 
@@ -70,8 +68,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
             }
 
             UserCache purchaser = PlusEnvironment.GetGame().GetCacheManager().GenerateUser(purchaserId);
-            if (purchaser == null)
-            {
+            if (purchaser == null) {
                 session.SendNotification("Oops! Appears there was a bug with this gift.\nWe'll just get rid of it for you.");
                 room.GetRoomItemHandler().RemoveFurniture(null, present.Id);
 
@@ -85,8 +82,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
                 return;
             }
 
-            if (!PlusEnvironment.GetGame().GetItemManager().GetItem(Convert.ToInt32(data["base_id"]), out ItemData baseItem))
-            {
+            if (!PlusEnvironment.GetGame().GetItemManager().GetItem(Convert.ToInt32(data["base_id"]), out ItemData baseItem)) {
                 session.SendNotification("Oops, it appears that the item within the gift is no longer in the hotel!");
                 room.GetRoomItemHandler().RemoveFurniture(null, present.Id);
 
@@ -137,10 +133,8 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
                 present.ResetBaseItem();
                 present.ExtraData = (!string.IsNullOrEmpty(Convert.ToString(row["extra_data"])) ? Convert.ToString(row["extra_data"]) : "");
 
-                if (present.Data.Type == 's')
-                {
-                    if (!room.GetRoomItemHandler().SetFloorItem(session, present, present.GetX, present.GetY, present.Rotation, true, false, true))
-                    {
+                if (present.Data.Type == 's') {
+                    if (!room.GetRoomItemHandler().SetFloorItem(session, present, present.GetX, present.GetY, present.Rotation, true, false, true)) {
                         using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                         {
                             dbClient.SetQuery("UPDATE `items` SET `room_id` = '0' WHERE `id` = @itemId LIMIT 1");
@@ -150,9 +144,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
 
                         itemIsInRoom = false;
                     }
-                }
-                else
-                {
+                } else {
                     using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                     {
                         dbClient.SetQuery("UPDATE `items` SET `room_id` = '0' WHERE `id` = @itemId LIMIT 1");

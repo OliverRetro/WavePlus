@@ -30,8 +30,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Settings
                 if (item == null)
                     continue;
 
-                if (item.GetBaseItem().InteractionType == InteractionType.Moodlight)
-                {
+                if (item.GetBaseItem().InteractionType == InteractionType.Moodlight) {
                     using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                     {
                         dbClient.SetQuery("DELETE FROM `room_items_moodlight` WHERE `item_id` = @itemId LIMIT 1");

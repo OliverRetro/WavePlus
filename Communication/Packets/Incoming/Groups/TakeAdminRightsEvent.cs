@@ -21,19 +21,16 @@ namespace Plus.Communication.Packets.Incoming.Groups
                 return;
 
             Habbo habbo = PlusEnvironment.GetHabboById(userId);
-            if (habbo == null)
-            {
+            if (habbo == null) {
                 session.SendNotification("Oops, an error occurred whilst finding this user.");
                 return;
             }
 
             group.TakeAdmin(userId);
 
-            if (PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(group.RoomId, out Room room))
-            {
+            if (PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(group.RoomId, out Room room)) {
                 RoomUser user = room.GetRoomUserManager().GetRoomUserByHabbo(userId);
-                if (user != null)
-                {
+                if (user != null) {
                     if (user.Statusses.ContainsKey("flatctrl 3"))
                         user.RemoveStatus("flatctrl 3");
                     user.UpdateNeeded = true;

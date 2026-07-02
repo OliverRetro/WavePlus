@@ -39,8 +39,7 @@ namespace Plus.HabboHotel.Users.Effects
             {
                 double tl = (Activated ? Duration - TimeUsed : Duration);
 
-                if (tl < 0)
-                {
+                if (tl < 0) {
                     tl = 0;
                 }
 
@@ -79,14 +78,11 @@ namespace Plus.HabboHotel.Users.Effects
 
             using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
             {
-                if (Quantity < 1)
-                {
+                if (Quantity < 1) {
                     dbClient.SetQuery("DELETE FROM `user_effects` WHERE `id` = @id");
                     dbClient.AddParameter("id", Id);
                     dbClient.RunQuery();
-                }
-                else
-                {
+                } else {
                     dbClient.SetQuery("UPDATE `user_effects` SET `quantity` = @qt, `is_activated` = '0', `activated_stamp` = 0 WHERE `id` = @id");
                     dbClient.AddParameter("qt", Quantity);
                     dbClient.AddParameter("id", Id);

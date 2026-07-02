@@ -26,8 +26,7 @@ namespace Plus.HabboHotel.Catalog.Vouchers
                 data = dbClient.GetTable();
             }
 
-            if (data != null)
-            {
+            if (data != null) {
                 foreach (DataRow row in data.Rows)
                 {
                     _vouchers.Add(Convert.ToString(row["voucher"]), new Voucher(Convert.ToString(row["voucher"]), Convert.ToString(row["type"]), Convert.ToInt32(row["value"]), Convert.ToInt32(row["current_uses"]), Convert.ToInt32(row["max_uses"])));

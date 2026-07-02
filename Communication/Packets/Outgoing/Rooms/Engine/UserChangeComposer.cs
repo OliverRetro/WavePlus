@@ -28,16 +28,13 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Engine
 
         public override void Compose(ServerPacket packet)
         {
-            if (BotData == null)
-            {
+            if (BotData == null) {
                 packet.WriteInteger((Self) ? -1 : VirtualId);
                 packet.WriteString(User.GetClient().GetHabbo().Look);
                 packet.WriteString(User.GetClient().GetHabbo().Gender);
                 packet.WriteString(User.GetClient().GetHabbo().Motto);
                 packet.WriteInteger(User.GetClient().GetHabbo().GetStats().AchievementPoints);
-            }
-            else
-            {
+            } else {
                 packet.WriteInteger(VirtualId);
                 packet.WriteString(BotData.Look);
                 packet.WriteString(BotData.Gender);

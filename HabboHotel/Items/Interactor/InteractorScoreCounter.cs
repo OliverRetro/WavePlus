@@ -21,27 +21,20 @@ namespace Plus.HabboHotel.Items.Interactor
 
         public void OnTrigger(GameClient session, Item item, int request, bool hasRights)
         {
-            if (!hasRights)
-            {
+            if (!hasRights) {
                 return;
             }
 
             int oldValue = 0;
 
-            if (!int.TryParse(item.ExtraData, out oldValue))
-            {
+            if (!int.TryParse(item.ExtraData, out oldValue)) {
             }
 
-            if (request == 1)
-            {
+            if (request == 1) {
                 oldValue++;
-            }
-            else if (request == 2)
-            {
+            } else if (request == 2) {
                 oldValue--;
-            }
-            else if (request == 3)
-            {
+            } else if (request == 3) {
                 oldValue = 0;
             }
 
@@ -53,8 +46,7 @@ namespace Plus.HabboHotel.Items.Interactor
         {
             int oldValue = 0;
 
-            if (!int.TryParse(item.ExtraData, out oldValue))
-            {
+            if (!int.TryParse(item.ExtraData, out oldValue)) {
             }
 
             oldValue++;

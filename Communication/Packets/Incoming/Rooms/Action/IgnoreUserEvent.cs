@@ -26,8 +26,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Action
             if (session.GetHabbo().GetIgnores().TryGet(player.Id))
                 return;
 
-            if (session.GetHabbo().GetIgnores().TryAdd(player.Id))
-            {
+            if (session.GetHabbo().GetIgnores().TryAdd(player.Id)) {
                 using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                 {
                     dbClient.SetQuery("INSERT INTO `user_ignores` (`user_id`,`ignore_id`) VALUES(@uid,@ignoreId);");

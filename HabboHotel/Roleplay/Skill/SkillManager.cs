@@ -25,8 +25,7 @@ namespace Plus.HabboHotel.Permissions
                 dbClient.SetQuery("SELECT * FROM `rp_skills`");
                 DataTable getSkills = dbClient.GetTable();
 
-                if (getSkills != null)
-                {
+                if (getSkills != null) {
                     foreach (DataRow row in getSkills.Rows)
                     {
                         var skill = new Skill(
@@ -45,8 +44,7 @@ namespace Plus.HabboHotel.Permissions
                 dbClient.SetQuery("SELECT * FROM `rp_skills_levels`");
                 DataTable levelTable = dbClient.GetTable();
 
-                if (levelTable != null)
-                {
+                if (levelTable != null) {
                     foreach (DataRow row in levelTable.Rows)
                     {
                         int skillId = Convert.ToInt32(row["skill_id"]);

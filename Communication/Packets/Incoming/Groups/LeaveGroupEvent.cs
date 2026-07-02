@@ -20,8 +20,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
             if (!PlusEnvironment.GetGame().GetGroupManager().TryGetGroup(groupId, out Group group))
                 return;
 
-                if (group.CreatorId == userId)
-                {
+                if (group.CreatorId == userId) {
                     session.SendNotification("Oops, the group owner cannot leave the group.");
                     return;
                 }
@@ -29,8 +28,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
                 if (group.IsMember(userId))
                     group.DeleteMember(userId);
 
-                if (group.IsAdmin(userId))
-                {
+                if (group.IsAdmin(userId)) {
                     if (group.IsAdmin(userId))
                         group.TakeAdmin(userId);
 
@@ -38,8 +36,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
                         return;
 
                     RoomUser user = room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id);
-                    if (user != null)
-                    {
+                    if (user != null) {
                         user.RemoveStatus("flatctrl 1");
                         user.UpdateNeeded = true;
 
@@ -49,8 +46,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
                 }
 
                 session.SendPacket(new GroupInfoComposer(group, session));
-                if (session.GetHabbo().GetStats().FavouriteGroupId == groupId)
-                {
+                if (session.GetHabbo().GetStats().FavouriteGroupId == groupId) {
                     session.GetHabbo().GetStats().FavouriteGroupId = 0;
                     using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                     {
@@ -59,14 +55,12 @@ namespace Plus.Communication.Packets.Incoming.Groups
                         dbClient.RunQuery();
                     }
 
-                    if (group.AdminOnlyDeco == 0)
-                    {
+                    if (group.AdminOnlyDeco == 0) {
                         if (!PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(group.RoomId, out Room room))
                             return;
 
                         RoomUser user = room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id);
-                        if (user != null)
-                        {
+                        if (user != null) {
                             user.RemoveStatus("flatctrl 1");
                             user.UpdateNeeded = true;
 
@@ -75,8 +69,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
                         }
                     }
 
-                    if (session.GetHabbo().InRoom && session.GetHabbo().CurrentRoom != null)
-                    {
+                    if (session.GetHabbo().InRoom && session.GetHabbo().CurrentRoom != null) {
                         RoomUser user = session.GetHabbo().CurrentRoom.GetRoomUserManager()
                             .GetRoomUserByHabbo(session.GetHabbo().Id);
                         if (user != null)
@@ -84,21 +77,18 @@ namespace Plus.Communication.Packets.Incoming.Groups
                                 .SendPacket(new UpdateFavouriteGroupComposer(group, user.VirtualId));
                         session.GetHabbo().CurrentRoom
                             .SendPacket(new RefreshFavouriteGroupComposer(session.GetHabbo().Id));
-                    }
-                    else
+                    } else
                         session.SendPacket(new RefreshFavouriteGroupComposer(session.GetHabbo().Id));
                 }
 
-            if (group.CreatorId == session.GetHabbo().Id || group.IsAdmin(session.GetHabbo().Id))
-            {
+            if (group.CreatorId == session.GetHabbo().Id || group.IsAdmin(session.GetHabbo().Id)) {
                 if (!group.IsMember(userId))
                     return;
 
                 if (userId == group.CreatorId)
                     return;
 
-                if (group.IsAdmin(userId) && group.CreatorId != session.GetHabbo().Id)
-                {
+                if (group.IsAdmin(userId) && group.CreatorId != session.GetHabbo().Id) {
                     session.SendNotification(
                         "Sorry, only group creators can remove other administrators from the group.");
                     return;

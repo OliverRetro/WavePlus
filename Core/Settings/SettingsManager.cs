@@ -26,8 +26,7 @@ namespace Plus.Core.Settings
                 dbClient.SetQuery("SELECT * FROM `server_settings`");
                 DataTable table = dbClient.GetTable();
 
-                if (table != null)
-                {
+                if (table != null) {
                     foreach (DataRow row in table.Rows)
                     {
                         _settings.Add(row["key"].ToString().ToLower(), row["value"].ToString().ToLower());

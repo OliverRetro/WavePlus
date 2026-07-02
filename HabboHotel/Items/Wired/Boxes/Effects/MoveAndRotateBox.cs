@@ -78,8 +78,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
             if (_next == 0 || _next < PlusEnvironment.Now())
                 _next = PlusEnvironment.Now() + Delay;
 
-            if (!_requested)
-            {
+            if (!_requested) {
                 TickCount = Delay;
                 _requested = true;
             }
@@ -93,8 +92,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
                 return false;
 
             long now = PlusEnvironment.Now();
-            if (_next < now)
-            {
+            if (_next < now) {
                 foreach (Item item in SetItems.Values.ToList())
                 {
                     if (item == null)
@@ -115,8 +113,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
                     if (!Instance.GetGameMap().ItemCanMove(item, Point))
                         continue;
 
-                    if (Instance.GetGameMap().CanRollItemHere(Point.X, Point.Y) && !Instance.GetGameMap().SquareHasUsers(Point.X, Point.Y))
-                    {
+                    if (Instance.GetGameMap().CanRollItemHere(Point.X, Point.Y) && !Instance.GetGameMap().SquareHasUsers(Point.X, Point.Y)) {
                         double newZ = Instance.GetGameMap().GetHeightForSquareFromData(Point);
                         bool canBePlaced = true;
 
@@ -126,8 +123,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
                             if (IItem == null || IItem.Id == item.Id)
                                 continue;
 
-                            if (!IItem.GetBaseItem().Walkable)
-                            {
+                            if (!IItem.GetBaseItem().Walkable) {
                                 _next = 0;
                                 canBePlaced = false;
                                 break;
@@ -140,14 +136,12 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
                                 canBePlaced = false;
                         }
 
-                        if (newRot != item.Rotation)
-                        {
+                        if (newRot != item.Rotation) {
                             item.Rotation = newRot;
                             item.UpdateState(false, true);
                         }
 
-                        if (canBePlaced && Point != item.Coordinate)
-                        {
+                        if (canBePlaced && Point != item.Coordinate) {
                             Instance.SendPacket(new SlideObjectBundleComposer(item.GetX, item.GetY, item.GetZ, Point.X,
                                 Point.Y, newZ, 0, 0, item.Id));
                             Instance.GetRoomItemHandler().SetFloorItem(item, Point.X, Point.Y, newZ);
@@ -169,8 +163,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
                 case 1:
                 {
                     rotation += 2;
-                    if (rotation > 6)
-                    {
+                    if (rotation > 6) {
                         rotation = 0;
                     }
 
@@ -180,8 +173,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
                 case 2:
                 {
                     rotation -= 2;
-                    if (rotation < 0)
-                    {
+                    if (rotation < 0) {
                         rotation = 6;
                     }
 
@@ -190,19 +182,14 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
 
                 case 3:
                 {
-                    if (RandomNumber.GenerateRandom(0, 2) == 0)
-                    {
+                    if (RandomNumber.GenerateRandom(0, 2) == 0) {
                         rotation += 2;
-                        if (rotation > 6)
-                        {
+                        if (rotation > 6) {
                             rotation = 0;
                         }
-                    }
-                    else
-                    {
+                    } else {
                         rotation -= 2;
-                        if (rotation < 0)
-                        {
+                        if (rotation < 0) {
                             rotation = 6;
                         }
                     }
@@ -246,12 +233,9 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
                 }
                 case 2:
                 {
-                    if (RandomNumber.GenerateRandom(0, 2) == 1)
-                    {
+                    if (RandomNumber.GenerateRandom(0, 2) == 1) {
                         newPos = new Point(position.X - 1, position.Y);
-                    }
-                    else
-                    {
+                    } else {
                         newPos = new Point(position.X + 1, position.Y);
                     }
 
@@ -259,12 +243,9 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
                 }
                 case 3:
                 {
-                    if (RandomNumber.GenerateRandom(0, 2) == 1)
-                    {
+                    if (RandomNumber.GenerateRandom(0, 2) == 1) {
                         newPos = new Point(position.X, position.Y - 1);
-                    }
-                    else
-                    {
+                    } else {
                         newPos = new Point(position.X, position.Y + 1);
                     }
 

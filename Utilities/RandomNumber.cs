@@ -43,8 +43,7 @@ namespace Plus.Utilities
 
             max++;
 
-            if (inst == null)
-            {
+            if (inst == null) {
                 int seed;
                 lock (globalRandom)
                 {

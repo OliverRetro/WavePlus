@@ -22,8 +22,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni.Stickies
             if (item == null)
                 return;
 
-            if (item.GetBaseItem().InteractionType == InteractionType.PostIt || item.GetBaseItem().InteractionType == InteractionType.CameraPicture)
-            {
+            if (item.GetBaseItem().InteractionType == InteractionType.PostIt || item.GetBaseItem().InteractionType == InteractionType.CameraPicture) {
                 room.GetRoomItemHandler().RemoveFurniture(session, item.Id);
                 using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                 {

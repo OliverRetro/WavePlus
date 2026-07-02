@@ -23,44 +23,37 @@ namespace Plus.Communication.Packets.Incoming.Users
             char[] letters = name.ToLower().ToCharArray();
             const string allowedCharacters = "abcdefghijklmnopqrstuvwxyz.,_-;:?!1234567890";
 
-            if (letters.Any(chr => !allowedCharacters.Contains(chr)))
-            {
+            if (letters.Any(chr => !allowedCharacters.Contains(chr))) {
                 session.SendPacket(new NameChangeUpdateComposer(name, 4));
                 return;
             }
 
-            if (PlusEnvironment.GetGame().GetChatManager().GetFilter().IsFiltered(name))
-            {
+            if (PlusEnvironment.GetGame().GetChatManager().GetFilter().IsFiltered(name)) {
                 session.SendPacket(new NameChangeUpdateComposer(name, 4));
                 return;
             }
 
-            if (!session.GetHabbo().GetPermissions().HasRight("mod_tool") && name.ToLower().Contains("mod") || name.ToLower().Contains("adm") || name.ToLower().Contains("admin") || name.ToLower().Contains("m0d"))
-            {
+            if (!session.GetHabbo().GetPermissions().HasRight("mod_tool") && name.ToLower().Contains("mod") || name.ToLower().Contains("adm") || name.ToLower().Contains("admin") || name.ToLower().Contains("m0d")) {
                 session.SendPacket(new NameChangeUpdateComposer(name, 4));
                 return;
             }
 
-            if (!name.ToLower().Contains("mod") && (session.GetHabbo().Rank == 2 || session.GetHabbo().Rank == 3))
-            {
+            if (!name.ToLower().Contains("mod") && (session.GetHabbo().Rank == 2 || session.GetHabbo().Rank == 3)) {
                 session.SendPacket(new NameChangeUpdateComposer(name, 4));
                 return;
             }
 
-            if (name.Length > 15)
-            {
+            if (name.Length > 15) {
                 session.SendPacket(new NameChangeUpdateComposer(name, 3));
                 return;
             }
 
-            if (name.Length < 3)
-            {
+            if (name.Length < 3) {
                 session.SendPacket(new NameChangeUpdateComposer(name, 2));
                 return;
             }
 
-            if (inUse)
-            {
+            if (inUse) {
                 ICollection<string> suggestions = new List<string>();
                 for (int i = 100; i < 103; i++)
                 {

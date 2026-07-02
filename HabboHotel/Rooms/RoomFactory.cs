@@ -17,18 +17,13 @@ namespace Plus.HabboHotel.Rooms
                 dbClient.AddParameter("ownerid", ownerId);
                 DataTable rooms = dbClient.GetTable();
 
-                if (rooms != null)
-                {
+                if (rooms != null) {
                     foreach (DataRow row in rooms.Rows)
                     {
-                        if (PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(Convert.ToInt32(row["id"]), out Room room))
-                        {
+                        if (PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(Convert.ToInt32(row["id"]), out Room room)) {
                             data.Add(room);
-                        }
-                        else
-                        {
-                            if (!PlusEnvironment.GetGame().GetRoomManager().TryGetModel(Convert.ToString(row["model_name"]), out RoomModel model))
-                            {
+                        } else {
+                            if (!PlusEnvironment.GetGame().GetRoomManager().TryGetModel(Convert.ToString(row["model_name"]), out RoomModel model)) {
                                 continue;
                             }
 
@@ -51,8 +46,7 @@ namespace Plus.HabboHotel.Rooms
 
         public static bool TryGetData(int roomId, out RoomData data)
         {
-            if (PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(roomId, out Room room))
-            {
+            if (PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(roomId, out Room room)) {
                 data = room;
                 return true;
             }
@@ -63,10 +57,8 @@ namespace Plus.HabboHotel.Rooms
                 dbClient.AddParameter("id", roomId);
                 DataRow row = dbClient.GetRow();
 
-                if (row != null)
-                {
-                    if (!PlusEnvironment.GetGame().GetRoomManager().TryGetModel(Convert.ToString(row["model_name"]), out RoomModel model))
-                    {
+                if (row != null) {
+                    if (!PlusEnvironment.GetGame().GetRoomManager().TryGetModel(Convert.ToString(row["model_name"]), out RoomModel model)) {
                         data = null;
                         return false;
                     }

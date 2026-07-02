@@ -32,12 +32,10 @@ namespace Plus.HabboHotel.Users.Clothing
                 dbClient.AddParameter("id", habbo.Id);
                 DataTable getClothing = dbClient.GetTable();
 
-                if (getClothing != null)
-                {
+                if (getClothing != null) {
                     foreach (DataRow row in getClothing.Rows)
                     {
-                        if (_allClothing.TryAdd(Convert.ToInt32(row["part_id"]), new ClothingParts(Convert.ToInt32(row["id"]), Convert.ToInt32(row["part_id"]), Convert.ToString(row["part"]))))
-                        {
+                        if (_allClothing.TryAdd(Convert.ToInt32(row["part_id"]), new ClothingParts(Convert.ToInt32(row["id"]), Convert.ToInt32(row["part_id"]), Convert.ToString(row["part"])))) {
                             //umm?
                         }
                     }
@@ -52,8 +50,7 @@ namespace Plus.HabboHotel.Users.Clothing
         {
             foreach (int partId in partIds.ToList())
             {
-                if (!_allClothing.ContainsKey(partId))
-                {
+                if (!_allClothing.ContainsKey(partId)) {
                     int newId = 0;
                     using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                     {

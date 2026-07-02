@@ -34,8 +34,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.FloorPlan
                 return;
             }
 
-            if (map.Any(letter => !validLetters.Contains(letter)) || string.IsNullOrEmpty(map))
-            {
+            if (map.Any(letter => !validLetters.Contains(letter)) || string.IsNullOrEmpty(map)) {
                 session.SendPacket(new RoomNotificationComposer("floorplan_editor.error", "errors", "Oops, it appears that you have entered an invalid floor map!"));
                 return;
             }
@@ -45,8 +44,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.FloorPlan
             int sizeY = modelData.Length;
             int sizeX = modelData[0].Length;
 
-            if (sizeY > 64 || sizeX > 64)
-            {
+            if (sizeY > 64 || sizeX > 64) {
                 session.SendPacket(new RoomNotificationComposer("floorplan_editor.error", "errors", "The maximum height and width of a model is 64x64!"));
                 return;
             }
@@ -56,20 +54,17 @@ namespace Plus.Communication.Packets.Incoming.Rooms.FloorPlan
 
             foreach (var data in modelData)
             {
-                if (lastLineLength == 0)
-                {
+                if (lastLineLength == 0) {
                     lastLineLength = data.Length;
                     continue;
                 }
 
-                if (lastLineLength != data.Length)
-                {
+                if (lastLineLength != data.Length) {
                     isValid = false;
                 }
             }
 
-            if (!isValid)
-            {
+            if (!isValid) {
                 session.SendPacket(new RoomNotificationComposer("floorplan_editor.error", "errors", "Oops, it appears that you have entered an invalid floor map!"));
                 return;
             }
@@ -131,9 +126,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.FloorPlan
                     dbClient.AddParameter("Map", map);
                     dbClient.AddParameter("WallHeight", wallHeight);
                     dbClient.RunQuery();
-                }
-                else
-                {
+                } else {
                     dbClient.SetQuery("UPDATE `room_models` SET `heightmap` = @Map, `door_x` = @DoorX, `door_y` = @DoorY, `door_z` = @DoorZ,  `door_dir` = @DoorDirection, `wall_height` = @WallHeight WHERE `id` = @ModelName LIMIT 1");
                     dbClient.AddParameter("ModelName", "model_bc_" + room.Id);
                     dbClient.AddParameter("Map", map);

@@ -35,22 +35,17 @@ namespace Plus.HabboHotel.Rooms.Instance
                 if (selectedItem == null)
                     TryRemove(item.Key);
 
-                if (item.Value is IWiredCycle cycle)
-                {
-                    if (cycle.TickCount <= 0)
-                    {
+                if (item.Value is IWiredCycle cycle) {
+                    if (cycle.TickCount <= 0) {
                         cycle.OnCycle();
-                    }
-                    else
-                    {
+                    } else {
                         cycle.TickCount--;
                     }
                 }
             }
 
             TimeSpan span = (DateTime.Now - start);
-            if (span.Milliseconds > 400)
-            {
+            if (span.Milliseconds > 400) {
                 //log.Warn("<Room " + _room.Id + "> Wired took " + Span.TotalMilliseconds + "ms to execute - Rooms lagging behind");
             }
         }
@@ -65,10 +60,8 @@ namespace Plus.HabboHotel.Rooms.Instance
                 dbClient.AddParameter("id", item.Id);
                 DataRow row = dbClient.GetRow();
 
-                if (row != null)
-                {
-                    if (string.IsNullOrEmpty(Convert.ToString(row["string"])))
-                    {
+                if (row != null) {
+                    if (string.IsNullOrEmpty(Convert.ToString(row["string"]))) {
                         if (newBox.Type == WiredBoxType.ConditionMatchStateAndPosition || newBox.Type == WiredBoxType.ConditionDontMatchStateAndPosition)
                             newBox.StringData = "0;0;0";
                         else if (newBox.Type == WiredBoxType.ConditionUserCountInRoom || newBox.Type == WiredBoxType.ConditionUserCountDoesntInRoom)
@@ -85,8 +78,7 @@ namespace Plus.HabboHotel.Rooms.Instance
                     newBox.BoolData = Convert.ToInt32(row["bool"]) == 1;
                     newBox.ItemsData = Convert.ToString(row["items"]);
 
-                    if (newBox is IWiredCycle box)
-                    {
+                    if (newBox is IWiredCycle box) {
                         box.Delay = Convert.ToInt32(row["delay"]);
                     }
 
@@ -98,8 +90,7 @@ namespace Plus.HabboHotel.Rooms.Instance
                         if (str.Contains(':'))
                             sId = str.Split(':')[0];
 
-                        if (int.TryParse(str, out id) || int.TryParse(sId, out id))
-                        {
+                        if (int.TryParse(str, out id) || int.TryParse(sId, out id)) {
                             Item selectedItem = _room.GetRoomItemHandler().GetItem(Convert.ToInt32(id));
                             if (selectedItem == null)
                                 continue;
@@ -107,9 +98,7 @@ namespace Plus.HabboHotel.Rooms.Instance
                             newBox.SetItems.TryAdd(selectedItem.Id, selectedItem);
                         }
                     }
-                }
-                else
-                {
+                } else {
                     newBox.ItemsData = "";
                     newBox.StringData = "";
                     newBox.BoolData = false;
@@ -117,8 +106,7 @@ namespace Plus.HabboHotel.Rooms.Instance
                 }
             }
 
-            if (!AddBox(newBox))
-            {
+            if (!AddBox(newBox)) {
                 // ummm
             }
 
@@ -281,8 +269,7 @@ namespace Plus.HabboHotel.Rooms.Instance
 
             ICollection<IWiredItem> items = GetEffects(box).Where(x => x.Item.Id != box.Item.Id).ToList();
 
-            if (items != null && items.Count > 0)
-            {
+            if (items != null && items.Count > 0) {
                 foreach (IWiredItem item in items)
                 {
                     if (item.Type != WiredBoxType.EffectMoveAndRotate && item.Type != WiredBoxType.EffectMoveFurniFromNearestUser && item.Type != WiredBoxType.EffectMoveFurniToNearestUser)
@@ -305,16 +292,14 @@ namespace Plus.HabboHotel.Rooms.Instance
             bool finished = false;
             try
             {
-                if (type == WiredBoxType.TriggerUserSays)
-                {
+                if (type == WiredBoxType.TriggerUserSays) {
                     List<IWiredItem> ranBoxes = new();
                     foreach (IWiredItem box in _wiredItems.Values.ToList())
                     {
                         if (box == null)
                             continue;
 
-                        if (box.Type == WiredBoxType.TriggerUserSays)
-                        {
+                        if (box.Type == WiredBoxType.TriggerUserSays) {
                             if (!ranBoxes.Contains(box))
                                 ranBoxes.Add(box);
                         }
@@ -326,8 +311,7 @@ namespace Plus.HabboHotel.Rooms.Instance
                         if (box == null)
                             continue;
 
-                        if (message.Contains(" " + box.StringData) || message.Contains(box.StringData + " ") || message == box.StringData)
-                        {
+                        if (message.Contains(" " + box.StringData) || message.Contains(box.StringData + " ") || message == box.StringData) {
                             finished = box.Execute(@params);
                         }
                     }
@@ -340,8 +324,7 @@ namespace Plus.HabboHotel.Rooms.Instance
                     if (box == null)
                         continue;
 
-                    if (box.Type == type && IsTrigger(box.Item))
-                    {
+                    if (box.Type == type && IsTrigger(box.Item)) {
                         finished = box.Execute(@params);
                     }
                 }
@@ -360,8 +343,7 @@ namespace Plus.HabboHotel.Rooms.Instance
             List<IWiredItem> items = new();
             foreach (IWiredItem I in _wiredItems.Values)
             {
-                if (IsTrigger(I.Item) && I.Item.GetX == item.Item.GetX && I.Item.GetY == item.Item.GetY)
-                {
+                if (IsTrigger(I.Item) && I.Item.GetX == item.Item.GetX && I.Item.GetY == item.Item.GetY) {
                     items.Add(I);
                 }
             }
@@ -375,8 +357,7 @@ namespace Plus.HabboHotel.Rooms.Instance
 
             foreach (IWiredItem I in _wiredItems.Values)
             {
-                if (IsEffect(I.Item) && I.Item.GetX == item.Item.GetX && I.Item.GetY == item.Item.GetY)
-                {
+                if (IsEffect(I.Item) && I.Item.GetX == item.Item.GetX && I.Item.GetY == item.Item.GetY) {
                     items.Add(I);
                 }
             }
@@ -396,11 +377,9 @@ namespace Plus.HabboHotel.Rooms.Instance
 
             foreach (Point point in item.GetSides())
             {
-                if (room.GetGameMap().SquareHasUsers(point.X, point.Y))
-                {
+                if (room.GetGameMap().SquareHasUsers(point.X, point.Y)) {
                     List<RoomUser> users = room.GetGameMap().GetRoomUsers(point);
-                    if (users != null && users.Count > 0)
-                    {
+                    if (users != null && users.Count > 0) {
                         foreach (RoomUser user in users.ToList())
                         {
                             if (user == null)
@@ -408,11 +387,9 @@ namespace Plus.HabboHotel.Rooms.Instance
 
                             item.UserFurniCollision(user);
                         }
-                    }
-                    else
+                    } else
                         continue;
-                }
-                else
+                } else
                     continue;
             }
 
@@ -425,8 +402,7 @@ namespace Plus.HabboHotel.Rooms.Instance
 
             foreach (IWiredItem I in _wiredItems.Values)
             {
-                if (IsCondition(I.Item) && I.Item.GetX == item.Item.GetX && I.Item.GetY == item.Item.GetY)
-                {
+                if (IsCondition(I.Item) && I.Item.GetX == item.Item.GetX && I.Item.GetY == item.Item.GetY) {
                     items.Add(I);
                 }
             }
@@ -448,8 +424,7 @@ namespace Plus.HabboHotel.Rooms.Instance
         {
             string items = "";
             IWiredCycle cycle = null;
-            if (item is IWiredCycle wiredCycle)
-            {
+            if (item is IWiredCycle wiredCycle) {
                 cycle = wiredCycle;
             }
 

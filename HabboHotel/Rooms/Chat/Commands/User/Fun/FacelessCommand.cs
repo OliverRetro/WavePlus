@@ -22,8 +22,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Fun
             string[] figureParts = session.GetHabbo().Look.Split('.');
             foreach (string part in figureParts)
             {
-                if (part.StartsWith("hd"))
-                {
+                if (part.StartsWith("hd")) {
                     headParts = part.Split('-');
                     if (!headParts[1].Equals("99999"))
                         headParts[1] = "99999";

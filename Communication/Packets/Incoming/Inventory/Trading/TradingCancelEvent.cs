@@ -18,8 +18,7 @@ namespace Plus.Communication.Packets.Incoming.Inventory.Trading
             if (roomUser == null)
                 return;
 
-            if (!room.GetTrading().TryGetTrade(roomUser.TradeId, out Trade trade))
-            {
+            if (!room.GetTrading().TryGetTrade(roomUser.TradeId, out Trade trade)) {
                 session.SendPacket(new TradingClosedComposer(session.GetHabbo().Id));
                 return;
             }

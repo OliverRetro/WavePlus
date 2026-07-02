@@ -19,8 +19,7 @@ namespace Plus.Database
 
         public void Connect()
         {
-            if (_con.State == ConnectionState.Closed)
-            {
+            if (_con.State == ConnectionState.Closed) {
                 try
                 {
                     _con.Open();
@@ -34,8 +33,7 @@ namespace Plus.Database
 
         public void Disconnect()
         {
-            if (_con.State == ConnectionState.Open)
-            {
+            if (_con.State == ConnectionState.Open) {
                 _con.Close();
             }
         }
@@ -52,8 +50,7 @@ namespace Plus.Database
 
         public void Dispose()
         {
-            if (_con.State == ConnectionState.Open)
-            {
+            if (_con.State == ConnectionState.Open) {
                 _con.Close();
             }
 

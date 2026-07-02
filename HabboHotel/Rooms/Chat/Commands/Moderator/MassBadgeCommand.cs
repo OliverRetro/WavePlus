@@ -13,8 +13,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length == 1)
-            {
+            if (@params.Length == 1) {
                 session.SendWhisper("Please enter the code of the badge you'd like to give to the entire hotel.");
                 return;
             }
@@ -24,12 +23,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
                 if (client == null || client.GetHabbo() == null || client.GetHabbo().Username == session.GetHabbo().Username)
                     continue;
 
-                if (!client.GetHabbo().GetBadgeComponent().HasBadge(@params[1]))
-                {
+                if (!client.GetHabbo().GetBadgeComponent().HasBadge(@params[1])) {
                     client.GetHabbo().GetBadgeComponent().GiveBadge(@params[1], true, client);
                     client.SendNotification("You have just been given a badge!");
-                }
-                else
+                } else
                     client.SendWhisper(session.GetHabbo().Username + " tried to give you a badge, but you already have it!");
             }
 

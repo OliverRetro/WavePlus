@@ -21,8 +21,7 @@ namespace Plus.Communication.Packets.Incoming.Moderation
             bool setName = packet.PopInt() == 1;
             bool kickAll = packet.PopInt() == 1;
 
-            if (setName)
-            {
+            if (setName) {
                 room.Name = "Inappropriate to Hotel Management";
                 room.Description = "Inappropriate to Hotel Management";
             }
@@ -49,8 +48,7 @@ namespace Plus.Communication.Packets.Incoming.Moderation
             room.SendPacket(new RoomSettingsSavedComposer(room.RoomId));
             room.SendPacket(new RoomInfoUpdatedComposer(room.RoomId));
 
-            if (kickAll)
-            {
+            if (kickAll) {
                 foreach (RoomUser roomUser in room.GetRoomUserManager().GetUserList().ToList())
                 {
                     if (roomUser == null || roomUser.IsBot)

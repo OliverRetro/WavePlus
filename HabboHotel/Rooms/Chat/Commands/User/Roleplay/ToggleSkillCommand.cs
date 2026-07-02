@@ -18,16 +18,14 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length == 1)
-            {
+            if (@params.Length == 1) {
                 session.SendWhisper("Enter a Skill ID to toggle it.");
                 return;
             }
 
             int skillId = Convert.ToInt32(@params[1]);
 
-            if (session.GetHabbo().ToggleSkill(skillId))
-            {
+            if (session.GetHabbo().ToggleSkill(skillId)) {
                 Skill skill = PlusEnvironment.GetSkillManager().GetSkillById(skillId);
 
                 session.SendWhisper($"{skill.Name} is now {(session.GetHabbo().GetRpSkills().IsEquipped(skillId) ? "equipped" : "unequipped")}.", 1);

@@ -36,8 +36,7 @@ namespace Plus.HabboHotel.Rooms.Instance
                 dbClient.SetQuery("SELECT `user_id`, `expire` FROM `room_bans` WHERE `room_id` = " + _instance.Id + " AND `expire` > UNIX_TIMESTAMP();");
                 DataTable getBans = dbClient.GetTable();
 
-                if (getBans != null)
-                {
+                if (getBans != null) {
                     foreach (DataRow row in getBans.Rows)
                     {
                         _bans.TryAdd(Convert.ToInt32(row["user_id"]), Convert.ToDouble(row["expire"]));
@@ -73,8 +72,7 @@ namespace Plus.HabboHotel.Rooms.Instance
                 return false;
 
             double banTime = _bans[userId] - UnixTimestamp.GetNow();
-            if (banTime <= 0)
-            {
+            if (banTime <= 0) {
                 _bans.TryRemove(userId, out double time);
 
                 using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
@@ -96,8 +94,7 @@ namespace Plus.HabboHotel.Rooms.Instance
             if (!_bans.ContainsKey(userId))
                 return false;
 
-            if (_bans.TryRemove(userId, out double time))
-            {
+            if (_bans.TryRemove(userId, out double time)) {
                 using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                 {
                     dbClient.SetQuery("DELETE FROM `room_bans` WHERE `room_id` = @rid AND `user_id` = @uid;");
@@ -121,8 +118,7 @@ namespace Plus.HabboHotel.Rooms.Instance
                 dbClient.SetQuery("SELECT `user_id` FROM `room_bans` WHERE `room_id` = '" + _instance.Id + "' AND `expire` > UNIX_TIMESTAMP();");
                 DataTable getBans = dbClient.GetTable();
 
-                if (getBans != null)
-                {
+                if (getBans != null) {
                     foreach (DataRow row in getBans.Rows)
                     {
                         if (!bans.Contains(Convert.ToInt32(row["user_id"])))

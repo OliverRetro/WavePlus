@@ -44,13 +44,11 @@ namespace Plus
 
             while (true)
             {
-                if (Console.ReadKey(true).Key == ConsoleKey.Enter)
-                {
+                if (Console.ReadKey(true).Key == ConsoleKey.Enter) {
                     Console.Write("plus> ");
                     string input = Console.ReadLine();
 
-                    if (input.Length > 0)
-                    {
+                    if (input.Length > 0) {
                         string s = input.Split(' ')[0];
 
                         ConsoleCommands.InvokeCommand(s);

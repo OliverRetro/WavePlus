@@ -28,16 +28,13 @@ namespace Plus.Communication.Packets.Outgoing.Inventory.Trading
                     packet.WriteInteger(item.Id);
                     packet.WriteInteger(item.Data.SpriteId);
                     packet.WriteInteger(0); //Not sure.
-                    if (item.LimitedNo > 0)
-                    {
+                    if (item.LimitedNo > 0) {
                         packet.WriteBoolean(false); //Stackable
                         packet.WriteInteger(256);
                         packet.WriteString("");
                         packet.WriteInteger(item.LimitedNo);
                         packet.WriteInteger(item.LimitedTot);
-                    }
-                    else
-                    {
+                    } else {
                         packet.WriteBoolean(true); //Stackable
                         packet.WriteInteger(0);
                         packet.WriteString("");

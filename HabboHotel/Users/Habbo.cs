@@ -146,6 +146,7 @@ namespace Plus.HabboHotel.Users
         public int TempInt { get; set; }
         public double LastHitTime { get; set; }
         public double LastRobTime { get; set; }
+        public double LastWorkActionTime { get; set; }
         public double LastUserStatsUpdate { get; set; }
         public bool OnHelperDuty { get; set; }
         public HomeRoomDataState HomeRoomData { get; set; }
@@ -279,8 +280,7 @@ namespace Plus.HabboHotel.Users
                     "INSERT INTO `user_info` (`user_id`) VALUES (@user_id)",
                     query => query.AddParameter("user_id", id));
 
-                if (TradingLockExpiry > 0 && PlusEnvironment.GetUnixTimestamp() > TradingLockExpiry)
-                {
+                if (TradingLockExpiry > 0 && PlusEnvironment.GetUnixTimestamp() > TradingLockExpiry) {
                     TradingLockExpiry = 0;
                     dbClient.SetQuery("UPDATE `user_info` SET `trading_locked` = 0 WHERE `user_id` = @user_id LIMIT 1");
                     dbClient.AddParameter("user_id", id);
@@ -378,8 +378,7 @@ namespace Plus.HabboHotel.Users
                         Convert.ToInt32(statRow["forum_posts"])
                     );
 
-                    if (Convert.ToString(statRow["respectsTimestamp"]) != DateTime.Today.ToString("MM/dd"))
-                    {
+                    if (Convert.ToString(statRow["respectsTimestamp"]) != DateTime.Today.ToString("MM/dd")) {
                         _habboStats.RespectsTimestamp = DateTime.Today.ToString("MM/dd");
 
                         int dailyRespects = 10;
@@ -408,8 +407,7 @@ namespace Plus.HabboHotel.Users
                 dbClient.SetQuery("SELECT `chat_bubble_id` FROM `user_chat_bubbles` WHERE `user_id` = @user_id");
                 dbClient.AddParameter("user_id", id);
                 DataTable chatBubbleTable = dbClient.GetTable();
-                if (chatBubbleTable != null)
-                {
+                if (chatBubbleTable != null) {
                     foreach (DataRow row in chatBubbleTable.Rows)
                     {
                         int chatBubbleId = Convert.ToInt32(row["chat_bubble_id"]);
@@ -471,13 +469,13 @@ namespace Plus.HabboHotel.Users
 
             using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
             {
-                dbClient.SetQuery("SELECT `id`,`weapon_id`,`durability_left` FROM `user_rp_weapons` WHERE `user_id` = @user_id");
+                dbClient.SetQuery("SELECT * FROM `user_rp_weapons` WHERE `user_id` = @user_id");
                 dbClient.AddParameter("user_id", id);
                 DataTable weaponTable = dbClient.GetTable();
 
                 List<UserWeapon> loadedWeapons = new();
-                if (weaponTable != null)
-                {
+                if (weaponTable != null) {
+                    bool hasWeaponSlot = weaponTable.Columns.Contains("slot");
                     foreach (DataRow row in weaponTable.Rows)
                     {
                         int weaponId = Convert.ToInt32(row["weapon_id"]);
@@ -485,7 +483,8 @@ namespace Plus.HabboHotel.Users
                         if (weaponData == null)
                             continue;
 
-                        loadedWeapons.Add(new UserWeapon(Convert.ToInt32(row["id"]), id, weaponId, Convert.ToInt32(row["durability_left"]), weaponData));
+                        int weaponSlot = hasWeaponSlot && row["slot"] != DBNull.Value ? Convert.ToInt32(row["slot"]) : -1;
+                        loadedWeapons.Add(new UserWeapon(Convert.ToInt32(row["id"]), id, weaponId, Convert.ToInt32(row["durability_left"]), weaponData, false, weaponSlot));
                     }
                 }
 
@@ -501,8 +500,7 @@ namespace Plus.HabboHotel.Users
                 DataTable skinTable = dbClient.GetTable();
 
                 List<UserWeaponSkin> loadedSkins = new();
-                if (skinTable != null)
-                {
+                if (skinTable != null) {
                     foreach (DataRow row in skinTable.Rows)
                     {
                         WeaponSkin skinData = PlusEnvironment.GetWeaponManager().GetSkinById(Convert.ToInt32(row["skin_id"]));
@@ -524,8 +522,7 @@ namespace Plus.HabboHotel.Users
                 DataTable skillTable = dbClient.GetTable();
 
                 List<UserSkillData> loadedSkills = new();
-                if (skillTable != null)
-                {
+                if (skillTable != null) {
                     foreach (DataRow row in skillTable.Rows)
                     {
                         loadedSkills.Add(new UserSkillData(
@@ -541,13 +538,15 @@ namespace Plus.HabboHotel.Users
 
             using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
             {
-                dbClient.SetQuery("SELECT `id`,`item_id`,`uses`,`slot` FROM `user_rp_items` WHERE `user_id` = @user_id");
+                dbClient.SetQuery("SELECT * FROM `user_rp_items` WHERE `user_id` = @user_id");
                 dbClient.AddParameter("user_id", id);
                 DataTable itemTable = dbClient.GetTable();
 
                 List<UserRpItem> loadedItems = new();
-                if (itemTable != null)
-                {
+                if (itemTable != null) {
+                    bool hasSlot = itemTable.Columns.Contains("slot");
+                    bool hasDurability = itemTable.Columns.Contains("durability_left");
+                    bool hasEquipped = itemTable.Columns.Contains("equipped");
                     foreach (DataRow row in itemTable.Rows)
                     {
                         int itemId = Convert.ToInt32(row["item_id"]);
@@ -555,13 +554,20 @@ namespace Plus.HabboHotel.Users
                         if (itemData == null)
                             continue;
 
-                        int slot = row.Table.Columns.Contains("slot") && row["slot"] != DBNull.Value ? Convert.ToInt32(row["slot"]) : -1;
-                        loadedItems.Add(new UserRpItem(Convert.ToInt32(row["id"]), id, itemId, Convert.ToInt32(row["uses"]), itemData, slot));
+                        int slot = hasSlot && row["slot"] != DBNull.Value ? Convert.ToInt32(row["slot"]) : -1;
+                        int durabilityLeft = hasDurability && row["durability_left"] != DBNull.Value ? Convert.ToInt32(row["durability_left"]) : -1;
+                        bool equipped = hasEquipped && row["equipped"] != DBNull.Value && Convert.ToInt32(row["equipped"]) == 1;
+                        loadedItems.Add(new UserRpItem(Convert.ToInt32(row["id"]), id, itemId, Convert.ToInt32(row["uses"]), itemData, slot, durabilityLeft, equipped));
                     }
                 }
 
                 _rpItems = new UserRpItems(id, PlusEnvironment.GetRpItemManager(), loadedItems);
                 _rpItems.MarkSaved();
+
+                // Restore the equipped shield's durability into the live shield stat.
+                UserRpItem equippedShield = _rpItems.GetEquippedShield();
+                if (equippedShield != null && _rpStats != null)
+                    _rpStats.Shield = equippedShield.EffectiveDurability;
             }
 
             #endregion
@@ -623,8 +629,7 @@ namespace Plus.HabboHotel.Users
 
         public void LoadHomeRoomData(string data)
         {
-            if (string.IsNullOrWhiteSpace(data))
-            {
+            if (string.IsNullOrWhiteSpace(data)) {
                 HomeRoomData = null;
                 return;
             }
@@ -695,8 +700,7 @@ namespace Plus.HabboHotel.Users
 
             int targetX = HomeRoomData.x;
             int targetY = HomeRoomData.y;
-            if (!CurrentRoom.GetGameMap().ValidTile(targetX, targetY) || !CurrentRoom.GetGameMap().SquareIsOpen(targetX, targetY, false))
-            {
+            if (!CurrentRoom.GetGameMap().ValidTile(targetX, targetY) || !CurrentRoom.GetGameMap().SquareIsOpen(targetX, targetY, false)) {
                 PendingReconnectPlacement = false;
                 return;
             }
@@ -714,8 +718,7 @@ namespace Plus.HabboHotel.Users
             roomUser.UpdateNeeded = true;
             CurrentRoom.GetRoomUserManager().UpdateUserStatus(roomUser, false);
 
-            if (GetRpWeapons() != null && GetRpWeapons().SetActiveWeaponId(HomeRoomData.weapon))
-            {
+            if (GetRpWeapons() != null && GetRpWeapons().SetActiveWeaponId(HomeRoomData.weapon)) {
                 UserWeapon activeWeapon = GetRpWeapons().GetActiveWeapon();
                 UserWeaponSkin equippedSkin = GetRpWeaponSkins()?.GetEquippedSkinForWeapon(activeWeapon.WeaponId);
                 Effects().ApplyEffect(equippedSkin?.SkinData?.EffectId ?? activeWeapon.WeaponData.Effect);
@@ -800,17 +803,13 @@ namespace Plus.HabboHotel.Users
             if (!toggled || _rpStats == null)
                 return toggled;
 
-            if (isEquipped)
-            {
-                if (_rpStats.Health > 100)
-                {
+            if (isEquipped) {
+                if (_rpStats.Health > 100) {
                     CachedSkillHealth = _rpStats.Health;
                     HasCachedSkillHealth = true;
                     _rpStats.Health = 100;
                 }
-            }
-            else if (HasCachedSkillHealth)
-            {
+            } else if (HasCachedSkillHealth) {
                 if (CachedSkillHealth > _rpStats.Health)
                     _rpStats.Health = CachedSkillHealth;
 
@@ -917,24 +916,32 @@ namespace Plus.HabboHotel.Users
             {
                 using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                 {
+                    foreach (int removedId in _rpWeapons.RemovedIds.ToList())
+                    {
+                        dbClient.SetQuery("DELETE FROM `user_rp_weapons` WHERE `id` = @id LIMIT 1");
+                        dbClient.AddParameter("id", removedId);
+                        dbClient.RunQuery();
+                    }
+
                     foreach (UserWeapon weapon in _rpWeapons.Weapons.ToList())
                     {
                         if (weapon.IsDefault)
                             continue;
 
-                        if (weapon.Id > 0)
-                        {
-                            dbClient.SetQuery("UPDATE `user_rp_weapons` SET `durability_left` = @durability_left WHERE `id` = @id LIMIT 1");
+                        if (weapon.Id > 0) {
+                            dbClient.SetQuery("UPDATE `user_rp_weapons` SET `durability_left` = @durability_left, `slot` = @slot WHERE `id` = @id LIMIT 1");
                             dbClient.AddParameter("durability_left", weapon.DurabilityLeft);
+                            dbClient.AddParameter("slot", weapon.Slot);
                             dbClient.AddParameter("id", weapon.Id);
                             dbClient.RunQuery();
                             continue;
                         }
 
-                        dbClient.SetQuery("INSERT INTO `user_rp_weapons` (`user_id`, `weapon_id`, `durability_left`) VALUES (@user_id, @weapon_id, @durability_left)");
+                        dbClient.SetQuery("INSERT INTO `user_rp_weapons` (`user_id`, `weapon_id`, `durability_left`, `slot`) VALUES (@user_id, @weapon_id, @durability_left, @slot)");
                         dbClient.AddParameter("user_id", Id);
                         dbClient.AddParameter("weapon_id", weapon.WeaponId);
                         dbClient.AddParameter("durability_left", weapon.DurabilityLeft);
+                        dbClient.AddParameter("slot", weapon.Slot);
                         int oldId = weapon.Id;
                         weapon.Id = (int)dbClient.InsertQuery();
                         _rpWeapons.RekeyWeapon(oldId, weapon.Id);
@@ -967,21 +974,24 @@ namespace Plus.HabboHotel.Users
 
                     foreach (UserRpItem item in _rpItems.Items.ToList())
                     {
-                        if (item.Id > 0)
-                        {
-                            dbClient.SetQuery("UPDATE `user_rp_items` SET `uses` = @uses, `slot` = @slot WHERE `id` = @id LIMIT 1");
+                        if (item.Id > 0) {
+                            dbClient.SetQuery("UPDATE `user_rp_items` SET `uses` = @uses, `slot` = @slot, `durability_left` = @durability_left, `equipped` = @equipped WHERE `id` = @id LIMIT 1");
                             dbClient.AddParameter("uses", item.Uses);
                             dbClient.AddParameter("slot", item.Slot);
+                            dbClient.AddParameter("durability_left", item.DurabilityLeft);
+                            dbClient.AddParameter("equipped", item.Equipped ? 1 : 0);
                             dbClient.AddParameter("id", item.Id);
                             dbClient.RunQuery();
                             continue;
                         }
 
-                        dbClient.SetQuery("INSERT INTO `user_rp_items` (`user_id`, `item_id`, `uses`, `slot`) VALUES (@user_id, @item_id, @uses, @slot)");
+                        dbClient.SetQuery("INSERT INTO `user_rp_items` (`user_id`, `item_id`, `uses`, `slot`, `durability_left`, `equipped`) VALUES (@user_id, @item_id, @uses, @slot, @durability_left, @equipped)");
                         dbClient.AddParameter("user_id", Id);
                         dbClient.AddParameter("item_id", item.ItemId);
                         dbClient.AddParameter("uses", item.Uses);
                         dbClient.AddParameter("slot", item.Slot);
+                        dbClient.AddParameter("durability_left", item.DurabilityLeft);
+                        dbClient.AddParameter("equipped", item.Equipped ? 1 : 0);
                         int oldId = item.Id;
                         item.Id = (int)dbClient.InsertQuery();
                         _rpItems.RekeyItem(oldId, item.Id);
@@ -1007,8 +1017,7 @@ namespace Plus.HabboHotel.Users
                 {
                     foreach (UserWeaponSkin skin in _rpWeaponSkins.Skins)
                     {
-                        if (skin.Id > 0)
-                        {
+                        if (skin.Id > 0) {
                             dbClient.SetQuery("UPDATE `user_rp_weapon_skins` SET `equipped` = @equipped WHERE `id` = @id LIMIT 1");
                             dbClient.AddParameter("equipped", skin.Equipped ? 1 : 0);
                             dbClient.AddParameter("id", skin.Id);
@@ -1170,6 +1179,9 @@ namespace Plus.HabboHotel.Users
             PlusEnvironment.GetGame().GetMacroManager().Unload(Id);
             Plus.HabboHotel.Roleplay.TargetLock.TargetLockService.Clear(Id);
 
+            // Persist any buffered crime logs (the wanted cache itself is never saved).
+            PlusEnvironment.GetRpCrimeManager().FlushLogs(Id);
+
             if (GetRpStats()?.IsDead == true && GetRpStats().HospitalReleaseTime <= 0)
                 PlusEnvironment.GetHospitalManager().SkipBleedout(this);
 
@@ -1188,8 +1200,7 @@ namespace Plus.HabboHotel.Users
 
             PlusEnvironment.GetGame().GetClientManager().UnregisterClient(Id, Username);
 
-            if (!_habboSaved)
-            {
+            if (!_habboSaved) {
                 _habboSaved = true;
                 using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                 {
@@ -1233,8 +1244,7 @@ namespace Plus.HabboHotel.Users
             if (InRoom && CurrentRoom != null)
                 CurrentRoom.GetRoomUserManager().RemoveUserFromRoom(_client, false);
 
-            if (_messenger != null)
-            {
+            if (_messenger != null) {
                 _messenger.AppearOffline = true;
                 _messenger.Destroy();
             }
@@ -1257,13 +1267,11 @@ namespace Plus.HabboHotel.Users
             {
                 CreditsUpdateTick--;
 
-                if (CreditsUpdateTick <= 0)
-                {
+                if (CreditsUpdateTick <= 0) {
                     int creditUpdate = Convert.ToInt32(PlusEnvironment.GetSettingsManager().TryGetValue("user.currency_scheduler.credit_reward"));
                     int ducketUpdate = Convert.ToInt32(PlusEnvironment.GetSettingsManager().TryGetValue("user.currency_scheduler.ducket_reward"));
 
-                    if (PlusEnvironment.GetGame().GetSubscriptionManager().TryGetSubscriptionData(VipRank, out SubscriptionData subData))
-                    {
+                    if (PlusEnvironment.GetGame().GetSubscriptionManager().TryGetSubscriptionData(VipRank, out SubscriptionData subData)) {
                         creditUpdate += subData.Credits;
                         ducketUpdate += subData.Duckets;
                     }
@@ -1318,8 +1326,7 @@ namespace Plus.HabboHotel.Users
                 while (!cancellationToken.IsCancellationRequested)
                 {
                     SyncAggressionState();
-                    if ((_rpStats?.Aggression ?? 0) <= 0)
-                    {
+                    if ((_rpStats?.Aggression ?? 0) <= 0) {
                         ClearAggressionTimer();
                         return;
                     }
@@ -1431,33 +1438,26 @@ namespace Plus.HabboHotel.Users
             if (GetClient() == null || GetClient().GetHabbo() == null)
                 return;
 
-            if (GetClient().GetHabbo().InRoom)
-            {
-                if (!PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(GetClient().GetHabbo().CurrentRoomId, out Room oldRoom))
-                {
+            if (GetClient().GetHabbo().InRoom) {
+                if (!PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(GetClient().GetHabbo().CurrentRoomId, out Room oldRoom)) {
                     // Old room no longer loaded (unloaded while idle) — clear the stale room ID and continue.
                     GetClient().GetHabbo().CurrentRoomId = 0;
-                }
-                else if (oldRoom.GetRoomUserManager() != null)
-                {
+                } else if (oldRoom.GetRoomUserManager() != null) {
                     oldRoom.GetRoomUserManager().RemoveUserFromRoom(GetClient(), false);
                 }
             }
 
-            if (GetClient().GetHabbo().IsTeleporting && GetClient().GetHabbo().TeleportingRoomId != id)
-            {
+            if (GetClient().GetHabbo().IsTeleporting && GetClient().GetHabbo().TeleportingRoomId != id) {
                 GetClient().SendPacket(new CloseConnectionComposer());
                 return;
             }
 
-            if (!PlusEnvironment.GetGame().GetRoomManager().TryLoadRoom(id, out Room room))
-            {
+            if (!PlusEnvironment.GetGame().GetRoomManager().TryLoadRoom(id, out Room room)) {
                 GetClient().SendPacket(new CloseConnectionComposer());
                 return;
             }
 
-            if (room.IsCrashed)
-            {
+            if (room.IsCrashed) {
                 GetClient().SendNotification("This room has crashed! :(");
                 GetClient().SendPacket(new CloseConnectionComposer());
                 return;
@@ -1465,16 +1465,14 @@ namespace Plus.HabboHotel.Users
 
             GetClient().GetHabbo().CurrentRoomId = room.RoomId;
 
-            if (room.GetRoomUserManager().UserCount >= room.UsersMax && !GetClient().GetHabbo().GetPermissions().HasRight("room_enter_full") && GetClient().GetHabbo().Id != room.OwnerId)
-            {
+            if (room.GetRoomUserManager().UserCount >= room.UsersMax && !GetClient().GetHabbo().GetPermissions().HasRight("room_enter_full") && GetClient().GetHabbo().Id != room.OwnerId) {
                 GetClient().SendPacket(new CantConnectComposer(1));
                 GetClient().SendPacket(new CloseConnectionComposer());
                 return;
             }
 
 
-            if (!GetPermissions().HasRight("room_ban_override") && room.GetBans().IsBanned(Id))
-            {
+            if (!GetPermissions().HasRight("room_ban_override") && room.GetBans().IsBanned(Id)) {
                 RoomAuthOk = false;
                 GetClient().GetHabbo().RoomAuthOk = false;
                 GetClient().SendPacket(new CantConnectComposer(4));
@@ -1483,12 +1481,9 @@ namespace Plus.HabboHotel.Users
             }
 
             GetClient().SendPacket(new OpenConnectionComposer());
-            if (!room.CheckRights(GetClient(), true, true) && !GetClient().GetHabbo().IsTeleporting && !GetClient().GetHabbo().IsHopping)
-            {
-                if (room.Access == RoomAccess.Doorbell && !GetClient().GetHabbo().GetPermissions().HasRight("room_enter_locked"))
-                {
-                    if (room.UserCount > 0)
-                    {
+            if (!room.CheckRights(GetClient(), true, true) && !GetClient().GetHabbo().IsTeleporting && !GetClient().GetHabbo().IsHopping) {
+                if (room.Access == RoomAccess.Doorbell && !GetClient().GetHabbo().GetPermissions().HasRight("room_enter_locked")) {
+                    if (room.UserCount > 0) {
                         GetClient().SendPacket(new DoorbellComposer(""));
                         room.SendPacket(new DoorbellComposer(GetClient().GetHabbo().Username), true);
                         return;
@@ -1499,10 +1494,8 @@ namespace Plus.HabboHotel.Users
                     return;
                 }
 
-                if (room.Access == RoomAccess.Password && !GetClient().GetHabbo().GetPermissions().HasRight("room_enter_locked"))
-                {
-                    if (password.ToLower() != room.Password.ToLower() || string.IsNullOrWhiteSpace(password))
-                    {
+                if (room.Access == RoomAccess.Password && !GetClient().GetHabbo().GetPermissions().HasRight("room_enter_locked")) {
+                    if (password.ToLower() != room.Password.ToLower() || string.IsNullOrWhiteSpace(password)) {
                         GetClient().SendPacket(new GenericErrorComposer(-100002));
                         GetClient().SendPacket(new CloseConnectionComposer());
                         return;
@@ -1510,22 +1503,19 @@ namespace Plus.HabboHotel.Users
                 }
             }
 
-            if (!EnterRoom(room))
-            {
+            if (!EnterRoom(room)) {
                 GetClient().SendPacket(new CloseConnectionComposer());
             }
         }
 
         public bool EnterRoom(Room room)
         {
-            if (room == null)
-            {
+            if (room == null) {
                 GetClient().SendPacket(new CloseConnectionComposer());
                 return false;
             }
 
-            if (!RoomFactory.TryGetData(room.Id, out RoomData data))
-            {
+            if (!RoomFactory.TryGetData(room.Id, out RoomData data)) {
                 return false;
             }
 
@@ -1548,8 +1538,7 @@ namespace Plus.HabboHotel.Users
                 dbClient.RunQuery("INSERT INTO user_roomvisits (user_id,room_id,entry_timestamp,exit_timestamp,hour,minute) VALUES ('" + GetClient().GetHabbo().Id + "','" + GetClient().GetHabbo().CurrentRoomId + "','" + DateTimeOffset.UtcNow.ToUnixTimeSeconds() + "','0','" + DateTime.Now.Hour + "','" + DateTime.Now.Minute + "');"); // +
             }
 
-            if (room.OwnerId != Id)
-            {
+            if (room.OwnerId != Id) {
                 GetClient().GetHabbo().GetStats().RoomVisits += 1;
                 PlusEnvironment.GetGame().GetAchievementManager().ProgressAchievement(GetClient(), "ACH_RoomEntry", 1);
             }

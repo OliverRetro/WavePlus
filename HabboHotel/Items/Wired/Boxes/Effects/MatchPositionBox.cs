@@ -73,8 +73,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
 
         public bool Execute(params object[] @params)
         {
-            if (!_requested)
-            {
+            if (!_requested) {
                 TickCount = Delay;
                 _requested = true;
             }

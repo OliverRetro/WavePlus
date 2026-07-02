@@ -25,8 +25,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Action
             foreach (int userId in new List<int>(instance.UsersWithRights))
             {
                 RoomUser user = instance.GetRoomUserManager().GetRoomUserByHabbo(userId);
-                if (user != null && !user.IsBot)
-                {
+                if (user != null && !user.IsBot) {
                     user.RemoveStatus("flatctrl 1");
                     user.UpdateNeeded = true;
 

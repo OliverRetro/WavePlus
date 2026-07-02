@@ -14,8 +14,7 @@ namespace Plus.HabboHotel.Items
                 dbClient.SetQuery("SELECT `tele_two_id` FROM `room_items_tele_links` WHERE `tele_one_id` = '" + teleId + "' LIMIT 1");
                 DataRow row = dbClient.GetRow();
 
-                if (row == null)
-                {
+                if (row == null) {
                     return 0;
                 }
 
@@ -33,8 +32,7 @@ namespace Plus.HabboHotel.Items
                 dbClient.SetQuery("SELECT `room_id` FROM `items` WHERE `id` = " + teleId + " LIMIT 1");
                 DataRow row = dbClient.GetRow();
 
-                if (row == null)
-                {
+                if (row == null) {
                     return 0;
                 }
 
@@ -46,8 +44,7 @@ namespace Plus.HabboHotel.Items
         {
             int linkId = GetLinkedTele(teleId);
 
-            if (linkId == 0)
-            {
+            if (linkId == 0) {
                 return false;
             }
 
@@ -58,8 +55,7 @@ namespace Plus.HabboHotel.Items
 
             int roomId = GetTeleRoomId(linkId, pRoom);
 
-            if (roomId == 0)
-            {
+            if (roomId == 0) {
                 return false;
             }
 

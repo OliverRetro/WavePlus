@@ -16,8 +16,7 @@ namespace Plus.HabboHotel.Achievements
                 dbClient.SetQuery("SELECT `id`,`category`,`group_name`,`level`,`reward_pixels`,`reward_points`,`progress_needed`,`game_id` FROM `achievements`");
                 DataTable table = dbClient.GetTable();
 
-                if (table != null)
-                {
+                if (table != null) {
                     foreach (DataRow row in table.Rows)
                     {
                         int id = Convert.ToInt32(row["id"]);
@@ -29,13 +28,11 @@ namespace Plus.HabboHotel.Achievements
 
                         AchievementLevel level = new(Convert.ToInt32(row["level"]), rewardPixels, rewardPoints, progressNeeded);
 
-                        if (!achievements.ContainsKey(groupName))
-                        {
+                        if (!achievements.ContainsKey(groupName)) {
                             Achievement achievement = new(id, groupName, category, Convert.ToInt32(row["game_id"]));
                             achievement.AddLevel(level);
                             achievements.Add(groupName, achievement);
-                        }
-                        else
+                        } else
                             achievements[groupName].AddLevel(level);
                     }
                 }

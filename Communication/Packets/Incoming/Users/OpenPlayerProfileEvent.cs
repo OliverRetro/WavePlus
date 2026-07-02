@@ -16,8 +16,7 @@ namespace Plus.Communication.Packets.Incoming.Users
             packet.PopBoolean(); //IsMe?
 
             Habbo targetData = PlusEnvironment.GetHabboById(userId);
-            if (targetData == null)
-            {
+            if (targetData == null) {
                 session.SendNotification("An error occurred while finding that user's profile.");
                 return;
             }

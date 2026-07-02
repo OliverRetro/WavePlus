@@ -25,20 +25,17 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
                 row = dbClient.GetRow();
             }
 
-            if (row == null)
-            {
+            if (row == null) {
                 session.SendPacket(new MarketplaceCancelOfferResultComposer(offerId, false));
                 return;
             }
 
-            if (Convert.ToInt32(row["user_id"]) != session.GetHabbo().Id)
-            {
+            if (Convert.ToInt32(row["user_id"]) != session.GetHabbo().Id) {
                 session.SendPacket(new MarketplaceCancelOfferResultComposer(offerId, false));
                 return;
             }
 
-            if (!PlusEnvironment.GetGame().GetItemManager().GetItem(Convert.ToInt32(row["item_id"]), out ItemData item))
-            {
+            if (!PlusEnvironment.GetGame().GetItemManager().GetItem(Convert.ToInt32(row["item_id"]), out ItemData item)) {
                 session.SendPacket(new MarketplaceCancelOfferResultComposer(offerId, false));
                 return;
             }

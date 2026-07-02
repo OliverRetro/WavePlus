@@ -31,8 +31,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Pets.Commands
                 dbClient.SetQuery("SELECT * FROM `bots_pet_commands`");
                 DataTable table = dbClient.GetTable();
 
-                if (table != null)
-                {
+                if (table != null) {
                     foreach (DataRow row in table.Rows)
                     {
                         _commandRegister.Add(Convert.ToInt32(row[0]), row[1].ToString());

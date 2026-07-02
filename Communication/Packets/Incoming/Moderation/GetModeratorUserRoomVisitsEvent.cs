@@ -27,8 +27,7 @@ namespace Plus.Communication.Packets.Incoming.Moderation
                 dbClient.AddParameter("id", userId);
                 DataTable table = dbClient.GetTable();
 
-                if (table != null)
-                {
+                if (table != null) {
                     foreach (DataRow row in table.Rows)
                     {
                         if (!RoomFactory.TryGetData(Convert.ToInt32(row["room_id"]), out RoomData data))

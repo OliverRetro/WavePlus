@@ -63,8 +63,7 @@ namespace Plus.HabboHotel.Cache.Process
                 if (_disabled)
                     return;
 
-                if (_timerRunning)
-                {
+                if (_timerRunning) {
                     _timerLagging = true;
                     return;
                 }
@@ -73,8 +72,7 @@ namespace Plus.HabboHotel.Cache.Process
 
                 // BEGIN CODE
                 List<UserCache> cacheList = PlusEnvironment.GetGame().GetCacheManager().GetUserCache().ToList();
-                if (cacheList.Count > 0)
-                {
+                if (cacheList.Count > 0) {
                     foreach (UserCache cache in cacheList)
                     {
                         try
@@ -93,8 +91,7 @@ namespace Plus.HabboHotel.Cache.Process
                 }
 
                 List<Habbo> cachedUsers = PlusEnvironment.GetUsersCached().ToList();
-                if (cachedUsers.Count > 0)
-                {
+                if (cachedUsers.Count > 0) {
                     foreach (Habbo data in cachedUsers)
                     {
                         try

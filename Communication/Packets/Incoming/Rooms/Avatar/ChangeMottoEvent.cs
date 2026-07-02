@@ -12,14 +12,12 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Avatar
     {
         public void Parse(GameClient session, ClientPacket packet)
         {
-            if (session.GetHabbo().TimeMuted > 0)
-            {
+            if (session.GetHabbo().TimeMuted > 0) {
                 session.SendNotification("Oops, you're currently muted - you cannot change your motto.");
                 return;
             }
 
-            if ((DateTime.Now - session.GetHabbo().LastMottoUpdateTime).TotalSeconds <= 2.0)
-            {
+            if ((DateTime.Now - session.GetHabbo().LastMottoUpdateTime).TotalSeconds <= 2.0) {
                 session.GetHabbo().MottoUpdateWarnings += 1;
                 if (session.GetHabbo().MottoUpdateWarnings >= 25)
                     session.GetHabbo().SessionMottoBlocked = true;
@@ -55,8 +53,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Avatar
             PlusEnvironment.GetGame().GetQuestManager().ProgressUserQuest(session, QuestType.ProfileChangeMotto);
             PlusEnvironment.GetGame().GetAchievementManager().ProgressAchievement(session, "ACH_Motto", 1);
 
-            if (session.GetHabbo().InRoom)
-            {
+            if (session.GetHabbo().InRoom) {
                 Room room = session.GetHabbo().CurrentRoom;
 
                 RoomUser user = room?.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id);

@@ -17,7 +17,7 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Notifications
         public BubbleAlertComposer(string errorKey, string message)
             : this(errorKey, new Dictionary<string, string>
             {
-                ["message"] = message
+                { "message", message }
             })
         {
         }
@@ -32,10 +32,10 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Notifications
             packet.WriteString(ErrorKey);
             packet.WriteInteger(Keys.Count);
 
-            foreach (KeyValuePair<string, string> entry in Keys)
+            foreach (var kvp in Keys)
             {
-                packet.WriteString(entry.Key);
-                packet.WriteString(entry.Value);
+                packet.WriteString(kvp.Key);
+                packet.WriteString(kvp.Value);
             }
         }
     }

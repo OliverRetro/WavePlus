@@ -35,8 +35,7 @@ namespace Plus.HabboHotel.Rooms.Games
 
             for (int i = 1; i < 5; i++)
             {
-                if (Points[i] > highestScore)
-                {
+                if (Points[i] > highestScore) {
                     highestScore = Points[i];
                     winning = i;
                 }
@@ -55,8 +54,7 @@ namespace Plus.HabboHotel.Rooms.Games
 
             foreach (Item item in GetFurniItems(team).Values.ToList())
             {
-                if (!IsFootballGoal(item.GetBaseItem().InteractionType))
-                {
+                if (!IsFootballGoal(item.GetBaseItem().InteractionType)) {
                     item.ExtraData = Points[Convert.ToInt32(team)].ToString();
                     item.UpdateState();
                 }
@@ -64,23 +62,16 @@ namespace Plus.HabboHotel.Rooms.Games
 
             foreach (Item item in _room.GetRoomItemHandler().GetFloor.ToList())
             {
-                if (team == Team.Blue && item.Data.InteractionType == InteractionType.BanzaiScoreBlue)
-                {
+                if (team == Team.Blue && item.Data.InteractionType == InteractionType.BanzaiScoreBlue) {
                     item.ExtraData = Points[Convert.ToInt32(team)].ToString();
                     item.UpdateState();
-                }
-                else if (team == Team.Red && item.Data.InteractionType == InteractionType.BanzaiScoreRed)
-                {
+                } else if (team == Team.Red && item.Data.InteractionType == InteractionType.BanzaiScoreRed) {
                     item.ExtraData = Points[Convert.ToInt32(team)].ToString();
                     item.UpdateState();
-                }
-                else if (team == Team.Green && item.Data.InteractionType == InteractionType.BanzaiScoreGreen)
-                {
+                } else if (team == Team.Green && item.Data.InteractionType == InteractionType.BanzaiScoreGreen) {
                     item.ExtraData = Points[Convert.ToInt32(team)].ToString();
                     item.UpdateState();
-                }
-                else if (team == Team.Yellow && item.Data.InteractionType == InteractionType.BanzaiScoreYellow)
-                {
+                } else if (team == Team.Yellow && item.Data.InteractionType == InteractionType.BanzaiScoreYellow) {
                     item.ExtraData = Points[Convert.ToInt32(team)].ToString();
                     item.UpdateState();
                 }

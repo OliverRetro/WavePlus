@@ -27,8 +27,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Styles
                 dbClient.SetQuery("SELECT * FROM `room_chat_styles`;");
                 DataTable table = dbClient.GetTable();
 
-                if (table != null)
-                {
+                if (table != null) {
                     foreach (DataRow row in table.Rows)
                     {
                         try

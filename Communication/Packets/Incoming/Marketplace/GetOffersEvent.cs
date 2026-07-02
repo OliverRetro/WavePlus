@@ -45,8 +45,7 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
             {
                 dbClient.SetQuery("SELECT `offer_id`, `item_type`, `sprite_id`, `total_price`, `limited_number`,`limited_stack` FROM `catalog_marketplace_offers` " + builder + " " + str + " LIMIT 500");
                 dbClient.AddParameter("search_query", "%" + searchQuery + "%");
-                if (searchQuery.Length >= 1)
-                {
+                if (searchQuery.Length >= 1) {
                     builder.Append(" AND `public_name` LIKE @search_query");
                 }
 
@@ -55,12 +54,10 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
 
             PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItems.Clear();
             PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItemKeys.Clear();
-            if (table != null)
-            {
+            if (table != null) {
                 foreach (DataRow row in table.Rows)
                 {
-                    if (!PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItemKeys.Contains(Convert.ToInt32(row["offer_id"])))
-                    {
+                    if (!PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItemKeys.Contains(Convert.ToInt32(row["offer_id"]))) {
                         PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItemKeys.Add(Convert.ToInt32(row["offer_id"]));
                         PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItems.Add(new MarketOffer(Convert.ToInt32(row["offer_id"]), Convert.ToInt32(row["sprite_id"]), Convert.ToInt32(row["total_price"]), int.Parse(row["item_type"].ToString()), Convert.ToInt32(row["limited_number"]), Convert.ToInt32(row["limited_stack"])));
                     }
@@ -72,19 +69,14 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
 
             foreach (MarketOffer item in PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItems)
             {
-                if (dictionary.ContainsKey(item.SpriteId))
-                {
-                    if (item.LimitedNumber > 0)
-                    {
+                if (dictionary.ContainsKey(item.SpriteId)) {
+                    if (item.LimitedNumber > 0) {
                         if (!dictionary.ContainsKey(item.OfferId))
                             dictionary.Add(item.OfferId, item);
                         if (!dictionary2.ContainsKey(item.OfferId))
                             dictionary2.Add(item.OfferId, 1);
-                    }
-                    else
-                    {
-                        if (dictionary[item.SpriteId].TotalPrice > item.TotalPrice)
-                        {
+                    } else {
+                        if (dictionary[item.SpriteId].TotalPrice > item.TotalPrice) {
                             dictionary.Remove(item.SpriteId);
                             dictionary.Add(item.SpriteId, item);
                         }
@@ -93,9 +85,7 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
                         dictionary2.Remove(item.SpriteId);
                         dictionary2.Add(item.SpriteId, num + 1);
                     }
-                }
-                else
-                {
+                } else {
                     if (!dictionary.ContainsKey(item.SpriteId))
                         dictionary.Add(item.SpriteId, item);
                     if (!dictionary2.ContainsKey(item.SpriteId))

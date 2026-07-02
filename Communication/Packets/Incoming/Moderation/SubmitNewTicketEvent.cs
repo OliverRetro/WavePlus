@@ -16,11 +16,9 @@ namespace Plus.Communication.Packets.Incoming.Moderation
                 return;
 
             // Run a quick check to see if we have any existing tickets.
-            if (PlusEnvironment.GetGame().GetModerationManager().UserHasTickets(session.GetHabbo().Id))
-            {
+            if (PlusEnvironment.GetGame().GetModerationManager().UserHasTickets(session.GetHabbo().Id)) {
                 ModerationTicket pendingTicket = PlusEnvironment.GetGame().GetModerationManager().GetTicketBySenderId(session.GetHabbo().Id);
-                if (pendingTicket != null)
-                {
+                if (pendingTicket != null) {
                     session.SendPacket(new CallForHelpPendingCallsComposer(pendingTicket));
                     return;
                 }
@@ -34,8 +32,7 @@ namespace Plus.Communication.Packets.Incoming.Moderation
             int type = packet.PopInt(); // Unsure on what this actually is.
 
             Habbo reportedUser = PlusEnvironment.GetHabboById(reportedUserId);
-            if (reportedUser == null)
-            {
+            if (reportedUser == null) {
                 // User doesn't exist.
                 return;
             }

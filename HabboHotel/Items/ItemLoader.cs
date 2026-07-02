@@ -18,12 +18,10 @@ namespace Plus.HabboHotel.Items
                 dbClient.AddParameter("rid", roomId);
                 DataTable data = dbClient.GetTable();
 
-                if (data != null)
-                {
+                if (data != null) {
                     foreach (DataRow row in data.Rows)
                     {
-                        if (PlusEnvironment.GetGame().GetItemManager().GetItem(Convert.ToInt32(row["base_item"]), out ItemData Data))
-                        {
+                        if (PlusEnvironment.GetGame().GetItemManager().GetItem(Convert.ToInt32(row["base_item"]), out ItemData Data)) {
                             items.Add(new Item(Convert.ToInt32(row["id"]), Convert.ToInt32(row["room_id"]), Convert.ToInt32(row["base_item"]), Convert.ToString(row["extra_data"]),
                                 Convert.ToInt32(row["x"]), Convert.ToInt32(row["y"]), Convert.ToDouble(row["z"]), Convert.ToInt32(row["rot"]), Convert.ToInt32(row["user_id"]),
                                 Convert.ToInt32(row["group_id"]), Convert.ToInt32(row["limited_number"]), Convert.ToInt32(row["limited_stack"]), Convert.ToString(row["wall_pos"]), room));
@@ -45,12 +43,10 @@ namespace Plus.HabboHotel.Items
                 dbClient.AddParameter("uid", userId);
                 DataTable items = dbClient.GetTable();
 
-                if (items != null)
-                {
+                if (items != null) {
                     foreach (DataRow row in items.Rows)
                     {
-                        if (PlusEnvironment.GetGame().GetItemManager().GetItem(Convert.ToInt32(row["base_item"]), out ItemData data))
-                        {
+                        if (PlusEnvironment.GetGame().GetItemManager().GetItem(Convert.ToInt32(row["base_item"]), out ItemData data)) {
                             I.Add(new Item(Convert.ToInt32(row["id"]), Convert.ToInt32(row["room_id"]), Convert.ToInt32(row["base_item"]), Convert.ToString(row["extra_data"]),
                                 Convert.ToInt32(row["x"]), Convert.ToInt32(row["y"]), Convert.ToDouble(row["z"]), Convert.ToInt32(row["rot"]), Convert.ToInt32(row["user_id"]),
                                 Convert.ToInt32(row["group_id"]), Convert.ToInt32(row["limited_number"]), Convert.ToInt32(row["limited_stack"]), Convert.ToString(row["wall_pos"])));

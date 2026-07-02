@@ -16,8 +16,7 @@ namespace Plus.HabboHotel.Users.Inventory.Bots
                 dbClient.SetQuery("SELECT `id`,`user_id`,`name`,`motto`,`look`,`gender`FROM `bots` WHERE `user_id` = '" + userId + "' AND `room_id` = '0' AND `ai_type` != 'pet'");
                 DataTable dBots = dbClient.GetTable();
 
-                if (dBots != null)
-                {
+                if (dBots != null) {
                     foreach (DataRow dRow in dBots.Rows)
                     {
                         b.Add(new Bot(Convert.ToInt32(dRow["id"]), Convert.ToInt32(dRow["user_id"]), Convert.ToString(dRow["name"]),

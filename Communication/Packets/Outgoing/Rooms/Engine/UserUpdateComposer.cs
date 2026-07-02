@@ -35,8 +35,7 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Engine
                 {
                     statusComposer.Append(status.Key);
 
-                    if (!string.IsNullOrEmpty(status.Value))
-                    {
+                    if (!string.IsNullOrEmpty(status.Value)) {
                         statusComposer.Append(" ");
                         statusComposer.Append(status.Value);
                     }

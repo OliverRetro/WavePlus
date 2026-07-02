@@ -29,8 +29,7 @@ namespace Plus.HabboHotel.Items
                 dbClient.SetQuery("SELECT * FROM `furniture`");
                 DataTable itemData = dbClient.GetTable();
 
-                if (itemData != null)
-                {
+                if (itemData != null) {
                     foreach (DataRow row in itemData.Rows)
                     {
                         try

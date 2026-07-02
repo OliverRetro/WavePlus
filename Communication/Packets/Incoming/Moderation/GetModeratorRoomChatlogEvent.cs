@@ -23,8 +23,7 @@ namespace Plus.Communication.Packets.Incoming.Moderation
             packet.PopInt(); //junk
             int roomId = packet.PopInt();
 
-            if (!PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(roomId, out Room room))
-            {
+            if (!PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(roomId, out Room room)) {
                 return;
             }
 
@@ -38,14 +37,12 @@ namespace Plus.Communication.Packets.Incoming.Moderation
                 dbClient.AddParameter("id", roomId);
                 var data = dbClient.GetTable();
 
-                if (data != null)
-                {
+                if (data != null) {
                     foreach (DataRow row in data.Rows)
                     {
                         Habbo habbo = PlusEnvironment.GetHabboById(Convert.ToInt32(row["user_id"]));
 
-                        if (habbo != null)
-                        {
+                        if (habbo != null) {
                             chats.Add(new ChatLogEntry(Convert.ToInt32(row["user_id"]), roomId, Convert.ToString(row["message"]), Convert.ToDouble(row["timestamp"]), habbo));
                         }
                     }

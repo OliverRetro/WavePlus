@@ -79,8 +79,7 @@ namespace Plus.HabboHotel.Rooms.AI
         {
             Experience += amount;
 
-            if (Experience > 150000)
-            {
+            if (Experience > 150000) {
                 Experience = 150000;
 
                 Room?.SendPacket(new AddExperiencePointsComposer(PetId, VirtualId, amount));
@@ -91,8 +90,7 @@ namespace Plus.HabboHotel.Rooms.AI
             if (DbState != PetDatabaseUpdateState.NeedsInsert)
                 DbState = PetDatabaseUpdateState.NeedsUpdate;
 
-            if (Room != null)
-            {
+            if (Room != null) {
                 Room.SendPacket(new AddExperiencePointsComposer(PetId, VirtualId, amount));
 
                 if (Experience >= ExperienceGoal)
@@ -103,8 +101,7 @@ namespace Plus.HabboHotel.Rooms.AI
         public void PetEnergy(bool add)
         {
             int maxE;
-            if (add)
-            {
+            if (add) {
                 if (Energy == 100) // If Energy is 100, no point.
                     return;
 
@@ -112,8 +109,7 @@ namespace Plus.HabboHotel.Rooms.AI
                     maxE = MaxEnergy - Energy;
                 else
                     maxE = 10;
-            }
-            else
+            } else
                 maxE = 15; // Remove Max Energy as 15
 
             if (maxE <= 4)
@@ -121,17 +117,14 @@ namespace Plus.HabboHotel.Rooms.AI
 
             int r = PlusEnvironment.GetRandomNumber(4, maxE);
 
-            if (!add)
-            {
+            if (!add) {
                 Energy -= r;
 
-                if (Energy < 0)
-                {
+                if (Energy < 0) {
                     Energy = 1;
                     r = 1;
                 }
-            }
-            else
+            } else
 
                 Energy += r;
 

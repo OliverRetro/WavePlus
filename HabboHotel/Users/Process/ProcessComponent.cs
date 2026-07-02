@@ -76,8 +76,7 @@ namespace Plus.HabboHotel.Users.Process
                 if (_disabled)
                     return;
 
-                if (_timerRunning)
-                {
+                if (_timerRunning) {
                     _timerLagging = true;
                     Log.Warn("<Player " + _player.Id + "> Server can't keep up, Player timer is lagging behind.");
                     return;
@@ -107,8 +106,7 @@ namespace Plus.HabboHotel.Users.Process
 
                 #region Respect checking
 
-                if (_player.GetStats().RespectsTimestamp != DateTime.Today.ToString("MM/dd"))
-                {
+                if (_player.GetStats().RespectsTimestamp != DateTime.Today.ToString("MM/dd")) {
                     _player.GetStats().RespectsTimestamp = DateTime.Today.ToString("MM/dd");
                     using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                     {
@@ -118,8 +116,7 @@ namespace Plus.HabboHotel.Users.Process
                     _player.GetStats().DailyRespectPoints = (_player.Rank == 1 && _player.VipRank == 0 ? 10 : _player.VipRank == 1 ? 15 : 20);
                     _player.GetStats().DailyPetRespectPoints = (_player.Rank == 1 && _player.VipRank == 0 ? 10 : _player.VipRank == 1 ? 15 : 20);
 
-                    if (_player.GetClient() != null)
-                    {
+                    if (_player.GetClient() != null) {
                         _player.GetClient().SendPacket(new UserObjectComposer(_player));
                     }
                 }

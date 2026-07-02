@@ -81,13 +81,11 @@ namespace Plus.HabboHotel.Rooms
             //:w=3,2 l=9,63 l
             try
             {
-                if (wallPosition.Contains(Convert.ToChar(13)))
-                {
+                if (wallPosition.Contains(Convert.ToChar(13))) {
                     return null;
                 }
 
-                if (wallPosition.Contains(Convert.ToChar(9)))
-                {
+                if (wallPosition.Contains(Convert.ToChar(9))) {
                     return null;
                 }
 
@@ -122,35 +120,31 @@ namespace Plus.HabboHotel.Rooms
             if (_wallItems.Count > 0)
                 _wallItems.Clear();
 
+            // Re-assign orphaned items to the room owner in a single statement instead of one
+            // UPDATE (and one borrowed DB connection) per item during room load.
+            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            {
+                dbClient.SetQuery("UPDATE `items` SET `user_id` = @UserId WHERE `room_id` = @RoomId AND `user_id` = 0");
+                dbClient.AddParameter("RoomId", _room.Id);
+                dbClient.AddParameter("UserId", _room.OwnerId);
+                dbClient.RunQuery();
+            }
+
             List<Item> items = ItemLoader.GetItemsForRoom(_room.Id, _room);
-            foreach (Item item in items.ToList())
+            foreach (Item item in items)
             {
                 if (item == null)
                     continue;
 
-                if (item.UserId == 0)
-                {
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                    {
-                        dbClient.SetQuery("UPDATE `items` SET `user_id` = @UserId WHERE `id` = @ItemId LIMIT 1");
-                        dbClient.AddParameter("ItemId", item.Id);
-                        dbClient.AddParameter("UserId", _room.OwnerId);
-                        dbClient.RunQuery();
-                    }
-                }
-
-                if (item.IsFloorItem)
-                {
-                    if (!_room.GetGameMap().ValidTile(item.GetX, item.GetY))
-                    {
+                if (item.IsFloorItem) {
+                    if (!_room.GetGameMap().ValidTile(item.GetX, item.GetY)) {
                         using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                         {
                             dbClient.RunQuery("UPDATE `items` SET `room_id` = '0' WHERE `id` = '" + item.Id + "' LIMIT 1");
                         }
 
                         GameClient client = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(item.UserId);
-                        if (client != null)
-                        {
+                        if (client != null) {
                             client.GetHabbo().GetInventoryComponent().AddNewItem(item.Id, item.BaseItem, item.ExtraData, item.GroupId, true, true, item.LimitedNo, item.LimitedTot);
                             client.GetHabbo().GetInventoryComponent().UpdateItems(false);
                         }
@@ -160,11 +154,8 @@ namespace Plus.HabboHotel.Rooms
 
                     if (!_floorItems.ContainsKey(item.Id))
                         _floorItems.TryAdd(item.Id, item);
-                }
-                else if (item.IsWallItem)
-                {
-                    if (string.IsNullOrWhiteSpace(item.WallCoord))
-                    {
+                } else if (item.IsWallItem) {
+                    if (string.IsNullOrWhiteSpace(item.WallCoord)) {
                         using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                         {
                             dbClient.SetQuery("UPDATE `items` SET `wall_pos` = @WallPosition WHERE `id` = '" + item.Id + "' LIMIT 1");
@@ -198,41 +189,30 @@ namespace Plus.HabboHotel.Rooms
 
             foreach (Item item in _floorItems.Values.ToList())
             {
-                if (item.IsRoller)
-                {
+                if (item.IsRoller) {
                     GotRollers = true;
-                }
-                else if (item.GetBaseItem().InteractionType == InteractionType.Moodlight)
-                {
+                } else if (item.GetBaseItem().InteractionType == InteractionType.Moodlight) {
                     if (_room.MoodlightData == null)
                         _room.MoodlightData = new MoodlightData(item.Id);
-                }
-                else if (item.GetBaseItem().InteractionType == InteractionType.Toner)
-                {
+                } else if (item.GetBaseItem().InteractionType == InteractionType.Toner) {
                     if (_room.TonerData == null)
                         _room.TonerData = new TonerData(item.Id);
-                }
-                else if (item.IsWired)
-                {
+                } else if (item.IsWired) {
                     if (_room?.GetWired() == null)
                         continue;
 
                     _room.GetWired().LoadWiredBox(item);
-                }
-                else if (item.GetBaseItem().InteractionType == InteractionType.Hopper)
+                } else if (item.GetBaseItem().InteractionType == InteractionType.Hopper)
                     HopperCount++;
             }
         }
 
         public Item GetItem(int pId)
         {
-            if (_floorItems != null && _floorItems.ContainsKey(pId))
-            {
+            if (_floorItems != null && _floorItems.ContainsKey(pId)) {
                 if (_floorItems.TryGetValue(pId, out Item item))
                     return item;
-            }
-            else if (_wallItems != null && _wallItems.ContainsKey(pId))
-            {
+            } else if (_wallItems != null && _wallItems.ContainsKey(pId)) {
                 if (_wallItems.TryGetValue(pId, out Item item))
                     return item;
             }
@@ -252,8 +232,7 @@ namespace Plus.HabboHotel.Rooms
             if (item.GetBaseItem().InteractionType != InteractionType.Gift)
                 item.Interactor.OnRemove(session, item);
 
-            if (item.GetBaseItem().InteractionType == InteractionType.GuildGate)
-            {
+            if (item.GetBaseItem().InteractionType == InteractionType.GuildGate) {
                 item.UpdateCounter = 0;
                 item.UpdateNeeded = false;
             }
@@ -271,8 +250,7 @@ namespace Plus.HabboHotel.Rooms
             //TODO: Recode this specific part
             if (item.IsWallItem)
                 _wallItems.TryRemove(item.Id, out item);
-            else
-            {
+            else {
                 _floorItems.TryRemove(item.Id, out item);
                 //mFloorItems.OnCycle();
                 _room.GetGameMap().RemoveFromMap(item);
@@ -288,8 +266,7 @@ namespace Plus.HabboHotel.Rooms
             if (!GotRollers)
                 return new List<MessageComposer>();
 
-            if (_mRollerCycle >= _mRollerSpeed || _mRollerSpeed == 0)
-            {
+            if (_mRollerCycle >= _mRollerSpeed || _mRollerSpeed == 0) {
                 _rollerItemsMoved.Clear();
                 _rollerUsersMoved.Clear();
                 _rollerMessages.Clear();
@@ -315,8 +292,7 @@ namespace Plus.HabboHotel.Rooms
 
                     foreach (Item item in itemsOnNext.ToList())
                     {
-                        if (item.IsRoller)
-                        {
+                        if (item.IsRoller) {
                             if (item.TotalHeight > nextZ)
                                 nextZ = item.TotalHeight;
 
@@ -324,8 +300,7 @@ namespace Plus.HabboHotel.Rooms
                         }
                     }
 
-                    if (nextRoller)
-                    {
+                    if (nextRoller) {
                         foreach (Item item in itemsOnNext.ToList())
                         {
                             if (item.TotalHeight > nextZ)
@@ -333,15 +308,13 @@ namespace Plus.HabboHotel.Rooms
                         }
                     }
 
-                    if (itemsOnRoller.Count > 0)
-                    {
+                    if (itemsOnRoller.Count > 0) {
                         foreach (Item rItem in itemsOnRoller.ToList())
                         {
                             if (rItem == null)
                                 continue;
 
-                            if (!_rollerItemsMoved.Contains(rItem.Id) && _room.GetGameMap().CanRollItemHere(nextSquare.X, nextSquare.Y) && nextRollerClear && roller.GetZ < rItem.GetZ && _room.GetRoomUserManager().GetUserForSquare(nextSquare.X, nextSquare.Y) == null)
-                            {
+                            if (!_rollerItemsMoved.Contains(rItem.Id) && _room.GetGameMap().CanRollItemHere(nextSquare.X, nextSquare.Y) && nextRollerClear && roller.GetZ < rItem.GetZ && _room.GetRoomUserManager().GetUserForSquare(nextSquare.X, nextSquare.Y) == null) {
                                 if (!nextSquareIsRoller)
                                     nextZ = rItem.GetZ - roller.GetBaseItem().Height;
                                 else
@@ -355,10 +328,8 @@ namespace Plus.HabboHotel.Rooms
 
                     RoomUser rollerUser = _room.GetGameMap().GetRoomUsers(roller.Coordinate).FirstOrDefault();
 
-                    if (rollerUser != null && !rollerUser.IsWalking && nextRollerClear && _room.GetGameMap().IsValidStep(new Vector2D(roller.GetX, roller.GetY), new Vector2D(nextSquare.X, nextSquare.Y), true, false, true) && _room.GetGameMap().CanRollItemHere(nextSquare.X, nextSquare.Y) && _room.GetGameMap().GetFloorStatus(nextSquare) != 0)
-                    {
-                        if (!_rollerUsersMoved.Contains(rollerUser.HabboId))
-                        {
+                    if (rollerUser != null && !rollerUser.IsWalking && nextRollerClear && _room.GetGameMap().IsValidStep(new Vector2D(roller.GetX, roller.GetY), new Vector2D(nextSquare.X, nextSquare.Y), true, false, true) && _room.GetGameMap().CanRollItemHere(nextSquare.X, nextSquare.Y) && _room.GetGameMap().GetFloorStatus(nextSquare) != 0) {
+                        if (!_rollerUsersMoved.Contains(rollerUser.HabboId)) {
                             if (!nextSquareIsRoller)
                                 nextZ = rollerUser.Z - roller.GetBaseItem().Height;
                             else
@@ -403,8 +374,7 @@ namespace Plus.HabboHotel.Rooms
 
             _room.GetGameMap().GameMap[pUser.X, pUser.Y] = 0;
 
-            if (pUser != null && pUser.GetClient() != null && pUser.GetClient().GetHabbo() != null)
-            {
+            if (pUser != null && pUser.GetClient() != null && pUser.GetClient().GetHabbo() != null) {
                 List<Item> items = _room.GetGameMap().GetRoomItemForSquare(pNextCoord.X, pNextCoord.Y);
                 foreach (Item IItem in items.ToList())
                 {
@@ -415,8 +385,7 @@ namespace Plus.HabboHotel.Rooms
                 }
 
                 Item item = _room.GetRoomItemHandler().GetItem(pRollerId);
-                if (item != null)
-                {
+                if (item != null) {
                     _room.GetWired().TriggerEvent(WiredBoxType.TriggerWalkOffFurni, pUser.GetClient().GetHabbo(), item);
                 }
             }
@@ -428,22 +397,19 @@ namespace Plus.HabboHotel.Rooms
         {
             try
             {
-                if (_movedItems.Count > 0)
-                {
+                if (_movedItems.Count > 0) {
                     // TODO: Big string builder?
                     using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                     {
                         foreach (Item item in _movedItems.Values.ToList())
                         {
-                            if (!string.IsNullOrEmpty(item.ExtraData))
-                            {
+                            if (!string.IsNullOrEmpty(item.ExtraData)) {
                                 dbClient.SetQuery("UPDATE `items` SET `extra_data` = @edata" + item.Id + " WHERE `id` = '" + item.Id + "' LIMIT 1");
                                 dbClient.AddParameter("edata" + item.Id, item.ExtraData);
                                 dbClient.RunQuery();
                             }
 
-                            if (item.IsWallItem && (!item.GetBaseItem().ItemName.Contains("wallpaper_single") || !item.GetBaseItem().ItemName.Contains("floor_single") || !item.GetBaseItem().ItemName.Contains("landscape_single")))
-                            {
+                            if (item.IsWallItem && (!item.GetBaseItem().ItemName.Contains("wallpaper_single") || !item.GetBaseItem().ItemName.Contains("floor_single") || !item.GetBaseItem().ItemName.Contains("landscape_single"))) {
                                 dbClient.SetQuery("UPDATE `items` SET `wall_pos` = @wallPos WHERE `id` = '" + item.Id + "' LIMIT 1");
                                 dbClient.AddParameter("wallPos", item.WallCoord);
                                 dbClient.RunQuery();
@@ -470,10 +436,8 @@ namespace Plus.HabboHotel.Rooms
 
             bool needsReAdd = false;
 
-            if (newItem)
-            {
-                if (item.IsWired)
-                {
+            if (newItem) {
+                if (item.IsWired) {
                     if (item.GetBaseItem().WiredType == WiredBoxType.EffectRegenerateMaps && _room.GetRoomItemHandler().GetFloor.Count(x => x.GetBaseItem().WiredType == WiredBoxType.EffectRegenerateMaps) > 0)
                         return false;
                 }
@@ -488,8 +452,7 @@ namespace Plus.HabboHotel.Rooms
 
             Dictionary<int, ThreeDCoord> affectedTiles = Gamemap.GetAffectedTiles(item.GetBaseItem().Length, item.GetBaseItem().Width, newX, newY, newRot);
 
-            if (!_room.GetGameMap().ValidTile(newX, newY) || _room.GetGameMap().SquareHasUsers(newX, newY) && !item.GetBaseItem().IsSeat)
-            {
+            if (!_room.GetGameMap().ValidTile(newX, newY) || _room.GetGameMap().SquareHasUsers(newX, newY) && !item.GetBaseItem().IsSeat) {
                 if (needsReAdd)
                     _room.GetGameMap().AddToMap(item);
                 return false;
@@ -500,8 +463,7 @@ namespace Plus.HabboHotel.Rooms
                 if (!_room.GetGameMap().ValidTile(tile.X, tile.Y) ||
                     (_room.GetGameMap().SquareHasUsers(tile.X, tile.Y) && !item.GetBaseItem().IsSeat))
                 {
-                    if (needsReAdd)
-                    {
+                    if (needsReAdd) {
                         _room.GetGameMap().AddToMap(item);
                     }
 
@@ -512,13 +474,10 @@ namespace Plus.HabboHotel.Rooms
             // Start calculating new Z coordinate
             double newZ = _room.GetGameMap().Model.SqFloorHeight[newX, newY];
 
-            if (height == -1)
-            {
-                if (!onRoller)
-                {
+            if (height == -1) {
+                if (!onRoller) {
                     // Make sure this tile is open and there are no users here
-                    if (_room.GetGameMap().Model.SqState[newX, newY] != SquareState.Open && !item.GetBaseItem().IsSeat)
-                    {
+                    if (_room.GetGameMap().Model.SqState[newX, newY] != SquareState.Open && !item.GetBaseItem().IsSeat) {
                         return false;
                     }
 
@@ -527,8 +486,7 @@ namespace Plus.HabboHotel.Rooms
                         if (_room.GetGameMap().Model.SqState[tile.X, tile.Y] != SquareState.Open &&
                             !item.GetBaseItem().IsSeat)
                         {
-                            if (needsReAdd)
-                            {
+                            if (needsReAdd) {
                                 //AddItem(Item);
                                 _room.GetGameMap().AddToMap(item);
                             }
@@ -538,12 +496,10 @@ namespace Plus.HabboHotel.Rooms
                     }
 
                     // And that we have no users
-                    if (!item.GetBaseItem().IsSeat && !item.IsRoller)
-                    {
+                    if (!item.GetBaseItem().IsSeat && !item.IsRoller) {
                         foreach (ThreeDCoord tile in affectedTiles.Values)
                         {
-                            if (_room.GetGameMap().GetRoomUsers(new Point(tile.X, tile.Y)).Count > 0)
-                            {
+                            if (_room.GetGameMap().GetRoomUsers(new Point(tile.X, tile.Y)).Count > 0) {
                                 if (needsReAdd)
                                     _room.GetGameMap().AddToMap(item);
                                 return false;
@@ -560,8 +516,7 @@ namespace Plus.HabboHotel.Rooms
                 {
                     List<Item> temp = GetFurniObjects(tile.X, tile.Y);
 
-                    if (temp != null)
-                    {
+                    if (temp != null) {
                         itemsAffected.AddRange(temp);
                     }
                 }
@@ -569,8 +524,7 @@ namespace Plus.HabboHotel.Rooms
                 itemsComplete.AddRange(itemsOnTile);
                 itemsComplete.AddRange(itemsAffected);
 
-                if (!onRoller)
-                {
+                if (!onRoller) {
                     // Check for items in the stack that do not allow stacking on top of them
                     foreach (Item I in itemsComplete.ToList())
                     {
@@ -583,10 +537,8 @@ namespace Plus.HabboHotel.Rooms
                         if (I.GetBaseItem() == null)
                             continue;
 
-                        if (!I.GetBaseItem().Stackable)
-                        {
-                            if (needsReAdd)
-                            {
+                        if (!I.GetBaseItem().Stackable) {
+                            if (needsReAdd) {
                                 //AddItem(Item);
                                 _room.GetGameMap().AddToMap(item);
                             }
@@ -610,21 +562,18 @@ namespace Plus.HabboHotel.Rooms
                         if (i.Id == item.Id)
                             continue;
 
-                        if (i.GetBaseItem().InteractionType == InteractionType.StackTool)
-                        {
+                        if (i.GetBaseItem().InteractionType == InteractionType.StackTool) {
                             newZ = i.GetZ;
                             break;
                         }
 
-                        if (i.TotalHeight > newZ)
-                        {
+                        if (i.TotalHeight > newZ) {
                             newZ = i.TotalHeight;
                         }
                     }
                 }
 
-            }
-            else
+            } else
                 newZ = height;
 
             item.Rotation = newRot;
@@ -636,10 +585,8 @@ namespace Plus.HabboHotel.Rooms
                 item.Interactor.OnPlace(session, item);
 
 
-            if (newItem)
-            {
-                if (_floorItems.ContainsKey(item.Id))
-                {
+            if (newItem) {
+                if (_floorItems.ContainsKey(item.Id)) {
                     session?.SendNotification(PlusEnvironment.GetLanguageManager().TryGetValue("room.item.already_placed"));
                     _room.GetGameMap().RemoveFromMap(item);
                     return true;
@@ -652,9 +599,7 @@ namespace Plus.HabboHotel.Rooms
 
                 if (sendMessage)
                     _room.SendPacket(new ObjectAddComposer(item));
-            }
-            else
-            {
+            } else {
                 UpdateItem(item);
                 if (!onRoller && sendMessage)
                     _room.SendPacket(new ObjectUpdateComposer(item, _room.OwnerId));
@@ -668,8 +613,7 @@ namespace Plus.HabboHotel.Rooms
             if (updateRoomUserStatuses)
                 _room.GetRoomUserManager().UpdateUserStatusses();
 
-            if (item.GetBaseItem().InteractionType == InteractionType.Tent || item.GetBaseItem().InteractionType == InteractionType.TentSmall)
-            {
+            if (item.GetBaseItem().InteractionType == InteractionType.Tent || item.GetBaseItem().InteractionType == InteractionType.TentSmall) {
                 _room.RemoveTent(item.Id);
                 _room.AddTent(item.Id);
             }
@@ -703,10 +647,8 @@ namespace Plus.HabboHotel.Rooms
             _room.GetGameMap().RemoveFromMap(item);
 
             item.SetState(newX, newY, newZ, Gamemap.GetAffectedTiles(item.GetBaseItem().Length, item.GetBaseItem().Width, newX, newY, item.Rotation));
-            if (item.GetBaseItem().InteractionType == InteractionType.Toner)
-            {
-                if (_room.TonerData == null)
-                {
+            if (item.GetBaseItem().InteractionType == InteractionType.Toner) {
+                if (_room.TonerData == null) {
                     _room.TonerData = new TonerData(item.Id);
                 }
             }
@@ -721,17 +663,14 @@ namespace Plus.HabboHotel.Rooms
             if (!item.IsWallItem || _wallItems.ContainsKey(item.Id))
                 return false;
 
-            if (_floorItems.ContainsKey(item.Id))
-            {
+            if (_floorItems.ContainsKey(item.Id)) {
                 session.SendNotification(PlusEnvironment.GetLanguageManager().TryGetValue("room.item.already_placed"));
                 return true;
             }
 
             item.Interactor.OnPlace(session, item);
-            if (item.GetBaseItem().InteractionType == InteractionType.Moodlight)
-            {
-                if (_room.MoodlightData == null)
-                {
+            if (item.GetBaseItem().InteractionType == InteractionType.Moodlight) {
+                if (_room.MoodlightData == null) {
                     _room.MoodlightData = new MoodlightData(item.Id);
                     item.ExtraData = _room.MoodlightData.GenerateExtraData();
                 }
@@ -773,8 +712,7 @@ namespace Plus.HabboHotel.Rooms
 
         public void OnCycle()
         {
-            if (GotRollers)
-            {
+            if (GotRollers) {
                 try
                 {
                     _room.SendPacket(CycleRollers());
@@ -786,13 +724,11 @@ namespace Plus.HabboHotel.Rooms
                 }
             }
 
-            if (_roomItemUpdateQueue.Count > 0)
-            {
+            if (_roomItemUpdateQueue.Count > 0) {
                 List<Item> addItems = new();
                 while (_roomItemUpdateQueue.Count > 0)
                 {
-                    if (_roomItemUpdateQueue.TryDequeue(out Item item))
-                    {
+                    if (_roomItemUpdateQueue.TryDequeue(out Item item)) {
                         item.ProcessUpdates();
 
                         if (item.UpdateCounter > 0)
@@ -819,14 +755,11 @@ namespace Plus.HabboHotel.Rooms
                 if (item == null || item.UserId != session.GetHabbo().Id)
                     continue;
 
-                if (item.IsFloorItem)
-                {
+                if (item.IsFloorItem) {
                     _floorItems.TryRemove(item.Id, out Item I);
                     session.GetHabbo().GetInventoryComponent().TryAddFloorItem(item.Id, I);
                     _room.SendPacket(new ObjectRemoveComposer(item, item.UserId));
-                }
-                else if (item.IsWallItem)
-                {
+                } else if (item.IsWallItem) {
                     _wallItems.TryRemove(item.Id, out Item I);
                     session.GetHabbo().GetInventoryComponent().TryAddWallItem(item.Id, I);
                     _room.SendPacket(new ItemRemoveComposer(item, item.UserId));
@@ -881,8 +814,7 @@ namespace Plus.HabboHotel.Rooms
                         return false;
                 }
 
-                if (!item.GetBaseItem().IsSeat)
-                {
+                if (!item.GetBaseItem().IsSeat) {
                     if (_room.GetGameMap().SquareHasUsers(newX, newY))
                         return false;
 

@@ -148,8 +148,7 @@ namespace Plus.HabboHotel.Roleplay.Macros
             dbClient.SetQuery("SELECT `id`, `user_id`, `name`, `configs` FROM `users_macros` WHERE `user_id` = @uid");
             dbClient.AddParameter("uid", userId);
             DataTable table = dbClient.GetTable();
-            if (table != null)
-            {
+            if (table != null) {
                 foreach (DataRow row in table.Rows)
                 {
                     int id = Convert.ToInt32(row["id"]);

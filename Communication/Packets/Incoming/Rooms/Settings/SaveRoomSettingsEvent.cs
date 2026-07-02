@@ -36,8 +36,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Settings
 
             for (int i = 0; i < tagCount; i++)
             {
-                if (i > 0)
-                {
+                if (i > 0) {
                     formattedTags.Append(",");
                 }
 
@@ -205,14 +204,11 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Settings
 
             room.GetGameMap().GenerateMaps();
 
-            if (session.GetHabbo().CurrentRoom == null)
-            {
+            if (session.GetHabbo().CurrentRoom == null) {
                 session.SendPacket(new RoomSettingsSavedComposer(room.RoomId));
                 session.SendPacket(new RoomInfoUpdatedComposer(room.RoomId));
                 session.SendPacket(new RoomVisualizationSettingsComposer(room.WallThickness, room.FloorThickness, PlusEnvironment.EnumToBool(room.HideWall.ToString())));
-            }
-            else
-            {
+            } else {
                 room.SendPacket(new RoomSettingsSavedComposer(room.RoomId));
                 room.SendPacket(new RoomInfoUpdatedComposer(room.RoomId));
                 room.SendPacket(new RoomVisualizationSettingsComposer(room.WallThickness, room.FloorThickness, PlusEnvironment.EnumToBool(room.HideWall.ToString())));

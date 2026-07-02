@@ -9,12 +9,10 @@ namespace Plus.HabboHotel.Items.Interactor
         {
             item.ExtraData = "0";
 
-            if (item.InteractingUser != 0)
-            {
+            if (item.InteractingUser != 0) {
                 RoomUser user = item.GetRoom().GetRoomUserManager().GetRoomUserByHabbo(item.InteractingUser);
 
-                if (user != null)
-                {
+                if (user != null) {
                     user.ClearMovement(true);
                     user.AllowOverride = false;
                     user.CanWalk = true;
@@ -23,12 +21,10 @@ namespace Plus.HabboHotel.Items.Interactor
                 item.InteractingUser = 0;
             }
 
-            if (item.InteractingUser2 != 0)
-            {
+            if (item.InteractingUser2 != 0) {
                 RoomUser user = item.GetRoom().GetRoomUserManager().GetRoomUserByHabbo(item.InteractingUser2);
 
-                if (user != null)
-                {
+                if (user != null) {
                     user.ClearMovement(true);
                     user.AllowOverride = false;
                     user.CanWalk = true;
@@ -42,8 +38,7 @@ namespace Plus.HabboHotel.Items.Interactor
         {
             item.ExtraData = "0";
 
-            if (item.InteractingUser != 0)
-            {
+            if (item.InteractingUser != 0) {
                 RoomUser user = item.GetRoom().GetRoomUserManager().GetRoomUserByHabbo(item.InteractingUser);
 
                 user?.UnlockWalking();
@@ -51,8 +46,7 @@ namespace Plus.HabboHotel.Items.Interactor
                 item.InteractingUser = 0;
             }
 
-            if (item.InteractingUser2 != 0)
-            {
+            if (item.InteractingUser2 != 0) {
                 RoomUser user = item.GetRoom().GetRoomUserManager().GetRoomUserByHabbo(item.InteractingUser2);
 
                 user?.UnlockWalking();
@@ -73,11 +67,9 @@ namespace Plus.HabboHotel.Items.Interactor
             user.LastInteraction = PlusEnvironment.GetUnixTimestamp();
 
             // Alright. But is this user in the right position?
-            if (user.Coordinate == item.Coordinate || user.Coordinate == item.SquareInFront)
-            {
+            if (user.Coordinate == item.Coordinate || user.Coordinate == item.SquareInFront) {
                 // Fine. But is this tele even free?
-                if (item.InteractingUser != 0)
-                {
+                if (item.InteractingUser != 0) {
                     return;
                 }
 
@@ -88,9 +80,7 @@ namespace Plus.HabboHotel.Items.Interactor
                 user.TeleDelay = 2;
 
                 item.InteractingUser = user.GetClient().GetHabbo().Id;
-            }
-            else if (user.CanWalk)
-            {
+            } else if (user.CanWalk) {
                 user.MoveTo(item.SquareInFront);
             }
         }

@@ -25,8 +25,7 @@ namespace Plus.Communication.Packets.Incoming.Moderation
             GameClient client = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(ticket.Sender.Id);
             client?.SendPacket(new ModeratorSupportTicketResponseComposer(result));
 
-            if (result == 2)
-            {
+            if (result == 2) {
                 using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                 {
                     dbClient.RunQuery("UPDATE `user_info` SET `cfhs_abusive` = `cfhs_abusive` + 1 WHERE `user_id` = '" + ticket.Sender.Id + "' LIMIT 1");

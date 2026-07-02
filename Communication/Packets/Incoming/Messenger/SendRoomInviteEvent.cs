@@ -10,8 +10,7 @@ namespace Plus.Communication.Packets.Incoming.Messenger
     {
         public void Parse(GameClient session, ClientPacket packet)
         {
-            if (session.GetHabbo().TimeMuted > 0)
-            {
+            if (session.GetHabbo().TimeMuted > 0) {
                 session.SendNotification("Oops, you're currently muted - you cannot send room invitations.");
                 return;
             }

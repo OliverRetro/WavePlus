@@ -16,8 +16,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni.YouTubeTelevisions
 
             int itemId = packet.PopInt();
             ICollection<TelevisionItem> videos = PlusEnvironment.GetGame().GetTelevisionManager().TelevisionList;
-            if (videos.Count == 0)
-            {
+            if (videos.Count == 0) {
                 session.SendNotification("Oh, it looks like the hotel manager haven't added any videos for you to watch! :(");
                 return;
             }

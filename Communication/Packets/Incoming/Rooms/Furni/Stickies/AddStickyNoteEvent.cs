@@ -44,13 +44,11 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni.Stickies
             //:w=3,2 l=9,63 l
             try
             {
-                if (wallPosition.Contains(Convert.ToChar(13)))
-                {
+                if (wallPosition.Contains(Convert.ToChar(13))) {
                     return null;
                 }
 
-                if (wallPosition.Contains(Convert.ToChar(9)))
-                {
+                if (wallPosition.Contains(Convert.ToChar(9))) {
                     return null;
                 }
 

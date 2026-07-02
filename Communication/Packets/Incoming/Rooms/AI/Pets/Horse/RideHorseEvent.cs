@@ -29,27 +29,20 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Pets.Horse
             if (pet.PetData == null)
                 return;
 
-            if (pet.PetData.AnyoneCanRide == 0 && pet.PetData.OwnerId != user.UserId)
-            {
+            if (pet.PetData.AnyoneCanRide == 0 && pet.PetData.OwnerId != user.UserId) {
                 session.SendNotification(
                     "You are unable to ride this horse.\nThe owner of the pet has not selected for anyone to ride it.");
                 return;
             }
 
-            if (type)
-            {
-                if (pet.RidingHorse)
-                {
+            if (type) {
+                if (pet.RidingHorse) {
                     string[] speech2 = PlusEnvironment.GetGame().GetChatManager().GetPetLocale().GetValue("pet.alreadymounted");
                     var randomSpeech2 = new Random();
                     pet.Chat(speech2[randomSpeech2.Next(0, speech2.Length - 1)]);
-                }
-                else if (user.RidingHorse)
-                {
+                } else if (user.RidingHorse) {
                     session.SendNotification("You are already riding a horse!");
-                }
-                else
-                {
+                } else {
                     if (pet.Statusses.Count > 0)
                         pet.Statusses.Clear();
 
@@ -75,11 +68,8 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Pets.Horse
                     user.UpdateNeeded = true;
                     pet.UpdateNeeded = true;
                 }
-            }
-            else
-            {
-                if (user.VirtualId == pet.HorseId)
-                {
+            } else {
+                if (user.VirtualId == pet.HorseId) {
                     pet.Statusses.Remove("sit");
                     pet.Statusses.Remove("lay");
                     pet.Statusses.Remove("snf");
@@ -94,9 +84,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Pets.Horse
                     user.ApplyEffect(-1);
                     user.UpdateNeeded = true;
                     pet.UpdateNeeded = true;
-                }
-                else
-                {
+                } else {
                     session.SendNotification("Could not dismount this horse - You are not riding it!");
                 }
             }

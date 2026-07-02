@@ -140,8 +140,7 @@ namespace Plus.Communication.Packets
             if (session == null)
                 return;
 
-            if (!_incomingPackets.TryGetValue(packet.Id, out IPacketEvent pak))
-            {
+            if (!_incomingPackets.TryGetValue(packet.Id, out IPacketEvent pak)) {
                 if (Debugger.IsAttached)
                     Log.Debug("Unhandled Packet: " + packet.Id);
                 return;
@@ -175,8 +174,7 @@ namespace Plus.Communication.Packets
 
             try
             {
-                if (!t.Wait(MaximumRunTimeInSec * 1000, token))
-                {
+                if (!t.Wait(MaximumRunTimeInSec * 1000, token)) {
                     cancelSource.Cancel();
                 }
             }
@@ -184,8 +182,7 @@ namespace Plus.Communication.Packets
             {
                 foreach (Exception e in ex.Flatten().InnerExceptions)
                 {
-                    if (ThrowUserErrors)
-                    {
+                    if (ThrowUserErrors) {
                         throw e;
                     }
 

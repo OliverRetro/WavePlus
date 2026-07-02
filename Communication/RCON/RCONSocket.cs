@@ -42,12 +42,9 @@ namespace Plus.Communication.Rcon
                 Socket socket = ((Socket) iAr.AsyncState).EndAccept(iAr);
 
                 string ip = socket.RemoteEndPoint.ToString().Split(':')[0];
-                if (_allowedConnections.Contains(ip))
-                {
+                if (_allowedConnections.Contains(ip)) {
                     new RconConnection(socket);
-                }
-                else
-                {
+                } else {
                     socket.Close();
                 }
             }

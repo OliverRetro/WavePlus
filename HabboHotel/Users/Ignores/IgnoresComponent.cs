@@ -25,8 +25,7 @@ namespace Plus.HabboHotel.Users.Ignores
                 dbClient.AddParameter("uid", player.Id);
                 DataTable getIgnores = dbClient.GetTable();
 
-                if (getIgnores != null)
-                {
+                if (getIgnores != null) {
                     foreach (DataRow row in getIgnores.Rows)
                     {
                         _ignoredUsers.Add(Convert.ToInt32(row["ignore_id"]));

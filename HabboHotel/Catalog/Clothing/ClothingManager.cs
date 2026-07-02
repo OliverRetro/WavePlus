@@ -26,8 +26,7 @@ namespace Plus.HabboHotel.Catalog.Clothing
                 data = dbClient.GetTable();
             }
 
-            if (data != null)
-            {
+            if (data != null) {
                 foreach (DataRow row in data.Rows)
                 {
                     _clothing.Add(Convert.ToInt32(row["id"]), new ClothingItem(Convert.ToInt32(row["id"]), Convert.ToString(row["clothing_name"]), Convert.ToString(row["clothing_parts"])));

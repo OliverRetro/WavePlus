@@ -10,6 +10,8 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
         private readonly WeaponManager _weaponManager;
         private readonly int _userId;
 
+        private readonly HashSet<int> _removedIds = new();
+
         public UserRpWeapons(int userId, WeaponManager weaponManager, IEnumerable<UserWeapon> weapons)
         {
             _userId = userId;
@@ -40,14 +42,12 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
 
         public bool SetActiveWeaponId(int userWeaponId)
         {
-            if (userWeaponId == 0)
-            {
+            if (userWeaponId == 0) {
                 ActiveWeaponId = 0;
                 return true;
             }
 
-            if (!_weapons.ContainsKey(userWeaponId))
-            {
+            if (!_weapons.ContainsKey(userWeaponId)) {
                 return false;
             }
 
@@ -67,6 +67,33 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
             return userWeapon;
         }
 
+        /// <summary>Persists a new grid position for an owned weapon.</summary>
+        public void SetSlot(int userWeaponId, int slot)
+        {
+            if (!_weapons.TryGetValue(userWeaponId, out UserWeapon weapon) || weapon.Slot == slot)
+                return;
+
+            weapon.Slot = slot;
+            MarkDirty();
+        }
+
+        public IEnumerable<int> RemovedIds => _removedIds;
+
+        /// <summary>Permanently removes an owned weapon (e.g. dragged to the trashbin).</summary>
+        public void RemoveWeapon(int userWeaponId)
+        {
+            if (!_weapons.Remove(userWeaponId, out UserWeapon weapon))
+                return;
+
+            if (weapon.Id == ActiveWeaponId)
+                ActiveWeaponId = 0;
+
+            if (userWeaponId > 0)
+                _removedIds.Add(userWeaponId);
+
+            MarkDirty();
+        }
+
         public void MarkDirty()
         {
             Dirty = true;
@@ -75,6 +102,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
         public void MarkSaved()
         {
             Dirty = false;
+            _removedIds.Clear();
         }
 
         public void RekeyWeapon(int oldId, int newId)

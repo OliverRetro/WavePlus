@@ -46,12 +46,9 @@ namespace Plus.HabboHotel.Rooms
             {
                 for (int x = 0; x < MapSizeX; x++)
                 {
-                    if (x > (_staticModel.MapSizeX - 1) || y > (_staticModel.MapSizeY - 1))
-                    {
+                    if (x > (_staticModel.MapSizeX - 1) || y > (_staticModel.MapSizeY - 1)) {
                         SqState[x, y] = SquareState.Blocked;
-                    }
-                    else
-                    {
+                    } else {
                         SqState[x, y] = _staticModel.SqState[x, y];
                         SqFloorHeight[x, y] = _staticModel.SqFloorHeight[x, y];
                         SqSeatRot[x, y] = _staticModel.SqSeatRot[x, y];
@@ -65,14 +62,12 @@ namespace Plus.HabboHotel.Rooms
             {
                 for (int x = 0; x < MapSizeX; x++)
                 {
-                    if (x == DoorX && y == DoorY)
-                    {
+                    if (x == DoorX && y == DoorY) {
                         floorMap.Append(DoorZ > 9 ? ((char) (87 + DoorZ)).ToString() : DoorZ.ToString());
                         continue;
                     }
 
-                    if (SqState[x, y] == SquareState.Blocked)
-                    {
+                    if (SqState[x, y] == SquareState.Blocked) {
                         floorMap.Append('x');
                         continue;
                     }
@@ -98,12 +93,9 @@ namespace Plus.HabboHotel.Rooms
             {
                 for (int x = 0; x < MapSizeX; x++)
                 {
-                    if (x > (_staticModel.MapSizeX - 1) || y > (_staticModel.MapSizeY - 1))
-                    {
+                    if (x > (_staticModel.MapSizeX - 1) || y > (_staticModel.MapSizeY - 1)) {
                         newSqState[x, y] = SquareState.Blocked;
-                    }
-                    else
-                    {
+                    } else {
                         newSqState[x, y] = SqState[x, y];
                         newSqFloorHeight[x, y] = SqFloorHeight[x, y];
                         newSqSeatRot[x, y] = SqSeatRot[x, y];

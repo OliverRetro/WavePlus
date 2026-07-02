@@ -16,22 +16,19 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
             if (session == null || session.GetHabbo() == null || room == null)
                 return;
 
-            if (@params.Length == 1)
-            {
+            if (@params.Length == 1) {
                 session.SendWhisper("Please enter the username of the user you wish to rob.");
                 return;
             }
 
-            if (session.GetHabbo().GetRpStats().Energy < 1)
-            {
+            if (session.GetHabbo().GetRpStats().Energy < 1) {
                 session.SendWhisper("You don't have enough energy!", 1);
                 return;
             }
 
             double now = PlusEnvironment.GetUnixTimestamp();
 
-            if (session.GetHabbo().LastRobTime > now)
-            {
+            if (session.GetHabbo().LastRobTime > now) {
                 double secondsLeft = session.GetHabbo().LastRobTime - now;
 
                 session.SendWhisper("You must wait " + (int)Math.Ceiling(secondsLeft) + " seconds to rob again.", 1);
@@ -40,32 +37,27 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 
             GameClient targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(@params[1]);
 
-            if (targetClient == null)
-            {
+            if (targetClient == null) {
                 session.SendWhisper("The user could not be found.", 1);
                 return;
             }
 
-            if (targetClient == session)
-            {
+            if (targetClient == session) {
                 session.SendWhisper("You cannot rob yourself!", 1);
                 return;
             }
 
-            if (targetClient.GetHabbo().CurrentRoomId != session.GetHabbo().CurrentRoomId)
-            {
+            if (targetClient.GetHabbo().CurrentRoomId != session.GetHabbo().CurrentRoomId) {
                 session.SendWhisper("The user is not in the same room as you.", 1);
                 return;
             }
 
-            if (room.Safezone && !(targetClient.GetHabbo().GetRpStats().Aggression > 0 && session.GetHabbo().GetRpStats().Aggression > 0))
-            {
+            if (room.Safezone && !(targetClient.GetHabbo().GetRpStats().Aggression > 0 && session.GetHabbo().GetRpStats().Aggression > 0)) {
                 session.SendWhisper("You cannot rob a user in a safezone, unless both of you have aggression.", 1);
                 return;
             }
 
-            if (session.GetHabbo().GetRpStats().PassiveMode || targetClient.GetHabbo().GetRpStats().PassiveMode)
-            {
+            if (session.GetHabbo().GetRpStats().PassiveMode || targetClient.GetHabbo().GetRpStats().PassiveMode) {
                 session.SendWhisper("You cannot rob other users whilst either user is in passive mode.");
                 return;
             }

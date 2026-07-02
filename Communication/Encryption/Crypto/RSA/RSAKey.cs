@@ -52,8 +52,7 @@ namespace Plus.Communication.Encryption.Crypto.RSA
                 {
                     P = BigInteger.genPseudoPrime(b - qs, 1, new Random());
 
-                    if ((P - 1).gcd(this.e) == 1 && P.isProbablePrime(10))
-                    {
+                    if ((P - 1).gcd(this.e) == 1 && P.isProbablePrime(10)) {
                         break;
                     }
                 }
@@ -62,22 +61,19 @@ namespace Plus.Communication.Encryption.Crypto.RSA
                 {
                     Q = BigInteger.genPseudoPrime(qs, 1, new Random());
 
-                    if ((Q - 1).gcd(this.e) == 1 && P.isProbablePrime(10))
-                    {
+                    if ((Q - 1).gcd(this.e) == 1 && P.isProbablePrime(10)) {
                         break;
                     }
                 }
 
-                if (P < Q)
-                {
+                if (P < Q) {
                     BigInteger t = P;
                     P = Q;
                     Q = t;
                 }
 
                 BigInteger phi = (P - 1) * (Q - 1);
-                if (phi.gcd(this.e) == 1)
-                {
+                if (phi.gcd(this.e) == 1) {
                     N = P * Q;
                     D = this.e.modInverse(phi);
                     Dmp1 = D % (P - 1);
@@ -105,8 +101,7 @@ namespace Plus.Communication.Encryption.Crypto.RSA
             string dmp1 = null, string dmq1 = null,
             string coeff = null)
         {
-            if (p == null)
-            {
+            if (p == null) {
                 return new RSAKey(new BigInteger(n, 16), Convert.ToInt32(e, 16), new BigInteger(d, 16), 0, 0, 0, 0, 0);
             }
 
@@ -147,14 +142,12 @@ namespace Plus.Communication.Encryption.Crypto.RSA
 
                 byte[] paddedBytes = Pkcs1pad(src, bl, type);
                 BigInteger m = new(paddedBytes);
-                if (m == 0)
-                {
+                if (m == 0) {
                     return null;
                 }
 
                 BigInteger c = method(m);
-                if (c == 0)
-                {
+                if (c == 0) {
                     return null;
                 }
 
@@ -172,8 +165,7 @@ namespace Plus.Communication.Encryption.Crypto.RSA
             {
                 BigInteger c = new(src);
                 BigInteger m = method(c);
-                if (m == 0)
-                {
+                if (m == 0) {
                     return null;
                 }
 
@@ -229,8 +221,7 @@ namespace Plus.Communication.Encryption.Crypto.RSA
                 ++i;
             }
 
-            if (src.Length - i != n - 1 || src[i] > 2)
-            {
+            if (src.Length - i != n - 1 || src[i] > 2) {
                 Console.WriteLine("PKCS#1 unpad: i={0}, expected src[i]==[0,1,2], got src[i]={1}", i, src[i].ToString("X"));
                 return null;
             }
@@ -239,8 +230,7 @@ namespace Plus.Communication.Encryption.Crypto.RSA
 
             while (src[i] != 0)
             {
-                if (++i >= src.Length)
-                {
+                if (++i >= src.Length) {
                     Console.WriteLine("PKCS#1 unpad: i={0}, src[i-1]!=0 (={1})", i, src[i - 1].ToString("X"));
                 }
             }
@@ -261,8 +251,7 @@ namespace Plus.Communication.Encryption.Crypto.RSA
 
         protected BigInteger DoPrivate(BigInteger m)
         {
-            if (P == 0 && Q == 0)
-            {
+            if (P == 0 && Q == 0) {
                 return m.modPow(D, N);
             }
 

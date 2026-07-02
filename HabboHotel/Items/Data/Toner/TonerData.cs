@@ -24,8 +24,7 @@ namespace Plus.HabboHotel.Items.Data.Toner
                 row = dbClient.GetRow();
             }
 
-            if (row == null)
-            {
+            if (row == null) {
                 //throw new NullReferenceException("No toner data found in the database for " + ItemId);
                 using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                 {

@@ -26,15 +26,13 @@ namespace Plus.Communication.Packets.Incoming.Users
             string newName = packet.PopString();
             string oldName = session.GetHabbo().Username;
 
-            if (newName == oldName)
-            {
+            if (newName == oldName) {
                 session.GetHabbo().ChangeName(oldName);
                 session.SendPacket(new UpdateUsernameComposer(newName));
                 return;
             }
 
-            if (!CanChangeName(session.GetHabbo()))
-            {
+            if (!CanChangeName(session.GetHabbo())) {
                 session.SendNotification("Oops, it appears you currently cannot change your username!");
                 return;
             }
@@ -69,8 +67,7 @@ namespace Plus.Communication.Packets.Incoming.Users
             if (inUse)
                 return;
 
-            if (!PlusEnvironment.GetGame().GetClientManager().UpdateClientUsername(session, oldName, newName))
-            {
+            if (!PlusEnvironment.GetGame().GetClientManager().UpdateClientUsername(session, oldName, newName)) {
                 session.SendNotification("Oops! An issue occoured whilst updating your username.");
                 return;
             }

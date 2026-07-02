@@ -23,8 +23,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Fun
                 if (client == null)
                     continue;
 
-                if (client.GetHabbo().GetRpStats().Health < UserRpStats.GetMaxHealth(client.GetHabbo()))
-                {
+                if (client.GetHabbo().GetRpStats().Health < UserRpStats.GetMaxHealth(client.GetHabbo())) {
                     if (client.GetHabbo().GetRpStats().IsDead)
                         PlusEnvironment.GetHospitalManager().CancelDeath(client.GetHabbo());
 
@@ -33,7 +32,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Fun
                 }
             }
 
-            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*" + session.GetHabbo().Username + " heals everyone to their full HP!*", 0, 23));
+            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*heals everyone to their full HP!*", 0, 23));
         }
     }
 }

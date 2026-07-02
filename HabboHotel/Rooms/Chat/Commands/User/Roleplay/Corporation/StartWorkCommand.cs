@@ -1,3 +1,4 @@
+using System;
 using Plus.HabboHotel.GameClients;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
@@ -14,6 +15,14 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
         {
             if (session?.GetHabbo() == null || room == null || room?.Group == null)
                 return;
+
+            // 5s cooldown shared with :stopwork so the shift can't be toggle-spammed.
+            double now = PlusEnvironment.GetUnixTimestamp();
+            if (session.GetHabbo().LastWorkActionTime > now) {
+                session.SendWhisper("You must wait " + (int)Math.Ceiling(session.GetHabbo().LastWorkActionTime - now) + " seconds before changing your work status again.", 1);
+                return;
+            }
+            session.GetHabbo().LastWorkActionTime = now + 5;
 
             PlusEnvironment.GetGame().GetShiftManager().TryStartWork(session, room);
         }

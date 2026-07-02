@@ -16,6 +16,10 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Connection
             if (hospitalRoomId > 0)
                 roomId = hospitalRoomId;
 
+            int jailRoomId = PlusEnvironment.GetJailManager().GetLoginRoomId(session.GetHabbo());
+            if (jailRoomId > 0)
+                roomId = jailRoomId;
+
             session.GetHabbo().PrepareRoom(roomId, password);
         }
     }

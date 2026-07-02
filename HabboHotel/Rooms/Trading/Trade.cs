@@ -66,8 +66,7 @@ namespace Plus.HabboHotel.Rooms.Trading
                     if (user == null)
                         continue;
 
-                    if (!user.HasAccepted)
-                    {
+                    if (!user.HasAccepted) {
                         return false;
                     }
                 }
@@ -110,8 +109,7 @@ namespace Plus.HabboHotel.Rooms.Trading
         {
             TradeUser tradeUser = Users[0];
 
-            if (tradeUser.RoomUser.UserId != userId)
-            {
+            if (tradeUser.RoomUser.UserId != userId) {
                 tradeUser = Users[1];
             }
 
@@ -143,8 +141,7 @@ namespace Plus.HabboHotel.Rooms.Trading
             {
                 Item I = roomUserOne.GetClient().GetHabbo().GetInventoryComponent().GetItem(item.Id);
 
-                if (I == null)
-                {
+                if (I == null) {
                     SendPacket(new BroadcastMessageAlertComposer("Error! Trading Failed!"));
                     return;
                 }
@@ -154,8 +151,7 @@ namespace Plus.HabboHotel.Rooms.Trading
             {
                 Item I = roomUserTwo.GetClient().GetHabbo().GetInventoryComponent().GetItem(item.Id);
 
-                if (I == null)
-                {
+                if (I == null) {
                     SendPacket(new BroadcastMessageAlertComposer("Error! Trading Failed!"));
                     return;
                 }
@@ -167,19 +163,15 @@ namespace Plus.HabboHotel.Rooms.Trading
                 {
                     logUserOne += item.Id + ";";
                     roomUserOne.GetClient().GetHabbo().GetInventoryComponent().RemoveItem(item.Id);
-                    if (item.Data.InteractionType == InteractionType.Exchange && PlusEnvironment.GetSettingsManager().TryGetValue("trading.auto_exchange_redeemables") == "1")
-                    {
+                    if (item.Data.InteractionType == InteractionType.Exchange && PlusEnvironment.GetSettingsManager().TryGetValue("trading.auto_exchange_redeemables") == "1") {
                         roomUserTwo.GetClient().GetHabbo().Credits += item.Data.BehaviourData;
                         roomUserTwo.GetClient().SendPacket(new CreditBalanceComposer(roomUserTwo.GetClient().GetHabbo().Credits));
 
                         dbClient.SetQuery("DELETE FROM `items` WHERE `id` = @id LIMIT 1");
                         dbClient.AddParameter("id", item.Id);
                         dbClient.RunQuery();
-                    }
-                    else
-                    {
-                        if (roomUserTwo.GetClient().GetHabbo().GetInventoryComponent().TryAddItem(item))
-                        {
+                    } else {
+                        if (roomUserTwo.GetClient().GetHabbo().GetInventoryComponent().TryAddItem(item)) {
                             roomUserTwo.GetClient().SendPacket(new FurniListAddComposer(item));
                             roomUserTwo.GetClient().SendPacket(new FurniListNotificationComposer(item.Id, 1));
 
@@ -195,19 +187,15 @@ namespace Plus.HabboHotel.Rooms.Trading
                 {
                     logUserTwo += item.Id + ";";
                     roomUserTwo.GetClient().GetHabbo().GetInventoryComponent().RemoveItem(item.Id);
-                    if (item.Data.InteractionType == InteractionType.Exchange && PlusEnvironment.GetSettingsManager().TryGetValue("trading.auto_exchange_redeemables") == "1")
-                    {
+                    if (item.Data.InteractionType == InteractionType.Exchange && PlusEnvironment.GetSettingsManager().TryGetValue("trading.auto_exchange_redeemables") == "1") {
                         roomUserOne.GetClient().GetHabbo().Credits += item.Data.BehaviourData;
                         roomUserOne.GetClient().SendPacket(new CreditBalanceComposer(roomUserOne.GetClient().GetHabbo().Credits));
 
                         dbClient.SetQuery("DELETE FROM `items` WHERE `id` = @id LIMIT 1");
                         dbClient.AddParameter("id", item.Id);
                         dbClient.RunQuery();
-                    }
-                    else
-                    {
-                        if (roomUserOne.GetClient().GetHabbo().GetInventoryComponent().TryAddItem(item))
-                        {
+                    } else {
+                        if (roomUserOne.GetClient().GetHabbo().GetInventoryComponent().TryAddItem(item)) {
                             roomUserOne.GetClient().SendPacket(new FurniListAddComposer(item));
                             roomUserOne.GetClient().SendPacket(new FurniListNotificationComposer(item.Id, 1));
 

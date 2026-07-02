@@ -15,8 +15,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (session.GetHabbo().Id == room.OwnerId)
-            {
+            if (session.GetHabbo().Id == room.OwnerId) {
                 //Let us check anyway.
                 if (!room.CheckRights(session, true))
                     return;
@@ -27,14 +26,11 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                         continue;
 
                     GameClient targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(item.UserId);
-                    if (targetClient != null && targetClient.GetHabbo() != null)
-                    {
+                    if (targetClient != null && targetClient.GetHabbo() != null) {
                         room.GetRoomItemHandler().RemoveFurniture(targetClient, item.Id);
                         targetClient.GetHabbo().GetInventoryComponent().AddNewItem(item.Id, item.BaseItem, item.ExtraData, item.GroupId, true, true, item.LimitedNo, item.LimitedTot);
                         targetClient.GetHabbo().GetInventoryComponent().UpdateItems(false);
-                    }
-                    else
-                    {
+                    } else {
                         room.GetRoomItemHandler().RemoveFurniture(null, item.Id);
                         using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                         {
@@ -42,23 +38,18 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                         }
                     }
                 }
-            }
-            else
-            {
+            } else {
                 foreach (Item item in room.GetRoomItemHandler().GetWallAndFloor.ToList())
                 {
                     if (item == null || item.UserId != session.GetHabbo().Id)
                         continue;
 
                     GameClient targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(item.UserId);
-                    if (targetClient != null && targetClient.GetHabbo() != null)
-                    {
+                    if (targetClient != null && targetClient.GetHabbo() != null) {
                         room.GetRoomItemHandler().RemoveFurniture(targetClient, item.Id);
                         targetClient.GetHabbo().GetInventoryComponent().AddNewItem(item.Id, item.BaseItem, item.ExtraData, item.GroupId, true, true, item.LimitedNo, item.LimitedTot);
                         targetClient.GetHabbo().GetInventoryComponent().UpdateItems(false);
-                    }
-                    else
-                    {
+                    } else {
                         room.GetRoomItemHandler().RemoveFurniture(null, item.Id);
                         using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                         {

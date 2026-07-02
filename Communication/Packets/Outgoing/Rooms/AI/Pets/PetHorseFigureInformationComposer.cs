@@ -19,8 +19,7 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.AI.Pets
             packet.WriteInteger(PetUser.PetData.Type);
             packet.WriteInteger(int.Parse(PetUser.PetData.Race));
             packet.WriteString(PetUser.PetData.Color.ToLower());
-            if (PetUser.PetData.Saddle > 0)
-            {
+            if (PetUser.PetData.Saddle > 0) {
                 packet.WriteInteger(4);
                 packet.WriteInteger(3);
                 packet.WriteInteger(3);
@@ -32,9 +31,7 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.AI.Pets
                 packet.WriteInteger(4);
                 packet.WriteInteger(PetUser.PetData.Saddle);
                 packet.WriteInteger(0);
-            }
-            else
-            {
+            } else {
                 packet.WriteInteger(1);
                 packet.WriteInteger(2);
                 packet.WriteInteger(2);

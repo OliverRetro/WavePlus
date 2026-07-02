@@ -15,10 +15,8 @@ namespace Plus.HabboHotel.Catalog.Marketplace
         {
             int num = 0;
             int num2 = 0;
-            if (MarketAverages.ContainsKey(spriteId) && MarketCounts.ContainsKey(spriteId))
-            {
-                if (MarketCounts[spriteId] > 0)
-                {
+            if (MarketAverages.ContainsKey(spriteId) && MarketCounts.ContainsKey(spriteId)) {
+                if (MarketCounts[spriteId] > 0) {
                     return (MarketAverages[spriteId] / MarketCounts[spriteId]);
                 }
 
@@ -59,10 +57,8 @@ namespace Plus.HabboHotel.Catalog.Marketplace
             Dictionary<int, int> dictionary2 = new();
             foreach (MarketOffer item in MarketItems)
             {
-                if (dictionary.ContainsKey(item.SpriteId))
-                {
-                    if (dictionary[item.SpriteId].TotalPrice > item.TotalPrice)
-                    {
+                if (dictionary.ContainsKey(item.SpriteId)) {
+                    if (dictionary[item.SpriteId].TotalPrice > item.TotalPrice) {
                         dictionary.Remove(item.SpriteId);
                         dictionary.Add(item.SpriteId, item);
                     }
@@ -70,16 +66,13 @@ namespace Plus.HabboHotel.Catalog.Marketplace
                     int num = dictionary2[item.SpriteId];
                     dictionary2.Remove(item.SpriteId);
                     dictionary2.Add(item.SpriteId, num + 1);
-                }
-                else
-                {
+                } else {
                     dictionary.Add(item.SpriteId, item);
                     dictionary2.Add(item.SpriteId, 1);
                 }
             }
 
-            if (dictionary2.ContainsKey(spriteId))
-            {
+            if (dictionary2.ContainsKey(spriteId)) {
                 return dictionary2[spriteId];
             }
 

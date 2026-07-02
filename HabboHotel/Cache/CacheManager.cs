@@ -37,8 +37,7 @@ namespace Plus.HabboHotel.Cache
                     return user;
 
             GameClient client = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(id);
-            if (client?.GetHabbo() != null)
-            {
+            if (client?.GetHabbo() != null) {
                 user = new UserCache(id, client.GetHabbo().Username, client.GetHabbo().Motto, client.GetHabbo().Look);
                 _usersCached.TryAdd(id, user);
                 return user;
@@ -51,8 +50,7 @@ namespace Plus.HabboHotel.Cache
 
                 DataRow dRow = dbClient.GetRow();
 
-                if (dRow != null)
-                {
+                if (dRow != null) {
                     user = new UserCache(id, dRow["username"].ToString(), dRow["motto"].ToString(), dRow["look"].ToString());
                     _usersCached.TryAdd(id, user);
                 }

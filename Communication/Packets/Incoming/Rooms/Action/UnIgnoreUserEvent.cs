@@ -26,8 +26,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Action
             if (!session.GetHabbo().GetIgnores().TryGet(player.Id))
                 return;
 
-            if (session.GetHabbo().GetIgnores().TryRemove(player.Id))
-            {
+            if (session.GetHabbo().GetIgnores().TryRemove(player.Id)) {
                 using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                 {
                     dbClient.SetQuery("DELETE FROM `user_ignores` WHERE `user_id` = @uid AND `ignore_id` = @ignoreId");

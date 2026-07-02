@@ -23,8 +23,7 @@ namespace Plus.Communication.Packets.Incoming.Users
             if (look == session.GetHabbo().Look)
                 return;
 
-            if ((DateTime.Now - session.GetHabbo().LastClothingUpdateTime).TotalSeconds <= 2.0)
-            {
+            if ((DateTime.Now - session.GetHabbo().LastClothingUpdateTime).TotalSeconds <= 2.0) {
                 session.GetHabbo().ClothingUpdateWarnings += 1;
                 if (session.GetHabbo().ClothingUpdateWarnings >= 25)
                     session.GetHabbo().SessionClothingBlocked = true;
@@ -37,8 +36,7 @@ namespace Plus.Communication.Packets.Incoming.Users
             session.GetHabbo().LastClothingUpdateTime = DateTime.Now;
 
             string[] allowedGenders = {"M", "F"};
-            if (!allowedGenders.Contains(gender))
-            {
+            if (!allowedGenders.Contains(gender)) {
                 session.SendPacket(new BroadcastMessageAlertComposer("Sorry, you chose an invalid gender."));
                 return;
             }
@@ -61,11 +59,9 @@ namespace Plus.Communication.Packets.Incoming.Users
             if (session.GetHabbo().Look.Contains("ha-1006"))
                 PlusEnvironment.GetGame().GetQuestManager().ProgressUserQuest(session, QuestType.WearHat);
 
-            if (session.GetHabbo().InRoom)
-            {
+            if (session.GetHabbo().InRoom) {
                 RoomUser roomUser = session.GetHabbo().CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id);
-                if (roomUser != null)
-                {
+                if (roomUser != null) {
                     session.SendPacket(new UserChangeComposer(roomUser, true));
                     session.GetHabbo().CurrentRoom.SendPacket(new UserChangeComposer(roomUser, false));
                 }

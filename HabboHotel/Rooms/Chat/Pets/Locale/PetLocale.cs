@@ -23,8 +23,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Pets.Locale
                 dbClient.SetQuery("SELECT * FROM `bots_pet_responses`");
                 DataTable pets = dbClient.GetTable();
 
-                if (pets != null)
-                {
+                if (pets != null) {
                     foreach (DataRow row in pets.Rows)
                     {
                         _values.Add(row[0].ToString(), row[1].ToString().Split(';'));

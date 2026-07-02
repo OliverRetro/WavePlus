@@ -28,6 +28,10 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Chat
             if (message.Length > 110)
                 message = message.Substring(0, 110);
 
+            // Commands are exempt from flood control — spamming commands shouldn't mute the
+            // user. Rate-limiting for specific commands (e.g. :startwork) is handled per-command.
+            bool isCommand = message.StartsWith(":", StringComparison.CurrentCulture);
+
             int colour = packet.PopInt();
 
             if (!PlusEnvironment.GetGame().GetChatManager().GetChatStyles().TryGetStyle(colour, out ChatStyle style) || style.RequiredRight.Length > 0 && !session.GetHabbo().GetPermissions().HasRight(style.RequiredRight))
@@ -35,25 +39,21 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Chat
 
             user.LastBubble = session.GetHabbo().GetBubbleId(colour);
 
-            if (PlusEnvironment.GetUnixTimestamp() < session.GetHabbo().FloodTime && session.GetHabbo().FloodTime != 0)
+            if (!isCommand && PlusEnvironment.GetUnixTimestamp() < session.GetHabbo().FloodTime && session.GetHabbo().FloodTime != 0)
                 return;
 
-            if (session.GetHabbo().TimeMuted > 0)
-            {
+            if (session.GetHabbo().TimeMuted > 0) {
                 session.SendPacket(new MutedComposer(session.GetHabbo().TimeMuted));
                 return;
             }
 
-            if (!session.GetHabbo().GetPermissions().HasRight("room_ignore_mute") && room.CheckMute(session))
-            {
+            if (!session.GetHabbo().GetPermissions().HasRight("room_ignore_mute") && room.CheckMute(session)) {
                 session.SendWhisper("Oops, you're currently muted.");
                 return;
             }
 
-            if (!session.GetHabbo().GetPermissions().HasRight("mod_tool"))
-            {
-                if (user.IncrementAndCheckFlood(out int muteTime))
-                {
+            if (!isCommand && !session.GetHabbo().GetPermissions().HasRight("mod_tool")) {
+                if (user.IncrementAndCheckFlood(out int muteTime)) {
                     session.SendPacket(new FloodControlComposer(muteTime));
                     return;
                 }
@@ -61,14 +61,12 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Chat
 
             PlusEnvironment.GetGame().GetChatManager().GetLogs().StoreChatLog(new ChatLogEntry(session.GetHabbo().Id, room.Id, message, UnixTimestamp.GetNow(), session.GetHabbo(), room));
 
-            if (message.StartsWith(":", StringComparison.CurrentCulture) && PlusEnvironment.GetGame().GetChatManager().GetCommands().Parse(session, message))
+            if (isCommand && PlusEnvironment.GetGame().GetChatManager().GetCommands().Parse(session, message))
                 return;
 
-            if (PlusEnvironment.GetGame().GetChatManager().GetFilter().CheckBannedWords(message))
-            {
+            if (PlusEnvironment.GetGame().GetChatManager().GetFilter().CheckBannedWords(message)) {
                 session.GetHabbo().BannedPhraseCount++;
-                if (session.GetHabbo().BannedPhraseCount >= Convert.ToInt32(PlusEnvironment.GetSettingsManager().TryGetValue("room.chat.filter.banned_phrases.chances")))
-                {
+                if (session.GetHabbo().BannedPhraseCount >= Convert.ToInt32(PlusEnvironment.GetSettingsManager().TryGetValue("room.chat.filter.banned_phrases.chances"))) {
                     PlusEnvironment.GetGame().GetModerationManager().BanUser("System", ModerationBanType.Username, session.GetHabbo().Username, "Spamming banned phrases (" + message + ")", PlusEnvironment.GetUnixTimestamp() + 78892200);
                     session.Disconnect();
                     return;

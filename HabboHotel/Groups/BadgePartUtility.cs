@@ -9,8 +9,7 @@
             colour = (int.Parse(colour) < 10) ? "0" + colour : colour;
             parts += partId + colour + position;
 
-            if (!isBase && (parts == "s00000" || parts == "s000000"))
-            {
+            if (!isBase && (parts == "s00000" || parts == "s000000")) {
                 return string.Empty;
             }
 

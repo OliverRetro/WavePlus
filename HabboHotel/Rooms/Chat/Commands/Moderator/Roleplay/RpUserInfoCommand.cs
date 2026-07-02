@@ -22,8 +22,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
         public void Execute(GameClient session, Room room, string[] @params)
         {
             session.SendPacket(new AnotherStatsComposer(session));
-            if (@params.Length == 1)
-            {
+            if (@params.Length == 1) {
                 session.SendWhisper("Please enter the username of the user you wish to view.");
                 return;
             }
@@ -40,8 +39,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
                 userData = dbClient.GetRow();
             }
 
-            if (userData == null)
-            {
+            if (userData == null) {
                 session.SendNotification("Oops, there is no user in the database with that username (" + username + ")!");
                 return;
             }
@@ -50,8 +48,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
             {
                 dbClient.SetQuery("SELECT * FROM `user_rp_statistics` WHERE `user_id` = '" + Convert.ToInt32(userData["id"]) + "' LIMIT 1");
                 userRpInfo = dbClient.GetRow();
-                if (userRpInfo == null)
-                {
+                if (userRpInfo == null) {
                     dbClient.RunQuery("INSERT INTO `user_rp_statistics` (`user_id`) VALUES ('" + Convert.ToInt32(userData["id"]) + "')");
 
                     dbClient.SetQuery("SELECT * FROM `user_rp_statistics` WHERE `user_id` = '" + Convert.ToInt32(userData["id"]) + "' LIMIT 1");
@@ -71,8 +68,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
 
             StringBuilder habboInfo = new();
             habboInfo.Append("<b>Generic Info:</b>\r");
-            if (targetClient != null)
-            {
+            if (targetClient != null) {
                 habboInfo.Append("Health: " + targetClient.GetHabbo().GetRpStats().Health + "\r");
                 habboInfo.Append("Shield: " + targetClient.GetHabbo().GetRpStats().Shield + "\r");
                 habboInfo.Append("Energy: " + targetClient.GetHabbo().GetRpStats().Energy + "\r");
@@ -111,8 +107,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
                 habboInfo.Append("Deaths: " + Convert.ToInt32(userRpInfo["deaths"]) + "\r\r");
                 habboInfo.Append("<b>Skills:</b>\r");
 
-                if (userSkills != null)
-                {
+                if (userSkills != null) {
                     foreach (DataRow row in userSkills.Rows)
                     {
                         int skillId = Convert.ToInt32(row["skill_id"]);

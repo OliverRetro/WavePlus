@@ -116,8 +116,7 @@ namespace Plus.HabboHotel.Rooms
 
         public RoomItemHandling GetRoomItemHandler()
         {
-            if (_roomItemHandling == null)
-            {
+            if (_roomItemHandling == null) {
                 _roomItemHandling = new RoomItemHandling(this);
             }
 
@@ -293,8 +292,7 @@ namespace Plus.HabboHotel.Rooms
                 data = dbClient.GetTable();
             }
 
-            if (data != null)
-            {
+            if (data != null) {
                 foreach (DataRow row in data.Rows)
                 {
                     UsersWithRights.Add(Convert.ToInt32(row["user_id"]));
@@ -341,8 +339,7 @@ namespace Plus.HabboHotel.Rooms
                 if (session.GetHabbo().GetPermissions().HasRight("room_any_owner"))
                     return true;
 
-                if (!requireOwnership && Type == "private")
-                {
+                if (!requireOwnership && Type == "private") {
                     if (session.GetHabbo().GetPermissions().HasRight("room_any_rights"))
                         return true;
 
@@ -350,16 +347,14 @@ namespace Plus.HabboHotel.Rooms
                         return true;
                 }
 
-                if (checkForGroups && Type == "private")
-                {
+                if (checkForGroups && Type == "private") {
                     if (Group == null)
                         return false;
 
                     if (Group.IsAdmin(session.GetHabbo().Id))
                         return true;
 
-                    if (Group.AdminOnlyDeco == 0)
-                    {
+                    if (Group.AdminOnlyDeco == 0) {
                         if (Group.IsAdmin(session.GetHabbo().Id))
                             return true;
                     }
@@ -379,8 +374,7 @@ namespace Plus.HabboHotel.Rooms
             string key = null;
             foreach (Item item in GetRoomItemHandler().GetFurniObjects(ball.GetX, ball.GetY).ToList())
             {
-                if (item.GetBaseItem().ItemName.StartsWith("fball_goal_"))
-                {
+                if (item.GetBaseItem().ItemName.StartsWith("fball_goal_")) {
                     key = item.GetBaseItem().ItemName.Split(new[] {'_'})[2];
                     user.UnIdle();
                     user.DanceId = 0;
@@ -392,17 +386,14 @@ namespace Plus.HabboHotel.Rooms
                 }
             }
 
-            if (key != null)
-            {
-                if (predicate == null)
-                {
+            if (key != null) {
+                if (predicate == null) {
                     predicate = p => p.GetBaseItem().ItemName == "fball_score_" + key;
                 }
 
                 foreach (Item item2 in GetRoomItemHandler().GetFloor.Where(predicate).ToList())
                 {
-                    if (item2.GetBaseItem().ItemName == "fball_score_" + key)
-                    {
+                    if (item2.GetBaseItem().ItemName == "fball_score_" + key) {
                         if (!string.IsNullOrEmpty(item2.ExtraData))
                             item2.ExtraData = (Convert.ToInt32(item2.ExtraData) + 1).ToString();
                         else
@@ -425,13 +416,11 @@ namespace Plus.HabboHotel.Rooms
                 else if (IdleTime > 0)
                     IdleTime = 0;
 
-                if (HasActivePromotion && Promotion.HasExpired)
-                {
+                if (HasActivePromotion && Promotion.HasExpired) {
                     EndPromotion();
                 }
 
-                if (IdleTime >= 60 && !HasActivePromotion)
-                {
+                if (IdleTime >= 60 && !HasActivePromotion) {
                     PlusEnvironment.GetGame().GetRoomManager().UnloadRoom(Id);
                     return;
                 }
@@ -529,14 +518,10 @@ namespace Plus.HabboHotel.Rooms
 
         public bool CheckMute(GameClient session)
         {
-            if (MutedUsers.ContainsKey(session.GetHabbo().Id))
-            {
-                if (MutedUsers[session.GetHabbo().Id] < PlusEnvironment.GetUnixTimestamp())
-                {
+            if (MutedUsers.ContainsKey(session.GetHabbo().Id)) {
+                if (MutedUsers[session.GetHabbo().Id] < PlusEnvironment.GetUnixTimestamp()) {
                     MutedUsers.Remove(session.GetHabbo().Id);
-                }
-                else
-                {
+                } else {
                     return true;
                 }
             }
@@ -612,8 +597,7 @@ namespace Plus.HabboHotel.Rooms
 
         public void AddUserToTent(int tentId, RoomUser user)
         {
-            if (user != null && user.GetClient() != null && user.GetClient().GetHabbo() != null)
-            {
+            if (user != null && user.GetClient() != null && user.GetClient().GetHabbo() != null) {
                 if (!_tents.ContainsKey(tentId))
                     _tents.Add(tentId, new List<RoomUser>());
 
@@ -625,8 +609,7 @@ namespace Plus.HabboHotel.Rooms
 
         public void RemoveUserFromTent(int tentId, RoomUser user)
         {
-            if (user != null && user.GetClient() != null && user.GetClient().GetHabbo() != null)
-            {
+            if (user != null && user.GetClient() != null && user.GetClient().GetHabbo() != null) {
                 if (!_tents.ContainsKey(tentId))
                     _tents.Add(tentId, new List<RoomUser>());
 
@@ -744,8 +727,7 @@ namespace Plus.HabboHotel.Rooms
         {
             SendPacket(new CloseConnectionComposer());
 
-            if (!mDisposed)
-            {
+            if (!mDisposed) {
                 IsCrashed = false;
                 mDisposed = true;
 
@@ -774,64 +756,54 @@ namespace Plus.HabboHotel.Rooms
                 if (UsersWithRights.Count > 0)
                     UsersWithRights.Clear();
 
-                if (_gameManager != null)
-                {
+                if (_gameManager != null) {
                     _gameManager.Dispose();
                     _gameManager = null;
                 }
 
-                if (_freeze != null)
-                {
+                if (_freeze != null) {
                     _freeze.Dispose();
                     _freeze = null;
                 }
 
-                if (_soccer != null)
-                {
+                if (_soccer != null) {
                     _soccer.Dispose();
                     _soccer = null;
                 }
 
-                if (_banzai != null)
-                {
+                if (_banzai != null) {
                     _banzai.Dispose();
                     _banzai = null;
                 }
 
-                if (_gamemap != null)
-                {
+                if (_gamemap != null) {
                     _gamemap.Dispose();
                     _gamemap = null;
                 }
 
-                if (_gameItemHandler != null)
-                {
+                if (_gameItemHandler != null) {
                     _gameItemHandler.Dispose();
                     _gameItemHandler = null;
                 }
 
                 // Room Data?
 
-                if (TeamBanzai != null)
-                {
+                if (TeamBanzai != null) {
                     TeamBanzai.Dispose();
                     TeamBanzai = null;
                 }
 
-                if (TeamFreeze != null)
-                {
+                if (TeamFreeze != null) {
                     TeamFreeze.Dispose();
                     TeamFreeze = null;
                 }
 
-                if (_roomUserManager != null)
-                {
+                if (_roomUserManager != null) {
                     _roomUserManager.Dispose();
                     _roomUserManager = null;
                 }
 
-                if (_roomItemHandling != null)
-                {
+                if (_roomItemHandling != null) {
                     _roomItemHandling.Dispose();
                     _roomItemHandling = null;
                 }

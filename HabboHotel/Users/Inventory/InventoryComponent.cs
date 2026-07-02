@@ -49,25 +49,20 @@ namespace Plus.HabboHotel.Users.Inventory
             List<Item> items = ItemLoader.GetItemsForUser(_userId);
             foreach (Item item in items.ToList())
             {
-                if (item.IsFloorItem)
-                {
+                if (item.IsFloorItem) {
                     if (!_floorItems.TryAdd(item.Id, item))
                         continue;
-                }
-                else if (item.IsWallItem)
-                {
+                } else if (item.IsWallItem) {
                     if (!_wallItems.TryAdd(item.Id, item))
                         continue;
-                }
-                else
+                } else
                     continue;
             }
 
             List<Pet> pets = PetLoader.GetPetsForUser(Convert.ToInt32(_userId));
             foreach (Pet pet in pets)
             {
-                if (!_petsItems.TryAdd(pet.PetId, pet))
-                {
+                if (!_petsItems.TryAdd(pet.PetId, pet)) {
                     Console.WriteLine("Error whilst loading pet x1: " + pet.PetId);
                 }
             }
@@ -75,8 +70,7 @@ namespace Plus.HabboHotel.Users.Inventory
             List<Bot> bots = BotLoader.GetBotsForUser(Convert.ToInt32(_userId));
             foreach (Bot bot in bots)
             {
-                if (!_botItems.TryAdd(bot.Id, bot))
-                {
+                if (!_botItems.TryAdd(bot.Id, bot)) {
                     Console.WriteLine("Error whilst loading bot x1: " + bot.Id);
                 }
             }
@@ -130,23 +124,18 @@ namespace Plus.HabboHotel.Users.Inventory
 
         public Item AddNewItem(int id, int baseItem, string extraData, int group, bool toInsert, bool fromRoom, int limitedNumber, int limitedStack)
         {
-            if (toInsert)
-            {
-                if (fromRoom)
-                {
+            if (toInsert) {
+                if (fromRoom) {
                     using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                     {
                         dbClient.RunQuery("UPDATE `items` SET `room_id` = '0', `user_id` = '" + _userId + "' WHERE `id` = '" + id + "' LIMIT 1");
                     }
-                }
-                else
-                {
+                } else {
                     using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                     {
                         if (id > 0)
                             dbClient.RunQuery("INSERT INTO `items` (`id`,`base_item`, `user_id`, `limited_number`, `limited_stack`) VALUES ('" + id + "', '" + baseItem + "', '" + _userId + "', '" + limitedNumber + "', '" + limitedStack + "')");
-                        else
-                        {
+                        else {
                             dbClient.SetQuery("INSERT INTO `items` (`base_item`, `user_id`, `limited_number`, `limited_stack`) VALUES ('" + baseItem + "', '" + _userId + "', '" + limitedNumber + "', '" + limitedStack + "')");
                             id = Convert.ToInt32(dbClient.InsertQuery());
                         }
@@ -156,8 +145,7 @@ namespace Plus.HabboHotel.Users.Inventory
                         if (group > 0)
                             dbClient.RunQuery("INSERT INTO `items_groups` VALUES (" + id + ", " + group + ")");
 
-                        if (!string.IsNullOrEmpty(extraData))
-                        {
+                        if (!string.IsNullOrEmpty(extraData)) {
                             dbClient.SetQuery("UPDATE `items` SET `extra_data` = @extradata WHERE `id` = '" + id + "' LIMIT 1");
                             dbClient.AddParameter("extradata", extraData);
                             dbClient.RunQuery();
@@ -195,13 +183,11 @@ namespace Plus.HabboHotel.Users.Inventory
             if (GetClient().GetHabbo() == null || GetClient().GetHabbo().GetInventoryComponent() == null)
                 GetClient().Disconnect();
 
-            if (_floorItems.ContainsKey(id))
-            {
+            if (_floorItems.ContainsKey(id)) {
                 _floorItems.TryRemove(id, out Item _);
             }
 
-            if (_wallItems.ContainsKey(id))
-            {
+            if (_wallItems.ContainsKey(id)) {
                 _wallItems.TryRemove(id, out Item _);
             }
 

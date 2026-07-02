@@ -34,16 +34,14 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
 
             StringData = message;
 
-            if (!int.TryParse(StringData, out int speed))
-            {
+            if (!int.TryParse(StringData, out int speed)) {
                 StringData = "";
             }
         }
 
         public bool Execute(params object[] @params)
         {
-            if (int.TryParse(StringData, out int speed))
-            {
+            if (int.TryParse(StringData, out int speed)) {
                 Instance.GetRoomItemHandler().SetSpeed(speed);
             }
 

@@ -28,16 +28,14 @@ namespace Plus.Communication.Rcon.Commands.User
             }
 
             // If we're in a room, we cannot really send the packets, so flag this as completed successfully, since we already updated it.
-            if (!client.GetHabbo().InRoom)
-            {
+            if (!client.GetHabbo().InRoom) {
                 return true;
             }
 
             //We are in a room, let's try to run the packets.
             Room room = client.GetHabbo().CurrentRoom;
             RoomUser user = room?.GetRoomUserManager().GetRoomUserByHabbo(client.GetHabbo().Id);
-            if (user != null)
-            {
+            if (user != null) {
                 room.SendPacket(new UserChangeComposer(user, false));
                 return true;
             }

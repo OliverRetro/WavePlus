@@ -32,8 +32,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
                 dbClient.RunQuery();
             }
 
-            if (session.GetHabbo().InRoom && session.GetHabbo().CurrentRoom != null)
-            {
+            if (session.GetHabbo().InRoom && session.GetHabbo().CurrentRoom != null) {
                 session.GetHabbo().CurrentRoom.SendPacket(new RefreshFavouriteGroupComposer(session.GetHabbo().Id));
                 session.GetHabbo().CurrentRoom.SendPacket(new HabboGroupBadgesComposer(group));
 
@@ -41,8 +40,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
                     .GetRoomUserByHabbo(session.GetHabbo().Id);
                 if (user != null)
                     session.GetHabbo().CurrentRoom.SendPacket(new UpdateFavouriteGroupComposer(group, user.VirtualId));
-            }
-            else
+            } else
                 session.SendPacket(new RefreshFavouriteGroupComposer(session.GetHabbo().Id));
             */
         }

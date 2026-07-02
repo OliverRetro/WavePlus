@@ -35,20 +35,16 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
             else if (session.GetHabbo().GetPermissions().HasRight("room_item_take"))
                 itemRights = true;
 
-            if (itemRights)
-            {
+            if (itemRights) {
                 if (item.GetBaseItem().InteractionType == InteractionType.Tent || item.GetBaseItem().InteractionType == InteractionType.TentSmall)
                     room.RemoveTent(item.Id);
 
-                if (item.GetBaseItem().InteractionType == InteractionType.Moodlight)
-                {
+                if (item.GetBaseItem().InteractionType == InteractionType.Moodlight) {
                     using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                     {
                         dbClient.RunQuery("DELETE FROM `room_items_moodlight` WHERE `item_id` = '" + item.Id + "' LIMIT 1");
                     }
-                }
-                else if (item.GetBaseItem().InteractionType == InteractionType.Toner)
-                {
+                } else if (item.GetBaseItem().InteractionType == InteractionType.Toner) {
                     using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                     {
                         dbClient.RunQuery("DELETE FROM `room_items_toner` WHERE `id` = '" + item.Id + "' LIMIT 1");
@@ -56,13 +52,11 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
                 }
 
 
-                if (item.UserId == session.GetHabbo().Id)
-                {
+                if (item.UserId == session.GetHabbo().Id) {
                     room.GetRoomItemHandler().RemoveFurniture(session, item.Id);
                     session.GetHabbo().GetInventoryComponent().AddNewItem(item.Id, item.BaseItem, item.ExtraData, item.GroupId, true, true, item.LimitedNo, item.LimitedTot);
                     session.GetHabbo().GetInventoryComponent().UpdateItems(false);
-                }
-                else if (session.GetHabbo().GetPermissions().HasRight("room_item_take")) //Staff are taking this item
+                } else if (session.GetHabbo().GetPermissions().HasRight("room_item_take")) //Staff are taking this item
                 {
                     room.GetRoomItemHandler().RemoveFurniture(session, item.Id);
                     session.GetHabbo().GetInventoryComponent().AddNewItem(item.Id, item.BaseItem, item.ExtraData, item.GroupId, true, true, item.LimitedNo, item.LimitedTot);

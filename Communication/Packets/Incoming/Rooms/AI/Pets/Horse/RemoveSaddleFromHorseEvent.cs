@@ -42,8 +42,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Pets.Horse
                 return;
 
             Item item = ItemFactory.CreateSingleItemNullable(itemData, session.GetHabbo(), "", "");
-            if (item != null)
-            {
+            if (item != null) {
                 session.GetHabbo().GetInventoryComponent().TryAddItem(item);
                 session.SendPacket(new FurniListNotificationComposer(item.Id, 1));
                 session.SendPacket(new PurchaseOkComposer());

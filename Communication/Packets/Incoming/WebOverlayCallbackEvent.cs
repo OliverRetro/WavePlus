@@ -6,6 +6,7 @@ using Plus.Communication.Packets.Outgoing.Overlay;
 using Plus.Communication.Packets.Outgoing.Roleplay;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Roleplay.Macros;
+using Plus.HabboHotel.Roleplay.RpItem;
 using Plus.HabboHotel.Roleplay.RpItem.Item;
 using Plus.HabboHotel.Roleplay.RpItem.Weapon;
 using Plus.HabboHotel.Roleplay.TargetLock;
@@ -27,15 +28,13 @@ namespace Plus.Communication.Packets.Incoming
             string payload = packet.PopString();
             Console.WriteLine("[WebOverlay] <-- packet 314 received, raw payload: " + payload);
 
-            if (session?.GetHabbo() == null)
-            {
+            if (session?.GetHabbo() == null) {
                 Console.WriteLine("[WebOverlay] aborted: session/habbo is null");
                 return;
             }
 
             payload = payload.Replace("&#47;", "/");
-            if (string.IsNullOrWhiteSpace(payload))
-            {
+            if (string.IsNullOrWhiteSpace(payload)) {
                 Console.WriteLine("[WebOverlay] aborted: empty payload");
                 return;
             }
@@ -45,8 +44,7 @@ namespace Plus.Communication.Packets.Incoming
                 using JsonDocument doc = JsonDocument.Parse(payload);
                 JsonElement root = doc.RootElement;
 
-                if (!root.TryGetProperty("header", out JsonElement headerEl))
-                {
+                if (!root.TryGetProperty("header", out JsonElement headerEl)) {
                     Console.WriteLine("[WebOverlay] aborted: no 'header' property in payload");
                     return;
                 }
@@ -100,6 +98,41 @@ namespace Plus.Communication.Packets.Incoming
                 // Drag & drop reorder — persist the new grid positions.
                 case "save_inventory":
                     SaveInventory(data, session);
+                    break;
+
+                // Drag a weapon onto the primary equipped slot.
+                case "equip_weapon":
+                    EquipWeapon(data, session);
+                    break;
+
+                // Drag/double-click the active weapon out of the primary slot.
+                case "unequip_weapon":
+                    UnequipWeapon(session);
+                    break;
+
+                // Drag a primary item onto the primary equipped slot (replaces the weapon).
+                case "equip_primary":
+                    EquipPrimary(data, session);
+                    break;
+
+                // Drag/double-click the primary item out of the primary slot.
+                case "unequip_primary":
+                    UnequipPrimary(session);
+                    break;
+
+                // Drag a shield onto the secondary equipped slot.
+                case "equip_shield":
+                    EquipShield(data, session);
+                    break;
+
+                // Drag/double-click the shield out of the secondary slot.
+                case "unequip_shield":
+                    UnequipShield(session);
+                    break;
+
+                // Drag a slot onto the trashbin — destroy the whole stack.
+                case "disband_item":
+                    DisbandItem(data, session);
                     break;
 
                 case "open_wanted":
@@ -177,61 +210,255 @@ namespace Plus.Communication.Packets.Incoming
             if (habbo == null)
                 return;
 
+            // Keep the equipped shield's stored durability in sync with the live stat.
+            habbo.GetRpItems()?.SyncEquippedShield(habbo);
+
             List<object> items = new();
 
-            // Slot 0 (first equipped slot) is the user's active weapon.
-            UserWeapon weapon = habbo.GetRpWeapons()?.GetActiveWeapon();
-            if (weapon?.WeaponData != null && weapon.WeaponData.Id != 0)
-            {
+            // Primary equipped slot (0): a primary item if one is equipped, otherwise the weapon.
+            UserRpItem equippedPrimary = habbo.GetRpItems()?.GetEquippedPrimaryItem();
+            if (equippedPrimary?.ItemData != null) {
+                bool hasBar = equippedPrimary.ItemData.MaxShield > 0;
                 items.Add(new
                 {
-                    id = -1000 - weapon.Id,
-                    item = weapon.WeaponData.Name ?? "",
+                    id = equippedPrimary.Id,
+                    kind = "primary",
+                    item = equippedPrimary.ItemData.Name ?? "",
                     equipped = true,
                     equippedSlot = 0,
-                    image = weapon.WeaponData.Image ?? "",
-                    weapon = true,
-                    health = weapon.WeaponData.Durability <= 0 ? 100
-                        : (int)Math.Round(100.0 * weapon.DurabilityLeft / weapon.WeaponData.Durability)
+                    image = equippedPrimary.ItemData.ImageUrl ?? "",
+                    weapon = hasBar,
+                    health = hasBar ? (int)Math.Round(100.0 * equippedPrimary.EffectiveDurability / Math.Max(1, equippedPrimary.ItemData.MaxShield)) : 100
                 });
-            }
-
-            // Slot 1 is the user's shield (driven by current shield stat).
-            int shield = habbo.GetRpStats()?.Shield ?? 0;
-            if (shield > 0)
-            {
-                items.Add(new
-                {
-                    id = -2000,
-                    item = "Shield",
-                    equipped = true,
-                    equippedSlot = 1,
-                    image = "shield",
-                    weapon = true,
-                    health = shield
-                });
-            }
-
-            // The remaining slots are normal RP items. Always send the panel even when the
-            // user has no items component yet — the overlay needs the message to open.
-            UserRpItems rpItems = habbo.GetRpItems();
-            if (rpItems?.Items != null)
-            {
-                foreach (UserRpItem item in rpItems.Items)
-                {
+            } else {
+                UserWeapon weapon = habbo.GetRpWeapons()?.GetActiveWeapon();
+                if (weapon?.WeaponData != null && weapon.WeaponData.Id != 0) {
                     items.Add(new
                     {
-                        id = item.Id,
-                        item = item.ItemData?.Name ?? "",
-                        equipped = false,
-                        image = item.ItemData?.ImageUrl ?? "",
-                        weapon = false,
-                        slot = item.Slot
+                        id = -1000 - weapon.Id,
+                        userWeaponId = weapon.Id,
+                        weaponId = weapon.WeaponId,
+                        kind = "weapon",
+                        item = weapon.WeaponData.Name ?? "",
+                        equipped = true,
+                        equippedSlot = 0,
+                        image = weapon.WeaponData.Image ?? "",
+                        weapon = true,
+                        health = weapon.WeaponData.Durability <= 0 ? 100
+                            : (int)Math.Round(100.0 * weapon.DurabilityLeft / weapon.WeaponData.Durability)
                     });
                 }
             }
 
+            // Secondary equipped slot (1): the equipped secondary (shield) item (durability driven).
+            UserRpItem equippedShield = habbo.GetRpItems()?.GetEquippedShield();
+            if (equippedShield?.ItemData != null) {
+                int maxShield = Math.Max(1, equippedShield.ItemData.MaxShield);
+                items.Add(new
+                {
+                    id = equippedShield.Id,
+                    kind = "secondary",
+                    item = equippedShield.ItemData.Name ?? "Shield",
+                    equipped = true,
+                    equippedSlot = 1,
+                    image = equippedShield.ItemData.ImageUrl ?? "",
+                    weapon = true,
+                    shield = true,
+                    health = (int)Math.Round(100.0 * equippedShield.EffectiveDurability / maxShield)
+                });
+            }
+
+            // Normal grid: merged + stacked items and (non-active) weapons.
+            RpInventoryEntry[] view = RpInventory.BuildSlotView(habbo, 10);
+            for (int slot = 0; slot < view.Length; slot++)
+            {
+                RpInventoryEntry entry = view[slot];
+                if (entry == null)
+                    continue;
+
+                if (entry.Kind == "weapon") {
+                    UserWeapon w = entry.Weapon;
+                    // Lock the resolved position so consuming items leaves a blank slot
+                    // instead of reflowing the rest of the grid.
+                    habbo.GetRpWeapons()?.SetSlot(w.Id, slot);
+                    items.Add(new
+                    {
+                        id = -100000 - w.Id,
+                        userWeaponId = w.Id,
+                        weaponId = w.WeaponId,
+                        kind = "weapon",
+                        item = w.WeaponData?.Name ?? "",
+                        equipped = false,
+                        image = w.WeaponData?.Image ?? "",
+                        weapon = true,
+                        slot,
+                        health = w.WeaponData == null || w.WeaponData.Durability <= 0 ? 100
+                            : (int)Math.Round(100.0 * w.DurabilityLeft / w.WeaponData.Durability)
+                    });
+                    continue;
+                }
+
+                UserRpItem rep = entry.Representative;
+                // Lock the resolved position (see weapon branch above).
+                habbo.GetRpItems()?.SetSlot(rep.Id, slot);
+                bool isSecondary = entry.Kind == "secondary";
+                bool hasBar = rep.ItemData != null && rep.ItemData.MaxShield > 0;
+                int health = hasBar
+                    ? (int)Math.Round(100.0 * rep.EffectiveDurability / Math.Max(1, rep.ItemData.MaxShield))
+                    : 100;
+
+                items.Add(new
+                {
+                    id = rep.Id,
+                    kind = entry.Kind,
+                    item = rep.ItemData?.Name ?? "",
+                    equipped = false,
+                    image = rep.ItemData?.ImageUrl ?? "",
+                    weapon = hasBar, // shields / durability items render a bar
+                    shield = isSecondary,
+                    slot,
+                    count = entry.Count,
+                    stackLimit = rep.ItemData?.StackLimit ?? 1,
+                    ids = entry.Stack.Select(x => x.Id).ToArray(),
+                    health
+                });
+            }
+
             WebOverlay.Send(session, "inventory", new { items });
+        }
+
+        // Unequip the active weapon — it returns to the grid, so it needs a free slot.
+        private static void UnequipWeapon(GameClient session)
+        {
+            Habbo habbo = session.GetHabbo();
+            if (habbo == null)
+                return;
+
+            UserWeapon active = habbo.GetRpWeapons()?.GetActiveWeapon();
+            bool hasRealWeapon = active?.WeaponData != null && active.WeaponData.Id != 0;
+            if (hasRealWeapon && RpInventory.UsedSlots(habbo, 10) >= 10) {
+                session.SendWhisper("You don't have a free inventory slot — disband something first.", 1);
+                return;
+            }
+
+            RpWeaponService.Equip(session, 0, out _);
+            OpenInventory(session);
+        }
+
+        // Unequip the shield — it returns to the grid, so it needs a free slot.
+        private static void UnequipShield(GameClient session)
+        {
+            Habbo habbo = session.GetHabbo();
+            UserRpItems items = habbo?.GetRpItems();
+            if (items == null)
+                return;
+
+            if (items.GetEquippedShield() == null) {
+                OpenInventory(session);
+                return;
+            }
+
+            if (RpInventory.UsedSlots(habbo, 10) >= 10) {
+                session.SendWhisper("You don't have a free inventory slot — disband something first.", 1);
+                return;
+            }
+
+            items.UnequipShield(habbo);
+            OpenInventory(session);
+        }
+
+        // Drag a weapon onto the primary equipped slot — make it the active weapon.
+        private static void EquipWeapon(JsonElement data, GameClient session)
+        {
+            if (!TryGetInt(data, "userWeaponId", out int userWeaponId))
+                return;
+
+            RpWeaponService.Equip(session, userWeaponId, out _);
+            OpenInventory(session);
+        }
+
+        // Drag a primary item onto the primary equipped slot — replaces the weapon.
+        private static void EquipPrimary(JsonElement data, GameClient session)
+        {
+            if (!TryGetInt(data, "id", out int itemId))
+                return;
+
+            session.GetHabbo()?.GetRpItems()?.EquipPrimaryItem(itemId, session.GetHabbo());
+            OpenInventory(session);
+        }
+
+        // Unequip the primary item — it returns to the grid, so it needs a free slot.
+        private static void UnequipPrimary(GameClient session)
+        {
+            Habbo habbo = session.GetHabbo();
+            UserRpItems items = habbo?.GetRpItems();
+            if (items == null)
+                return;
+
+            if (items.GetEquippedPrimaryItem() == null) {
+                OpenInventory(session);
+                return;
+            }
+
+            if (RpInventory.UsedSlots(habbo, 10) >= 10) {
+                session.SendWhisper("You don't have a free inventory slot — disband something first.", 1);
+                return;
+            }
+
+            items.UnequipPrimaryItem(habbo);
+            OpenInventory(session);
+        }
+
+        // Drag a shield onto the secondary equipped slot.
+        private static void EquipShield(JsonElement data, GameClient session)
+        {
+            if (!TryGetInt(data, "id", out int itemId))
+                return;
+
+            session.GetHabbo()?.GetRpItems()?.EquipShield(itemId, session.GetHabbo());
+            OpenInventory(session);
+        }
+
+        // Trashbin drop — destroy the whole stack at the dragged slot.
+        private static void DisbandItem(JsonElement data, GameClient session)
+        {
+            Habbo habbo = session.GetHabbo();
+            UserRpItems items = habbo?.GetRpItems();
+            if (items == null)
+                return;
+
+            UserRpItem equippedShieldBefore = items.GetEquippedShield();
+
+            // Prefer an explicit list of ids (a stack); fall back to a single id.
+            if (data.ValueKind == JsonValueKind.Object && data.TryGetProperty("ids", out JsonElement idsEl) && idsEl.ValueKind == JsonValueKind.Array) {
+                foreach (JsonElement e in idsEl.EnumerateArray())
+                {
+                    if (e.TryGetInt32(out int iid)) {
+                        UserRpItem it = items.GetItem(iid);
+                        if (it != null)
+                            items.Remove(it);
+                    }
+                }
+            } else if (TryGetInt(data, "id", out int id)) {
+                UserRpItem it = items.GetItem(id);
+                if (it != null)
+                    items.Remove(it);
+                else if (TryGetInt(data, "userWeaponId", out int uwid))
+                    habbo.GetRpWeapons()?.RemoveWeapon(uwid);
+            }
+
+            // Destroying the equipped shield must also drop the live shield stat.
+            if (equippedShieldBefore != null && items.GetItem(equippedShieldBefore.Id) == null) {
+                UserRpStats stats = habbo.GetRpStats();
+                if (stats != null) {
+                    stats.Shield = 0;
+                    habbo.TrySendUserStatsUpdate(true);
+                }
+            }
+
+            habbo.SaveRpItems();
+            habbo.SaveRpWeapons();
+            OpenInventory(session);
         }
 
         // Use/activate an owned RP item by its user-item id (double-click in the overlay).
@@ -252,17 +479,24 @@ namespace Plus.Communication.Packets.Incoming
         // Persist the new grid positions sent after a drag & drop reorder.
         private static void SaveInventory(JsonElement data, GameClient session)
         {
-            UserRpItems items = session.GetHabbo()?.GetRpItems();
+            Habbo habbo = session.GetHabbo();
+            UserRpItems items = habbo?.GetRpItems();
+            UserRpWeapons weapons = habbo?.GetRpWeapons();
             if (items == null || data.ValueKind != JsonValueKind.Object ||
                 !data.TryGetProperty("slots", out JsonElement slots) || slots.ValueKind != JsonValueKind.Array)
                 return;
 
             foreach (JsonElement entry in slots.EnumerateArray())
             {
-                if (entry.ValueKind != JsonValueKind.Object)
+                if (entry.ValueKind != JsonValueKind.Object || !TryGetInt(entry, "slot", out int slot))
                     continue;
-                if (TryGetInt(entry, "id", out int id) && TryGetInt(entry, "slot", out int slot))
+
+                if (GetString(entry, "kind") == "weapon") {
+                    if (weapons != null && TryGetInt(entry, "userWeaponId", out int uwid))
+                        weapons.SetSlot(uwid, slot);
+                } else if (TryGetInt(entry, "id", out int id) && id > 0) {
                     items.SetSlot(id, slot);
+                }
             }
         }
 
@@ -290,10 +524,8 @@ namespace Plus.Communication.Packets.Incoming
             // A keybind fires a bare command (e.g. ":hit"). Auto-fill the user's current
             // target — the clicked user when nothing is locked, otherwise the locked
             // target — as the command argument, so binds act on whoever is targeted.
-            if (text.StartsWith(":", StringComparison.CurrentCulture))
-            {
-                if (!text.Contains(' '))
-                {
+            if (text.StartsWith(":", StringComparison.CurrentCulture)) {
+                if (!text.Contains(' ')) {
                     Habbo target = TargetLockService.GetClickedHabbo(habbo.Id);
                     if (target != null)
                         text += " " + target.Username;
@@ -323,8 +555,7 @@ namespace Plus.Communication.Packets.Incoming
 
             string name = GetString(data, "name");
             Dictionary<string, string> sets = new();
-            if (data.ValueKind == JsonValueKind.Object && data.TryGetProperty("sets", out JsonElement setsEl) && setsEl.ValueKind == JsonValueKind.Object)
-            {
+            if (data.ValueKind == JsonValueKind.Object && data.TryGetProperty("sets", out JsonElement setsEl) && setsEl.ValueKind == JsonValueKind.Object) {
                 foreach (JsonProperty prop in setsEl.EnumerateObject())
                     sets[prop.Name] = prop.Value.GetString() ?? "";
             }

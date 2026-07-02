@@ -32,15 +32,13 @@ namespace Plus.HabboHotel.Users.UserData
                 dbClient.AddParameter("sso", sessionTicket);
                 dUserInfo = dbClient.GetRow();
 
-                if (dUserInfo == null)
-                {
+                if (dUserInfo == null) {
                     errorCode = 1;
                     return null;
                 }
 
                 userId = Convert.ToInt32(dUserInfo["id"]);
-                if (PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(userId) != null)
-                {
+                if (PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(userId) != null) {
                     errorCode = 2;
                     PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(userId).Disconnect();
                     return null;
@@ -80,8 +78,7 @@ namespace Plus.HabboHotel.Users.UserData
 
                 dbClient.SetQuery("SELECT * FROM `user_info` WHERE `user_id` = '" + userId + "' LIMIT 1");
                 userInfo = dbClient.GetRow();
-                if (userInfo == null)
-                {
+                if (userInfo == null) {
                     dbClient.RunQuery("INSERT INTO `user_info` (`user_id`) VALUES ('" + userId + "')");
 
                     dbClient.SetQuery("SELECT * FROM `user_info` WHERE `user_id` = '" + userId + "' LIMIT 1");
@@ -135,13 +132,10 @@ namespace Plus.HabboHotel.Users.UserData
 
                 string requestUsername = Convert.ToString(dRow["username"]);
 
-                if (receiverId != userId)
-                {
+                if (receiverId != userId) {
                     if (!requests.ContainsKey(receiverId))
                         requests.Add(receiverId, new MessengerRequest(userId, receiverId, requestUsername));
-                }
-                else
-                {
+                } else {
                     if (!requests.ContainsKey(senderId))
                         requests.Add(senderId, new MessengerRequest(userId, senderId, requestUsername));
                 }
@@ -201,8 +195,7 @@ namespace Plus.HabboHotel.Users.UserData
 
                 dbClient.SetQuery("SELECT * FROM `user_info` WHERE `user_id` = '" + userId + "' LIMIT 1");
                 userInfo = dbClient.GetRow();
-                if (userInfo == null)
-                {
+                if (userInfo == null) {
                     dbClient.RunQuery("INSERT INTO `user_info` (`user_id`) VALUES ('" + userId + "')");
 
                     dbClient.SetQuery("SELECT * FROM `user_info` WHERE `user_id` = '" + userId + "' LIMIT 1");
@@ -228,8 +221,7 @@ namespace Plus.HabboHotel.Users.UserData
             Dictionary<int, Relationship> relationships = new();
             foreach (DataRow row in dRelations.Rows)
             {
-                if (!relationships.ContainsKey(Convert.ToInt32(row["id"])))
-                {
+                if (!relationships.ContainsKey(Convert.ToInt32(row["id"]))) {
                     relationships.Add(Convert.ToInt32(row["target"]), new Relationship(Convert.ToInt32(row["id"]), Convert.ToInt32(row["target"]), Convert.ToInt32(row["type"].ToString())));
                 }
             }

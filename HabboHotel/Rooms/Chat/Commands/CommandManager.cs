@@ -61,14 +61,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             if (!message.StartsWith(_prefix))
                 return false;
 
-            if (message == _prefix + "commands")
-            {
+            if (message == _prefix + "commands") {
                 StringBuilder list = new();
                 list.Append("This is the list of commands you have available:\n");
                 foreach (var cmdList in _commands.ToList())
                 {
-                    if (!string.IsNullOrEmpty(cmdList.Value.PermissionRequired) || !string.IsNullOrEmpty(cmdList.Value.GroupPermissionRequired))
-                    {
+                    if (!string.IsNullOrEmpty(cmdList.Value.PermissionRequired) || !string.IsNullOrEmpty(cmdList.Value.GroupPermissionRequired)) {
                         if (!CanExecuteCommand(session, cmdList.Key.ToLower(), cmdList.Value))
                             continue;
                     }
@@ -86,13 +84,11 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             if (split.Length == 0)
                 return false;
 
-            if (_commands.TryGetValue(split[0].ToLower(), out IChatCommand cmd))
-            {
+            if (_commands.TryGetValue(split[0].ToLower(), out IChatCommand cmd)) {
                 if (session.GetHabbo().GetPermissions().HasRight("mod_tool"))
                     LogCommand(session.GetHabbo().Id, message, session.GetHabbo().MachineId);
 
-                if (!string.IsNullOrEmpty(cmd.PermissionRequired) || !string.IsNullOrEmpty(cmd.GroupPermissionRequired))
-                {
+                if (!string.IsNullOrEmpty(cmd.PermissionRequired) || !string.IsNullOrEmpty(cmd.GroupPermissionRequired)) {
                     if (!CanExecuteCommand(session, split[0].ToLower(), cmd))
                         return false;
                 }
@@ -109,6 +105,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
 
         private void RegisterRoleplay()
         {
+            Register("livefeedtest", new LiveFeedTestCommand());
             Register("stopwork", new StopWorkCommand());
             Register("startwork", new StartWorkCommand());
             Register("rob", new RobUserCommand());
@@ -128,6 +125,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             Register("passive", new PassiveModeCommand());
             Register("wantedlist", new WantedListCommand());
             Register("hire", new HireCommand());
+            Register("superhire", new SuperHireCommand());
             Register("groupperms", new GroupPermissionsCommand());
             Register("hit", new HitCommand());
             Register("toggleskill", new ToggleSkillCommand());
@@ -272,7 +270,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
 
             Register("useitem", new UseItemCommand());
             Register("inv", new InvCommand());
+            Register("disbanditem", new DisbandItemCommand());
+            Register("charge", new ChargeCommand());
             Register("giveitem", new GiveItemCommand());
+            Register("rpupdate", new RpUpdateCommand());
         }
 
         /// <summary>

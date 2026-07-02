@@ -27,8 +27,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Filter
                 dbClient.SetQuery("SELECT * FROM `wordfilter`");
                 data = dbClient.GetTable();
 
-                if (data != null)
-                {
+                if (data != null) {
                     foreach (DataRow row in data.Rows)
                     {
                         _filteredWords.Add(new WordFilter(Convert.ToString(row["word"]), Convert.ToString(row["replacement"]), PlusEnvironment.EnumToBool(row["strict"].ToString()), PlusEnvironment.EnumToBool(row["bannable"].ToString())));
@@ -41,12 +40,9 @@ namespace Plus.HabboHotel.Rooms.Chat.Filter
         {
             foreach (WordFilter filter in _filteredWords.ToList())
             {
-                if (message.ToLower().Contains(filter.Word) && filter.IsStrict || message == filter.Word)
-                {
+                if (message.ToLower().Contains(filter.Word) && filter.IsStrict || message == filter.Word) {
                     message = Regex.Replace(message, filter.Word, filter.Replacement, RegexOptions.IgnoreCase);
-                }
-                else if (message.ToLower().Contains(filter.Word) && !filter.IsStrict || message == filter.Word)
-                {
+                } else if (message.ToLower().Contains(filter.Word) && !filter.IsStrict || message == filter.Word) {
                     string[] words = message.Split(' ');
 
                     message = "";

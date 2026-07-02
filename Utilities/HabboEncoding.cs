@@ -43,8 +43,7 @@ namespace Plus.Utilities
         /// <returns>Decoded Data.</returns>
         public static int DecodeInt32(string v)
         {
-            if ((v[0] | v[1] | v[2] | v[3]) < 0)
-            {
+            if ((v[0] | v[1] | v[2] | v[3]) < 0) {
                 return -1;
             }
 
@@ -58,8 +57,7 @@ namespace Plus.Utilities
         /// <returns>Decoded Data.</returns>
         public static int DecodeInt32(byte[] v)
         {
-            if ((v[0] | v[1] | v[2] | v[3]) < 0)
-            {
+            if ((v[0] | v[1] | v[2] | v[3]) < 0) {
                 return -1;
             }
 
@@ -73,8 +71,7 @@ namespace Plus.Utilities
         /// <returns>Decoded data.</returns>
         public static int DecodeInt16(byte[] v)
         {
-            if ((v[0] | v[1]) < 0)
-            {
+            if ((v[0] | v[1]) < 0) {
                 return -1;
             }
 
@@ -89,8 +86,7 @@ namespace Plus.Utilities
         /// <returns>Decoded data.</returns>
         public static short DecodeInt16(string v)
         {
-            if ((v[0] | v[1]) < 0)
-            {
+            if ((v[0] | v[1]) < 0) {
                 return -1;
             }
 

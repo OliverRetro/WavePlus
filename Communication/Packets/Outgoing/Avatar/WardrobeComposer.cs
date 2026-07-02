@@ -24,8 +24,7 @@ namespace Plus.Communication.Packets.Outgoing.Avatar
 
                 if (wardrobeData == null)
                     packet.WriteInteger(0);
-                else
-                {
+                else {
                     packet.WriteInteger(wardrobeData.Rows.Count);
                     foreach (DataRow row in wardrobeData.Rows)
                     {

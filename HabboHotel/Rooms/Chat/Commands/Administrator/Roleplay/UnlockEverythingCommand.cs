@@ -16,8 +16,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (session?.GetHabbo() == null || @params.Length < 2)
-            {
+            if (session?.GetHabbo() == null || @params.Length < 2) {
                 session?.SendWhisper("Use :unlockall skins, :unlockall weapons, or :unlockall skills.", 1);
                 return;
             }

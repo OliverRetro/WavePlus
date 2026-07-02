@@ -28,14 +28,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                     table = dbClient.GetTable();
                 }
 
-                if (table == null)
-                {
+                if (table == null) {
                     session.SendWhisper("You currently have no items in your inventory!");
                     return;
                 }
 
-                if (table.Rows.Count > 0)
-                {
+                if (table.Rows.Count > 0) {
                     using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                     {
                         foreach (DataRow row in table.Rows)
@@ -52,8 +50,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
 
                             totalValue += value;
 
-                            if (value > 0)
-                            {
+                            if (value > 0) {
                                 session.GetHabbo().Credits += value;
                                 session.SendPacket(new CreditBalanceComposer(session.GetHabbo().Credits));
                             }

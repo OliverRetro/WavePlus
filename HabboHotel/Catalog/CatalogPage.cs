@@ -20,8 +20,7 @@ namespace Plus.HabboHotel.Catalog
 
             foreach (string str in pageStrings1.Split('|'))
             {
-                if (PageStrings1 == null)
-                {
+                if (PageStrings1 == null) {
                     PageStrings1 = new List<string>();
                 }
 
@@ -30,8 +29,7 @@ namespace Plus.HabboHotel.Catalog
 
             foreach (string str in pageStrings2.Split('|'))
             {
-                if (PageStrings2 == null)
-                {
+                if (PageStrings2 == null) {
                     PageStrings2 = new List<string>();
                 }
 
@@ -43,12 +41,10 @@ namespace Plus.HabboHotel.Catalog
             ItemOffers = new Dictionary<int, CatalogItem>();
             foreach (int i in flatOffers.Keys)
             {
-                if (flatOffers[i] == id)
-                {
+                if (flatOffers[i] == id) {
                     foreach (CatalogItem item in Items.Values)
                     {
-                        if (item.OfferId == i)
-                        {
+                        if (item.OfferId == i) {
                             if (!ItemOffers.ContainsKey(i))
                                 ItemOffers.Add(i, item);
                         }

@@ -41,16 +41,12 @@ namespace Plus.HabboHotel.Users.Calendar
                 dbClient.AddParameter("id", player.Id);
                 DataTable getData = dbClient.GetTable();
 
-                if (getData != null)
-                {
+                if (getData != null) {
                     foreach (DataRow row in getData.Rows)
                     {
-                        if (Convert.ToInt32(row["status"]) == 0)
-                        {
+                        if (Convert.ToInt32(row["status"]) == 0) {
                             _lateBoxes.Add(Convert.ToInt32(row["day"]));
-                        }
-                        else
-                        {
+                        } else {
                             _openedBoxes.Add(Convert.ToInt32(row["day"]));
                         }
                     }

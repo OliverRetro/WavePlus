@@ -19,15 +19,13 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
                 table = dbClient.GetTable();
             }
 
-            if (table != null)
-            {
+            if (table != null) {
                 foreach (DataRow row in table.Rows)
                 {
                     creditsOwed += Convert.ToInt32(row["asking_price"]);
                 }
 
-                if (creditsOwed >= 1)
-                {
+                if (creditsOwed >= 1) {
                     session.GetHabbo().Credits += creditsOwed;
                     session.SendPacket(new CreditBalanceComposer(session.GetHabbo().Credits));
                 }

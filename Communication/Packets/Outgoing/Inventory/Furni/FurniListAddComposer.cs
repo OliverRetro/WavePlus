@@ -20,15 +20,13 @@ namespace Plus.Communication.Packets.Outgoing.Inventory.Furni
             packet.WriteInteger(Item.Id);
             packet.WriteInteger(Item.GetBaseItem().SpriteId);
 
-            if (Item.LimitedNo > 0)
-            {
+            if (Item.LimitedNo > 0) {
                 packet.WriteInteger(1);
                 packet.WriteInteger(256);
                 packet.WriteString(Item.ExtraData);
                 packet.WriteInteger(Item.LimitedNo);
                 packet.WriteInteger(Item.LimitedTot);
-            }
-            else
+            } else
                 ItemBehaviourUtility.GenerateExtradata(Item, packet);
 
             packet.WriteBoolean(Item.GetBaseItem().AllowEcotronRecycle);
@@ -39,8 +37,7 @@ namespace Plus.Communication.Packets.Outgoing.Inventory.Furni
             packet.WriteBoolean(true);
             packet.WriteInteger(-1); //Item RoomId
 
-            if (!Item.IsWallItem)
-            {
+            if (!Item.IsWallItem) {
                 packet.WriteString(string.Empty);
                 packet.WriteInteger(0);
             }

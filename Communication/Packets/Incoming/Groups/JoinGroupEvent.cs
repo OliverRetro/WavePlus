@@ -26,31 +26,30 @@ namespace Plus.Communication.Packets.Incoming.Groups
                 return;
 
             List<Group> groups = PlusEnvironment.GetGame().GetGroupManager().GetGroupsForUser(session.GetHabbo().Id);
-            if (groups.Count >= 500)
-            {
+            if (groups.Count >= 500) {
                 session.SendPacket(new BroadcastMessageAlertComposer("Oops, it appears that you've hit the group membership limit! You can only join upto 1,500 groups."));
                 return;
             }
 
-            if(session.GetHabbo().GetStats().FavouriteGroupId != 0 && (group.Kind == GroupKind.Gang || group.Kind == GroupKind.Cartel || group.Kind == GroupKind.Mafia))
-            {
+            if(session.GetHabbo().GetStats().FavouriteGroupId != 0 && (group.Kind == GroupKind.Gang || group.Kind == GroupKind.Cartel || group.Kind == GroupKind.Mafia)) {
                 session.SendPacket(new BroadcastMessageAlertComposer("Sorry, you can only join one gang at a time."));
                 return;
             }
 
-            if (GroupManager.IsWorkableKind(group.Kind) && session.GetHabbo().CorporationId != 0)
-            {
+            if (GroupManager.IsWorkableKind(group.Kind) && session.GetHabbo().CorporationId != 0) {
                 session.SendPacket(new BroadcastMessageAlertComposer("Sorry, you can only work for one corporation at a time."));
                 return;
             }
 
             group.AddMember(session.GetHabbo().Id);
 
-            if (GroupManager.IsWorkableKind(group.Kind))
+            // Only mark them employed once they're an ACTUAL member. For request-based (Locked)
+            // corporations, applying just files a request — CorporationId is set when they're
+            // hired. This lets a user apply to a new job without needing to reload first.
+            if (GroupManager.IsWorkableKind(group.Kind) && group.IsMember(session.GetHabbo().Id))
                 session.GetHabbo().CorporationId = group.Id;
 
-            if (group.Type == GroupType.Locked)
-            {
+            if (group.Type == GroupType.Locked) {
                 List<GameClient> groupAdmins = (from client in PlusEnvironment.GetGame().GetClientManager().GetClients.ToList() where client != null && client.GetHabbo() != null && @group.IsAdmin(client.GetHabbo().Id) select client).ToList();
                 foreach (GameClient client in groupAdmins)
                 {
@@ -58,11 +57,8 @@ namespace Plus.Communication.Packets.Incoming.Groups
                 }
 
                 session.SendPacket(new GroupInfoComposer(group, session));
-            }
-            else
-            {
-                if (session.GetHabbo().GetStats().FavouriteGroupId == 0 && (group.Kind == GroupKind.Gang || group.Kind == GroupKind.Cartel || group.Kind == GroupKind.Mafia))
-                {
+            } else {
+                if (session.GetHabbo().GetStats().FavouriteGroupId == 0 && (group.Kind == GroupKind.Gang || group.Kind == GroupKind.Cartel || group.Kind == GroupKind.Mafia)) {
                     session.GetHabbo().GetStats().FavouriteGroupId = group.Id;
                     using IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor();
                     dbClient.SetQuery("UPDATE `user_stats` SET `groupid` = @groupId WHERE `id` = @userId LIMIT 1");
@@ -70,8 +66,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
                     dbClient.AddParameter("userId", session.GetHabbo().Id);
                     dbClient.RunQuery();
 
-                    if (session.GetHabbo().InRoom && session.GetHabbo().CurrentRoom != null)
-                    {
+                    if (session.GetHabbo().InRoom && session.GetHabbo().CurrentRoom != null) {
                         session.GetHabbo().CurrentRoom.SendPacket(new RefreshFavouriteGroupComposer(session.GetHabbo().Id));
                         session.GetHabbo().CurrentRoom.SendPacket(new HabboGroupBadgesComposer(group));
 
@@ -79,8 +74,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
                             .GetRoomUserByHabbo(session.GetHabbo().Id);
                         if (user != null)
                             session.GetHabbo().CurrentRoom.SendPacket(new UpdateFavouriteGroupComposer(group, user.VirtualId));
-                    }
-                    else
+                    } else
                         session.SendPacket(new RefreshFavouriteGroupComposer(session.GetHabbo().Id));
                 }
 

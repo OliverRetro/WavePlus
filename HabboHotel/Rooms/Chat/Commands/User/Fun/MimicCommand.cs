@@ -15,28 +15,24 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Fun
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length == 1)
-            {
+            if (@params.Length == 1) {
                 session.SendWhisper("Please enter the username of the user you wish to mimic.");
                 return;
             }
 
             GameClient targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(@params[1]);
-            if (targetClient == null)
-            {
+            if (targetClient == null) {
                 session.SendWhisper("An error occoured whilst finding that user, maybe they're not online.");
                 return;
             }
 
-            if (!targetClient.GetHabbo().AllowMimic)
-            {
+            if (!targetClient.GetHabbo().AllowMimic) {
                 session.SendWhisper("Oops, you cannot mimic this user - sorry!");
                 return;
             }
 
             RoomUser targetUser = session.GetHabbo().CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(targetClient.GetHabbo().Id);
-            if (targetUser == null)
-            {
+            if (targetUser == null) {
                 session.SendWhisper("An error occoured whilst finding that user, maybe they're not online or in this room.");
                 return;
             }
@@ -54,8 +50,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Fun
             }
 
             RoomUser user = room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id);
-            if (user != null)
-            {
+            if (user != null) {
                 session.SendPacket(new AvatarAspectUpdateComposer(session.GetHabbo().Look, session.GetHabbo().Gender));
                 session.SendPacket(new UserChangeComposer(user, true));
                 room.SendPacket(new UserChangeComposer(user, false));

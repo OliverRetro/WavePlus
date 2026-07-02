@@ -11,13 +11,10 @@ namespace Plus.Communication.Packets.Incoming.Handshake
             string cipherPublicKey = packet.PopString();
 
             BigInteger sharedKey = HabboEncryptionV2.CalculateDiffieHellmanSharedKey(cipherPublicKey);
-            if (sharedKey != 0)
-            {
+            if (sharedKey != 0) {
                 session.SendPacket(new SecretKeyComposer(HabboEncryptionV2.GetRsaDiffieHellmanPublicKey()));
                 session.EnableEncryption(sharedKey.getBytes());
-            }
-            else
-            {
+            } else {
                 session.SendNotification("There was an error logging you in, please try again!");
             }
         }

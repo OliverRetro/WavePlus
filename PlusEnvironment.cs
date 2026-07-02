@@ -47,6 +47,7 @@ namespace Plus
         private static LanguageManager _languageManager;
         private static SettingsManager _settingsManager;
         private static DatabaseManager _manager;
+        private static RedisManager _redisManager;
         private static RconSocket _rcon;
         private static FigureDataManager _figureManager;
         private static NetworkBootstrap _bootstrap;
@@ -56,6 +57,8 @@ namespace Plus
         private static CombatManager _combatManager;
         private static WeaponManager _weaponManager;
         private static RpItemManager _rpItemManager;
+        private static Plus.HabboHotel.Roleplay.Crime.RpCrimeManager _rpCrimeManager;
+        private static Plus.HabboHotel.Roleplay.Crime.JailManager _jailManager;
         private static HospitalManager _hospitalManager;
         private static BankingManager _bankingManager;
 
@@ -123,8 +126,7 @@ namespace Plus
 
                 _manager = new DatabaseManager(connectionString.ToString());
 
-                if (!_manager.IsConnected())
-                {
+                if (!_manager.IsConnected()) {
                     Log.Error("Failed to Connect to the specified MySQL server.");
                     Console.ReadKey(true);
                     Environment.Exit(1);
@@ -132,6 +134,9 @@ namespace Plus
                 }
 
                 Log.Info("Connected to Database!");
+
+                _redisManager = new RedisManager();
+                _redisManager.Init();
 
                 //Reset our statistics first.
                 using (IQueryAdapter dbClient = GetDatabaseManager().GetQueryReactor())
@@ -165,6 +170,11 @@ namespace Plus
 
                 _rpItemManager = new RpItemManager();
                 _rpItemManager.Init();
+
+                _rpCrimeManager = new Plus.HabboHotel.Roleplay.Crime.RpCrimeManager();
+                _rpCrimeManager.Init();
+
+                _jailManager = new Plus.HabboHotel.Roleplay.Crime.JailManager();
 
                 _bankingManager = new BankingManager();
 
@@ -258,15 +268,13 @@ namespace Plus
         public static bool IsValidAlphaNumeric(string inputStr)
         {
             inputStr = inputStr.ToLower();
-            if (string.IsNullOrEmpty(inputStr))
-            {
+            if (string.IsNullOrEmpty(inputStr)) {
                 return false;
             }
 
             for (int i = 0; i < inputStr.Length; i++)
             {
-                if (!IsValid(inputStr[i]))
-                {
+                if (!IsValid(inputStr[i])) {
                     return false;
                 }
             }
@@ -304,26 +312,21 @@ namespace Plus
             try
             {
                 GameClient client = GetGame().GetClientManager().GetClientByUserId(userId);
-                if (client != null)
-                {
+                if (client != null) {
                     Habbo user = client.GetHabbo();
-                    if (user != null && user.Id > 0)
-                    {
+                    if (user != null && user.Id > 0) {
                         if (UsersCached.ContainsKey(userId))
                             UsersCached.TryRemove(userId, out user);
                         return user;
                     }
-                }
-                else
-                {
+                } else {
                     try
                     {
                         if (UsersCached.ContainsKey(userId))
                             return UsersCached[userId];
                         UserData data = UserDataFactory.GetUserData(userId);
                         Habbo generated = data?.User;
-                        if (generated != null)
-                        {
+                        if (generated != null) {
                             generated.InitInformation(data);
                             UsersCached.TryAdd(userId, generated);
                             return generated;
@@ -399,6 +402,11 @@ namespace Plus
             return _configuration;
         }
 
+        public static RedisManager GetRedis()
+        {
+            return _redisManager;
+        }
+
         public static Encoding GetDefaultEncoding()
         {
             return _defaultEncoding;
@@ -457,6 +465,16 @@ namespace Plus
         public static RpItemManager GetRpItemManager()
         {
             return _rpItemManager;
+        }
+
+        public static Plus.HabboHotel.Roleplay.Crime.RpCrimeManager GetRpCrimeManager()
+        {
+            return _rpCrimeManager;
+        }
+
+        public static Plus.HabboHotel.Roleplay.Crime.JailManager GetJailManager()
+        {
+            return _jailManager;
         }
 
         public static BankingManager GetBankingManager()

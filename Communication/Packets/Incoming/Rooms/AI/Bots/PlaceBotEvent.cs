@@ -30,8 +30,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Bots
             int x = packet.PopInt();
             int y = packet.PopInt();
 
-            if (!room.GetGameMap().CanWalk(x, y, false) || !room.GetGameMap().ValidTile(x, y))
-            {
+            if (!room.GetGameMap().CanWalk(x, y, false) || !room.GetGameMap().ValidTile(x, y)) {
                 session.SendNotification("You cannot place a bot here!");
                 return;
             }
@@ -48,8 +47,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Bots
                 botCount += 1;
             }
 
-            if (botCount >= 5 && !session.GetHabbo().GetPermissions().HasRight("bot_place_any_override"))
-            {
+            if (botCount >= 5 && !session.GetHabbo().GetPermissions().HasRight("bot_place_any_override")) {
                 session.SendNotification("Sorry; 5 bots per room only!");
                 return;
             }
@@ -93,8 +91,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Bots
             room.GetGameMap().UpdateUserMovement(new Point(x, y), new Point(x, y), botUser);
 
 
-            if (!session.GetHabbo().GetInventoryComponent().TryRemoveBot(botId, out Bot toRemove))
-            {
+            if (!session.GetHabbo().GetInventoryComponent().TryRemoveBot(botId, out Bot toRemove)) {
                 Console.WriteLine("Error whilst removing Bot: " + toRemove.Id);
                 return;
             }

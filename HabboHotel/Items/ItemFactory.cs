@@ -29,8 +29,7 @@ namespace Plus.HabboHotel.Items
                 dbClient.AddParameter("limited_stack", limitedStack);
                 item.Id = Convert.ToInt32(dbClient.InsertQuery());
 
-                if (groupId > 0)
-                {
+                if (groupId > 0) {
                     dbClient.SetQuery("INSERT INTO `items_groups` (`id`, `group_id`) VALUES (@id, @gid)");
                     dbClient.AddParameter("id", item.Id);
                     dbClient.AddParameter("gid", groupId);
@@ -118,8 +117,7 @@ namespace Plus.HabboHotel.Items
 
                     Item item = new(Convert.ToInt32(dbClient.InsertQuery()), 0, data.Id, extraData, 0, 0, 0, 0, habbo.Id, groupId, 0, 0, "");
 
-                    if (groupId > 0)
-                    {
+                    if (groupId > 0) {
                         dbClient.SetQuery("INSERT INTO `items_groups` (`id`, `group_id`) VALUES (@id, @gid)");
                         dbClient.AddParameter("id", item.Id);
                         dbClient.AddParameter("gid", groupId);

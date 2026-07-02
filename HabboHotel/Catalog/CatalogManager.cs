@@ -64,8 +64,7 @@ namespace Plus.HabboHotel.Catalog
                 dbClient.SetQuery("SELECT `id`,`item_id`,`catalog_name`,`cost_credits`,`cost_pixels`,`cost_diamonds`,`amount`,`page_id`,`limited_sells`,`limited_stack`,`offer_active`,`extradata`,`badge`,`offer_id` FROM `catalog_items`");
                 DataTable catalogueItems = dbClient.GetTable();
 
-                if (catalogueItems != null)
-                {
+                if (catalogueItems != null) {
                     foreach (DataRow row in catalogueItems.Rows)
                     {
                         if (Convert.ToInt32(row["amount"]) <= 0)
@@ -76,8 +75,7 @@ namespace Plus.HabboHotel.Catalog
                         int baseId = Convert.ToInt32(row["item_id"]);
                         int offerId = Convert.ToInt32(row["offer_id"]);
 
-                        if (!itemDataManager.GetItem(baseId, out ItemData data))
-                        {
+                        if (!itemDataManager.GetItem(baseId, out ItemData data)) {
                             Log.Error("Couldn't load Catalog Item " + itemId + ", no furniture record found.");
                             continue;
                         }
@@ -98,8 +96,7 @@ namespace Plus.HabboHotel.Catalog
                 dbClient.SetQuery("SELECT `id`, `items`, `name`, `room_id` FROM `catalog_deals`");
                 DataTable getDeals = dbClient.GetTable();
 
-                if (getDeals != null)
-                {
+                if (getDeals != null) {
                     foreach (DataRow row in getDeals.Rows)
                     {
                         int id = Convert.ToInt32(row["id"]);
@@ -118,8 +115,7 @@ namespace Plus.HabboHotel.Catalog
                 dbClient.SetQuery("SELECT `id`,`parent_id`,`caption`,`page_link`,`visible`,`enabled`,`min_rank`,`min_vip`,`icon_image`,`page_layout`,`page_strings_1`,`page_strings_2` FROM `catalog_pages` ORDER BY `order_num`");
                 DataTable catalogPages = dbClient.GetTable();
 
-                if (catalogPages != null)
-                {
+                if (catalogPages != null) {
                     foreach (DataRow row in catalogPages.Rows)
                     {
                         _pages.Add(Convert.ToInt32(row["id"]), new CatalogPage(Convert.ToInt32(row["id"]), Convert.ToInt32(row["parent_id"]), row["enabled"].ToString(), Convert.ToString(row["caption"]),
@@ -132,8 +128,7 @@ namespace Plus.HabboHotel.Catalog
                 dbClient.SetQuery("SELECT `id`,`name`,`figure`,`motto`,`gender`,`ai_type` FROM `catalog_bot_presets`");
                 DataTable bots = dbClient.GetTable();
 
-                if (bots != null)
-                {
+                if (bots != null) {
                     foreach (DataRow row in bots.Rows)
                     {
                         _botPresets.Add(Convert.ToInt32(row[0]), new CatalogBot(Convert.ToInt32(row[0]), Convert.ToString(row[1]), Convert.ToString(row[2]), Convert.ToString(row[3]), Convert.ToString(row[4]), Convert.ToString(row[5])));
@@ -143,8 +138,7 @@ namespace Plus.HabboHotel.Catalog
                 dbClient.SetQuery("SELECT * FROM `catalog_promotions`");
                 DataTable getPromotions = dbClient.GetTable();
 
-                if (getPromotions != null)
-                {
+                if (getPromotions != null) {
                     foreach (DataRow row in getPromotions.Rows)
                     {
                         if (!_promotions.ContainsKey(Convert.ToInt32(row["id"])))

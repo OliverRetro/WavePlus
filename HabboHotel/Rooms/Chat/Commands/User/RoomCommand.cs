@@ -15,14 +15,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length == 1)
-            {
+            if (@params.Length == 1) {
                 session.SendWhisper("Oops, you must choose a room option to disable.");
                 return;
             }
 
-            if (!room.CheckRights(session, true))
-            {
+            if (!room.CheckRights(session, true)) {
                 session.SendWhisper("Oops, only the room owner or staff can use this command.");
                 return;
             }
@@ -160,16 +158,14 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
 
                     session.SendWhisper("Human pet morphs notifications mode set to " + (room.PetMorphsAllowed ? "enabled!" : "disabled!"));
 
-                    if (!room.PetMorphsAllowed)
-                    {
+                    if (!room.PetMorphsAllowed) {
                         foreach (RoomUser user in room.GetRoomUserManager().GetRoomUsers())
                         {
                             if (user == null || user.GetClient() == null || user.GetClient().GetHabbo() == null)
                                 continue;
 
                             user.GetClient().SendWhisper("The room owner has disabled the ability to use a pet morph in this room.");
-                            if (user.GetClient().GetHabbo().PetId > 0)
-                            {
+                            if (user.GetClient().GetHabbo().PetId > 0) {
                                 //Tell the user what is going on.
                                 user.GetClient().SendWhisper("Oops, the room owner has just disabled pet-morphs, un-morphing you.");
 

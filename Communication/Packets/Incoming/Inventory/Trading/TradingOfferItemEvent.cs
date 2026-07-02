@@ -22,14 +22,12 @@ namespace Plus.Communication.Packets.Incoming.Inventory.Trading
 
             int itemId = packet.PopInt();
 
-            if (!roomUser.IsTrading)
-            {
+            if (!roomUser.IsTrading) {
                 session.SendPacket(new TradingClosedComposer(session.GetHabbo().Id));
                 return;
             }
 
-            if (!room.GetTrading().TryGetTrade(roomUser.TradeId, out Trade trade))
-            {
+            if (!room.GetTrading().TryGetTrade(roomUser.TradeId, out Trade trade)) {
                 session.SendPacket(new TradingClosedComposer(session.GetHabbo().Id));
                 return;
             }
@@ -51,8 +49,7 @@ namespace Plus.Communication.Packets.Incoming.Inventory.Trading
 
             trade.RemoveAccepted();
 
-            if (tradeUser.OfferedItems.Count <= 499)
-            {
+            if (tradeUser.OfferedItems.Count <= 499) {
                 int totalLtDs = tradeUser.OfferedItems.Count(x => x.Value.LimitedNo > 0);
 
                 if (totalLtDs < 9)

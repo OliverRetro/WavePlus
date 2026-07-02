@@ -9,7 +9,10 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
         public Weapon WeaponData { get; }
         public bool IsDefault { get; }
 
-        public UserWeapon(int id, int userId, int weaponId, int durabilityLeft, Weapon weaponData, bool isDefault = false)
+        // Inventory grid position (0-based) in the shared item/weapon grid. -1 = unassigned.
+        public int Slot { get; set; } = -1;
+
+        public UserWeapon(int id, int userId, int weaponId, int durabilityLeft, Weapon weaponData, bool isDefault = false, int slot = -1)
         {
             Id = id;
             UserId = userId;
@@ -17,6 +20,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
             DurabilityLeft = durabilityLeft;
             WeaponData = weaponData;
             IsDefault = isDefault;
+            Slot = slot;
         }
     }
 }

@@ -17,13 +17,11 @@ namespace Plus.HabboHotel.Items.Interactor
 
         public void OnTrigger(GameClient session, Item item, int request, bool hasRights)
         {
-            if (!hasRights)
-            {
+            if (!hasRights) {
                 return;
             }
 
-            if (item.ExtraData == "0")
-            {
+            if (item.ExtraData == "0") {
                 item.ExtraData = "1";
                 item.UpdateState(false, true);
                 item.RequestUpdate(4, true);
@@ -32,8 +30,7 @@ namespace Plus.HabboHotel.Items.Interactor
 
         public void OnWiredTrigger(Item item)
         {
-            if (item.ExtraData == "0")
-            {
+            if (item.ExtraData == "0") {
                 item.ExtraData = "1";
                 item.UpdateState(false, true);
                 item.RequestUpdate(4, true);

@@ -47,8 +47,7 @@ namespace Plus.Database.Adapter
             try
             {
                 object obj2 = Command.ExecuteScalar();
-                if (obj2 != null)
-                {
+                if (obj2 != null) {
                     int.TryParse(obj2.ToString(), out result);
                 }
             }
@@ -72,8 +71,7 @@ namespace Plus.Database.Adapter
                     adapter.Fill(dataSet);
                 }
 
-                if ((dataSet.Tables.Count > 0) && (dataSet.Tables[0].Rows.Count == 1))
-                {
+                if ((dataSet.Tables.Count > 0) && (dataSet.Tables[0].Rows.Count == 1)) {
                     row = dataSet.Tables[0].Rows[0];
                 }
             }
@@ -91,8 +89,7 @@ namespace Plus.Database.Adapter
             try
             {
                 object obj2 = Command.ExecuteScalar();
-                if (obj2 != null)
-                {
+                if (obj2 != null) {
                     str = obj2.ToString();
                 }
             }
@@ -194,8 +191,7 @@ namespace Plus.Database.Adapter
             }
             catch (Exception exception)
             {
-                if (!(exception is MySqlException mySqlException) || mySqlException.Number != 1062)
-                {
+                if (!(exception is MySqlException mySqlException) || mySqlException.Number != 1062) {
                     ExceptionLogger.LogQueryError(Command.CommandText, exception);
                     return null;
                 }
@@ -233,8 +229,7 @@ namespace Plus.Database.Adapter
             }
             catch (Exception exception)
             {
-                if (exception is MySqlException mySqlException && mySqlException.Number == 1062)
-                {
+                if (exception is MySqlException mySqlException && mySqlException.Number == 1062) {
                     SetQuery(updateQuery);
                     updateParameters?.Invoke((IQueryAdapter)this);
                     RunQuery();

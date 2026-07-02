@@ -12,8 +12,7 @@ namespace Plus.Core
         {
             Data = new Dictionary<string, string>();
 
-            if (!File.Exists(filePath))
-            {
+            if (!File.Exists(filePath)) {
                 if (!mayNotExist)
                     throw new ArgumentException("Unable to locate configuration file at '" + filePath + "'.");
                 return;
@@ -27,15 +26,13 @@ namespace Plus.Core
 
                     while ((line = stream.ReadLine()) != null)
                     {
-                        if (line.Length < 1 || line.StartsWith("#"))
-                        {
+                        if (line.Length < 1 || line.StartsWith("#")) {
                             continue;
                         }
 
                         int delimiterIndex = line.IndexOf('=');
 
-                        if (delimiterIndex != -1)
-                        {
+                        if (delimiterIndex != -1) {
                             string key = line.Substring(0, delimiterIndex);
                             string val = line.Substring(delimiterIndex + 1);
 

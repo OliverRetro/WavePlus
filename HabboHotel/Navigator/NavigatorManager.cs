@@ -43,12 +43,10 @@ namespace Plus.HabboHotel.Navigator
                 dbClient.SetQuery("SELECT * FROM `navigator_categories` ORDER BY `id` ASC");
                 DataTable table = dbClient.GetTable();
 
-                if (table != null)
-                {
+                if (table != null) {
                     foreach (DataRow row in table.Rows)
                     {
-                        if (Convert.ToInt32(row["enabled"]) == 1)
-                        {
+                        if (Convert.ToInt32(row["enabled"]) == 1) {
                             if (!_searchResultLists.ContainsKey(Convert.ToInt32(row["id"])))
                                 _searchResultLists.Add(Convert.ToInt32(row["id"]), new SearchResultList(Convert.ToInt32(row["id"]), Convert.ToString(row["category"]), Convert.ToString(row["category_identifier"]), Convert.ToString(row["public_name"]), true, -1, Convert.ToInt32(row["required_rank"]), NavigatorViewModeUtility.GetViewModeByString(Convert.ToString(row["view_mode"])), Convert.ToString(row["category_type"]), Convert.ToString(row["search_allowance"]), Convert.ToInt32(row["order_id"])));
                         }
@@ -58,12 +56,10 @@ namespace Plus.HabboHotel.Navigator
                 dbClient.SetQuery("SELECT `room_id`,`caption`,`description`,`image_url`,`enabled` FROM `navigator_publics` ORDER BY `order_num` ASC");
                 DataTable getPublics = dbClient.GetTable();
 
-                if (getPublics != null)
-                {
+                if (getPublics != null) {
                     foreach (DataRow row in getPublics.Rows)
                     {
-                        if (Convert.ToInt32(row["enabled"]) == 1)
-                        {
+                        if (Convert.ToInt32(row["enabled"]) == 1) {
                             if (!_featuredRooms.ContainsKey(Convert.ToInt32(row["room_id"])))
                                 _featuredRooms.Add(Convert.ToInt32(row["room_id"]), new FeaturedRoom(Convert.ToInt32(row["room_id"]), Convert.ToString(row["caption"]), Convert.ToString(row["description"]), Convert.ToString(row["image_url"])));
                         }

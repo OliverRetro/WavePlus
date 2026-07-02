@@ -40,8 +40,7 @@ namespace Plus.Network
 
         public override void UserEventTriggered(IChannelHandlerContext context, object evt)
         {
-            if (evt.GetType().IsInstanceOfType(ChannelInputShutdownEvent.Instance))
-            {
+            if (evt.GetType().IsInstanceOfType(ChannelInputShutdownEvent.Instance)) {
                 context.CloseAsync();
             }
         }
