@@ -238,26 +238,28 @@ namespace Plus.HabboHotel.GameClients
 
         public void CloseAll()
         {
+            Log.Info("<<- SERVER SHUTDOWN ->> Running disconnection saves for every online user...");
+
             foreach (GameClient client in GetClients.ToList())
             {
-                if (client?.GetHabbo() != null) {
-                    try
-                    {
-                        using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                        {
-                            dbClient.RunQuery(client.GetHabbo().GetQueryString);
-                        }
+                var habbo = client?.GetHabbo();
+                if (habbo == null)
+                    continue;
 
-                        Console.Clear();
-                        Log.Info("<<- SERVER SHUTDOWN ->> INVENTORY IS SAVING");
-                    }
-                    catch
-                    {
-                    }
+                try
+                {
+                    // Run the full disconnection save (RP stats, items, weapons, skills, bank,
+                    // shift end, crime-log flush, user row) — the same path a normal logout takes.
+                    habbo.OnDisconnect();
+                    Log.Info(habbo.Username + " has been disconnected.");
+                }
+                catch (Exception e)
+                {
+                    ExceptionLogger.LogException(e);
                 }
             }
 
-            Log.Info("Done saving users inventory!");
+            Log.Info("Done saving all online users!");
             Log.Info("Closing server connections...");
             try
             {

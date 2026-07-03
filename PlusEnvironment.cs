@@ -378,7 +378,8 @@ namespace Plus
             Thread.Sleep(2500);
             GetGame().GetPacketManager().UnregisterAll(); //Unregister the packets.
             GetGame().GetPacketManager().WaitForAllToComplete();
-            GetGame().GetClientManager().CloseAll(); //Close all connections
+            GetGame().GetGroupManager().SaveAll(); //Flush any pending group role/permission edits
+            GetGame().GetClientManager().CloseAll(); //Close all connections (runs per-user disconnection saves)
             _bootstrap.Shutdown().Wait();
             _bootstrap.ShutdownWorkers();
             GetGame().GetRoomManager().Dispose(); //Stop the game loop.

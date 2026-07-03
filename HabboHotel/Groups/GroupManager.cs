@@ -188,13 +188,18 @@ namespace Plus.HabboHotel.Groups
             if (_roleSaveTick > 0)
                 return;
 
+            SaveAll();
+            _roleSaveTick = RoleSaveIntervalTicks;
+        }
+
+        /// <summary>Flush every group's dirty roles and permissions to the database immediately.</summary>
+        public void SaveAll()
+        {
             foreach (Group group in _groups.Values)
             {
                 group.SaveRoles();
                 group.SavePermissions();
             }
-
-            _roleSaveTick = RoleSaveIntervalTicks;
         }
 
         public bool TryGetPermissionKey(int permissionId, out GroupPermissionKey permissionKey)

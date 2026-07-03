@@ -230,9 +230,10 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
 
             // an item that drops you to 0 health kills you (no attacker)
             bool died = stats != null && stats.Health <= 0 && !stats.IsDead && roomUser != null;
-            if (died)
+            if (died) {
                 LiveFeedService.LiveFeed("💀 " + LiveFeedService.Name(habbo.Username, "green") + " died of item over usage.", "red");
                 stats.Kill(habbo, roomUser);
+            }
 
             // effect or handitem, if 1 exists (skipped if the item just killed us)
             if (!died && roomUser != null && (data.HanditemData != 0 || data.EffectData != 0))
