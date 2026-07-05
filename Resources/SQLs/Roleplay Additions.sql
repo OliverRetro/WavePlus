@@ -108,6 +108,8 @@ INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.jail.r
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.jail.outfit', 'outfit lol', 'Jail outfit.');
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.staff.corporation.id', '0', 'Staff corporation (group id). Working here grants the staff effect (102) and blocks weapons.');
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('livefeed.discord.webhook', '', 'Discord Webhook for Live Feed. Leave blank If disabled.');
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.wardrobe.room.body', '0', 'Room ID where the avatar editor shows everything EXCEPT the hair tab (hd, torso, legs, extra). Rooms you own behave the same way. 0 = disabled.');
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.wardrobe.room.head', '0', 'Room ID where the avatar editor shows ONLY the hd (face) and hair tabs. 0 = disabled.');
 
 -- fix rooms?
 ALTER TABLE rooms 

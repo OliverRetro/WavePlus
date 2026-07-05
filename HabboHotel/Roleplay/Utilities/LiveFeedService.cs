@@ -4,6 +4,7 @@ using Plus.Communication.Packets.Outgoing.Rooms.Notifications;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
+using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -23,12 +24,10 @@ namespace Plus.HabboHotel.Roleplay.Utilities
             BubbleAlert(message, type);
         }
 
-        /// <summary>
-        /// Wraps a username in the standard bold + coloured live-feed markup. Lets callers write
-        /// <c>LiveFeedService.Name(name, "green")</c> instead of hand-rolling the font tags.
-        /// </summary>
+
         public static string Name(string username, string color = "lightblue") =>
             "<b><font color=\"" + color + "\">" + username + "</font></b>";
+
         private static void SaveToRedis(string message, string type)
         {
             var redis = PlusEnvironment.GetRedis();
@@ -48,7 +47,7 @@ namespace Plus.HabboHotel.Roleplay.Utilities
 
         private static void BubbleAlert(string message, string type)
         {
-            // Emojis are stripped from the in-client bubble (the client font can't render them),
+            // Emojis are stripped from the in-client bubble,
             // but the ORIGINAL message — emojis intact — is forwarded to Discord.
             string bubbleMessage = StripEmojis(message);
 
