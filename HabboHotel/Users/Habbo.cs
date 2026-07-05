@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -683,8 +683,8 @@ namespace Plus.HabboHotel.Users
             if (!force && LastUserStatsUpdate > now)
                 return;
 
-            // Include the currently clicked/locked target (if any & online) so the client shows both.
-            Habbo target = TargetLockService.GetClickedHabbo(Id);
+            // Include the currently clicked/locked target only while it is still in this room.
+            Habbo target = TargetLockService.GetTarget(this);
             GetClient().SendPacket(new UserStatsComposer(GetClient(), target));
             LastUserStatsUpdate = now + 1;
         }
@@ -1178,6 +1178,8 @@ namespace Plus.HabboHotel.Users
             // Drop cached web-overlay macros + target lock state.
             PlusEnvironment.GetGame().GetMacroManager().Unload(Id);
             Plus.HabboHotel.Roleplay.TargetLock.TargetLockService.Clear(Id);
+            PlusEnvironment.GetPoliceManager()?.Clear(Id);
+            PlusEnvironment.GetTrashSearchManager()?.Cancel(Id);
 
             // Persist any buffered crime logs (the wanted cache itself is never saved).
             PlusEnvironment.GetRpCrimeManager().FlushLogs(Id);

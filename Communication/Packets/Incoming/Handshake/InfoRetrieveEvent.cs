@@ -1,5 +1,4 @@
-﻿using Plus.Communication.Packets.Outgoing.Avatar;
-using Plus.Communication.Packets.Outgoing.Handshake;
+﻿using Plus.Communication.Packets.Outgoing.Handshake;
 using Plus.HabboHotel.GameClients;
 
 namespace Plus.Communication.Packets.Incoming.Handshake
@@ -10,7 +9,6 @@ namespace Plus.Communication.Packets.Incoming.Handshake
         {
             session.SendPacket(new UserObjectComposer(session.GetHabbo()));
             session.SendPacket(new UserPerksComposer(session.GetHabbo()));
-            session.SendPacket(new WardrobeConfigComposer());
         }
     }
 }

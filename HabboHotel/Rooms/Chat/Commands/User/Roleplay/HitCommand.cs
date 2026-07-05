@@ -1,4 +1,5 @@
-﻿using Plus.HabboHotel.GameClients;
+using Plus.HabboHotel.GameClients;
+using Plus.HabboHotel.Roleplay.TargetLock;
 using Plus.HabboHotel.Users;
 using System;
 
@@ -31,16 +32,29 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
                 return;
             }
 
-            // The target username is supplied explicitly (":hit name") or auto-filled by
-            // the keybind path (WebOverlayCallbackEvent.ExecuteMacro) from the user's target.
-            if (@params.Length < 2) {
-                session.SendWhisper("Enter a username, or use a keybind while targeting a user.", 1);
-                return;
+            GameClient targetClient;
+
+            Habbo lockedTarget = TargetLockService.GetLockedTarget(session.GetHabbo());
+            if (lockedTarget != null) {
+                if (@params.Length >= 2 && !string.Equals(@params[1], lockedTarget.Username, StringComparison.OrdinalIgnoreCase)) {
+                    session.SendWhisper("Target lock is active on " + lockedTarget.Username + ". Use :unlocktarget before attacking someone else.", 1);
+                    return;
+                }
+
+                targetClient = lockedTarget.GetClient();
+            } else if (@params.Length < 2) {
+                Habbo clickedTarget = TargetLockService.GetTarget(session.GetHabbo());
+                targetClient = clickedTarget?.GetClient();
+
+                if (targetClient == null) {
+                    session.SendWhisper("Enter a username, click a player, or use :locktarget <username>.", 1);
+                    return;
+                }
+            } else {
+                targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(@params[1]);
             }
 
-            GameClient targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(@params[1]);
-
-            if (targetClient == null) {
+            if (targetClient?.GetHabbo() == null) {
                 session.SendWhisper("The user could not be found.", 1);
                 return;
             }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -49,16 +49,15 @@ namespace Plus.HabboHotel.GameClients
 
         public GameClient GetClientByUserId(int userId)
         {
-            if (_userIdRegister.ContainsKey(userId))
-                return _userIdRegister[userId];
-            return null;
+            return _userIdRegister.TryGetValue(userId, out GameClient client) ? client : null;
         }
 
         public GameClient GetClientByUsername(string username)
         {
-            if (_usernameRegister.ContainsKey(username.ToLower()))
-                return _usernameRegister[username.ToLower()];
-            return null;
+            if (string.IsNullOrWhiteSpace(username))
+                return null;
+
+            return _usernameRegister.TryGetValue(username.ToLower(), out GameClient client) ? client : null;
         }
 
         public bool TryGetClient(IChannelId clientId, out GameClient client)
@@ -177,7 +176,7 @@ namespace Plus.HabboHotel.GameClients
 
         public void SendPacket(MessageComposer packet, string fuse = "")
         {
-            foreach (GameClient client in _clients.Values.ToList())
+            foreach (GameClient client in _clients.Values)
             {
                 if (client == null || client.GetHabbo() == null)
                     continue;
@@ -219,15 +218,11 @@ namespace Plus.HabboHotel.GameClients
 
         public void RegisterClient(GameClient client, int userId, string username)
         {
-            if (_usernameRegister.ContainsKey(username.ToLower()))
-                _usernameRegister[username.ToLower()] = client;
-            else
-                _usernameRegister.TryAdd(username.ToLower(), client);
+            if (client == null || string.IsNullOrWhiteSpace(username))
+                return;
 
-            if (_userIdRegister.ContainsKey(userId))
-                _userIdRegister[userId] = client;
-            else
-                _userIdRegister.TryAdd(userId, client);
+            _usernameRegister[username.ToLower()] = client;
+            _userIdRegister[userId] = client;
         }
 
         public void UnregisterClient(int userId, string username)
@@ -298,7 +293,7 @@ namespace Plus.HabboHotel.GameClients
 
                 List<GameClient> toPing = new();
 
-                foreach (GameClient client in _clients.Values.ToList())
+                foreach (GameClient client in _clients.Values)
                 {
                     if (client.PingCount < 6) {
                         client.PingCount++;
@@ -314,7 +309,7 @@ namespace Plus.HabboHotel.GameClients
 
                 DateTime start = DateTime.Now;
 
-                foreach (GameClient client in toPing.ToList())
+                foreach (GameClient client in toPing)
                 {
                     try
                     {

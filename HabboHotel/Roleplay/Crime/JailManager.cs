@@ -94,7 +94,7 @@ namespace Plus.HabboHotel.Roleplay.Crime
         public void OnCycle()
         {
             double now = PlusEnvironment.GetUnixTimestamp();
-            foreach (var kv in _jailed.ToList())
+            foreach (var kv in _jailed)
             {
                 if (now < kv.Value.ReleaseUnix)
                     continue;
@@ -107,7 +107,7 @@ namespace Plus.HabboHotel.Roleplay.Crime
             }
         }
 
-        private void Release(Habbo habbo)
+        public void Release(Habbo habbo)
         {
             if (!_jailed.TryRemove(habbo.Id, out JailSentence sentence))
                 return;

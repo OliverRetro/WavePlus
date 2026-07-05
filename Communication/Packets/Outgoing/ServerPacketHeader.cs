@@ -81,7 +81,6 @@
         public const int UniqueMachineIdMessageComposer = 1488; // PRODUCTION-201611291003-338511768
         public const int ItemAddMessageComposer = 2187; // PRODUCTION-201611291003-338511768
         public const int FigureSetIdsMessageComposer = 1450; // PRODUCTION-201611291003-338511768
-        public const int WardrobeConfigMessageComposer = 5001; // Custom - avatar editor wardrobe-enabled rooms
         public const int InstantMessageErrorMessageComposer = 3359; // PRODUCTION-201611291003-338511768
         public const int UpdateFreezeLivesMessageComposer = 2376; // PRODUCTION-201611291003-338511768
         public const int NavigatorSettingsMessageComposer = 2875; // PRODUCTION-201611291003-338511768

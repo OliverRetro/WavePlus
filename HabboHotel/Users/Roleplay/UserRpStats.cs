@@ -1,4 +1,3 @@
-using Plus.Communication.Packets.Incoming.Rooms.FloorPlan;
 using Plus.HabboHotel.Roleplay.RpItem.Weapon;
 using Plus.HabboHotel.Roleplay.Utilities;
 using Plus.HabboHotel.Rooms;
@@ -142,11 +141,9 @@ namespace Plus.HabboHotel.Users
                 if (Health <= 0 && !IsDead) {
                     Room room = habbo.CurrentRoom;
                     RoomUser roomUser = room?.GetRoomUserManager().GetRoomUserByHabbo(habbo.Id);
-                    if (roomUser != null) {
+                    if (roomUser != null)
                         LiveFeedService.LiveFeed("💀 " + LiveFeedService.Name(habbo.Username, "green") + " died of hunger.", "red");
-                        Kill(habbo, roomUser);
-                        habbo.GetClient().SendWhisper("You've passed away from hunger. Listen to your stomach!", 1);
-                    }                    
+                    Kill(habbo, roomUser);
                 }
             }
 

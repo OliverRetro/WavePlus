@@ -24,6 +24,8 @@ using Plus.HabboHotel.Permissions;
 using Plus.HabboHotel.Roleplay.Banking;
 using Plus.HabboHotel.Roleplay.Combat;
 using Plus.HabboHotel.Roleplay.Hospital;
+using Plus.HabboHotel.Roleplay.Trash;
+using Plus.HabboHotel.Roleplay.Police;
 using Plus.HabboHotel.Roleplay.RpItem.Item;
 using Plus.HabboHotel.Users;
 using Plus.HabboHotel.Users.UserData;
@@ -61,6 +63,8 @@ namespace Plus
         private static Plus.HabboHotel.Roleplay.Crime.JailManager _jailManager;
         private static HospitalManager _hospitalManager;
         private static BankingManager _bankingManager;
+        private static PoliceManager _policeManager;
+        private static TrashSearchManager _trashSearchManager;
 
         // TODO: Get rid?
         public static bool Event = false;
@@ -177,6 +181,11 @@ namespace Plus
                 _jailManager = new Plus.HabboHotel.Roleplay.Crime.JailManager();
 
                 _bankingManager = new BankingManager();
+
+                _policeManager = new PoliceManager();
+
+                _trashSearchManager = new TrashSearchManager();
+                _trashSearchManager.Init();
 
                 //Have our encryption ready.
                 HabboEncryptionV2.Initialize(new RSAKeys());
@@ -476,6 +485,16 @@ namespace Plus
         public static Plus.HabboHotel.Roleplay.Crime.JailManager GetJailManager()
         {
             return _jailManager;
+        }
+
+        public static PoliceManager GetPoliceManager()
+        {
+            return _policeManager;
+        }
+
+        public static TrashSearchManager GetTrashSearchManager()
+        {
+            return _trashSearchManager;
         }
 
         public static BankingManager GetBankingManager()

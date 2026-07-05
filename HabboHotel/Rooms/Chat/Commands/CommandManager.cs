@@ -1,4 +1,4 @@
-﻿using Plus.Communication.Packets.Outgoing.Notifications;
+using Plus.Communication.Packets.Outgoing.Notifications;
 using Plus.Database.Interfaces;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
@@ -13,6 +13,9 @@ using Plus.HabboHotel.Rooms.Chat.Commands.User;
 using Plus.HabboHotel.Rooms.Chat.Commands.User.Fun;
 using Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay;
 using Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation;
+using Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Trash;
+using Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Ambulance;
+using Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Police;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -124,10 +127,31 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             Register("fire", new FireCommand());
             Register("passive", new PassiveModeCommand());
             Register("wantedlist", new WantedListCommand());
+            Register("search", new TrashSearchCommand());
+            Register("searchtrash", new TrashSearchCommand());
+            Register("searchbin", new TrashSearchCommand());
+            Register("cuff", new CuffCommand());
+            Register("uncuff", new UncuffCommand());
+            Register("escort", new EscortCommand());
+            Register("stopescort", new StopEscortCommand());
+            Register("arrest", new ArrestCommand());
+            Register("charge", new ChargeCommand());
+            Register("fine", new FineCommand());
+            Register("release", new ReleasePrisonerCommand());
+            Register("pardon", new PardonCommand());
+            Register("heal", new MedicHealCommand());
+            Register("revive", new MedicHealCommand());
             Register("hire", new HireCommand());
             Register("superhire", new SuperHireCommand());
             Register("groupperms", new GroupPermissionsCommand());
             Register("hit", new HitCommand());
+            Register("locktarget", new LockTargetCommand());
+            Register("targetlock", new LockTargetCommand());
+            Register("tl", new LockTargetCommand());
+            Register("unlocktarget", new UnlockTargetCommand());
+            Register("releasetarget", new UnlockTargetCommand());
+            Register("targetrelease", new UnlockTargetCommand());
+            Register("rt", new UnlockTargetCommand());
             Register("toggleskill", new ToggleSkillCommand());
             Register("bh", new BuildHeightCommand());
             Register("suicide", new SuicideCommand());
@@ -296,7 +320,11 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
         /// <param name="command">The command to execute.</param>
         public void Register(string commandText, IChatCommand command)
         {
-            _commands.Add(commandText, command);
+            if (string.IsNullOrWhiteSpace(commandText) || command == null)
+                return;
+
+            // Use assignment instead of Add() so duplicate aliases cannot crash boot.
+            _commands[commandText.ToLower()] = command;
         }
 
         public static string MergeParams(string[] @params, int start)

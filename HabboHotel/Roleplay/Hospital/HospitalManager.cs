@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
@@ -137,7 +137,7 @@ namespace Plus.HabboHotel.Roleplay.Hospital
 
         public void OnCycle()
         {
-            foreach (GameClient client in PlusEnvironment.GetGame().GetClientManager().GetClients.ToList())
+            foreach (GameClient client in PlusEnvironment.GetGame().GetClientManager().GetClients)
             {
                 if (client?.GetHabbo() == null)
                     continue;
