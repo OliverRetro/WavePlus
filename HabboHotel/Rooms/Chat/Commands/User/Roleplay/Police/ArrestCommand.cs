@@ -1,16 +1,16 @@
+using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.HabboHotel.GameClients;
-using Plus.HabboHotel.Roleplay.Police;
-using Plus.HabboHotel.Rooms;
-using Plus.HabboHotel.Rooms.Chat.Commands;
-using Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay;
+using Plus.HabboHotel.Roleplay.Utilities;
+using Plus.HabboHotel.Users;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Police
 {
     internal class ArrestCommand : IChatCommand
     {
-        public string PermissionRequired => "command_rp_hit";
+        public string PermissionRequired => "command_rp_police_override";
+        public string GroupPermissionRequired => "arrest_user";
         public string Parameters => "%username%";
-        public string Description => "Arrest an adjacent suspect with active crimes (police only).";
+        public string Description => "Arrest a cuffed suspect and escort them to jail (police only).";
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
@@ -22,43 +22,26 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Police
                 return;
             }
 
-            if (!PoliceManager.HasJobPermission(session.GetHabbo(), "rp.police.corporation.id", "arrest_user")) {
-                session.SendWhisper("Only on-duty police officers can arrest suspects.", 1);
-                return;
-            }
-
             if (!RpCommandUtil.TryGetTarget(session, room, @params[1], out GameClient targetClient))
-                return;
-
-            if (!RpCommandUtil.RequireAdjacent(session, room, targetClient.GetHabbo(), "You need to be beside the suspect to arrest them."))
                 return;
 
             int targetId = targetClient.GetHabbo().Id;
 
-            PlusEnvironment.GetRpCrimeManager().RevealAll(targetId);
-            int stars = PlusEnvironment.GetRpCrimeManager().GetTotalStars(targetId);
-            if (stars <= 0) {
-                session.SendWhisper(targetClient.GetHabbo().Username + " has no active crimes to arrest for.", 1);
+            if (!PlusEnvironment.GetPoliceManager().IsCuffed(targetId)) {
+                session.SendWhisper(targetClient.GetHabbo().Username + " must be cuffed before you can arrest them.", 1);
                 return;
             }
 
-            bool jailed = PlusEnvironment.GetJailManager().Jail(targetClient.GetHabbo(), stars);
+            if (!RpCommandUtil.RequireAdjacent(session, room, targetClient.GetHabbo(), "You need to be beside the suspect to arrest them."))
+                return;
+
+            int stars = PlusEnvironment.GetRpCrimeManager().GetTotalStars(targetId);
             PlusEnvironment.GetRpCrimeManager().ResolveAll(targetId);
 
-            if (targetClient.GetHabbo().GetRpStats() != null) {
-                targetClient.GetHabbo().GetRpStats().Arrested++;
-                targetClient.GetHabbo().SaveRpStats();
-                targetClient.GetHabbo().TrySendUserStatsUpdate(true);
-            }
+            PlusEnvironment.GetPoliceManager().StartArrestEscort(session.GetHabbo(), targetClient.GetHabbo(), stars);
 
-            PlusEnvironment.GetPoliceManager()?.Uncuff(targetClient.GetHabbo());
-
-            string result = "Arrested " + targetClient.GetHabbo().Username + " with " + stars + " wanted star(s).";
-            if (jailed)
-                result += " They have been jailed.";
-            session.SendWhisper(result, 1);
-            targetClient.SendWhisper("You were arrested by " + session.GetHabbo().Username + ".", 1);
-            RpCommandUtil.RoomAction(room, session.GetHabbo(), "*" + session.GetHabbo().Username + " arrests " + targetClient.GetHabbo().Username + "*");
+            LiveFeedService.LiveFeed("🚓 <b>" + LiveFeedService.Name(session.GetHabbo().Username, "green") + "</b> arrested <b> "+ LiveFeedService.Name(targetClient.GetHabbo().Username) + "</b>");
+            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*" + session.GetHabbo().Username + " arrests " + targetClient.GetHabbo().Username + "*", 0, 4));
         }
     }
 }

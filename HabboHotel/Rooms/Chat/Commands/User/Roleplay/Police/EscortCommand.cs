@@ -1,14 +1,13 @@
+using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.HabboHotel.GameClients;
-using Plus.HabboHotel.Roleplay.Police;
-using Plus.HabboHotel.Rooms;
-using Plus.HabboHotel.Rooms.Chat.Commands;
-using Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay;
+using Plus.HabboHotel.Roleplay.Utilities;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Police
 {
     internal class EscortCommand : IChatCommand
     {
-        public string PermissionRequired => "command_rp_hit";
+        public string PermissionRequired => "command_rp_police_override";
+        public string GroupPermissionRequired => "escort_user";
         public string Parameters => "%username%";
         public string Description => "Escort a cuffed suspect (police only).";
 
@@ -16,11 +15,6 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Police
         {
             if (@params.Length < 2) {
                 session.SendWhisper("Usage: :escort <username>", 1);
-                return;
-            }
-
-            if (!PoliceManager.HasJobPermission(session.GetHabbo(), "rp.police.corporation.id", "escort_user")) {
-                session.SendWhisper("Only on-duty police officers can escort suspects.", 1);
                 return;
             }
 
@@ -35,10 +29,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Police
             if (!RpCommandUtil.RequireAdjacent(session, room, targetClient.GetHabbo(), "You need to be beside the suspect to escort them."))
                 return;
 
-            PlusEnvironment.GetPoliceManager().StartEscort(session.GetHabbo(), targetClient.GetHabbo());
-            session.SendWhisper("You are now escorting " + targetClient.GetHabbo().Username + ".", 1);
-            targetClient.SendWhisper("You are being escorted by " + session.GetHabbo().Username + ".", 1);
-            RpCommandUtil.RoomAction(room, session.GetHabbo(), "*" + session.GetHabbo().Username + " starts escorting " + targetClient.GetHabbo().Username + "*");
+            PlusEnvironment.GetPoliceManager().StartArrestEscort(session.GetHabbo(), targetClient.GetHabbo(), 0);
+            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*" + session.GetHabbo().Username + " starts escorting " + targetClient.GetHabbo().Username + "*", 0, 4));
         }
     }
 }

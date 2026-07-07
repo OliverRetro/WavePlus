@@ -13,8 +13,6 @@ using Plus.HabboHotel.Rooms.Chat.Commands.User;
 using Plus.HabboHotel.Rooms.Chat.Commands.User.Fun;
 using Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay;
 using Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation;
-using Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Trash;
-using Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Ambulance;
 using Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Police;
 using System.Collections.Generic;
 using System.Linq;
@@ -127,20 +125,13 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             Register("fire", new FireCommand());
             Register("passive", new PassiveModeCommand());
             Register("wantedlist", new WantedListCommand());
-            Register("search", new TrashSearchCommand());
-            Register("searchtrash", new TrashSearchCommand());
-            Register("searchbin", new TrashSearchCommand());
             Register("cuff", new CuffCommand());
             Register("uncuff", new UncuffCommand());
             Register("escort", new EscortCommand());
             Register("stopescort", new StopEscortCommand());
             Register("arrest", new ArrestCommand());
             Register("charge", new ChargeCommand());
-            Register("fine", new FineCommand());
-            Register("release", new ReleasePrisonerCommand());
             Register("pardon", new PardonCommand());
-            Register("heal", new MedicHealCommand());
-            Register("revive", new MedicHealCommand());
             Register("hire", new HireCommand());
             Register("superhire", new SuperHireCommand());
             Register("groupperms", new GroupPermissionsCommand());
@@ -295,7 +286,6 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             Register("useitem", new UseItemCommand());
             Register("inv", new InvCommand());
             Register("disbanditem", new DisbandItemCommand());
-            Register("charge", new ChargeCommand());
             Register("giveitem", new GiveItemCommand());
             Register("rpupdate", new RpUpdateCommand());
         }

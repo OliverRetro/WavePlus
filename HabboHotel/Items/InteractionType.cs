@@ -350,13 +350,7 @@
                     return InteractionType.FxProvider;
                 case "exchange":
                     return InteractionType.Exchange;
-                case "trashbin":
                 case "trash_bin":
-                case "rp_trashbin":
-                case "rp_trash_bin":
-                case "garbage_bin":
-                case "dumpster":
-                case "bin":
                     return InteractionType.TrashBin;
                 case "taxi_pole":
                     return InteractionType.TaxiPole;

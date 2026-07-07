@@ -906,6 +906,12 @@ namespace Plus.HabboHotel.Rooms
                     }
                 }
 
+                // Escorted suspects move fused with their officer. This runs AFTER the user loop so
+                // the suspect's freshly-written "mv" status can't be stripped by their own (idle)
+                // processing pass before it's serialized to clients — that strip is what turned the
+                // escort into an unanimated teleport.
+                PlusEnvironment.GetPoliceManager()?.SyncEscorts(_room);
+
                 foreach (RoomUser toRemove in ToRemove.ToList())
                 {
                     GameClient client = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(toRemove.HabboId);

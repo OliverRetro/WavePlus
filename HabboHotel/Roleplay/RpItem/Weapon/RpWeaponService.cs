@@ -31,6 +31,12 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
                 return false;
             }
 
+            // A cuffed suspect can't arm themselves.
+            if (weaponId != 0 && PlusEnvironment.GetPoliceManager().IsCuffed(habbo.Id)) {
+                error = "You can't equip weapons while cuffed.";
+                return false;
+            }
+
             UserRpWeapons weapons = habbo.GetRpWeapons();
             if (weapons == null || !weapons.SetActiveWeaponId(weaponId)) {
                 error = "You don't have that weapon.";

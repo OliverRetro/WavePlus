@@ -83,7 +83,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
                 targetStats.Health = 0;
                 LiveFeedService.LiveFeed(LiveFeedService.Name(attacker.Username, "green") + " knocked out <b>" + LiveFeedService.Name(target.Username, "red") + "</b>");
                 LiveFeedService.LiveFeed("[AUTO CHARGE] 🚨 " +LiveFeedService.Name(attacker.Username, "green") + " committed murder ⭐⭐");
-                targetStats.Kill(target, targetRoomUser, attackerStats);
+                UserRpStats.Kill(target, targetRoomUser, attackerStats);
 
                 // Killing a player is murder.
                 PlusEnvironment.GetRpCrimeManager().Commit(attacker, "murder", attacker.CurrentRoom);

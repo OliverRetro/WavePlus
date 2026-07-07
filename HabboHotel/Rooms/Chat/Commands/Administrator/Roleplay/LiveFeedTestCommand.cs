@@ -23,7 +23,9 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
                 return;
             }
 
-            LiveFeedService.LiveFeed(@params[1]);
+            var message = string.Join(" ", @params.Skip(1));
+
+            LiveFeedService.LiveFeed(message);
         }
     }
 }

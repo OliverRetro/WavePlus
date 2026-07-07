@@ -62,6 +62,9 @@ namespace Plus.HabboHotel.Roleplay.Hospital
             // Death ends any active work shift.
             PlusEnvironment.GetGame().GetShiftManager().InterruptShift(target, target.CurrentRoom);
 
+            // Death frees any suspects this user was escorting and knocks off their own cuffs.
+            PlusEnvironment.GetPoliceManager()?.OnDeath(target);
+
             targetUser.ClearMovement(true);
             if (!targetUser.IsLying)
                 targetUser.Lay();

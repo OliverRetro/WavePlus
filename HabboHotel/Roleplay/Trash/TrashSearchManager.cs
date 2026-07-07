@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
 using Plus.Communication.Packets.Outgoing.Inventory.Purse;
 using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.Database.Interfaces;
@@ -13,6 +8,12 @@ using Plus.HabboHotel.Roleplay.RpItem.Item;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Rooms.PathFinding;
 using Plus.HabboHotel.Users;
+using StackExchange.Redis;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
 
 namespace Plus.HabboHotel.Roleplay.Trash
 {
@@ -24,7 +25,7 @@ namespace Plus.HabboHotel.Roleplay.Trash
     {
         private readonly ConcurrentDictionary<int, ActiveTrashSearch> _activeSearches = new();
         private readonly ConcurrentDictionary<int, double> _userCooldowns = new();
-        private readonly ConcurrentDictionary<int, double> _binCooldowns = new();
+        private readonly ConcurrentDictionary<int, BinCooldown> _binCooldowns = new();
         private readonly List<TrashReward> _rewards = new();
         private readonly Random _random = new();
         private double _nextCooldownPurgeUnix;
@@ -100,7 +101,7 @@ namespace Plus.HabboHotel.Roleplay.Trash
                 return false;
             }
 
-            if (_binCooldowns.TryGetValue(item.Id, out double binReady) && binReady > now) {
+            if (_binCooldowns.TryGetValue(item.Id, out BinCooldown binCooldown) && binCooldown.ReadyUnix > now) {
                 session.SendWhisper("This trashbin has already been searched. Try another one.", 1);
                 return false;
             }
@@ -142,7 +143,8 @@ namespace Plus.HabboHotel.Roleplay.Trash
             item.ExtraData = "1";
             item.UpdateState(false, true);
 
-            room.SendPacket(new ShoutComposer(roomUser.VirtualId, "*" + habbo.Username + " starts searching the trashbin*", 0, habbo.GetBubbleId(0)));
+            session.GetHabbo().GetRpSkills().ProgressSkill(8, 1);
+            room.SendPacket(new ShoutComposer(roomUser.VirtualId, "*" + habbo.Username + " searches through the bin for something valueable*", 0, 4));
             return true;
         }
 
@@ -171,8 +173,8 @@ namespace Plus.HabboHotel.Roleplay.Trash
 
                 foreach (var kv in _binCooldowns)
                 {
-                    if (kv.Value <= now)
-                        _binCooldowns.TryRemove(kv.Key, out _);
+                    if (kv.Value.ReadyUnix <= now && _binCooldowns.TryRemove(kv.Key, out BinCooldown expired))
+                        RestoreBinState(expired);
                 }
             }
         }
@@ -187,38 +189,39 @@ namespace Plus.HabboHotel.Roleplay.Trash
             UnlockUser(search.UserId);
 
             Room room = habbo.CurrentRoom;
-            if (room == null || room.RoomId != search.RoomId) {
+            RoomUser roomUser = room.GetRoomUserManager().GetRoomUserByHabbo(habbo.Id);
+            if (room == null || room.RoomId != search.RoomId || roomUser == null) {
                 ResetItemState(search);
                 return;
             }
 
             Item item = room.GetRoomItemHandler().GetItem(search.ItemId);
             if (item != null) {
-                item.ExtraData = "0";
+                item.ExtraData = "1";
                 item.UpdateState(false, true);
-                _binCooldowns[item.Id] = PlusEnvironment.GetUnixTimestamp() + GetBinCooldownSeconds();
+                _binCooldowns[item.Id] = new BinCooldown(room.RoomId, item.Id, PlusEnvironment.GetUnixTimestamp() + GetBinCooldownSeconds());
             }
 
-            _userCooldowns[habbo.Id] = PlusEnvironment.GetUnixTimestamp() + GetUserCooldownSeconds();
+            _userCooldowns[habbo.Id] = PlusEnvironment.GetUnixTimestamp() + GetUserCooldownSeconds(habbo);
 
             int chance = GetFindChance(habbo);
-            if (_random.Next(1, 101) > chance) {
-                client.SendWhisper("You searched the trashbin but found nothing useful.", 1);
+            if (_random.Next(1, 101) <= chance && TryGiveReward(habbo, out string rewardText)) {
+                room.SendPacket(new ShoutComposer(roomUser.VirtualId, "*" + habbo.Username + " finds " + rewardText + " inside of the bin*", 0, 4));
                 ProgressScavenge(habbo, 1);
                 return;
             }
 
-            if (TryGiveReward(habbo, out string rewardText)) {
-                client.SendWhisper("You found " + rewardText + " in the trashbin.", 1);
-                ProgressScavenge(habbo, 3);
+            if (_random.Next(1, 101) <= chance) {
+                int credits = _random.Next(1, Math.Max(2, GetMaxCreditReward() + 1));
+                habbo.Credits += credits;
+                client.SendPacket(new CreditBalanceComposer(habbo.Credits));
+                room.SendPacket(new ShoutComposer(roomUser.VirtualId, "*" + habbo.Username + " finds " + credits + " credits inside of the bin*", 0, 4));
+                ProgressScavenge(habbo, 1);
                 return;
             }
 
-            int credits = _random.Next(1, Math.Max(2, GetMaxCreditReward() + 1));
-            habbo.Credits += credits;
-            client.SendPacket(new CreditBalanceComposer(habbo.Credits));
-            client.SendWhisper("You found " + credits + " credit(s) in the trashbin.", 1);
-            ProgressScavenge(habbo, 2);
+            room.SendPacket(new ShoutComposer(roomUser.VirtualId, "*" + habbo.Username + " fails to find anything in the bin*", 0, 4));
+            ProgressScavenge(habbo, 1);
         }
 
         private bool TryGiveReward(Habbo habbo, out string rewardText)
@@ -261,7 +264,7 @@ namespace Plus.HabboHotel.Roleplay.Trash
                 return false;
 
             habbo.SaveRpItems();
-            rewardText = given + "x " + itemData.Name;
+            rewardText = given == 1 ? $"a {itemData.Name}" : $"{given}x {itemData.Name}";
             return true;
         }
 
@@ -307,6 +310,19 @@ namespace Plus.HabboHotel.Roleplay.Trash
                 return;
 
             Item item = room.GetRoomItemHandler().GetItem(search.ItemId);
+            if (item == null)
+                return;
+
+            item.ExtraData = "0";
+            item.UpdateState(false, true);
+        }
+
+        private static void RestoreBinState(BinCooldown cooldown)
+        {
+            if (!PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(cooldown.RoomId, out Room room))
+                return;
+
+            Item item = room.GetRoomItemHandler().GetItem(cooldown.ItemId);
             if (item == null)
                 return;
 
@@ -368,7 +384,16 @@ namespace Plus.HabboHotel.Roleplay.Trash
         }
 
         public static int GetDurationSeconds() => Math.Max(1, GetSettingInt("rp.trash.search.duration.seconds", 5));
-        public static int GetUserCooldownSeconds() => Math.Max(1, GetSettingInt("rp.trash.search.cooldown.seconds", 60));
+
+        public static int GetUserCooldownSeconds(Habbo habbo)
+        {
+            int fallback = Math.Max(1, GetSettingInt("rp.trash.search.cooldown.seconds", 60));
+            if (habbo != null && PlusEnvironment.GetGame().GetSubscriptionManager().TryGetSubscriptionData(habbo.VipRank, out Subscriptions.SubscriptionData subData) && subData.TrashSearchCooldown > 0)
+                return subData.TrashSearchCooldown;
+
+            return fallback;
+        }
+
         public static int GetBinCooldownSeconds() => Math.Max(1, GetSettingInt("rp.trash.bin.cooldown.seconds", 120));
         public static int GetEnergyCost() => Math.Max(0, GetSettingInt("rp.trash.search.energy.cost", 2));
         public static int GetMaxCreditReward() => Math.Max(1, GetSettingInt("rp.trash.search.max.credits", 8));
@@ -377,7 +402,8 @@ namespace Plus.HabboHotel.Roleplay.Trash
         {
             int chance = Math.Clamp(GetSettingInt("rp.trash.search.item.chance", 35), 1, 100);
             int scavengeLevel = habbo?.GetRpSkills()?.GetLevelByProgressCategory("Scavenge") ?? 0;
-            return Math.Clamp(chance + (scavengeLevel * 5), 1, 95);
+            int scavengerBoost = UserRpStats.GetScavengerBoost(habbo);
+            return Math.Clamp(chance + (scavengeLevel * 5) + scavengerBoost, 1, 95);
         }
 
         private static int GetSettingInt(string key, int fallback)
@@ -392,6 +418,20 @@ namespace Plus.HabboHotel.Roleplay.Trash
             public int ItemId;
             public int RoomId;
             public double FinishUnix;
+        }
+
+        private readonly struct BinCooldown
+        {
+            public BinCooldown(int roomId, int itemId, double readyUnix)
+            {
+                RoomId = roomId;
+                ItemId = itemId;
+                ReadyUnix = readyUnix;
+            }
+
+            public int RoomId { get; }
+            public int ItemId { get; }
+            public double ReadyUnix { get; }
         }
 
         private sealed class TrashReward

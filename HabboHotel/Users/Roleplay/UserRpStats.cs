@@ -34,9 +34,17 @@ namespace Plus.HabboHotel.Users
         public bool PassiveMode { get; set; }
         public int Robberies { get; set; }
         public int Robbed { get; set; }
+        public bool IsCuffed { get; set; }
+        public double JailReleaseTime { get; set; }
+        public bool JailPending { get; set; }
+        public int JailStars { get; set; }
+        public string JailRevertLook { get; set; }
+        public int JailRoomId { get; set; }
+        /// <summary>Seconds of jail time left, banked while the user is offline (sentence pauses).</summary>
+        public double JailTimeLeft { get; set; }
         public DateTime NextHungerTick { get; set; }
 
-        public UserRpStats(int userId, int health, int shield, int energy, int hunger, int experience, int knockouts, int deaths, int arrested, int escapes, int damageDealt, int damageTaken, int attacks, int attacked, int knowledge, int strength, bool isDead, double hospitalReleaseTime, double hospitalHealStartTime, int hospitalHealthStart, int aggression, bool passiveMode, int robberies, int robbed)
+        public UserRpStats(int userId, int health, int shield, int energy, int hunger, int experience, int knockouts, int deaths, int arrested, int escapes, int damageDealt, int damageTaken, int attacks, int attacked, int knowledge, int strength, bool isDead, double hospitalReleaseTime, double hospitalHealStartTime, int hospitalHealthStart, int aggression, bool passiveMode, int robberies, int robbed, bool isCuffed = false, double jailReleaseTime = 0, bool jailPending = false, int jailStars = 0, string jailRevertLook = "", int jailRoomId = 0, double jailTimeLeft = 0)
         {
             UserId = userId;
             Health = health;
@@ -63,12 +71,18 @@ namespace Plus.HabboHotel.Users
             PassiveMode = passiveMode;
             Robberies = robberies;
             Robbed = robbed;
+            IsCuffed = isCuffed;
+            JailReleaseTime = jailReleaseTime;
+            JailPending = jailPending;
+            JailStars = jailStars;
+            JailRevertLook = jailRevertLook ?? "";
+            JailRoomId = jailRoomId;
+            JailTimeLeft = jailTimeLeft;
 
             NextHungerTick = DateTime.UtcNow.AddMinutes(10);
         }
 
-        public static int GetMaxHealth(Habbo habbo)
-        {
+        public static int GetMaxHealth(Habbo habbo) {
             if (habbo?.GetRpSkills() == null) {
                 return 100;
             }
@@ -82,8 +96,7 @@ namespace Plus.HabboHotel.Users
             };
         }
 
-        public static int GetMaxHunger(Habbo habbo)
-        {
+        public static int GetMaxHunger(Habbo habbo) {
             if (habbo?.GetRpSkills() == null) {
                 return 25;
             }
@@ -97,8 +110,7 @@ namespace Plus.HabboHotel.Users
             };
         }
 
-        public static int GetMaxEnergy(Habbo habbo)
-        {
+        public static int GetMaxEnergy(Habbo habbo) {
             if (habbo?.GetRpSkills() == null) {
                 return 100;
             }
@@ -112,20 +124,17 @@ namespace Plus.HabboHotel.Users
             };
         }
 
-        public void Heal(Habbo habbo, int health)
-        {
+        public void Heal(Habbo habbo, int health) {
             Health = Math.Min(Health + health, GetMaxHealth(habbo));
         }
 
-        public void Kill(Habbo victim, RoomUser victimUser, UserRpStats attacker = null)
-        {
+        public static void Kill(Habbo victim, RoomUser victimUser, UserRpStats attacker = null) {
             if (victim == null || victimUser == null) { return; }
 
             PlusEnvironment.GetHospitalManager().HandleDeath(victim, victimUser, attacker);
         }
 
-        public void TickHunger(Habbo habbo)
-        {
+        public void TickHunger(Habbo habbo) {
             if (DateTime.UtcNow < NextHungerTick)
                 return;
 
@@ -150,14 +159,12 @@ namespace Plus.HabboHotel.Users
             habbo.TrySendUserStatsUpdate(true);
         }
 
-        public void InteractionEnergy()
-        {
+        public void InteractionEnergy() {
             int energyLoss = Random.Shared.Next(1, 6); // 1-5 dmg
             Energy = Math.Max(0, Energy - energyLoss);
         }
 
-        public static int GetRobberyChance(Habbo habbo)
-        {
+        public static int GetRobberyChance(Habbo habbo) {
             if (habbo?.GetRpSkills() == null) {
                 return 50;
             }
@@ -171,9 +178,23 @@ namespace Plus.HabboHotel.Users
             };
         }
 
-        public UserWeapon ActiveWeapon()
-        {
+        public UserWeapon ActiveWeapon() {
             return Weapons?.GetActiveWeapon();
+        }
+
+        public static int GetScavengerBoost(Habbo habbo) {
+            if (habbo?.GetRpSkills() == null)
+            {
+                return 1;
+            }
+
+            return habbo.GetRpSkills().GetLevel(8, true) switch
+            {
+                1 => 5,
+                2 => 10,
+                3 => 15,
+                _ => 1
+            };
         }
     }
 }

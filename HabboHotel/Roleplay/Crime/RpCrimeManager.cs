@@ -180,12 +180,46 @@ namespace Plus.HabboHotel.Roleplay.Crime
                     c.Revealed = true;
         }
 
+        /// <summary>
+        /// Charges the suspect: reveals/activates every crime and flags the record as charged.
+        /// A suspect must be charged before police can cuff them. Returns the total stars charged.
+        /// </summary>
+        public int Charge(int userId)
+        {
+            if (!_wanted.TryGetValue(userId, out UserWantedRecord rec))
+                return 0;
+
+            Prune(rec);
+            lock (rec.Crimes)
+            {
+                foreach (ActiveCrime c in rec.Crimes)
+                    c.Revealed = true;
+                rec.Charged = rec.Crimes.Count > 0;
+            }
+
+            return GetTotalStars(userId);
+        }
+
+        /// <summary>True once a cop has run <c>:charge</c> on the suspect and they still have active crimes.</summary>
+        public bool IsCharged(int userId)
+        {
+            if (!_wanted.TryGetValue(userId, out UserWantedRecord rec))
+                return false;
+
+            Prune(rec);
+            lock (rec.Crimes)
+                return rec.Charged && rec.Crimes.Count > 0;
+        }
+
         /// <summary>Clears active crimes once the offender has been jailed (they're resolved).</summary>
         public void ResolveAll(int userId)
         {
             if (_wanted.TryGetValue(userId, out UserWantedRecord rec))
                 lock (rec.Crimes)
+                {
                     rec.Crimes.Clear();
+                    rec.Charged = false;
+                }
         }
 
         public bool HasActiveCrimes(int userId)
@@ -260,6 +294,7 @@ namespace Plus.HabboHotel.Roleplay.Crime
             public string Username;
             public string Look;
             public DateTime LastCrime;
+            public bool Charged;
             public readonly List<ActiveCrime> Crimes = new();
         }
 

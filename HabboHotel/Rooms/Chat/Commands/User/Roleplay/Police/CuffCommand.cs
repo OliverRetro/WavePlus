@@ -1,16 +1,16 @@
+using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.HabboHotel.GameClients;
-using Plus.HabboHotel.Roleplay.Police;
-using Plus.HabboHotel.Rooms;
-using Plus.HabboHotel.Rooms.Chat.Commands;
-using Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay;
+using Plus.HabboHotel.Roleplay.Utilities;
+using Plus.HabboHotel.Users;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Police
 {
     internal class CuffCommand : IChatCommand
     {
-        public string PermissionRequired => "command_rp_hit";
+        public string PermissionRequired => "command_rp_police_override";
+        public string GroupPermissionRequired => "cuff_user";
         public string Parameters => "%username%";
-        public string Description => "Cuff an adjacent suspect (police only).";
+        public string Description => "Cuff a charged, adjacent suspect (police only).";
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
@@ -19,21 +19,34 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Police
                 return;
             }
 
-            if (!PoliceManager.HasJobPermission(session.GetHabbo(), "rp.police.corporation.id", "cuff_user")) {
-                session.SendWhisper("Only on-duty police officers can cuff users.", 1);
-                return;
-            }
-
             if (!RpCommandUtil.TryGetTarget(session, room, @params[1], out GameClient targetClient))
                 return;
 
-            if (!RpCommandUtil.RequireAdjacent(session, room, targetClient.GetHabbo(), "You need to be beside the suspect to cuff them."))
+            Habbo target = targetClient.GetHabbo();
+
+            if (!PlusEnvironment.GetRpCrimeManager().IsCharged(target.Id)) {
+                session.SendWhisper(target.Username + " hasn't been charged yet — use :charge first.", 1);
+                return;
+            }
+
+            if (PlusEnvironment.GetPoliceManager().IsCuffed(target.Id)) {
+                session.SendWhisper(target.Username + " is already cuffed.", 1);
+                return;
+            }
+
+            if (!RpCommandUtil.RequireAdjacent(session, room, target, "You need to be beside the suspect to cuff them."))
                 return;
 
-            PlusEnvironment.GetPoliceManager().Cuff(session.GetHabbo(), targetClient.GetHabbo());
-            targetClient.SendWhisper("You have been cuffed. You cannot walk until released.", 1);
-            session.SendWhisper("You cuffed " + targetClient.GetHabbo().Username + ".", 1);
-            RpCommandUtil.RoomAction(room, session.GetHabbo(), "*" + session.GetHabbo().Username + " cuffs " + targetClient.GetHabbo().Username + "*");
+            if (target.GetRpWeapons() != null && target.GetRpWeapons().GetActiveWeapon() != null) {
+                target.GetRpWeapons().SetActiveWeaponId(0);
+                RpEffectService.Refresh(target);
+            }
+
+            if (PlusEnvironment.GetGame().GetShiftManager().IsWorking(target.Id))
+                PlusEnvironment.GetGame().GetShiftManager().InterruptShift(target, target.CurrentRoom);
+
+            PlusEnvironment.GetPoliceManager().Cuff(session.GetHabbo(), target);
+            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*" + session.GetHabbo().Username + " cuffs " + targetClient.GetHabbo().Username + "*", 0, 4));
         }
     }
 }

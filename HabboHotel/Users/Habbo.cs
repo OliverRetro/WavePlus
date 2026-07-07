@@ -458,7 +458,14 @@ namespace Plus.HabboHotel.Users
                         Convert.ToInt32(statRow["aggression"]),
                         Convert.ToInt32(statRow["passive_mode"]) == 1,
                         Convert.ToInt32(statRow["robberies"]),
-                        Convert.ToInt32(statRow["robbed"])
+                        Convert.ToInt32(statRow["robbed"]),
+                        statRow.Table.Columns.Contains("is_cuffed") && Convert.ToInt32(statRow["is_cuffed"]) == 1,
+                        statRow.Table.Columns.Contains("jail_release_time") ? Convert.ToDouble(statRow["jail_release_time"]) : 0,
+                        statRow.Table.Columns.Contains("jail_pending") && Convert.ToInt32(statRow["jail_pending"]) == 1,
+                        statRow.Table.Columns.Contains("jail_stars") ? Convert.ToInt32(statRow["jail_stars"]) : 0,
+                        statRow.Table.Columns.Contains("jail_revert_look") ? Convert.ToString(statRow["jail_revert_look"]) : "",
+                        statRow.Table.Columns.Contains("jail_room_id") ? Convert.ToInt32(statRow["jail_room_id"]) : 0,
+                        statRow.Table.Columns.Contains("jail_time_left") ? Convert.ToDouble(statRow["jail_time_left"]) : 0
                     );
                 }
                 catch (Exception e)
@@ -827,7 +834,7 @@ namespace Plus.HabboHotel.Users
                 using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
                 {
                     dbClient.UpdateOrInsert(
-                        "UPDATE `user_rp_statistics` SET `health` = @health, `shield` = @shield, `energy` = @energy, `hunger` = @hunger, `experience` = @experience, `knockouts` = @knockouts, `deaths` = @deaths, `arrested` = @arrested, `escapes` = @escapes, `damage_dealt` = @damage_dealt, `damage_taken` = @damage_taken, `attacks` = @attacks, `attacked` = @attacked, `knowledge` = @knowledge, `strength` = @strength, `is_dead` = @is_dead, `hospital_release_time` = @hospital_release_time, `hospital_heal_start_time` = @hospital_heal_start_time, `hospital_health_start` = @hospital_health_start, `aggression` = @aggression, `passive_mode` = @passive_mode, `robberies` = @robberies, `robbed` = @robbed WHERE `user_id` = @user_id LIMIT 1",
+                        "UPDATE `user_rp_statistics` SET `health` = @health, `shield` = @shield, `energy` = @energy, `hunger` = @hunger, `experience` = @experience, `knockouts` = @knockouts, `deaths` = @deaths, `arrested` = @arrested, `escapes` = @escapes, `damage_dealt` = @damage_dealt, `damage_taken` = @damage_taken, `attacks` = @attacks, `attacked` = @attacked, `knowledge` = @knowledge, `strength` = @strength, `is_dead` = @is_dead, `hospital_release_time` = @hospital_release_time, `hospital_heal_start_time` = @hospital_heal_start_time, `hospital_health_start` = @hospital_health_start, `aggression` = @aggression, `passive_mode` = @passive_mode, `robberies` = @robberies, `robbed` = @robbed, `is_cuffed` = @is_cuffed, `jail_release_time` = @jail_release_time, `jail_pending` = @jail_pending, `jail_stars` = @jail_stars, `jail_revert_look` = @jail_revert_look, `jail_room_id` = @jail_room_id, `jail_time_left` = @jail_time_left WHERE `user_id` = @user_id LIMIT 1",
                         query =>
                         {
                             query.AddParameter("health", _rpStats.Health);
@@ -853,6 +860,13 @@ namespace Plus.HabboHotel.Users
                             query.AddParameter("passive_mode", _rpStats.PassiveMode ? 1 : 0);
                             query.AddParameter("robberies", _rpStats.Robberies);
                             query.AddParameter("robbed", _rpStats.Robbed);
+                            query.AddParameter("is_cuffed", _rpStats.IsCuffed ? 1 : 0);
+                            query.AddParameter("jail_release_time", _rpStats.JailReleaseTime);
+                            query.AddParameter("jail_pending", _rpStats.JailPending ? 1 : 0);
+                            query.AddParameter("jail_stars", _rpStats.JailStars);
+                            query.AddParameter("jail_revert_look", _rpStats.JailRevertLook ?? "");
+                            query.AddParameter("jail_room_id", _rpStats.JailRoomId);
+                            query.AddParameter("jail_time_left", _rpStats.JailTimeLeft);
                             query.AddParameter("user_id", Id);
                         },
                         "INSERT INTO `user_rp_statistics` (`user_id`) VALUES (@user_id)",
@@ -1178,7 +1192,8 @@ namespace Plus.HabboHotel.Users
             // Drop cached web-overlay macros + target lock state.
             PlusEnvironment.GetGame().GetMacroManager().Unload(Id);
             Plus.HabboHotel.Roleplay.TargetLock.TargetLockService.Clear(Id);
-            PlusEnvironment.GetPoliceManager()?.Clear(Id);
+            PlusEnvironment.GetPoliceManager()?.OnDisconnect(this);
+            PlusEnvironment.GetJailManager()?.OnDisconnect(this);
             PlusEnvironment.GetTrashSearchManager()?.Cancel(Id);
 
             // Persist any buffered crime logs (the wanted cache itself is never saved).

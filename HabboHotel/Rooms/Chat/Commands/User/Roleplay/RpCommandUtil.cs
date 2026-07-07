@@ -43,7 +43,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
             if (ua == null || ub == null)
                 return false;
 
-            return Math.Abs(ua.X - ub.X) + Math.Abs(ua.Y - ub.Y) <= 1;
+            return Math.Abs(ua.X - ub.X) + Math.Abs(ua.Y - ub.Y) <= 1.5;
         }
 
         public static bool RequireAdjacent(GameClient session, Room room, Habbo target, string message)
@@ -53,13 +53,6 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 
             session.SendWhisper(message, 1);
             return false;
-        }
-
-        public static void RoomAction(Room room, Habbo actor, string message, int bubble = 0)
-        {
-            RoomUser user = room?.GetRoomUserManager().GetRoomUserByHabbo(actor.Id);
-            if (user != null)
-                room.SendPacket(new ShoutComposer(user.VirtualId, message, 0, actor.GetBubbleId(bubble)));
         }
     }
 }

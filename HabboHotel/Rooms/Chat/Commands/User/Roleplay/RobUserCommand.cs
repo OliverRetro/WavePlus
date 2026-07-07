@@ -26,6 +26,11 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
                 return;
             }
 
+            if (PlusEnvironment.GetPoliceManager().IsCuffed(session.GetHabbo().Id)) {
+                session.SendWhisper("You can't rob anyone while cuffed.", 1);
+                return;
+            }
+
             double now = PlusEnvironment.GetUnixTimestamp();
 
             if (session.GetHabbo().LastRobTime > now) {
