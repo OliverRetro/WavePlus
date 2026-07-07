@@ -1,4 +1,4 @@
-﻿using System.Threading;
+using System.Threading;
 using System.Threading.Tasks;
 using Plus.Communication.Packets;
 using Plus.Core;
@@ -57,7 +57,15 @@ namespace Plus.HabboHotel
         private bool _cycleEnded;
         private bool _cycleActive;
         private Task _gameCycle;
+        private long _nextHospitalCycleMs;
+        private long _nextJailCycleMs;
+        private long _nextPoliceCycleMs;
+        private long _nextTrashCycleMs;
         private const int CycleSleepTime = 25;
+        private const int HospitalCycleIntervalMs = 1000;
+        private const int JailCycleIntervalMs = 1000;
+        private const int PoliceCycleIntervalMs = 250;
+        private const int TrashCycleIntervalMs = 250;
 
         public Game()
         {
@@ -141,11 +149,32 @@ namespace Plus.HabboHotel
             {
                 _cycleEnded = false;
 
+                long nowMs = PlusEnvironment.Now();
+
                 PlusEnvironment.GetGame().GetRoomManager().OnCycle();
                 PlusEnvironment.GetGame().GetClientManager().OnCycle();
                 PlusEnvironment.GetGame().GetGroupManager().OnCycle();
-                PlusEnvironment.GetHospitalManager().OnCycle();
-                PlusEnvironment.GetJailManager().OnCycle();
+
+                if (nowMs >= _nextHospitalCycleMs) {
+                    _nextHospitalCycleMs = nowMs + HospitalCycleIntervalMs;
+                    PlusEnvironment.GetHospitalManager().OnCycle();
+                }
+
+                if (nowMs >= _nextJailCycleMs) {
+                    _nextJailCycleMs = nowMs + JailCycleIntervalMs;
+                    PlusEnvironment.GetJailManager().OnCycle();
+                }
+
+                if (nowMs >= _nextPoliceCycleMs) {
+                    _nextPoliceCycleMs = nowMs + PoliceCycleIntervalMs;
+                    PlusEnvironment.GetPoliceManager()?.OnCycle();
+                }
+
+                if (nowMs >= _nextTrashCycleMs) {
+                    _nextTrashCycleMs = nowMs + TrashCycleIntervalMs;
+                    PlusEnvironment.GetTrashSearchManager()?.OnCycle();
+                }
+
                 PlusEnvironment.GetGame().GetBotManager().OnCycle();
 
                 _cycleEnded = true;

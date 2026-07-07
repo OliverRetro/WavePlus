@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
@@ -61,6 +61,9 @@ namespace Plus.HabboHotel.Roleplay.Hospital
 
             // Death ends any active work shift.
             PlusEnvironment.GetGame().GetShiftManager().InterruptShift(target, target.CurrentRoom);
+
+            // Death frees any suspects this user was escorting and knocks off their own cuffs.
+            PlusEnvironment.GetPoliceManager()?.OnDeath(target);
 
             targetUser.ClearMovement(true);
             if (!targetUser.IsLying)
@@ -137,7 +140,7 @@ namespace Plus.HabboHotel.Roleplay.Hospital
 
         public void OnCycle()
         {
-            foreach (GameClient client in PlusEnvironment.GetGame().GetClientManager().GetClients.ToList())
+            foreach (GameClient client in PlusEnvironment.GetGame().GetClientManager().GetClients)
             {
                 if (client?.GetHabbo() == null)
                     continue;

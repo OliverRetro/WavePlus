@@ -11,6 +11,7 @@ using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Rooms.Games.Freeze;
 using Plus.HabboHotel.Rooms.Games.Teams;
 using Plus.HabboHotel.Rooms.PathFinding;
+using Plus.HabboHotel.Roleplay.Trash;
 using Plus.Utilities;
 
 namespace Plus.HabboHotel.Items
@@ -317,6 +318,10 @@ namespace Plus.HabboHotel.Items
             {
                 if (IsWired) {
                     return new InteractorWired();
+                }
+
+                if (TrashSearchManager.IsTrashBin(this)) {
+                    return new InteractorTrashBin();
                 }
 
                 switch (GetBaseItem().InteractionType)

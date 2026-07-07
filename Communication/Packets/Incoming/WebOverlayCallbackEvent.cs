@@ -26,16 +26,16 @@ namespace Plus.Communication.Packets.Incoming
         {
             // DIAGNOSTIC: proves packet 314 reached this handler at all.
             string payload = packet.PopString();
-            Console.WriteLine("[WebOverlay] <-- packet 314 received, raw payload: " + payload);
+            if (IsDebugEnabled()) Console.WriteLine("[WebOverlay] <-- packet 314 received, raw payload: " + payload);
 
             if (session?.GetHabbo() == null) {
-                Console.WriteLine("[WebOverlay] aborted: session/habbo is null");
+                if (IsDebugEnabled()) Console.WriteLine("[WebOverlay] aborted: session/habbo is null");
                 return;
             }
 
             payload = payload.Replace("&#47;", "/");
             if (string.IsNullOrWhiteSpace(payload)) {
-                Console.WriteLine("[WebOverlay] aborted: empty payload");
+                if (IsDebugEnabled()) Console.WriteLine("[WebOverlay] aborted: empty payload");
                 return;
             }
 
@@ -45,20 +45,25 @@ namespace Plus.Communication.Packets.Incoming
                 JsonElement root = doc.RootElement;
 
                 if (!root.TryGetProperty("header", out JsonElement headerEl)) {
-                    Console.WriteLine("[WebOverlay] aborted: no 'header' property in payload");
+                    if (IsDebugEnabled()) Console.WriteLine("[WebOverlay] aborted: no 'header' property in payload");
                     return;
                 }
 
                 string header = headerEl.GetString() ?? string.Empty;
                 JsonElement data = root.TryGetProperty("data", out JsonElement d) ? d : default;
 
-                Console.WriteLine("[WebOverlay] dispatching header: '" + header + "'");
+                if (IsDebugEnabled()) Console.WriteLine("[WebOverlay] dispatching header: '" + header + "'");
                 Dispatch(header, data, session);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("[WebOverlay] malformed message: " + ex.Message);
+                if (IsDebugEnabled()) Console.WriteLine("[WebOverlay] malformed message: " + ex.Message);
             }
+        }
+
+        private static bool IsDebugEnabled()
+        {
+            return PlusEnvironment.GetSettingsManager()?.TryGetValue("rp.weboverlay.debug") == "1";
         }
 
         private static void Dispatch(string header, JsonElement data, GameClient session)
@@ -145,7 +150,8 @@ namespace Plus.Communication.Packets.Incoming
                     bool locked = GetBool(data, "lock");
                     TargetLockService.SetLock(session.GetHabbo(), locked);
                     Habbo clicked = TargetLockService.GetClickedHabbo(session.GetHabbo().Id);
-                    session.SendPacket(new TargetLockComposer(clicked?.Username ?? string.Empty, locked));
+                    bool isLocked = TargetLockService.IsLocked(session.GetHabbo().Id);
+                    session.SendPacket(new TargetLockComposer(clicked?.Username ?? string.Empty, isLocked));
                     break;
                 }
 
@@ -526,7 +532,7 @@ namespace Plus.Communication.Packets.Incoming
             // target — as the command argument, so binds act on whoever is targeted.
             if (text.StartsWith(":", StringComparison.CurrentCulture)) {
                 if (!text.Contains(' ')) {
-                    Habbo target = TargetLockService.GetClickedHabbo(habbo.Id);
+                    Habbo target = TargetLockService.GetTarget(habbo);
                     if (target != null)
                         text += " " + target.Username;
                 }

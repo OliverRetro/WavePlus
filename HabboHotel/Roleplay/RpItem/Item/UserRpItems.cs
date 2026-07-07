@@ -224,6 +224,10 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             Room room = habbo.CurrentRoom;
             RoomUser roomUser = room?.GetRoomUserManager().GetRoomUserByHabbo(habbo.Id);
 
+            // Lockpick: attempt to break free of cuffs instead of the usual consumable effects.
+            if (data.Has("handpick"))
+                return TryHandpick(habbo, userItem, data);
+
             // give fine shyte
             if (stats != null)
                 ApplyStatEffects(habbo, stats, data, roomUser);
@@ -232,7 +236,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             bool died = stats != null && stats.Health <= 0 && !stats.IsDead && roomUser != null;
             if (died) {
                 LiveFeedService.LiveFeed("💀 " + LiveFeedService.Name(habbo.Username, "green") + " died of item over usage.", "red");
-                stats.Kill(habbo, roomUser);
+                UserRpStats.Kill(habbo, roomUser);
             }
 
             // effect or handitem, if 1 exists (skipped if the item just killed us)
@@ -241,6 +245,40 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
 
             // uses
             ConsumeUse(userItem);
+
+            habbo.TrySendUserStatsUpdate(true);
+            return true;
+        }
+
+        private bool TryHandpick(Habbo habbo, UserRpItem userItem, RpItemData data)
+        {
+            var police = PlusEnvironment.GetPoliceManager();
+
+            if (!police.IsCuffed(habbo.Id)) {
+                habbo.GetClient()?.SendWhisper("You're not cuffed.", 1);
+                return false;
+            }
+
+            // Can't pick the lock unless you're free to move (not frozen: fresh cuff or escort).
+            if (police.IsFrozen(habbo.Id)) {
+                habbo.GetClient()?.SendWhisper("You can't pick your cuffs while you're being taken in.", 1);
+                return false;
+            }
+
+            if (PlusEnvironment.GetJailManager().IsJailed(habbo.Id)) {
+                habbo.GetClient()?.SendWhisper("You can't pick your cuffs while in jail.", 1);
+                return false;
+            }
+
+            int chance = data.GetInt("handpick", 0);
+            ConsumeUse(userItem);
+
+            if (Random.Shared.Next(1, 101) <= chance) {
+                police.BreakFree(habbo);
+                habbo.GetClient()?.SendWhisper("You picked your cuffs and slipped free!", 1);
+            } else {
+                habbo.GetClient()?.SendWhisper("The lockpick slipped — you're still cuffed.", 1);
+            }
 
             habbo.TrySendUserStatsUpdate(true);
             return true;

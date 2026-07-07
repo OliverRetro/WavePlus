@@ -40,5 +40,6 @@ namespace Plus.Communication.Packets.Outgoing.Quests
             message.WriteInteger(rpStats.Energy);
             message.WriteInteger(UserRpStats.GetMaxEnergy(habbo));
         }
+
     }
 }

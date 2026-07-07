@@ -6,7 +6,6 @@ using Plus.HabboHotel.Roleplay.Utilities;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
 using System;
-using static System.Collections.Specialized.BitVector32;
 
 namespace Plus.HabboHotel.Roleplay.Combat
 {
@@ -22,6 +21,8 @@ namespace Plus.HabboHotel.Roleplay.Combat
             // Rp Stats
             var attackerStats = attacker.GetRpStats();
             var targetStats = target.GetRpStats();
+            if (attackerStats == null || targetStats == null)
+                return;
 
             // take away energy
             attackerStats.InteractionEnergy();
@@ -29,6 +30,8 @@ namespace Plus.HabboHotel.Roleplay.Combat
             // Room users
             RoomUser targetRoomUser = target.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(target.Id);
             RoomUser attackerRoomUser = attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id);
+            if (targetRoomUser == null || attackerRoomUser == null)
+                return;
 
             if (attackerStats.IsDead || targetStats.IsDead) {
                 attacker.GetClient().SendWhisper("User is already knocked out!", 1);
@@ -64,7 +67,9 @@ namespace Plus.HabboHotel.Roleplay.Combat
             int actualDamageDealt = absorbedByShield + damageToHealth;
             bool isFinalBlow = damageToHealth >= healthBeforeHit && healthBeforeHit > 0;
 
-            attacker.GetRpWeapons().GetActiveWeapon().DurabilityLeft--;
+            UserWeapon equippedWeapon = attacker.GetRpWeapons()?.GetActiveWeapon();
+            if (equippedWeapon != null && equippedWeapon.DurabilityLeft > 0)
+                equippedWeapon.DurabilityLeft--;
 
             // stats and damage application
             targetStats.Shield = Math.Max(0, targetStats.Shield - totalDamage);
@@ -78,7 +83,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
                 targetStats.Health = 0;
                 LiveFeedService.LiveFeed(LiveFeedService.Name(attacker.Username, "green") + " knocked out <b>" + LiveFeedService.Name(target.Username, "red") + "</b>");
                 LiveFeedService.LiveFeed("[AUTO CHARGE] 🚨 " +LiveFeedService.Name(attacker.Username, "green") + " committed murder ⭐⭐");
-                targetStats.Kill(target, targetRoomUser, attackerStats);
+                UserRpStats.Kill(target, targetRoomUser, attackerStats);
 
                 // Killing a player is murder.
                 PlusEnvironment.GetRpCrimeManager().Commit(attacker, "murder", attacker.CurrentRoom);
@@ -108,6 +113,9 @@ namespace Plus.HabboHotel.Roleplay.Combat
         private DamageResult CalculateDamage(int minDamage, int maxDamage, double critChancePercent, double critMultiplier, int strength)
         {
             // this is a bit of a cleanup, but this is to calculate all the variables and return a clean object
+            minDamage = Math.Max(0, minDamage);
+            maxDamage = Math.Max(minDamage, maxDamage);
+
             int baseDamage = Random.Shared.Next(minDamage, maxDamage + 1);
 
             bool isCrit = Random.Shared.NextDouble() < (critChancePercent / 100.0);
@@ -152,7 +160,9 @@ namespace Plus.HabboHotel.Roleplay.Combat
 
             // stats
             var attackerStats = attacker.GetRpStats();
-            var targetStats = attacker.GetRpStats();
+            var targetStats = target.GetRpStats();
+            if (attackerStats == null || targetStats == null)
+                return;
 
             // take away energy
             attackerStats.InteractionEnergy();

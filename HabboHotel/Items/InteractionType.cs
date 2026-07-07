@@ -116,6 +116,7 @@
         CameraPicture,
         FxProvider,
         Exchange,
+        TrashBin,
         TaxiPole
     }
 
@@ -349,6 +350,8 @@
                     return InteractionType.FxProvider;
                 case "exchange":
                     return InteractionType.Exchange;
+                case "trash_bin":
+                    return InteractionType.TrashBin;
                 case "taxi_pole":
                     return InteractionType.TaxiPole;
                 case "pet":

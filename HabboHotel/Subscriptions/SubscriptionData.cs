@@ -9,8 +9,9 @@
         public int Duckets { get; }
         public int Respects { get; }
         public int StaticAggression { get; }
+        public int TrashSearchCooldown { get; }
 
-        public SubscriptionData(int id, string name, string badge, int credits, int duckets, int respects, int staticAggression)
+        public SubscriptionData(int id, string name, string badge, int credits, int duckets, int respects, int staticAggression, int trashSearchCooldown)
         {
             Id = id;
             Name = name;
@@ -19,6 +20,7 @@
             Duckets = duckets;
             Respects = respects;
             StaticAggression = staticAggression;
+            TrashSearchCooldown = trashSearchCooldown;
         }
     }
 }

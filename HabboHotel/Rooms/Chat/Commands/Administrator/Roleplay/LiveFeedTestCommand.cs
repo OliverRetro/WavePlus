@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq;
 using Plus.HabboHotel.GameClients;
-using Plus.HabboHotel.Rooms;
-using Plus.HabboHotel.Rooms.Chat.Commands;
+using Plus.HabboHotel.Roleplay.RpItem;
+using Plus.HabboHotel.Roleplay.RpItem.Item;
 using Plus.HabboHotel.Roleplay.Utilities;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
@@ -26,8 +26,6 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
             var message = string.Join(" ", @params.Skip(1));
 
             LiveFeedService.LiveFeed(message);
-
-            session.SendWhisper("Live feed test sent: " + message, 1);
         }
     }
 }

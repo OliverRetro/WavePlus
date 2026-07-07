@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Plus.Communication.Packets.Outgoing.Rooms.Notifications;
@@ -122,8 +122,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
                         }
                         catch
                         {
-                            Console.WriteLine(item.GetBaseItem().InteractionType);
-                        }
+                                        }
                     }
                 } else {
                     session.SendPacket(new RoomNotificationComposer("furni_placement_error", "message", "${room.error.cant_set_item}"));

@@ -27,6 +27,7 @@ INSERT INTO `permissions_commands` (`command`) VALUES ('command_rp_give_item');
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_use_item', 1);
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_stop_work', 1);
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_livefeed_test', 6);
+INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_police_override', 6);
 
 -- corps n such
 DROP TABLE IF EXISTS `group_roles`;
@@ -97,6 +98,19 @@ ADD COLUMN `hospital_release_time` double NOT NULL DEFAULT 0,
 ADD COLUMN `hospital_heal_start_time` double NOT NULL DEFAULT 0,
 ADD COLUMN `hospital_health_start` int(11) NOT NULL DEFAULT 0;
 
+-- police escort / jail persistence (see notes at the settings block below)
+ALTER TABLE `user_rp_statistics`
+ADD COLUMN `is_cuffed` tinyint(1) NOT NULL DEFAULT 0,
+ADD COLUMN `jail_release_time` double NOT NULL DEFAULT 0,
+ADD COLUMN `jail_pending` tinyint(1) NOT NULL DEFAULT 0,
+ADD COLUMN `jail_stars` int NOT NULL DEFAULT 0,
+ADD COLUMN `jail_revert_look` varchar(512) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL DEFAULT '',
+ADD COLUMN `jail_room_id` int NOT NULL DEFAULT 0;
+
+-- jail time is paused while offline: remaining seconds are banked here on disconnect
+ALTER TABLE `user_rp_statistics`
+ADD COLUMN `jail_time_left` double NOT NULL DEFAULT 0;
+
 -- server settings
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.hospital.room.id', '0', 'The hospital room.');
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('user.aggression_scheduler.tick', '5', 'The time (in minutes) users will get deducted aggression.');
@@ -104,12 +118,23 @@ INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.bank.w
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.bank.deposit.fee.default', '5', 'As percentage! ATM usage.');
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.bank.account.opening.cost', '50', 'The cost for opening an account.');
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.police.corporation.id', '1', 'This is for police corporation (group id).');
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.ambulance.corporation.id', '0', 'Ambulance/EMS corporation group id. Set this to the hospital/EMS group.');
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.ambulance.heal.amount', '25', 'HP restored by the :heal command.');
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.ambulance.revive.health', '35', 'HP restored when an EMS revives a dead user.');
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.ambulance.heal.energy.cost', '2', 'Energy cost for EMS heal/revive.');
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.trash.search.duration.seconds', '5', 'Seconds a player must wait while searching a trashbin.');
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.trash.search.cooldown.seconds', '60', 'Per-user cooldown after searching trash.');
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.trash.bin.cooldown.seconds', '120', 'Per-bin cooldown after it has been searched.');
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.trash.search.energy.cost', '2', 'Energy cost for searching a trashbin.');
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.trash.search.item.chance', '35', 'Base chance percentage to find an RP item from trash.');
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.trash.search.max.credits', '8', 'Maximum fallback credits found from trash.');
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.trash.search.range', '1', 'Tile range from a trashbin required for searching.');
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.jail.room.id', '1', 'Jail room ID.');
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.jail.outfit', 'outfit lol', 'Jail outfit.');
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.staff.corporation.id', '0', 'Staff corporation (group id). Working here grants the staff effect (102) and blocks weapons.');
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('livefeed.discord.webhook', '', 'Discord Webhook for Live Feed. Leave blank If disabled.');
-INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.wardrobe.room.body', '0', 'Room ID where the avatar editor shows everything EXCEPT the hair tab (hd, torso, legs, extra). Rooms you own behave the same way. 0 = disabled.');
-INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.wardrobe.room.head', '0', 'Room ID where the avatar editor shows ONLY the hd (face) and hair tabs. 0 = disabled.');
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.wardrobe.room.body', '29', 'Room where everything, but hair can be changed.');
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.wardrobe.room.head', '29', 'Room where only hair can be changed.');
 
 -- fix rooms?
 ALTER TABLE rooms 
@@ -174,8 +199,21 @@ CREATE TABLE `user_rp_statistics`  (
   `attacked` int NOT NULL DEFAULT 0,
   `knowledge` int NOT NULL DEFAULT 0,
   `strength` int NOT NULL DEFAULT 0,
+  `is_dead` int NOT NULL DEFAULT 0,
+  `hospital_release_time` double NOT NULL DEFAULT 0,
+  `hospital_heal_start_time` double NOT NULL DEFAULT 0,
+  `hospital_health_start` int NOT NULL DEFAULT 0,
+  `aggression` int NOT NULL DEFAULT 0,
+  `passive_mode` tinyint(1) NOT NULL DEFAULT 0,
   `robberies` int NOT NULL DEFAULT 0,
   `robbed` int NOT NULL DEFAULT 0,
+  `is_cuffed` tinyint(1) NOT NULL DEFAULT 0,
+  `jail_release_time` double NOT NULL DEFAULT 0,
+  `jail_pending` tinyint(1) NOT NULL DEFAULT 0,
+  `jail_stars` int NOT NULL DEFAULT 0,
+  `jail_revert_look` varchar(512) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL DEFAULT '',
+  `jail_room_id` int NOT NULL DEFAULT 0,
+  `jail_time_left` double NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
 
@@ -331,14 +369,11 @@ ADD COLUMN `home_room_data` LONGTEXT NOT NULL DEFAULT '{"roomid":17,"x":18,"y":2
 ALTER TABLE `rooms`
 ADD COLUMN `safezone` varchar(4) NOT NULL DEFAULT '0';
 
-ALTER TABLE `user_rp_statistics`
-ADD COLUMN `aggression` smallint(6) NOT NULL DEFAULT 0;
-
 ALTER TABLE `subscriptions`
 ADD COLUMN `static_aggression` smallint(6) NOT NULL DEFAULT 3;
 
-ALTER TABLE `user_rp_statistics`
-ADD COLUMN `passive_mode` tinyint(4) NOT NULL DEFAULT 0;
+ALTER TABLE `subscriptions`
+ADD COLUMN `trash_search_cooldown` smallint(6) NOT NULL DEFAULT 60;
 
 -- chat bubbles
 DROP TABLE IF EXISTS `user_chat_bubbles`;
@@ -385,6 +420,22 @@ CREATE TABLE `rp_items`  (
 INSERT INTO `rp_items` VALUES (1, 'Bandage', '0', '69', 50, '{\"hp\": 15, \"consume_length\": 100, \"uses\": 1}', '');
 INSERT INTO `rp_items` VALUES (2, 'Red Bull', '14', '0', 12, '{\"hp\": -1, \"energy\": 25, \"hunger\": 5, \"hunger_saturation\": 0.5, \"consume_length\": 400, \"shield\": 50, \"experience\": 10, \"uses\": 1}', '');
 
+
+-- searchable trashbin reward pool (optional; server falls back to all rp_items if empty)
+DROP TABLE IF EXISTS `rp_trash_rewards`;
+CREATE TABLE `rp_trash_rewards` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `item_id` int NOT NULL,
+  `chance_weight` int NOT NULL DEFAULT 1,
+  `min_amount` int NOT NULL DEFAULT 1,
+  `max_amount` int NOT NULL DEFAULT 1,
+  `enabled` tinyint(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci ROW_FORMAT=Dynamic;
+
+INSERT INTO `rp_trash_rewards` (`item_id`, `chance_weight`, `min_amount`, `max_amount`, `enabled`) VALUES (1, 5, 1, 1, 1);
+INSERT INTO `rp_trash_rewards` (`item_id`, `chance_weight`, `min_amount`, `max_amount`, `enabled`) VALUES (2, 3, 1, 1, 1);
+
 DROP TABLE IF EXISTS `user_rp_items`;
 CREATE TABLE `user_rp_items`  (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -425,6 +476,11 @@ ADD COLUMN `item_type` varchar(32) CHARACTER SET latin1 COLLATE latin1_swedish_c
 -- example secondary (shield) item: 100 shield / durability, occupies the secondary equipped slot.
 INSERT INTO `rp_items` (`item_name`, `handitem_data`, `effect_data`, `base_price`, `attribute_effects`, `image_url`, `stack_limit`, `item_type`)
 VALUES ('Riot Shield', '0', '0', 250, '{\"shield\": 100}', '', 1, 'secondary');
+
+-- example lockpick: `handpick` is the % chance to break free of cuffs (only usable while
+-- cuffed AND free to move -- not while being escorted or jailed).
+INSERT INTO `rp_items` (`item_name`, `handitem_data`, `effect_data`, `base_price`, `attribute_effects`, `image_url`, `stack_limit`, `item_type`)
+VALUES ('Lockpick', '0', '0', 150, '{\"handpick\": 35, \"uses\": 1}', '', 1, 'consumable');
 
 -- per-owned-item durability (shields) + which item is equipped in the secondary slot.
 ALTER TABLE `user_rp_items`
@@ -480,5 +536,62 @@ INSERT INTO `rp_crimes` VALUES (2, 'rob', 'Theft', 1, 10, 0, 0, '');
 
 -- crime logs are inserted by the server on disconnect/reload; give the id auto-increment.
 ALTER TABLE `rp_crime_log` MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+
+-- performance indexes / live stability
+-- These keep RP lookups fast once the hotel has 100+ online users and a larger database.
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.weboverlay.debug', '0', 'Set to 1 only while debugging packet 314 web overlay callbacks.');
+
+ALTER TABLE `user_rp_statistics`
+ADD UNIQUE KEY `uniq_user_rp_statistics_user_id` (`user_id`);
+
+ALTER TABLE `user_rp_skills`
+ADD UNIQUE KEY `uniq_user_rp_skills_user_skill` (`user_id`, `skill_id`),
+ADD KEY `idx_user_rp_skills_skill_id` (`skill_id`);
+
+ALTER TABLE `user_rp_weapons`
+ADD KEY `idx_user_rp_weapons_user_id` (`user_id`),
+ADD KEY `idx_user_rp_weapons_weapon_id` (`weapon_id`);
+
+ALTER TABLE `user_rp_weapon_skins`
+ADD KEY `idx_user_rp_weapon_skins_user_id` (`user_id`),
+ADD KEY `idx_user_rp_weapon_skins_skin_id` (`skin_id`);
+
+ALTER TABLE `user_rp_items`
+ADD KEY `idx_user_rp_items_user_item` (`user_id`, `item_id`),
+ADD KEY `idx_user_rp_items_equipped` (`user_id`, `equipped`);
+
+ALTER TABLE `user_rp_bank`
+ADD UNIQUE KEY `uniq_user_rp_bank_user_id` (`user_id`);
+
+ALTER TABLE `user_rp_bank_logs`
+ADD KEY `idx_user_rp_bank_logs_user_time` (`user_id`, `timestamp`);
+
+ALTER TABLE `rp_crime_log`
+ADD KEY `idx_rp_crime_log_user_expired_time` (`user_id`, `expired`, `timestamp`),
+ADD KEY `idx_rp_crime_log_crime_id` (`crime_id`);
+
+ALTER TABLE `rp_crimes`
+ADD UNIQUE KEY `uniq_rp_crimes_tag` (`crime_tag`);
+
+ALTER TABLE `rp_crime_penalties`
+ADD UNIQUE KEY `uniq_rp_crime_penalties_star` (`star_level`);
+
+ALTER TABLE `rp_trash_rewards`
+ADD KEY `idx_rp_trash_rewards_enabled_weight` (`enabled`, `chance_weight`);
+
+-- ── Police escort / jail persistence ─────────────────────────────────────
+-- Jail sentences persist on `user_rp_statistics` (columns added near the hospital
+-- block above) so they survive relog/restart:
+--   jail_release_time: unix time the sentence ends (>0 = actively serving).
+--   jail_pending:      the user disconnected mid-escort; jail them on next login.
+--   jail_stars:        star count captured at :arrest (used to look up the penalty).
+--   jail_revert_look:  the look to restore on release (their pre-cuff outfit).
+--   jail_room_id:      the room they're confined to while serving.
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.cuff.figure.male', 'ch-3688-1323', 'Figure part applied to a cuffed male suspect (their old look is restored on release).');
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.cuff.figure.female', 'ch-3689-1323', 'Figure part applied to a cuffed female suspect (their old look is restored on release).');
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.jail.rooms', '', 'Semicolon-separated room ids that act as jails. Escorting a suspect into one auto-jails them.');
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.police.escort.jail.bonus', '20', 'Credits paid to the escorting officer when their suspect is jailed.');
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.jail.spawn', '{"roomid":4,"x":8,"y":9,"z":0,"rotation":6}', 'Jail spawn point: room + tile a jailed suspect is teleported to.');
 
 SET FOREIGN_KEY_CHECKS = 1;

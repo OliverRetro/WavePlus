@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
@@ -37,14 +37,13 @@ namespace Plus.HabboHotel.Rooms
                 TimeSpan sinceLastTime = DateTime.Now - _cycleLastExecution;
                 if (sinceLastTime.TotalMilliseconds >= 500) {
                     _cycleLastExecution = DateTime.Now;
-                    foreach (Room room in _rooms.Values.ToList())
+                    foreach (Room room in _rooms.Values)
                     {
                         if (room.IsCrashed)
                             continue;
 
                         if (room.ProcessTask == null || room.ProcessTask.IsCompleted) {
-                            room.ProcessTask = new Task(room.ProcessRoom);
-                            room.ProcessTask.Start();
+                            room.ProcessTask = Task.Run(room.ProcessRoom);
                             room.IsLagging = 0;
                         } else {
                             room.IsLagging++;
@@ -310,7 +309,7 @@ namespace Plus.HabboHotel.Rooms
         {
             int length = _rooms.Count;
             int i = 0;
-            foreach (Room room in _rooms.Values.ToList())
+            foreach (Room room in _rooms.Values)
             {
                 if (room == null)
                     continue;

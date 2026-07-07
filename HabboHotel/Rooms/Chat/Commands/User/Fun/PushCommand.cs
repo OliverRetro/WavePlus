@@ -92,7 +92,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Fun
                     targetUser.MoveTo(targetUser.X, targetUser.Y + 1);
                 }
 
-                room.SendPacket(new ChatComposer(thisUser.VirtualId, "*" + session.GetHabbo().Username + " pushes " + @params[1] + "*", 0, thisUser.LastBubble));
+                room.SendPacket(new ShoutComposer(thisUser.VirtualId, "*" + session.GetHabbo().Username + " pushes " + @params[1] + " away from them*", 0, thisUser.LastBubble));
             } else {
                 session.SendWhisper("Oops, " + @params[1] + " is not close enough!");
             }
