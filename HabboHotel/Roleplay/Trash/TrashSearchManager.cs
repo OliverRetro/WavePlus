@@ -205,6 +205,9 @@ namespace Plus.HabboHotel.Roleplay.Trash
 
             _userCooldowns[habbo.Id] = PlusEnvironment.GetUnixTimestamp() + GetUserCooldownSeconds(habbo);
 
+            // Achievement: searched a trashbin (any bin counts once its cooldown allows).
+            PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(client, "ACH_Trashbin", 1);
+
             int chance = GetFindChance(habbo);
             if (_random.Next(1, 101) <= chance && TryGiveReward(habbo, out string rewardText)) {
                 room.SendPacket(new ShoutComposer(roomUser.VirtualId, "*" + habbo.Username + " finds " + rewardText + " inside of the bin*", 0, 4));

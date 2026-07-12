@@ -1,16 +1,19 @@
-﻿namespace Plus.HabboHotel.Achievements
+namespace Plus.HabboHotel.Achievements
 {
     public struct AchievementLevel
     {
         public int Level { get; }
         public int Requirement { get; }
-        public int RewardPixels { get; }
+        public int RewardAmount { get; }
+        // Currency the RewardAmount is paid in: -1 = credits, 5 = diamonds, 0 = duckets.
+        public int PointsType { get; }
         public int RewardPoints { get; }
 
-        public AchievementLevel(int level, int rewardPixels, int rewardPoints, int requirement)
+        public AchievementLevel(int level, int rewardAmount, int pointsType, int rewardPoints, int requirement)
         {
             Level = level;
-            RewardPixels = rewardPixels;
+            RewardAmount = rewardAmount;
+            PointsType = pointsType;
             RewardPoints = rewardPoints;
             Requirement = requirement;
         }

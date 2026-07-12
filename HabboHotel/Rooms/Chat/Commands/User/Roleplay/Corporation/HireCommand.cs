@@ -74,8 +74,15 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
 
             group.HandleRequest(targetHabbo.Id, true);
 
-            if (GroupManager.IsWorkableKind(group.Kind))
+            if (GroupManager.IsWorkableKind(group.Kind)) {
                 targetHabbo.CorporationId = group.Id;
+                // Achievement: got hired into a corporation/business.
+                PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(targetClient, "ACH_Hired", 1);
+            }
+
+            // Achievement: joined a gang.
+            if (group.Kind == GroupKind.Gang)
+                PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(targetClient, "ACH_JoinGang", 1);
 
             session.SendPacket(new GroupMemberUpdatedComposer(group, targetHabbo, 4));
             session.SendPacket(new GroupInfoComposer(group, targetClient));

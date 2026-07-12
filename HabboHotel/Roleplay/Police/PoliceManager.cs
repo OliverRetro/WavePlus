@@ -131,7 +131,15 @@ namespace Plus.HabboHotel.Roleplay.Police
         /// The suspect picks their cuffs (handpick): drops the cuffs, wipes any jail data and their
         /// crimes, and restores their old outfit — as if they never committed a crime.
         /// </summary>
-        public void BreakFree(Habbo target) => RemoveCuffs(target, wipeCrimes: true);
+        public void BreakFree(Habbo target)
+        {
+            // Only counts as an escape if they were actually in custody (cuffed/being escorted).
+            bool wasInCustody = target != null && _states.ContainsKey(target.Id);
+            RemoveCuffs(target, wipeCrimes: true);
+
+            if (wasInCustody)
+                PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(target.GetClient(), "ACH_Escaper", 1);
+        }
 
         /// <summary>
         /// Removes a suspect's cuffs and jail data and restores their pre-cuff look. When

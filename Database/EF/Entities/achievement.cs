@@ -24,7 +24,11 @@ public partial class achievement
     public int level { get; set; }
 
     [Column(TypeName = "int(11)")]
-    public int reward_pixels { get; set; }
+    public int reward_amount { get; set; }
+
+    // Currency the reward_amount is paid in: -1 = credits, 5 = diamonds, 0 = duckets (default).
+    [Column(TypeName = "int(11)")]
+    public int points_type { get; set; }
 
     [Column(TypeName = "int(11)")]
     public int reward_points { get; set; }

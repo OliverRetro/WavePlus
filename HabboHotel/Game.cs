@@ -63,11 +63,13 @@ namespace Plus.HabboHotel
         private long _nextJailCycleMs;
         private long _nextPoliceCycleMs;
         private long _nextTrashCycleMs;
+        private long _nextAchievementFlushMs;
         private const int CycleSleepTime = 25;
         private const int HospitalCycleIntervalMs = 1000;
         private const int JailCycleIntervalMs = 1000;
         private const int PoliceCycleIntervalMs = 250;
         private const int TrashCycleIntervalMs = 250;
+        private const int AchievementFlushIntervalMs = 60000; // batch-push queued achievement progress once a minute
 
         public Game()
         {
@@ -184,6 +186,11 @@ namespace Plus.HabboHotel
                 if (nowMs >= _nextTrashCycleMs) {
                     _nextTrashCycleMs = nowMs + TrashCycleIntervalMs;
                     PlusEnvironment.GetTrashSearchManager()?.OnCycle();
+                }
+
+                if (nowMs >= _nextAchievementFlushMs) {
+                    _nextAchievementFlushMs = nowMs + AchievementFlushIntervalMs;
+                    PlusEnvironment.GetGame().GetAchievementManager().FlushQueuedProgress();
                 }
 
                 PlusEnvironment.GetGame().GetBotManager().OnCycle();

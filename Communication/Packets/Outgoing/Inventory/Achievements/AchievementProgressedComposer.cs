@@ -22,19 +22,31 @@ namespace Plus.Communication.Packets.Outgoing.Inventory.Achievements
 
         public override void Compose(ServerPacket packet)
         {
-            packet.WriteInteger(Achievement.Id); // Unknown (ID?)
-            packet.WriteInteger(TargetLevel); // Target level
-            packet.WriteString(Achievement.GroupName + TargetLevel); // Target name/desc/badge
-            packet.WriteInteger(1); // Progress req/target 
-            packet.WriteInteger(TargetLevelData.Requirement); // Reward in Pixels
-            packet.WriteInteger(TargetLevelData.RewardPixels); // Reward Ach Score
-            packet.WriteInteger(0); // ?
-            packet.WriteInteger(UserData != null ? UserData.Progress : 0); // Current progress
-            packet.WriteBoolean(UserData != null && UserData.Level >= TotalLevels); // Set 100% completed(??)
+            // Same cumulative translation as AchievementsComposer so single-level achievements show a
+            // progress bar and completed ones read correctly (mirrors the Arcturus composer).
+            int currentLevel = UserData != null ? UserData.Level : 0; // levels fully achieved
+            bool hasNext = Achievement.Levels.ContainsKey(currentLevel + 1);
+            bool hasAchieved = currentLevel >= TotalLevels;
+
+            int displayLevel = hasNext ? currentLevel + 1 : (currentLevel > 0 ? currentLevel : 0);
+
+            int currentThreshold = Achievement.GetCumulativeThreshold(currentLevel);
+            int nextThreshold = hasNext ? Achievement.GetCumulativeThreshold(currentLevel + 1) : -1;
+            int cumulativeProgress = currentThreshold + (UserData != null ? UserData.Progress : 0);
+
+            packet.WriteInteger(Achievement.Id);
+            packet.WriteInteger(displayLevel); // Target level
+            packet.WriteString(Achievement.GroupName + displayLevel); // Target badge code
+            packet.WriteInteger(currentThreshold); // Last level progress needed
+            packet.WriteInteger(nextThreshold); // Progress needed
+            packet.WriteInteger(hasNext ? Achievement.Levels[currentLevel + 1].RewardAmount : -1); // Reward amount
+            packet.WriteInteger(hasNext ? Achievement.Levels[currentLevel + 1].PointsType : -1); // Reward currency type
+            packet.WriteInteger(cumulativeProgress <= 0 ? 0 : cumulativeProgress); // Current progress
+            packet.WriteBoolean(hasAchieved); // Achieved?
             packet.WriteString(Achievement.Category); // Category
             packet.WriteString(string.Empty);
-            packet.WriteInteger(TotalLevels); // Total amount of levels 
-            packet.WriteInteger(0);
+            packet.WriteInteger(TotalLevels); // Total amount of levels
+            packet.WriteInteger(hasAchieved ? 1 : 0); // 1 = progress bar visible when completed
         }
     }
 }

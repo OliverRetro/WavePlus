@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using log4net;
@@ -18,9 +19,14 @@ namespace Plus.HabboHotel.Achievements
 
         public Dictionary<string, Achievement> Achievements;
 
+        // Momentary progress buffer: userId -> (achievement group -> accumulated delta).
+        // Flushed once a minute (see Game.GameCycle) so bursty events don't spam the client.
+        private readonly ConcurrentDictionary<int, ConcurrentDictionary<string, int>> _pendingProgress;
+
         public AchievementManager()
         {
             Achievements = new Dictionary<string, Achievement>();
+            _pendingProgress = new ConcurrentDictionary<int, ConcurrentDictionary<string, int>>();
         }
 
         public void Init()
@@ -46,68 +52,191 @@ namespace Plus.HabboHotel.Achievements
 
             int totalLevels = data.Levels.Count;
 
-            if (userData.Level == totalLevels)
+            if (userData.Level >= totalLevels)
                 return false; // done, no more.
 
-            int targetLevel = userData.Level + 1;
-
-            if (targetLevel > totalLevels)
-                targetLevel = totalLevels;
-
-            AchievementLevel level = data.Levels[targetLevel];
-            int newProgress;
-            if (fromBeginning)
-                newProgress = progress;
-            else
-                newProgress = userData.Progress + progress;
-
+            int workingProgress = fromBeginning ? progress : userData.Progress + progress;
             int newLevel = userData.Level;
-            int newTarget = newLevel + 1;
+            bool leveledUp = false;
 
-            if (newTarget > totalLevels)
-                newTarget = totalLevels;
+            // Carry overflow across as many levels as the gained progress supports, so a large
+            // jump (e.g. an old account first satisfying "days registered") lands on the right level.
+            while (newLevel < totalLevels)
+            {
+                int targetLevel = newLevel + 1;
+                AchievementLevel level = data.Levels[targetLevel];
 
-            if (newProgress >= level.Requirement) {
+                if (workingProgress < level.Requirement)
+                    break;
+
+                workingProgress -= level.Requirement;
                 newLevel++;
-                newTarget++;
-                newProgress = 0;
+                leveledUp = true;
 
-                if (targetLevel == 1)
-                    session.GetHabbo().GetBadgeComponent().GiveBadge(group + targetLevel, true, session);
-                else {
+                if (targetLevel > 1)
                     session.GetHabbo().GetBadgeComponent().RemoveBadge(Convert.ToString(group + (targetLevel - 1)));
-                    session.GetHabbo().GetBadgeComponent().GiveBadge(group + targetLevel, true, session);
-                }
+                session.GetHabbo().GetBadgeComponent().GiveBadge(group + targetLevel, true, session);
 
-                if (newTarget > totalLevels) {
-                    newTarget = totalLevels;
-                }
-
-                session.SendPacket(new AchievementUnlockedComposer(data, targetLevel, level.RewardPoints, level.RewardPixels));
+                session.SendPacket(new AchievementUnlockedComposer(data, targetLevel, level.RewardPoints, level.RewardAmount, level.PointsType));
                 session.GetHabbo().GetMessenger().BroadcastAchievement(session.GetHabbo().Id, MessengerEventTypes.AchievementUnlocked, group + targetLevel);
 
-                SaveUserAchievement(session.GetHabbo().Id, group, newLevel, newProgress);
-
-                userData.Level = newLevel;
-                userData.Progress = newProgress;
-
-                session.GetHabbo().Duckets += level.RewardPixels;
+                GrantCurrencyReward(session, level.PointsType, level.RewardAmount);
                 session.GetHabbo().GetStats().AchievementPoints += level.RewardPoints;
-                session.SendPacket(new HabboActivityPointNotificationComposer(session.GetHabbo().Duckets, level.RewardPixels));
                 session.SendPacket(new AchievementScoreComposer(session.GetHabbo().GetStats().AchievementPoints));
-
-                AchievementLevel newLevelData = data.Levels[newTarget];
-                session.SendPacket(new AchievementProgressedComposer(data, newTarget, newLevelData, totalLevels, session.GetHabbo().GetAchievementData(group)));
-
-                return true;
             }
 
-            userData.Level = newLevel;
-            userData.Progress = newProgress;
-            SaveUserAchievement(session.GetHabbo().Id, group, newLevel, newProgress);
+            // No levels left to absorb leftover progress once maxed out.
+            if (newLevel >= totalLevels)
+                workingProgress = 0;
 
-            session.SendPacket(new AchievementProgressedComposer(data, targetLevel, level, totalLevels, session.GetHabbo().GetAchievementData(group)));
-            return false;
+            userData.Level = newLevel;
+            userData.Progress = workingProgress;
+            SaveUserAchievement(session.GetHabbo().Id, group, newLevel, workingProgress);
+
+            int displayTarget = newLevel + 1;
+            if (displayTarget > totalLevels)
+                displayTarget = totalLevels;
+
+            session.SendPacket(new AchievementProgressedComposer(data, displayTarget, data.Levels[displayTarget], totalLevels, userData));
+            return leveledUp;
+        }
+
+        // Pays out the currency reward in the type configured on the achievement level.
+        // pointsType: -1 = credits, 5 = diamonds, anything else (0) = duckets.
+        /// <summary>
+        /// Buffers additive achievement progress for a user. The buffered total is applied and
+        /// pushed to the client on the next minute flush (see <see cref="FlushQueuedProgress"/>),
+        /// which prevents a burst of events (e.g. rapid kills) from spamming achievement packets.
+        /// </summary>
+        public void QueueProgress(GameClient session, string group, int amount = 1)
+        {
+            if (session?.GetHabbo() == null || amount <= 0)
+                return;
+
+            // Disabled/unknown achievements never enter the dictionary, so silently ignore them.
+            if (!Achievements.ContainsKey(group))
+                return;
+
+            ConcurrentDictionary<string, int> userPending = _pendingProgress.GetOrAdd(session.GetHabbo().Id, _ => new ConcurrentDictionary<string, int>());
+            userPending.AddOrUpdate(group, amount, (_, existing) => existing + amount);
+        }
+
+        /// <summary>Applies and clears all buffered progress for currently-online users.</summary>
+        public void FlushQueuedProgress()
+        {
+            if (_pendingProgress.IsEmpty)
+                return;
+
+            foreach (int userId in _pendingProgress.Keys.ToList())
+            {
+                if (!_pendingProgress.TryRemove(userId, out ConcurrentDictionary<string, int> userPending))
+                    continue;
+
+                GameClient session = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(userId);
+                if (session?.GetHabbo() == null)
+                    continue; // user left; buffered progress for this window is dropped
+
+                foreach (KeyValuePair<string, int> entry in userPending)
+                {
+                    try
+                    {
+                        ProgressAchievement(session, entry.Key, entry.Value);
+                    }
+                    catch (System.Exception e)
+                    {
+                        Log.Error($"Failed to flush achievement '{entry.Key}' for user {userId}: {e}");
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Total cumulative progress the user has amassed in an achievement across every level
+        /// (sum of the requirements of completed levels + progress into the current level).
+        /// </summary>
+        private static int GetCumulativeProgress(Achievement data, UserAchievement userData)
+        {
+            if (userData == null)
+                return 0;
+
+            int total = 0;
+            for (int level = 1; level <= userData.Level && data.Levels.ContainsKey(level); level++)
+                total += data.Levels[level].Requirement;
+
+            return total + userData.Progress;
+        }
+
+        /// <summary>
+        /// Drives an achievement to an absolute cumulative value (e.g. "days since registration",
+        /// "unique chat styles owned"). Only ever moves the user forward — earned levels/badges are
+        /// never revoked, matching Habbo semantics. Returns immediately when already at/above target.
+        /// </summary>
+        public void SetAbsoluteProgress(GameClient session, string group, int absolute)
+        {
+            if (session?.GetHabbo() == null || absolute <= 0)
+                return;
+
+            if (!Achievements.ContainsKey(group))
+                return;
+
+            UserAchievement userData = session.GetHabbo().GetAchievementData(group);
+            int current = GetCumulativeProgress(Achievements[group], userData);
+
+            int delta = absolute - current;
+            if (delta <= 0)
+                return;
+
+            ProgressAchievement(session, group, delta);
+        }
+
+        /// <summary>
+        /// Wipes a user's progress in an achievement back to zero and strips every level badge they
+        /// earned for it. Used by streak achievements (e.g. ACH_Login) that must actually regress
+        /// when the streak is broken, unlike normal achievements which never revoke progress.
+        /// </summary>
+        public void ResetAchievement(GameClient session, string group)
+        {
+            if (session?.GetHabbo() == null || !Achievements.ContainsKey(group))
+                return;
+
+            UserAchievement userData = session.GetHabbo().GetAchievementData(group);
+            if (userData == null || (userData.Level == 0 && userData.Progress == 0))
+                return;
+
+            for (int level = 1; level <= userData.Level; level++)
+                session.GetHabbo().GetBadgeComponent().RemoveBadge(group + level);
+
+            userData.Level = 0;
+            userData.Progress = 0;
+            SaveUserAchievement(session.GetHabbo().Id, group, 0, 0);
+
+            // Re-send the (now empty) progress so the client's achievement UI resets.
+            Achievement data = Achievements[group];
+            if (data.Levels.ContainsKey(1))
+                session.SendPacket(new AchievementProgressedComposer(data, 1, data.Levels[1], data.Levels.Count, userData));
+        }
+
+        private static void GrantCurrencyReward(GameClient session, int pointsType, int amount)
+        {
+            if (amount == 0)
+                return;
+
+            Users.Habbo habbo = session.GetHabbo();
+            switch (pointsType)
+            {
+                case -1:
+                    habbo.Credits += amount;
+                    session.SendPacket(new CreditBalanceComposer(habbo.Credits));
+                    break;
+                case 5:
+                    habbo.Diamonds += amount;
+                    session.SendPacket(new HabboActivityPointNotificationComposer(habbo.Diamonds, amount, 5));
+                    break;
+                default:
+                    habbo.Duckets += amount;
+                    session.SendPacket(new HabboActivityPointNotificationComposer(habbo.Duckets, amount, 0));
+                    break;
+            }
         }
 
         private static void SaveUserAchievement(int userId, string group, int level, int progress)

@@ -36,7 +36,7 @@ namespace Plus.Communication.Packets.Outgoing.GameCenter
                 packet.WriteString(ach.GroupName + targetLevel); // badge
                 packet.WriteInteger(targetLevelData.Requirement); // requirement
                 packet.WriteInteger(targetLevelData.Requirement); // requirement
-                packet.WriteInteger(targetLevelData.RewardPixels); // pixels
+                packet.WriteInteger(targetLevelData.RewardAmount); // reward amount
                 packet.WriteInteger(0); // ach score
                 packet.WriteInteger(userData != null ? userData.Progress : 0); // Current progress
                 packet.WriteBoolean(userData != null ? (userData.Level >= ach.Levels.Count) : false); // Set 100% completed(??)

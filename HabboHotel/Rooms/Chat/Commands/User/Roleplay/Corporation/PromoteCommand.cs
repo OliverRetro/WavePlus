@@ -54,6 +54,9 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
                 return;
             }
 
+            // Achievement: the member was promoted in their job.
+            PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(targetClient, "ACH_Promotion", 1);
+
             session.SendPacket(new GroupMemberUpdatedComposer(group, targetHabbo, 2));
             session.SendPacket(new GroupInfoComposer(group, targetClient));
             targetHabbo.GetClient()?.SendPacket(new GroupInfoComposer(group, targetHabbo.GetClient()));

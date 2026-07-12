@@ -87,6 +87,10 @@ namespace Plus.HabboHotel.Roleplay.Combat
 
                 // Killing a player is murder.
                 PlusEnvironment.GetRpCrimeManager().Commit(attacker, "murder", attacker.CurrentRoom);
+
+                // Achievements (batched: a fight can produce bursts of these).
+                PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(attacker.GetClient(), "ACH_Kill", 1);
+                PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(target.GetClient(), "ACH_Death", 1);
             } else {
                 attacker.ResetAggressionTimer();
             }
@@ -192,6 +196,9 @@ namespace Plus.HabboHotel.Roleplay.Combat
 
             // a successful robbery is theft
             PlusEnvironment.GetRpCrimeManager().Commit(attacker, "rob", room);
+
+            // Achievement: successful robbery of another player.
+            PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(attacker.GetClient(), "ACH_Robber", 1);
 
             // notification
             room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, "*robs " + target.Username + " of " + amountToSteal + " credits*", 0, 6));

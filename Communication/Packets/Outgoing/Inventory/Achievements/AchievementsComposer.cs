@@ -22,28 +22,29 @@ namespace Plus.Communication.Packets.Outgoing.Inventory.Achievements
             foreach (Achievement achievement in Achievements)
             {
                 UserAchievement userData = Habbo.GetAchievementData(achievement.GroupName);
-                int targetLevel = (userData != null ? userData.Level + 1 : 1);
                 int totalLevels = achievement.Levels.Count;
+                int currentLevel = userData != null ? userData.Level : 0; // levels fully achieved
+                bool hasNext = achievement.Levels.ContainsKey(currentLevel + 1);
+                bool hasAchieved = currentLevel >= totalLevels;
+                int displayLevel = hasNext ? currentLevel + 1 : (currentLevel > 0 ? currentLevel : 0);
 
-                targetLevel = (targetLevel > totalLevels ? totalLevels : targetLevel);
+                int currentThreshold = achievement.GetCumulativeThreshold(currentLevel);
+                int nextThreshold = hasNext ? achievement.GetCumulativeThreshold(currentLevel + 1) : -1;
+                int cumulativeProgress = currentThreshold + (userData != null ? userData.Progress : 0);
 
-                AchievementLevel targetLevelData = achievement.Levels[targetLevel];
-                packet.WriteInteger(achievement.Id); // Unknown (ID?)
-                packet.WriteInteger(targetLevel); // Target level
-                packet.WriteString(achievement.GroupName + targetLevel); // Target name/desc/badge
-
-                packet.WriteInteger(1);
-                packet.WriteInteger(targetLevelData.Requirement); // Progress req/target          
-                packet.WriteInteger(targetLevelData.RewardPixels);
-
-                packet.WriteInteger(0); // Type of reward
-                packet.WriteInteger(userData != null ? userData.Progress : 0); // Current progress
-
-                packet.WriteBoolean(userData != null ? (userData.Level >= totalLevels) : false); // Set 100% completed(??)
+                packet.WriteInteger(achievement.Id);
+                packet.WriteInteger(displayLevel);
+                packet.WriteString(achievement.GroupName + displayLevel);
+                packet.WriteInteger(currentThreshold);
+                packet.WriteInteger(nextThreshold);
+                packet.WriteInteger(hasNext ? achievement.Levels[currentLevel + 1].RewardAmount : -1);
+                packet.WriteInteger(hasNext ? achievement.Levels[currentLevel + 1].PointsType : -1);
+                packet.WriteInteger(cumulativeProgress <= 0 ? 0 : cumulativeProgress);
+                packet.WriteBoolean(hasAchieved); // Achieved?
                 packet.WriteString(achievement.Category); // Category
                 packet.WriteString(string.Empty);
-                packet.WriteInteger(totalLevels); // Total amount of levels 
-                packet.WriteInteger(0);
+                packet.WriteInteger(totalLevels);
+                packet.WriteInteger(hasAchieved ? 1 : 0);
             }
 
             packet.WriteString("");

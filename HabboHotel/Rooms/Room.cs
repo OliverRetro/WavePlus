@@ -403,6 +403,15 @@ namespace Plus.HabboHotel.Rooms
                     ExceptionLogger.LogException(e);
                 }
 
+                try
+                {
+                    Roleplay.Utilities.FurnitureAchievementService.Tick(this);
+                }
+                catch (Exception e)
+                {
+                    ExceptionLogger.LogException(e);
+                }
+
                 #region Status Updates
 
                 try

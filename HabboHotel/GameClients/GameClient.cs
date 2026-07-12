@@ -144,6 +144,10 @@ namespace Plus.HabboHotel.GameClients
                         SendPacket(new MotdNotificationComposer(PlusEnvironment.GetLanguageManager().TryGetValue("user.login.message")));
 
                     PlusEnvironment.GetGame().GetRewardManager().CheckRewards(this);
+
+                    // Evaluate "on enter hotel" achievements (registration duration, RP level, chat
+                    // styles owned, happy hour).
+                    Plus.HabboHotel.Roleplay.Utilities.RpAchievementHooks.OnEnterHotel(this);
                     return true;
                 }
             }

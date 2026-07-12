@@ -254,7 +254,8 @@ public partial class WavePlusContext : DbContext
             entity.Property(e => e.group_name).HasDefaultValueSql("'''ACH_'''");
             entity.Property(e => e.level).HasDefaultValueSql("'1'");
             entity.Property(e => e.progress_needed).HasDefaultValueSql("'1'");
-            entity.Property(e => e.reward_pixels).HasDefaultValueSql("'5'");
+            entity.Property(e => e.reward_amount).HasDefaultValueSql("'5'");
+            entity.Property(e => e.points_type).HasDefaultValueSql("'0'");
             entity.Property(e => e.reward_points).HasDefaultValueSql("'5'");
         });
 

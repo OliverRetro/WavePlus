@@ -84,6 +84,9 @@ namespace Plus.HabboHotel.Roleplay.Crime
             target.SaveRpStats();
             target.TrySendUserStatsUpdate(true);
 
+            // Achievement: the suspect was arrested (jailed).
+            PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(target.GetClient(), "ACH_Arrest", 1);
+
             _jailed[target.Id] = 0;
 
             // Stay cuffed and confined while serving the sentence; the jail outfit (which the

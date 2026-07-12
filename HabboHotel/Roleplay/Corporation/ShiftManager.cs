@@ -211,6 +211,10 @@ namespace Plus.HabboHotel.Roleplay.Corporation
             AddPendingLog(habbo.Id, shift.GroupId, pay);
             IncrementCountCache(shift.GroupId, habbo.Id);
 
+            // Achievement: completing a full shift, only if the shift is at least 3 minutes long.
+            if (shift.ShiftDurationMinutes >= 3)
+                PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(habbo.GetClient(), "ACH_ShiftCompleter", 1);
+
             // Restart cycle (no costume/motto change needed — already wearing it)
             _activeShifts[habbo.Id] = new ActiveShift(habbo.Id, shift.GroupId, shift.ShiftPay, shift.ShiftDurationMinutes);
         }

@@ -1174,6 +1174,7 @@ namespace Plus.HabboHotel.Users
             PlusEnvironment.GetPoliceManager()?.OnDisconnect(this);
             PlusEnvironment.GetJailManager()?.OnDisconnect(this);
             PlusEnvironment.GetTrashSearchManager()?.Cancel(Id);
+            Plus.HabboHotel.Roleplay.Utilities.FurnitureAchievementService.Forget(Id);
 
             // Persist any buffered crime logs (the wanted cache itself is never saved).
             PlusEnvironment.GetRpCrimeManager().FlushLogs(Id);
