@@ -1,7 +1,6 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using Plus.Database.Interfaces;
+using System.Linq;
+using Plus.Database.EF;
 using Plus.HabboHotel.Rooms.AI;
 
 namespace Plus.HabboHotel.Users.Inventory.Pets
@@ -12,23 +11,22 @@ namespace Plus.HabboHotel.Users.Inventory.Pets
         {
             List<Pet> pets = new();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            uint uid = (uint)userId;
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+
+            var petRows = db.bots.Where(b => b.user_id == uid && b.room_id == 0 && b.ai_type == "pet")
+                .Select(b => new { b.id, b.user_id, b.room_id, b.name, b.x, b.y, b.z }).ToList();
+
+            foreach (var row in petRows)
             {
-                dbClient.SetQuery("SELECT `id`,`user_id`,`room_id`,`name`,`x`,`y`,`z` FROM `bots` WHERE `user_id` = '" + userId + "' AND `room_id` = '0' AND `ai_type` = 'pet'");
-                DataTable data = dbClient.GetTable();
+                var mRow = db.bots_petdata.Where(p => p.id == row.id)
+                    .Select(p => new { p.type, p.race, p.color, p.experience, p.energy, p.nutrition, p.respect, p.createstamp, p.have_saddle, p.anyone_ride, p.hairdye, p.pethair, p.gnome_clothing })
+                    .FirstOrDefault();
 
-                if (data != null) {
-                    foreach (DataRow row in data.Rows)
-                    {
-                        dbClient.SetQuery("SELECT `type`,`race`,`color`,`experience`,`energy`,`nutrition`,`respect`,`createstamp`,`have_saddle`,`anyone_ride`,`hairdye`,`pethair`,`gnome_clothing` FROM `bots_petdata` WHERE `id` = '" + Convert.ToInt32(row["id"]) + "' LIMIT 1");
-                        DataRow mRow = dbClient.GetRow();
-
-                        if (mRow != null) {
-                            pets.Add(new Pet(Convert.ToInt32(row["id"]), Convert.ToInt32(row["user_id"]), Convert.ToInt32(row["room_id"]), Convert.ToString(row["name"]), Convert.ToInt32(mRow["type"]), Convert.ToString(mRow["race"]), Convert.ToString(mRow["color"]),
-                                Convert.ToInt32(mRow["experience"]), Convert.ToInt32(mRow["energy"]), Convert.ToInt32(mRow["nutrition"]), Convert.ToInt32(mRow["respect"]), Convert.ToDouble(mRow["createstamp"]), Convert.ToInt32(row["x"]), Convert.ToInt32(row["y"]),
-                                Convert.ToDouble(row["z"]), Convert.ToInt32(mRow["have_saddle"]), Convert.ToInt32(mRow["anyone_ride"]), Convert.ToInt32(mRow["hairdye"]), Convert.ToInt32(mRow["pethair"]), Convert.ToString(mRow["gnome_clothing"])));
-                        }
-                    }
+                if (mRow != null) {
+                    pets.Add(new Pet((int)row.id, (int)row.user_id, (int)row.room_id, row.name, (int)(mRow.type ?? 0), mRow.race, mRow.color,
+                        mRow.experience ?? 0, mRow.energy ?? 0, mRow.nutrition ?? 0, mRow.respect ?? 0, (double)(mRow.createstamp ?? 0), row.x, row.y,
+                        (double)row.z, mRow.have_saddle ?? 0, mRow.anyone_ride ?? 0, mRow.hairdye ?? 0, mRow.pethair ?? 0, mRow.gnome_clothing));
                 }
             }
 

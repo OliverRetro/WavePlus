@@ -1,4 +1,6 @@
-﻿using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Users;
 
@@ -36,10 +38,11 @@ namespace Plus.Communication.Packets.Incoming.Moderation
             if (days > 365)
                 days = 365;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.RunQuery("UPDATE `user_info` SET `trading_locked` = '" + length + "', `trading_locks_count` = `trading_locks_count` + '1' WHERE `user_id` = '" + habbo.Id + "' LIMIT 1");
-            }
+            int targetId = habbo.Id;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                db.user_infos.Where(u => u.user_id == targetId)
+                    .ExecuteUpdate(s => s.SetProperty(u => u.trading_locked, length)
+                        .SetProperty(u => u.trading_locks_count, u => u.trading_locks_count + 1));
 
             if (habbo.GetClient() != null) {
                 habbo.TradingLockExpiry = length;

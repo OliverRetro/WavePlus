@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Plus.Communication.Packets.Outgoing.Users;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 
 namespace Plus.Communication.Packets.Incoming.Users
@@ -13,11 +13,9 @@ namespace Plus.Communication.Packets.Incoming.Users
             bool inUse;
             string name = packet.PopString();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT COUNT(0) FROM `users` WHERE `username` = @name LIMIT 1");
-                dbClient.AddParameter("name", name);
-                inUse = dbClient.GetInteger() == 1;
+                inUse = db.users.Any(u => u.username == name);
             }
 
             char[] letters = name.ToLower().ToCharArray();

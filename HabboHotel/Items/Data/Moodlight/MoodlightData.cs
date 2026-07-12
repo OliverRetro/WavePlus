@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
+using System.Linq;
 using System.Text;
-using Plus.Database.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 
 namespace Plus.HabboHotel.Items.Data.Moodlight
 {
@@ -18,50 +19,50 @@ namespace Plus.HabboHotel.Items.Data.Moodlight
         {
             ItemId = itemId;
 
-            DataRow row = null;
+            uint itemKey = (uint)itemId;
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("SELECT enabled,current_preset,preset_one,preset_two,preset_three FROM room_items_moodlight WHERE item_id = '" + itemId + "' LIMIT 1");
-                row = dbClient.GetRow();
-            }
+            var row = db.room_items_moodlights.Where(m => m.item_id == itemKey).Select(m => new { m.enabled, m.current_preset, m.preset_one, m.preset_two, m.preset_three }).FirstOrDefault();
 
             if (row == null) {
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                db.room_items_moodlights.Add(new Database.EF.Entities.room_items_moodlight
                 {
-                    dbClient.RunQuery("INSERT INTO `room_items_moodlight` (item_id,enabled,current_preset,preset_one,preset_two,preset_three) VALUES (" + itemId + ",0,1,'#000000,255,0','#000000,255,0','#000000,255,0')");
-                    dbClient.SetQuery("SELECT enabled,current_preset,preset_one,preset_two,preset_three FROM room_items_moodlight WHERE item_id=" + itemId + " LIMIT 1");
-                    row = dbClient.GetRow();
-                }
+                    item_id = itemKey,
+                    enabled = "0",
+                    current_preset = 1,
+                    preset_one = "#000000,255,0",
+                    preset_two = "#000000,255,0",
+                    preset_three = "#000000,255,0"
+                });
+                db.SaveChanges();
+                row = db.room_items_moodlights.Where(m => m.item_id == itemKey).Select(m => new { m.enabled, m.current_preset, m.preset_one, m.preset_two, m.preset_three }).FirstOrDefault();
             }
 
-            Enabled = PlusEnvironment.EnumToBool(row["enabled"].ToString());
-            CurrentPreset = Convert.ToInt32(row["current_preset"]);
+            Enabled = PlusEnvironment.EnumToBool(row.enabled);
+            CurrentPreset = row.current_preset;
             Presets = new List<MoodlightPreset>();
 
-            Presets.Add(GeneratePreset(Convert.ToString(row["preset_one"])));
-            Presets.Add(GeneratePreset(Convert.ToString(row["preset_two"])));
-            Presets.Add(GeneratePreset(Convert.ToString(row["preset_three"])));
+            Presets.Add(GeneratePreset(row.preset_one));
+            Presets.Add(GeneratePreset(row.preset_two));
+            Presets.Add(GeneratePreset(row.preset_three));
         }
 
         public void Enable()
         {
             Enabled = true;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.RunQuery("UPDATE room_items_moodlight SET enabled = 1 WHERE item_id = '" + ItemId + "' LIMIT 1");
-            }
+            uint itemKey = (uint)ItemId;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                db.room_items_moodlights.Where(m => m.item_id == itemKey).ExecuteUpdate(s => s.SetProperty(m => m.enabled, "1"));
         }
 
         public void Disable()
         {
             Enabled = false;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.RunQuery("UPDATE room_items_moodlight SET enabled = 0 WHERE item_id = '" + ItemId + "' LIMIT 1");
-            }
+            uint itemKey = (uint)ItemId;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                db.room_items_moodlights.Where(m => m.item_id == itemKey).ExecuteUpdate(s => s.SetProperty(m => m.enabled, "0"));
         }
 
         public void UpdatePreset(int preset, string color, int intensity, bool bgOnly, bool hax = false)
@@ -70,33 +71,24 @@ namespace Plus.HabboHotel.Items.Data.Moodlight
                 return;
             }
 
-            string pr;
-
-            switch (preset)
+            string presetVal = color + "," + intensity + "," + PlusEnvironment.BoolToEnum(bgOnly);
+            uint itemKey = (uint)ItemId;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                case 3:
+                switch (preset)
+                {
+                    case 3:
+                        db.room_items_moodlights.Where(m => m.item_id == itemKey).ExecuteUpdate(s => s.SetProperty(m => m.preset_three, presetVal));
+                        break;
 
-                    pr = "three";
-                    break;
+                    case 2:
+                        db.room_items_moodlights.Where(m => m.item_id == itemKey).ExecuteUpdate(s => s.SetProperty(m => m.preset_two, presetVal));
+                        break;
 
-                case 2:
-
-                    pr = "two";
-                    break;
-
-                case 1:
-                default:
-
-                    pr = "one";
-                    break;
-            }
-
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("UPDATE room_items_moodlight SET preset_" + pr + " = @preset WHERE item_id = @itemId LIMIT 1");
-                dbClient.AddParameter("preset", color + "," + intensity + "," + PlusEnvironment.BoolToEnum(bgOnly));
-                dbClient.AddParameter("itemId", ItemId);
-                dbClient.RunQuery();
+                    default:
+                        db.room_items_moodlights.Where(m => m.item_id == itemKey).ExecuteUpdate(s => s.SetProperty(m => m.preset_one, presetVal));
+                        break;
+                }
             }
 
             GetPreset(preset).ColorCode = color;

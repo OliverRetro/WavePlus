@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using Plus.Database.Interfaces;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Plus.Database.EF;
 
 namespace Plus.HabboHotel.Achievements
 {
@@ -11,30 +10,23 @@ namespace Plus.HabboHotel.Achievements
         {
             achievements = new Dictionary<string, Achievement>();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT `id`,`category`,`group_name`,`level`,`reward_pixels`,`reward_points`,`progress_needed`,`game_id` FROM `achievements`");
-                DataTable table = dbClient.GetTable();
+                var rows = db.achievements.Where(a => a.enabled == 1).Select(a => new { a.id, a.category, a.group_name, a.level, a.reward_pixels, a.reward_points, a.progress_needed, a.game_id }).ToList();
+                foreach (var row in rows)
+                {
+                    int id = (int)row.id;
+                    string category = row.category;
+                    string groupName = row.group_name;
 
-                if (table != null) {
-                    foreach (DataRow row in table.Rows)
-                    {
-                        int id = Convert.ToInt32(row["id"]);
-                        string category = Convert.ToString(row["category"]);
-                        string groupName = Convert.ToString(row["group_name"]);
-                        int rewardPixels = Convert.ToInt32(row["reward_pixels"]);
-                        int rewardPoints = Convert.ToInt32(row["reward_points"]);
-                        int progressNeeded = Convert.ToInt32(row["progress_needed"]);
+                    AchievementLevel level = new(row.level, row.reward_pixels, row.reward_points, row.progress_needed);
 
-                        AchievementLevel level = new(Convert.ToInt32(row["level"]), rewardPixels, rewardPoints, progressNeeded);
-
-                        if (!achievements.ContainsKey(groupName)) {
-                            Achievement achievement = new(id, groupName, category, Convert.ToInt32(row["game_id"]));
-                            achievement.AddLevel(level);
-                            achievements.Add(groupName, achievement);
-                        } else
-                            achievements[groupName].AddLevel(level);
-                    }
+                    if (!achievements.ContainsKey(groupName)) {
+                        Achievement achievement = new(id, groupName, category, row.game_id);
+                        achievement.AddLevel(level);
+                        achievements.Add(groupName, achievement);
+                    } else
+                        achievements[groupName].AddLevel(level);
                 }
             }
         }

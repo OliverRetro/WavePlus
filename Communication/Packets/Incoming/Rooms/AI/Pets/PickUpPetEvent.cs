@@ -1,7 +1,9 @@
 ﻿using System.Drawing;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Outgoing.Inventory.Pets;
 using Plus.Communication.Packets.Outgoing.Rooms.Engine;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Rooms.AI;
@@ -63,10 +65,23 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Pets
 
             Pet data = pet.PetData;
             if (data != null) {
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                uint petDbId = (uint)data.PetId;
+                int experience = data.Experience;
+                int energy = data.Energy;
+                int nutrition = data.Nutrition;
+                int respect = data.Respect;
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    dbClient.RunQuery("UPDATE `bots` SET `room_id` = '0', `x` = '0', `Y` = '0', `Z` = '0' WHERE `id` = '" + data.PetId + "' LIMIT 1");
-                    dbClient.RunQuery("UPDATE `bots_petdata` SET `experience` = '" + data.Experience + "', `energy` = '" + data.Energy + "', `nutrition` = '" + data.Nutrition + "', `respect` = '" + data.Respect + "' WHERE `id` = '" + data.PetId + "' LIMIT 1");
+                    db.bots.Where(b => b.id == petDbId).ExecuteUpdate(s => s
+                        .SetProperty(b => b.room_id, 0u)
+                        .SetProperty(b => b.x, 0)
+                        .SetProperty(b => b.y, 0)
+                        .SetProperty(b => b.z, 0));
+                    db.bots_petdata.Where(p => p.id == petDbId).ExecuteUpdate(s => s
+                        .SetProperty(p => p.experience, experience)
+                        .SetProperty(p => p.energy, energy)
+                        .SetProperty(p => p.nutrition, nutrition)
+                        .SetProperty(p => p.respect, respect));
                 }
             }
 

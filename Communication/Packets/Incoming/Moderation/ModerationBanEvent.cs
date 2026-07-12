@@ -1,4 +1,6 @@
-﻿using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Moderation;
 using Plus.HabboHotel.Users;
@@ -37,10 +39,10 @@ namespace Plus.Communication.Packets.Incoming.Moderation
 
             message = message != null ? message : "No reason specified.";
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.RunQuery("UPDATE `user_info` SET `bans` = `bans` + '1' WHERE `user_id` = '" + habbo.Id + "' LIMIT 1");
-            }
+            int targetId = habbo.Id;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                db.user_infos.Where(u => u.user_id == targetId)
+                    .ExecuteUpdate(s => s.SetProperty(u => u.bans, u => u.bans + 1));
 
             if (ipBan == false && machineBan == false)
                 PlusEnvironment.GetGame().GetModerationManager().BanUser(session.GetHabbo().Username, ModerationBanType.Username, habbo.Username, message, length);

@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Outgoing.Moderation;
 using Plus.Communication.Packets.Outgoing.Rooms.Avatar;
 using Plus.Communication.Packets.Outgoing.Rooms.Engine;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Quests;
 using Plus.HabboHotel.Rooms;
@@ -46,12 +47,11 @@ namespace Plus.Communication.Packets.Incoming.Users
             session.GetHabbo().Look = PlusEnvironment.FilterFigure(look);
             session.GetHabbo().Gender = gender.ToLower();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            int userId = session.GetHabbo().Id;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("UPDATE `users` SET `look` = @look, `gender` = @gender WHERE `id` = '" + session.GetHabbo().Id + "' LIMIT 1");
-                dbClient.AddParameter("look", look);
-                dbClient.AddParameter("gender", gender);
-                dbClient.RunQuery();
+                db.users.Where(u => u.id == userId)
+                    .ExecuteUpdate(s => s.SetProperty(u => u.look, look).SetProperty(u => u.gender, gender));
             }
 
             PlusEnvironment.GetGame().GetAchievementManager().ProgressAchievement(session, "ACH_AvatarLooks", 1);

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
+using System.Linq;
+using Plus.Database.EF;
 using log4net;
-using Plus.Database.Interfaces;
 using Plus.HabboHotel.Catalog.Clothing;
 using Plus.HabboHotel.Catalog.Marketplace;
 using Plus.HabboHotel.Catalog.Pets;
@@ -59,96 +59,62 @@ namespace Plus.HabboHotel.Catalog
             if (_promotions.Count > 0)
                 _promotions.Clear();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+
+            foreach (var row in db.catalog_items.Select(c => new { c.id, c.item_id, c.catalog_name, c.cost_credits, c.cost_pixels, c.cost_diamonds, c.amount, c.page_id, c.limited_sells, c.limited_stack, c.offer_active, c.extradata, c.badge, c.offer_id }).ToList())
             {
-                dbClient.SetQuery("SELECT `id`,`item_id`,`catalog_name`,`cost_credits`,`cost_pixels`,`cost_diamonds`,`amount`,`page_id`,`limited_sells`,`limited_stack`,`offer_active`,`extradata`,`badge`,`offer_id` FROM `catalog_items`");
-                DataTable catalogueItems = dbClient.GetTable();
+                if (row.amount <= 0)
+                    continue;
 
-                if (catalogueItems != null) {
-                    foreach (DataRow row in catalogueItems.Rows)
-                    {
-                        if (Convert.ToInt32(row["amount"]) <= 0)
-                            continue;
+                int itemId = row.id;
+                int pageId = row.page_id;
+                int baseId = Convert.ToInt32(row.item_id);
+                int offerId = row.offer_id;
 
-                        int itemId = Convert.ToInt32(row["id"]);
-                        int pageId = Convert.ToInt32(row["page_id"]);
-                        int baseId = Convert.ToInt32(row["item_id"]);
-                        int offerId = Convert.ToInt32(row["offer_id"]);
-
-                        if (!itemDataManager.GetItem(baseId, out ItemData data)) {
-                            Log.Error("Couldn't load Catalog Item " + itemId + ", no furniture record found.");
-                            continue;
-                        }
-
-                        if (!_items.ContainsKey(pageId))
-                            _items[pageId] = new Dictionary<int, CatalogItem>();
-
-                        if (offerId != -1 && !_itemOffers.ContainsKey(offerId))
-                            _itemOffers.Add(offerId, pageId);
-
-                        _items[pageId].Add(Convert.ToInt32(row["id"]), new CatalogItem(Convert.ToInt32(row["id"]), Convert.ToInt32(row["item_id"]),
-                            data, Convert.ToString(row["catalog_name"]), Convert.ToInt32(row["page_id"]), Convert.ToInt32(row["cost_credits"]), Convert.ToInt32(row["cost_pixels"]), Convert.ToInt32(row["cost_diamonds"]),
-                            Convert.ToInt32(row["amount"]), Convert.ToInt32(row["limited_sells"]), Convert.ToInt32(row["limited_stack"]), PlusEnvironment.EnumToBool(row["offer_active"].ToString()),
-                            Convert.ToString(row["extradata"]), Convert.ToString(row["badge"]), Convert.ToInt32(row["offer_id"])));
-                    }
+                if (!itemDataManager.GetItem(baseId, out ItemData data)) {
+                    Log.Error("Couldn't load Catalog Item " + itemId + ", no furniture record found.");
+                    continue;
                 }
 
-                dbClient.SetQuery("SELECT `id`, `items`, `name`, `room_id` FROM `catalog_deals`");
-                DataTable getDeals = dbClient.GetTable();
+                if (!_items.ContainsKey(pageId))
+                    _items[pageId] = new Dictionary<int, CatalogItem>();
 
-                if (getDeals != null) {
-                    foreach (DataRow row in getDeals.Rows)
-                    {
-                        int id = Convert.ToInt32(row["id"]);
-                        string items = Convert.ToString(row["items"]);
-                        string name = Convert.ToString(row["name"]);
-                        int roomId = Convert.ToInt32(row["room_id"]);
+                if (offerId != -1 && !_itemOffers.ContainsKey(offerId))
+                    _itemOffers.Add(offerId, pageId);
 
-                        CatalogDeal deal = new(id, items, name, roomId, itemDataManager);
-
-                        if (!_deals.ContainsKey(id))
-                            _deals.Add(deal.Id, deal);
-                    }
-                }
-
-
-                dbClient.SetQuery("SELECT `id`,`parent_id`,`caption`,`page_link`,`visible`,`enabled`,`min_rank`,`min_vip`,`icon_image`,`page_layout`,`page_strings_1`,`page_strings_2` FROM `catalog_pages` ORDER BY `order_num`");
-                DataTable catalogPages = dbClient.GetTable();
-
-                if (catalogPages != null) {
-                    foreach (DataRow row in catalogPages.Rows)
-                    {
-                        _pages.Add(Convert.ToInt32(row["id"]), new CatalogPage(Convert.ToInt32(row["id"]), Convert.ToInt32(row["parent_id"]), row["enabled"].ToString(), Convert.ToString(row["caption"]),
-                            Convert.ToString(row["page_link"]), Convert.ToInt32(row["icon_image"]), Convert.ToInt32(row["min_rank"]), Convert.ToInt32(row["min_vip"]), row["visible"].ToString(), Convert.ToString(row["page_layout"]),
-                            Convert.ToString(row["page_strings_1"]), Convert.ToString(row["page_strings_2"]),
-                            _items.ContainsKey(Convert.ToInt32(row["id"])) ? _items[Convert.ToInt32(row["id"])] : new Dictionary<int, CatalogItem>(), ref _itemOffers));
-                    }
-                }
-
-                dbClient.SetQuery("SELECT `id`,`name`,`figure`,`motto`,`gender`,`ai_type` FROM `catalog_bot_presets`");
-                DataTable bots = dbClient.GetTable();
-
-                if (bots != null) {
-                    foreach (DataRow row in bots.Rows)
-                    {
-                        _botPresets.Add(Convert.ToInt32(row[0]), new CatalogBot(Convert.ToInt32(row[0]), Convert.ToString(row[1]), Convert.ToString(row[2]), Convert.ToString(row[3]), Convert.ToString(row[4]), Convert.ToString(row[5])));
-                    }
-                }
-
-                dbClient.SetQuery("SELECT * FROM `catalog_promotions`");
-                DataTable getPromotions = dbClient.GetTable();
-
-                if (getPromotions != null) {
-                    foreach (DataRow row in getPromotions.Rows)
-                    {
-                        if (!_promotions.ContainsKey(Convert.ToInt32(row["id"])))
-                            _promotions.Add(Convert.ToInt32(row["id"]), new CatalogPromotion(Convert.ToInt32(row["id"]), Convert.ToString(row["title"]), Convert.ToString(row["image"]), Convert.ToInt32(row["unknown"]), Convert.ToString(row["page_link"]), Convert.ToInt32(row["parent_id"])));
-                    }
-                }
-
-                _petRaceManager.Init();
-                _clothingManager.Init();
+                _items[pageId].Add(row.id, new CatalogItem(row.id, Convert.ToInt32(row.item_id),
+                    data, row.catalog_name, row.page_id, row.cost_credits, row.cost_pixels, row.cost_diamonds,
+                    row.amount, row.limited_sells, row.limited_stack, PlusEnvironment.EnumToBool(row.offer_active),
+                    row.extradata, row.badge, row.offer_id));
             }
+
+            foreach (var row in db.catalog_deals.Select(d => new { d.id, d.items, d.name, d.room_id }).ToList())
+            {
+                CatalogDeal deal = new(row.id, row.items, row.name, row.room_id, itemDataManager);
+
+                if (!_deals.ContainsKey(row.id))
+                    _deals.Add(deal.Id, deal);
+            }
+
+            foreach (var row in db.catalog_pages.OrderBy(p => p.order_num).Select(p => new { p.id, p.parent_id, p.caption, p.page_link, p.visible, p.enabled, p.min_rank, p.min_vip, p.icon_image, p.page_layout, p.page_strings_1, p.page_strings_2 }).ToList())
+            {
+                _pages.Add(row.id, new CatalogPage(row.id, row.parent_id, row.enabled, row.caption,
+                    row.page_link, row.icon_image, (int)row.min_rank, row.min_vip, row.visible, row.page_layout,
+                    row.page_strings_1, row.page_strings_2,
+                    _items.ContainsKey(row.id) ? _items[row.id] : new Dictionary<int, CatalogItem>(), ref _itemOffers));
+            }
+
+            foreach (var row in db.catalog_bot_presets.Select(b => new { b.id, b.name, b.figure, b.motto, b.gender, b.ai_type }).ToList())
+                _botPresets.Add(row.id, new CatalogBot(row.id, row.name, row.figure, row.motto, row.gender, row.ai_type));
+
+            foreach (var row in db.catalog_promotions.Select(p => new { p.id, p.title, p.image, p.unknown, p.page_link, p.parent_id }).ToList())
+            {
+                if (!_promotions.ContainsKey(row.id))
+                    _promotions.Add(row.id, new CatalogPromotion(row.id, row.title, row.image, row.unknown ?? 0, row.page_link, row.parent_id ?? 0));
+            }
+
+            _petRaceManager.Init();
+            _clothingManager.Init();
 
             Log.Info("Catalog Manager -> LOADED");
         }

@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
+using System.Linq;
 using log4net;
-using Plus.Database.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 
 namespace Plus.HabboHotel.Roleplay.RpItem.Item
 {
@@ -19,31 +20,25 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
         {
             _items.Clear();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT * FROM `rp_items`");
-                DataTable table = dbClient.GetTable();
+                var rows = db.rp_items.AsNoTracking().ToList();
 
-                if (table != null) {
-                    bool hasStackLimit = table.Columns.Contains("stack_limit");
-                    bool hasItemType = table.Columns.Contains("item_type");
+                foreach (var row in rows)
+                {
+                    RpItemData item = new(
+                        row.id,
+                        row.item_name,
+                        Convert.ToInt32(row.handitem_data),
+                        Convert.ToInt32(row.effect_data),
+                        row.base_price,
+                        row.image_url,
+                        row.attribute_effects,
+                        row.stack_limit,
+                        row.item_type ?? "consumable"
+                    );
 
-                    foreach (DataRow row in table.Rows)
-                    {
-                        RpItemData item = new(
-                            Convert.ToInt32(row["id"]),
-                            Convert.ToString(row["item_name"]),
-                            Convert.ToInt32(row["handitem_data"]),
-                            Convert.ToInt32(row["effect_data"]),
-                            Convert.ToInt32(row["base_price"]),
-                            Convert.ToString(row["image_url"]),
-                            Convert.ToString(row["attribute_effects"]),
-                            hasStackLimit && row["stack_limit"] != DBNull.Value ? Convert.ToInt32(row["stack_limit"]) : 1,
-                            hasItemType && row["item_type"] != DBNull.Value ? Convert.ToString(row["item_type"]) : "consumable"
-                        );
-
-                        _items[item.Id] = item;
-                    }
+                    _items[item.Id] = item;
                 }
             }
 

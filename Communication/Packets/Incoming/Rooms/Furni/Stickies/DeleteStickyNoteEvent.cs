@@ -1,4 +1,6 @@
-﻿using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
 using Plus.HabboHotel.Rooms;
@@ -24,9 +26,10 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni.Stickies
 
             if (item.GetBaseItem().InteractionType == InteractionType.PostIt || item.GetBaseItem().InteractionType == InteractionType.CameraPicture) {
                 room.GetRoomItemHandler().RemoveFurniture(session, item.Id);
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                uint itemDbId = (uint)item.Id;
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    dbClient.RunQuery("DELETE FROM `items` WHERE `id` = '" + item.Id + "' LIMIT 1");
+                    db.items.Where(i => i.id == itemDbId).ExecuteDelete();
                 }
             }
         }

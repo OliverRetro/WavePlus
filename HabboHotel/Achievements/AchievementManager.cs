@@ -4,7 +4,9 @@ using System.Linq;
 using log4net;
 using Plus.Communication.Packets.Outgoing.Inventory.Achievements;
 using Plus.Communication.Packets.Outgoing.Inventory.Purse;
-using Plus.Database.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
+using Plus.Database.EF.Entities;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Users.Messenger;
 
@@ -84,15 +86,7 @@ namespace Plus.HabboHotel.Achievements
                 session.SendPacket(new AchievementUnlockedComposer(data, targetLevel, level.RewardPoints, level.RewardPixels));
                 session.GetHabbo().GetMessenger().BroadcastAchievement(session.GetHabbo().Id, MessengerEventTypes.AchievementUnlocked, group + targetLevel);
 
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                {
-                    dbClient.SetQuery("REPLACE INTO `user_achievements` VALUES (@userId, @group, @newLevel, @newProgress)");
-                    dbClient.AddParameter("userId", session.GetHabbo().Id);
-                    dbClient.AddParameter("group", group);
-                    dbClient.AddParameter("newLevel", newLevel);
-                    dbClient.AddParameter("newProgress", newProgress);
-                    dbClient.RunQuery();
-                }
+                SaveUserAchievement(session.GetHabbo().Id, group, newLevel, newProgress);
 
                 userData.Level = newLevel;
                 userData.Progress = newProgress;
@@ -110,18 +104,22 @@ namespace Plus.HabboHotel.Achievements
 
             userData.Level = newLevel;
             userData.Progress = newProgress;
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("REPLACE INTO `user_achievements` VALUES (@userId, @group, @newLevel, @newProgress)");
-                dbClient.AddParameter("userId", session.GetHabbo().Id);
-                dbClient.AddParameter("group", group);
-                dbClient.AddParameter("newLevel", newLevel);
-                dbClient.AddParameter("newProgress", newProgress);
-                dbClient.RunQuery();
-            }
+            SaveUserAchievement(session.GetHabbo().Id, group, newLevel, newProgress);
 
             session.SendPacket(new AchievementProgressedComposer(data, targetLevel, level, totalLevels, session.GetHabbo().GetAchievementData(group)));
             return false;
+        }
+
+        private static void SaveUserAchievement(int userId, string group, int level, int progress)
+        {
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            db.user_achievements.Upsert(new user_achievement
+            {
+                userid = (uint)userId,
+                group = group,
+                level = level,
+                progress = progress
+            }).Run();
         }
 
         public ICollection<Achievement> GetGameAchievements(int gameId)

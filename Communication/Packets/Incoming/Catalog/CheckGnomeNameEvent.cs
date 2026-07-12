@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Outgoing.Catalog;
 using Plus.Communication.Packets.Outgoing.Inventory.Furni;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.Catalog.Utilities;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
@@ -44,11 +46,10 @@ namespace Plus.Communication.Packets.Incoming.Catalog
             int y = item.GetY;
 
             //Quickly delete it from the database.
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            uint deleteItemId = (uint)item.Id;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("DELETE FROM `items` WHERE `id` = @ItemId LIMIT 1");
-                dbClient.AddParameter("ItemId", item.Id);
-                dbClient.RunQuery();
+                db.items.Where(i => i.id == deleteItemId).ExecuteDelete();
             }
 
             //Remove the item.
@@ -70,12 +71,11 @@ namespace Plus.Communication.Packets.Incoming.Catalog
             pet.GnomeClothing = RandomClothing();
 
             //Update the pets gnome clothing.
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            uint petId = (uint)pet.PetId;
+            string gnomeClothing = pet.GnomeClothing;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("UPDATE `bots_petdata` SET `gnome_clothing` = @GnomeClothing WHERE `id` = @PetId LIMIT 1");
-                dbClient.AddParameter("GnomeClothing", pet.GnomeClothing);
-                dbClient.AddParameter("PetId", pet.PetId);
-                dbClient.RunQuery();
+                db.bots_petdata.Where(p => p.id == petId).ExecuteUpdate(s => s.SetProperty(p => p.gnome_clothing, gnomeClothing));
             }
 
             //Make a RoomUser of the pet.

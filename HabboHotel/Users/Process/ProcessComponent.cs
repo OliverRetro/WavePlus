@@ -1,10 +1,12 @@
 ﻿using log4net;
 using Plus.Communication.Packets.Outgoing.Handshake;
 using Plus.Communication.Packets.Outgoing.Quests;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.Quests;
 using System;
+using System.Linq;
 using System.Threading;
+using Microsoft.EntityFrameworkCore;
 using static System.Collections.Specialized.BitVector32;
 
 namespace Plus.HabboHotel.Users.Process
@@ -108,10 +110,14 @@ namespace Plus.HabboHotel.Users.Process
 
                 if (_player.GetStats().RespectsTimestamp != DateTime.Today.ToString("MM/dd")) {
                     _player.GetStats().RespectsTimestamp = DateTime.Today.ToString("MM/dd");
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                    {
-                        dbClient.RunQuery("UPDATE `user_stats` SET `dailyRespectPoints` = '" + (_player.Rank == 1 && _player.VipRank == 0 ? 10 : _player.VipRank == 1 ? 15 : 20) + "', `dailyPetRespectPoints` = '" + (_player.Rank == 1 && _player.VipRank == 0 ? 10 : _player.VipRank == 1 ? 15 : 20) + "', `respectsTimestamp` = '" + DateTime.Today.ToString("MM/dd") + "' WHERE `id` = '" + _player.Id + "' LIMIT 1");
-                    }
+                    int dailyPoints = (_player.Rank == 1 && _player.VipRank == 0 ? 10 : _player.VipRank == 1 ? 15 : 20);
+                    string respectsTimestamp = DateTime.Today.ToString("MM/dd");
+                    int playerId = _player.Id;
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                        db.user_stats.Where(s => s.id == playerId).ExecuteUpdate(s => s
+                            .SetProperty(x => x.DailyRespectPoints, dailyPoints)
+                            .SetProperty(x => x.DailyPetRespectPoints, dailyPoints)
+                            .SetProperty(x => x.respectsTimestamp, respectsTimestamp));
 
                     _player.GetStats().DailyRespectPoints = (_player.Rank == 1 && _player.VipRank == 0 ? 10 : _player.VipRank == 1 ? 15 : 20);
                     _player.GetStats().DailyPetRespectPoints = (_player.Rank == 1 && _player.VipRank == 0 ? 10 : _player.VipRank == 1 ? 15 : 20);

@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
-using System.Data;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Outgoing.Rooms.Notifications;
 using Plus.Communication.Packets.Outgoing.Rooms.Session;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Rooms;
 
@@ -109,41 +109,30 @@ namespace Plus.Communication.Packets.Incoming.Rooms.FloorPlan
 
             map += '\r' + new string('x', sizeX);
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            int rid = room.Id;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT * FROM `room_models` WHERE `id` = @model AND `custom` = '1' LIMIT 1");
-                dbClient.AddParameter("model", "model_bc_" + room.Id);
-                DataRow row = dbClient.GetRow();
+                bool exists = db.room_models.Any(m => m.id == modelName && m.custom == "1");
 
-                if (row == null) //The row is still null, let's insert instead.
+                if (!exists) //The row is still null, let's insert instead.
                 {
-                    dbClient.SetQuery("INSERT INTO `room_models` (`id`,`door_x`,`door_y`, `door_z`, `door_dir`,`heightmap`,`custom`,`wall_height`) VALUES (@ModelName, @DoorX, @DoorY, @DoorZ, @DoorDirection, @Map,'1',@WallHeight)");
-                    dbClient.AddParameter("ModelName", "model_bc_" + room.Id);
-                    dbClient.AddParameter("DoorX", doorX);
-                    dbClient.AddParameter("DoorY", doorY);
-                    dbClient.AddParameter("DoorDirection", doorDirection);
-                    dbClient.AddParameter("DoorZ", doorZ);
-                    dbClient.AddParameter("Map", map);
-                    dbClient.AddParameter("WallHeight", wallHeight);
-                    dbClient.RunQuery();
+                    // Partial insert (relies on DB defaults for public_items/club_only/poolmap), so raw insert is used.
+                    db.Database.ExecuteSqlInterpolated($"INSERT INTO `room_models` (`id`,`door_x`,`door_y`, `door_z`, `door_dir`,`heightmap`,`custom`,`wall_height`) VALUES ({modelName}, {doorX}, {doorY}, {doorZ}, {doorDirection}, {map}, '1', {wallHeight})");
                 } else {
-                    dbClient.SetQuery("UPDATE `room_models` SET `heightmap` = @Map, `door_x` = @DoorX, `door_y` = @DoorY, `door_z` = @DoorZ,  `door_dir` = @DoorDirection, `wall_height` = @WallHeight WHERE `id` = @ModelName LIMIT 1");
-                    dbClient.AddParameter("ModelName", "model_bc_" + room.Id);
-                    dbClient.AddParameter("Map", map);
-                    dbClient.AddParameter("DoorX", doorX);
-                    dbClient.AddParameter("DoorY", doorY);
-                    dbClient.AddParameter("DoorZ", doorZ);
-                    dbClient.AddParameter("DoorDirection", doorDirection);
-                    dbClient.AddParameter("WallHeight", wallHeight);
-                    dbClient.RunQuery();
+                    double doorZd = doorZ;
+                    db.room_models.Where(m => m.id == modelName).ExecuteUpdate(s => s
+                        .SetProperty(m => m.heightmap, map)
+                        .SetProperty(m => m.door_x, doorX)
+                        .SetProperty(m => m.door_y, doorY)
+                        .SetProperty(m => m.door_z, doorZd)
+                        .SetProperty(m => m.door_dir, doorDirection)
+                        .SetProperty(m => m.wall_height, wallHeight));
                 }
 
-                dbClient.SetQuery("UPDATE `rooms` SET `model_name` = @ModelName, `wallthick` = @WallThick, `floorthick` = @FloorThick WHERE `id` = @roomId LIMIT 1");
-                dbClient.AddParameter("roomId", room.Id);
-                dbClient.AddParameter("ModelName", "model_bc_" + room.Id);
-                dbClient.AddParameter("WallThick", wallThick);
-                dbClient.AddParameter("FloorThick", floorThick);
-                dbClient.RunQuery();
+                db.rooms.Where(r => r.id == rid).ExecuteUpdate(s => s
+                    .SetProperty(r => r.model_name, modelName)
+                    .SetProperty(r => r.wallthick, wallThick)
+                    .SetProperty(r => r.floorthick, floorThick));
             }
 
             room.ModelName = modelName;

@@ -1,5 +1,6 @@
-﻿using Plus.Communication.Packets.Outgoing.Rooms.Engine;
-using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Plus.Communication.Packets.Outgoing.Rooms.Engine;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Rooms;
 
@@ -20,11 +21,9 @@ namespace Plus.Communication.Rcon.Commands.User
             if (client == null || client.GetHabbo() == null)
                 return false;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT `motto` FROM `users` WHERE `id` = @userID LIMIT 1");
-                dbClient.AddParameter("userID", userId);
-                client.GetHabbo().Motto = dbClient.GetString();
+                client.GetHabbo().Motto = db.users.Where(u => u.id == userId).Select(u => u.motto).FirstOrDefault();
             }
 
             // If we're in a room, we cannot really send the packets, so flag this as completed successfully, since we already updated it.

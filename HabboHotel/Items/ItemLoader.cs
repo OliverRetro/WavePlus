@@ -1,7 +1,6 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using Plus.Database.Interfaces;
+using System.Linq;
+using Plus.Database.EF;
 using Plus.HabboHotel.Rooms;
 
 namespace Plus.HabboHotel.Items
@@ -11,22 +10,26 @@ namespace Plus.HabboHotel.Items
         public static List<Item> GetItemsForRoom(int roomId, Room room)
         {
             List<Item> items = new();
+            uint rid = (uint)roomId;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            var rows = (from it in db.items
+                        where it.room_id == rid
+                        join g in db.items_groups on it.id equals g.id into gj
+                        from g in gj.DefaultIfEmpty()
+                        select new
+                        {
+                            it.id, it.room_id, it.base_item, it.extra_data, it.x, it.y, it.z, it.rot, it.user_id,
+                            group_id = (int?)g.group_id,
+                            it.limited_number, it.limited_stack, it.wall_pos
+                        }).ToList();
+
+            foreach (var row in rows)
             {
-                dbClient.SetQuery("SELECT `items`.*, COALESCE(`items_groups`.`group_id`, 0) AS `group_id` FROM `items` LEFT OUTER JOIN `items_groups` ON `items`.`id` = `items_groups`.`id` WHERE `items`.`room_id` = @rid;");
-                dbClient.AddParameter("rid", roomId);
-                DataTable data = dbClient.GetTable();
-
-                if (data != null) {
-                    foreach (DataRow row in data.Rows)
-                    {
-                        if (PlusEnvironment.GetGame().GetItemManager().GetItem(Convert.ToInt32(row["base_item"]), out ItemData Data)) {
-                            items.Add(new Item(Convert.ToInt32(row["id"]), Convert.ToInt32(row["room_id"]), Convert.ToInt32(row["base_item"]), Convert.ToString(row["extra_data"]),
-                                Convert.ToInt32(row["x"]), Convert.ToInt32(row["y"]), Convert.ToDouble(row["z"]), Convert.ToInt32(row["rot"]), Convert.ToInt32(row["user_id"]),
-                                Convert.ToInt32(row["group_id"]), Convert.ToInt32(row["limited_number"]), Convert.ToInt32(row["limited_stack"]), Convert.ToString(row["wall_pos"]), room));
-                        }
-                    }
+                if (PlusEnvironment.GetGame().GetItemManager().GetItem((int)row.base_item, out ItemData Data)) {
+                    items.Add(new Item((int)row.id, (int)row.room_id, (int)row.base_item, row.extra_data,
+                        row.x, row.y, row.z, row.rot, row.user_id,
+                        row.group_id ?? 0, row.limited_number ?? 0, row.limited_stack ?? 0, row.wall_pos, room));
                 }
             }
 
@@ -37,21 +40,24 @@ namespace Plus.HabboHotel.Items
         {
             List<Item> I = new();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("SELECT `items`.*, COALESCE(`items_groups`.`group_id`, 0) AS `group_id` FROM `items` LEFT OUTER JOIN `items_groups` ON `items`.`id` = `items_groups`.`id` WHERE `items`.`room_id` = 0 AND `items`.`user_id` = @uid;");
-                dbClient.AddParameter("uid", userId);
-                DataTable items = dbClient.GetTable();
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            var rows = (from it in db.items
+                        where it.room_id == 0 && it.user_id == userId
+                        join g in db.items_groups on it.id equals g.id into gj
+                        from g in gj.DefaultIfEmpty()
+                        select new
+                        {
+                            it.id, it.room_id, it.base_item, it.extra_data, it.x, it.y, it.z, it.rot, it.user_id,
+                            group_id = (int?)g.group_id,
+                            it.limited_number, it.limited_stack, it.wall_pos
+                        }).ToList();
 
-                if (items != null) {
-                    foreach (DataRow row in items.Rows)
-                    {
-                        if (PlusEnvironment.GetGame().GetItemManager().GetItem(Convert.ToInt32(row["base_item"]), out ItemData data)) {
-                            I.Add(new Item(Convert.ToInt32(row["id"]), Convert.ToInt32(row["room_id"]), Convert.ToInt32(row["base_item"]), Convert.ToString(row["extra_data"]),
-                                Convert.ToInt32(row["x"]), Convert.ToInt32(row["y"]), Convert.ToDouble(row["z"]), Convert.ToInt32(row["rot"]), Convert.ToInt32(row["user_id"]),
-                                Convert.ToInt32(row["group_id"]), Convert.ToInt32(row["limited_number"]), Convert.ToInt32(row["limited_stack"]), Convert.ToString(row["wall_pos"])));
-                        }
-                    }
+            foreach (var row in rows)
+            {
+                if (PlusEnvironment.GetGame().GetItemManager().GetItem((int)row.base_item, out ItemData data)) {
+                    I.Add(new Item((int)row.id, (int)row.room_id, (int)row.base_item, row.extra_data,
+                        row.x, row.y, row.z, row.rot, row.user_id,
+                        row.group_id ?? 0, row.limited_number ?? 0, row.limited_stack ?? 0, row.wall_pos));
                 }
             }
 

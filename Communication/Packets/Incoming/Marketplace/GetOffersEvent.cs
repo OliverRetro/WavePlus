@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Text;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Outgoing.Marketplace;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.Catalog.Marketplace;
 using Plus.HabboHotel.GameClients;
 
@@ -19,48 +18,37 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
             int filterMode = packet.PopInt();
 
 
-            DataTable table;
-            StringBuilder builder = new();
-            string str;
-            builder.Append("WHERE `state` = '1' AND `timestamp` >= " + PlusEnvironment.GetGame().GetCatalog().GetMarketplace().FormatTimestampString());
-            if (minCost >= 0)
-                builder.Append(" AND `total_price` > " + minCost);
+            double minTimestamp = PlusEnvironment.GetGame().GetCatalog().GetMarketplace().FormatTimestamp();
 
-
-            if (maxCost >= 0)
-                builder.Append(" AND `total_price` < " + maxCost);
-
-            switch (filterMode)
+            List<MarketOffer> offers;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                case 1:
-                    str = "ORDER BY `asking_price` DESC";
-                    break;
+                var query = db.catalog_marketplace_offers.Where(o => o.state == "1" && o.timestamp >= minTimestamp);
+                if (minCost >= 0)
+                    query = query.Where(o => o.total_price > minCost);
+                if (maxCost >= 0)
+                    query = query.Where(o => o.total_price < maxCost);
+                if (searchQuery.Length >= 1)
+                    query = query.Where(o => EF.Functions.Like(o.public_name, "%" + searchQuery + "%"));
 
-                default:
-                    str = "ORDER BY `asking_price` ASC";
-                    break;
-            }
+                query = filterMode == 1
+                    ? query.OrderByDescending(o => o.asking_price)
+                    : query.OrderBy(o => o.asking_price);
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("SELECT `offer_id`, `item_type`, `sprite_id`, `total_price`, `limited_number`,`limited_stack` FROM `catalog_marketplace_offers` " + builder + " " + str + " LIMIT 500");
-                dbClient.AddParameter("search_query", "%" + searchQuery + "%");
-                if (searchQuery.Length >= 1) {
-                    builder.Append(" AND `public_name` LIKE @search_query");
-                }
-
-                table = dbClient.GetTable();
+                offers = query.Take(500)
+                    .Select(o => new { o.offer_id, o.item_type, o.sprite_id, o.total_price, o.limited_number, o.limited_stack })
+                    .AsEnumerable()
+                    .Select(o => new MarketOffer((int)o.offer_id, o.sprite_id, o.total_price, int.Parse(o.item_type), o.limited_number, o.limited_stack))
+                    .ToList();
             }
 
             PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItems.Clear();
             PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItemKeys.Clear();
-            if (table != null) {
-                foreach (DataRow row in table.Rows)
-                {
-                    if (!PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItemKeys.Contains(Convert.ToInt32(row["offer_id"]))) {
-                        PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItemKeys.Add(Convert.ToInt32(row["offer_id"]));
-                        PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItems.Add(new MarketOffer(Convert.ToInt32(row["offer_id"]), Convert.ToInt32(row["sprite_id"]), Convert.ToInt32(row["total_price"]), int.Parse(row["item_type"].ToString()), Convert.ToInt32(row["limited_number"]), Convert.ToInt32(row["limited_stack"])));
-                    }
+            foreach (MarketOffer offer in offers)
+            {
+                if (!PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItemKeys.Contains(offer.OfferId)) {
+                    PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItemKeys.Add(offer.OfferId);
+                    PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItems.Add(offer);
                 }
             }
 

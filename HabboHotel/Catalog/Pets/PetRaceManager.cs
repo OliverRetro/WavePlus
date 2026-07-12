@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
+﻿using System.Collections.Generic;
 using System.Linq;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 
 namespace Plus.HabboHotel.Catalog.Pets
 {
@@ -15,18 +13,14 @@ namespace Plus.HabboHotel.Catalog.Pets
             if (_races.Count > 0)
                 _races.Clear();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT * FROM `catalog_pet_races`");
-                DataTable data = dbClient.GetTable();
-
-                if (data != null) {
-                    foreach (DataRow row in data.Rows)
-                    {
-                        PetRace race = new(Convert.ToInt32(row["raceid"]), Convert.ToInt32(row["color1"]), Convert.ToInt32(row["color2"]), (Convert.ToString(row["has1color"]) == "1"), (Convert.ToString(row["has2color"]) == "1"));
-                        if (!_races.Contains(race))
-                            _races.Add(race);
-                    }
+                var rows = db.catalog_pet_races.Select(r => new { r.raceid, r.color1, r.color2, r.has1color, r.has2color }).ToList();
+                foreach (var row in rows)
+                {
+                    PetRace race = new(row.raceid ?? 0, row.color1 ?? 0, row.color2 ?? 0, row.has1color == "1", row.has2color == "1");
+                    if (!_races.Contains(race))
+                        _races.Add(race);
                 }
             }
         }

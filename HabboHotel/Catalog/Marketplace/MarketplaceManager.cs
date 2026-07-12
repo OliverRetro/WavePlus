@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using Plus.Database.Interfaces;
+using System.Linq;
+using Plus.Database.EF;
 
 namespace Plus.HabboHotel.Catalog.Marketplace
 {
@@ -23,13 +24,13 @@ namespace Plus.HabboHotel.Catalog.Marketplace
                 return 0;
             }
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT `avgprice` FROM `catalog_marketplace_data` WHERE `sprite` = '" + spriteId + "' LIMIT 1");
-                num = dbClient.GetInteger();
-
-                dbClient.SetQuery("SELECT `sold` FROM `catalog_marketplace_data` WHERE `sprite` = '" + spriteId + "' LIMIT 1");
-                num2 = dbClient.GetInteger();
+                var data = db.catalog_marketplace_data.Where(d => d.sprite == spriteId).Select(d => new { d.avgprice, d.sold }).FirstOrDefault();
+                if (data != null) {
+                    num = data.avgprice;
+                    num2 = data.sold;
+                }
             }
 
             MarketAverages.Add(spriteId, num);

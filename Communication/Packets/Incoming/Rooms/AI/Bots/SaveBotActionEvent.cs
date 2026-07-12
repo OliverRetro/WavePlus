@@ -1,8 +1,9 @@
 ﻿using System;
-using System.Data;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Outgoing.Rooms.Avatar;
 using Plus.Communication.Packets.Outgoing.Rooms.Engine;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Rooms.AI;
@@ -60,12 +61,11 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Bots
                     room.SendPacket(userChangeComposer);
 
 
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                    {
-                        dbClient.SetQuery("UPDATE `bots` SET `look` = @look, `gender` = '" + session.GetHabbo().Gender + "' WHERE `id` = '" + bot.BotData.Id + "' LIMIT 1");
-                        dbClient.AddParameter("look", session.GetHabbo().Look);
-                        dbClient.RunQuery();
-                    }
+                    uint copyBotId = (uint)bot.BotData.Id;
+                    string copyLook = session.GetHabbo().Look;
+                    string copyGender = session.GetHabbo().Gender;
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                        db.bots.Where(b => b.id == copyBotId).ExecuteUpdate(s => s.SetProperty(b => b.look, copyLook).SetProperty(b => b.gender, copyGender));
 
                     //Room.SendMessage(new UserChangeComposer(BotUser.GetClient(), true));
                     break;
@@ -99,44 +99,29 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Bots
                     roomBot.SpeakingInterval = Convert.ToInt32(speakingInterval);
                     roomBot.MixSentences = Convert.ToBoolean(mixChat);
 
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
                     {
-                        dbClient.RunQuery("DELETE FROM `bots_speech` WHERE `bot_id` = '" + bot.BotData.Id + "'");
+                        uint deleteBotId = (uint)bot.BotData.Id;
+                        db.bots_speeches.Where(sp => sp.bot_id == deleteBotId).ExecuteDelete();
 
-                        dbClient.SetQuery("UPDATE `bots` SET `automatic_chat` = @AutomaticChat, `speaking_interval` = @SpeakingInterval, `mix_sentences` = @MixChat WHERE `id` = @id LIMIT 1");
-                        dbClient.AddParameter("id", botId);
-                        dbClient.AddParameter("AutomaticChat", automaticChat.ToLower());
-                        dbClient.AddParameter("SpeakingInterval", Convert.ToInt32(speakingInterval));
-                        dbClient.AddParameter("MixChat", PlusEnvironment.BoolToEnum(Convert.ToBoolean(mixChat)));
-                        dbClient.RunQuery();
-
-                        #region Save Data - TODO: MAKE METHODS FOR THIS.
+                        uint updBotId = (uint)botId;
+                        string autoLower = automaticChat.ToLower();
+                        int interval = Convert.ToInt32(speakingInterval);
+                        string mixEnum = PlusEnvironment.BoolToEnum(Convert.ToBoolean(mixChat));
+                        db.bots.Where(b => b.id == updBotId).ExecuteUpdate(s => s
+                            .SetProperty(b => b.automatic_chat, autoLower)
+                            .SetProperty(b => b.speaking_interval, interval)
+                            .SetProperty(b => b.mix_sentences, mixEnum));
 
                         for (int i = 0; i <= speechData.Length - 1; i++)
-                        {
-                            dbClient.SetQuery("INSERT INTO `bots_speech` (`bot_id`, `text`) VALUES (@id, @data)");
-                            dbClient.AddParameter("id", botId);
-                            dbClient.AddParameter("data", speechData[i]);
-                            dbClient.RunQuery();
-                        }
+                            db.bots_speeches.Add(new Database.EF.Entities.bots_speech { bot_id = updBotId, text = speechData[i] });
 
-                        #endregion
-
-                        #region Handle Speech
+                        db.SaveChanges();
 
                         roomBot.RandomSpeech.Clear();
 
-                        dbClient.SetQuery("SELECT `text` FROM `bots_speech` WHERE `bot_id` = @id");
-                        dbClient.AddParameter("id", botId);
-
-                        DataTable botSpeech = dbClient.GetTable();
-
-                        foreach (DataRow speech in botSpeech.Rows)
-                        {
-                            roomBot.RandomSpeech.Add(new RandomSpeech(Convert.ToString(speech["text"]), botId));
-                        }
-
-                        #endregion
+                        foreach (string text in db.bots_speeches.Where(sp => sp.bot_id == updBotId).Select(sp => sp.text).ToList())
+                            roomBot.RandomSpeech.Add(new RandomSpeech(text, botId));
                     }
 
                     break;
@@ -153,10 +138,10 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Bots
                     else
                         bot.BotData.WalkingMode = "stand";
 
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                    {
-                        dbClient.RunQuery("UPDATE `bots` SET `walk_mode` = '" + bot.BotData.WalkingMode + "' WHERE `id` = '" + bot.BotData.Id + "' LIMIT 1");
-                    }
+                    uint relaxBotId = (uint)bot.BotData.Id;
+                    string walkMode = bot.BotData.WalkingMode;
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                        db.bots.Where(b => b.id == relaxBotId).ExecuteUpdate(s => s.SetProperty(b => b.walk_mode, walkMode));
 
                     break;
                 }
@@ -200,12 +185,10 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Bots
                     }
 
                     bot.BotData.Name = dataString;
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                    {
-                        dbClient.SetQuery("UPDATE `bots` SET `name` = @name WHERE `id` = '" + bot.BotData.Id + "' LIMIT 1");
-                        dbClient.AddParameter("name", dataString);
-                        dbClient.RunQuery();
-                    }
+                    uint nameBotId = (uint)bot.BotData.Id;
+                    string newName = dataString;
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                        db.bots.Where(b => b.id == nameBotId).ExecuteUpdate(s => s.SetProperty(b => b.name, newName));
 
                     room.SendPacket(new UsersComposer(bot));
                     break;

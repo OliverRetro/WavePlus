@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 
 namespace Plus.HabboHotel.Rooms.Chat.Filter
 {
@@ -21,17 +19,13 @@ namespace Plus.HabboHotel.Rooms.Chat.Filter
             if (_filteredWords.Count > 0)
                 _filteredWords.Clear();
 
-            DataTable data = null;
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT * FROM `wordfilter`");
-                data = dbClient.GetTable();
+                var data = db.wordfilters.Select(w => new { w.word, w.replacement, w.strict, w.bannable }).ToList();
 
-                if (data != null) {
-                    foreach (DataRow row in data.Rows)
-                    {
-                        _filteredWords.Add(new WordFilter(Convert.ToString(row["word"]), Convert.ToString(row["replacement"]), PlusEnvironment.EnumToBool(row["strict"].ToString()), PlusEnvironment.EnumToBool(row["bannable"].ToString())));
-                    }
+                foreach (var row in data)
+                {
+                    _filteredWords.Add(new WordFilter(row.word, row.replacement, PlusEnvironment.EnumToBool(row.strict), PlusEnvironment.EnumToBool(row.bannable)));
                 }
             }
         }

@@ -1,5 +1,6 @@
 ﻿using Plus.Communication.Packets.Outgoing.Rooms.Action;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
+using Plus.Database.EF.Entities;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
@@ -27,12 +28,10 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Action
                 return;
 
             if (session.GetHabbo().GetIgnores().TryAdd(player.Id)) {
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    dbClient.SetQuery("INSERT INTO `user_ignores` (`user_id`,`ignore_id`) VALUES(@uid,@ignoreId);");
-                    dbClient.AddParameter("uid", session.GetHabbo().Id);
-                    dbClient.AddParameter("ignoreId", player.Id);
-                    dbClient.RunQuery();
+                    db.user_ignores.Add(new user_ignore { user_id = (uint)session.GetHabbo().Id, ignore_id = (uint)player.Id });
+                    db.SaveChanges();
                 }
 
                 session.SendPacket(new IgnoreStatusComposer(1, player.Username));

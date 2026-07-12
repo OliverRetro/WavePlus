@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Plus.Communication.Packets.Outgoing.Moderation;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Rooms;
 
@@ -21,21 +20,22 @@ namespace Plus.Communication.Packets.Incoming.Moderation
                 return;
 
             Dictionary<double, RoomData> visits = new();
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            uint uid = (uint)userId;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT `room_id`, `entry_timestamp` FROM `user_roomvisits` WHERE `user_id` = @id ORDER BY `entry_timestamp` DESC LIMIT 50");
-                dbClient.AddParameter("id", userId);
-                DataTable table = dbClient.GetTable();
+                var table = db.user_roomvisits.Where(v => v.user_id == uid)
+                    .OrderByDescending(v => v.entry_timestamp)
+                    .Select(v => new { v.room_id, v.entry_timestamp })
+                    .Take(50)
+                    .ToList();
 
-                if (table != null) {
-                    foreach (DataRow row in table.Rows)
-                    {
-                        if (!RoomFactory.TryGetData(Convert.ToInt32(row["room_id"]), out RoomData data))
-                            continue;
+                foreach (var row in table)
+                {
+                    if (!RoomFactory.TryGetData((int)row.room_id, out RoomData data))
+                        continue;
 
-                        if (!visits.ContainsKey(Convert.ToDouble(row["entry_timestamp"])))
-                            visits.Add(Convert.ToDouble(row["entry_timestamp"]), data);
-                    }
+                    if (!visits.ContainsKey(row.entry_timestamp))
+                        visits.Add(row.entry_timestamp, data);
                 }
             }
 

@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Globalization;
+using System.Linq;
 using Plus.Communication.Packets.Outgoing.Catalog;
 using Plus.Communication.Packets.Outgoing.Inventory.Furni;
 using Plus.Communication.Packets.Outgoing.Inventory.Purse;
 using Plus.Communication.Packets.Outgoing.Moderation;
-using Plus.Database.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
+using Plus.Database.EF.Entities;
 using Plus.HabboHotel.Catalog;
 using Plus.HabboHotel.Catalog.Utilities;
 using Plus.HabboHotel.GameClients;
@@ -92,14 +95,18 @@ namespace Plus.Communication.Packets.Incoming.Catalog
             string ed = giftUser + Convert.ToChar(5) + giftMessage + Convert.ToChar(5) + session.GetHabbo().Id + Convert.ToChar(5) + item.Data.Id + Convert.ToChar(5) + spriteId + Convert.ToChar(5) + ribbon + Convert.ToChar(5) + colour;
 
             int newItemId;
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
                 //Insert the dummy item.
-                dbClient.SetQuery("INSERT INTO `items` (`base_item`,`user_id`,`extra_data`) VALUES (@baseId, @habboId, @extra_data)");
-                dbClient.AddParameter("baseId", presentData.Id);
-                dbClient.AddParameter("habboId", habbo.Id);
-                dbClient.AddParameter("extra_data", ed);
-                newItemId = Convert.ToInt32(dbClient.InsertQuery());
+                Plus.Database.EF.Entities.item dummyItem = new()
+                {
+                    base_item = (uint)presentData.Id,
+                    user_id = habbo.Id,
+                    extra_data = ed
+                };
+                db.items.Add(dummyItem);
+                db.SaveChanges();
+                newItemId = (int)dummyItem.id;
 
                 string itemExtraData = null;
                 switch (item.Data.InteractionType)
@@ -187,16 +194,17 @@ namespace Plus.Communication.Packets.Incoming.Catalog
                 }
 
                 //Insert the present, forever.
-                dbClient.SetQuery("INSERT INTO `user_presents` (`item_id`,`base_id`,`extra_data`) VALUES (@itemId, @baseId, @extra_data)");
-                dbClient.AddParameter("itemId", newItemId);
-                dbClient.AddParameter("baseId", item.Data.Id);
-                dbClient.AddParameter("extra_data", string.IsNullOrEmpty(itemExtraData) ? "" : itemExtraData);
-                dbClient.RunQuery();
+                db.user_presents.Add(new user_present
+                {
+                    item_id = (uint)newItemId,
+                    base_id = (uint)item.Data.Id,
+                    extra_data = string.IsNullOrEmpty(itemExtraData) ? "" : itemExtraData
+                });
+                db.SaveChanges();
 
                 //Here we're clearing up a record, this is dumb, but okay.
-                dbClient.SetQuery("DELETE FROM `items` WHERE `id` = @deleteId LIMIT 1");
-                dbClient.AddParameter("deleteId", newItemId);
-                dbClient.RunQuery();
+                uint deleteId = (uint)newItemId;
+                db.items.Where(i => i.id == deleteId).ExecuteDelete();
             }
 
 

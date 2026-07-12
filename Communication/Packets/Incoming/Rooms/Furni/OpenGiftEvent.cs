@@ -1,9 +1,10 @@
-﻿using System;
-using System.Data;
+using System;
+using System.Linq;
 using System.Threading;
+using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Outgoing.Rooms.Engine;
 using Plus.Communication.Packets.Outgoing.Rooms.Furni;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.Cache.Type;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
@@ -30,24 +31,22 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
             if (present.UserId != session.GetHabbo().Id)
                 return;
 
-            DataRow data;
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            uint presentKey = (uint)present.Id;
+            int baseId;
+            string extraData;
+            bool found;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT `base_id`,`extra_data` FROM `user_presents` WHERE `item_id` = @presentId LIMIT 1");
-                dbClient.AddParameter("presentId", present.Id);
-                data = dbClient.GetRow();
+                var row = db.user_presents.Where(p => p.item_id == presentKey).Select(p => new { p.base_id, p.extra_data }).FirstOrDefault();
+                found = row != null;
+                baseId = found ? (int)row.base_id : 0;
+                extraData = row?.extra_data;
             }
 
-            if (data == null) {
+            if (!found) {
                 session.SendNotification("Oops! Appears there was a bug with this gift.\nWe'll just get rid of it for you.");
                 room.GetRoomItemHandler().RemoveFurniture(null, present.Id);
-
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                {
-                    dbClient.RunQuery("DELETE FROM `items` WHERE `id` = '" + present.Id + "' LIMIT 1");
-                    dbClient.RunQuery("DELETE FROM `user_presents` WHERE `item_id` = '" + present.Id + "' LIMIT 1");
-                }
-
+                DeletePresent(present.Id);
                 session.GetHabbo().GetInventoryComponent().RemoveItem(present.Id);
                 return;
             }
@@ -55,15 +54,8 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
             if (!int.TryParse(present.ExtraData.Split(Convert.ToChar(5))[2], out int purchaserId)) {
                 session.SendNotification("Oops! Appears there was a bug with this gift.\nWe'll just get rid of it for you.");
                 room.GetRoomItemHandler().RemoveFurniture(null, present.Id);
-
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                {
-                    dbClient.RunQuery("DELETE FROM `items` WHERE `id` = '" + present.Id + "' LIMIT 1");
-                    dbClient.RunQuery("DELETE FROM `user_presents` WHERE `item_id` = '" + present.Id + "' LIMIT 1");
-                }
-
+                DeletePresent(present.Id);
                 session.GetHabbo().GetInventoryComponent().RemoveItem(present.Id);
-
                 return;
             }
 
@@ -71,27 +63,15 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
             if (purchaser == null) {
                 session.SendNotification("Oops! Appears there was a bug with this gift.\nWe'll just get rid of it for you.");
                 room.GetRoomItemHandler().RemoveFurniture(null, present.Id);
-
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                {
-                    dbClient.RunQuery("DELETE FROM `items` WHERE `id` = '" + present.Id + "' LIMIT 1");
-                    dbClient.RunQuery("DELETE FROM `user_presents` WHERE `item_id` = '" + present.Id + "' LIMIT 1");
-                }
-
+                DeletePresent(present.Id);
                 session.GetHabbo().GetInventoryComponent().RemoveItem(present.Id);
                 return;
             }
 
-            if (!PlusEnvironment.GetGame().GetItemManager().GetItem(Convert.ToInt32(data["base_id"]), out ItemData baseItem)) {
+            if (!PlusEnvironment.GetGame().GetItemManager().GetItem(baseId, out ItemData baseItem)) {
                 session.SendNotification("Oops, it appears that the item within the gift is no longer in the hotel!");
                 room.GetRoomItemHandler().RemoveFurniture(null, present.Id);
-
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                {
-                    dbClient.RunQuery("DELETE FROM `items` WHERE `id` = '" + present.Id + "' LIMIT 1");
-                    dbClient.RunQuery("DELETE FROM `user_presents` WHERE `item_id` = '" + present.Id + "' LIMIT 1");
-                }
-
+                DeletePresent(present.Id);
                 session.GetHabbo().GetInventoryComponent().RemoveItem(present.Id);
                 return;
             }
@@ -100,15 +80,24 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
             present.MagicRemove = true;
             room.SendPacket(new ObjectUpdateComposer(present, Convert.ToInt32(session.GetHabbo().Id)));
 
-            Thread thread = new(() => FinishOpenGift(session, baseItem, present, room, data));
+            Thread thread = new(() => FinishOpenGift(session, baseItem, present, room, baseId, extraData));
             thread.Start();
         }
 
-        private void FinishOpenGift(GameClient session, ItemData baseItem, Item present, Room room, DataRow row)
+        /// <summary>Removes a present's item row + its user_presents record.</summary>
+        private static void DeletePresent(int itemId)
+        {
+            uint pid = (uint)itemId;
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            db.items.Where(i => i.id == pid).ExecuteDelete();
+            db.user_presents.Where(p => p.item_id == pid).ExecuteDelete();
+        }
+
+        private void FinishOpenGift(GameClient session, ItemData baseItem, Item present, Room room, int baseId, string extraData)
         {
             try
             {
-                if (baseItem == null || present == null || room == null || row == null)
+                if (baseItem == null || present == null || room == null)
                     return;
 
 
@@ -118,39 +107,29 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
 
                 room.GetRoomItemHandler().RemoveFurniture(session, present.Id);
 
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                uint itemId = (uint)present.Id;
+                uint baseItemVal = (uint)baseId;
+                string edata = extraData;
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    dbClient.SetQuery("UPDATE `items` SET `base_item` = @BaseItem, `extra_data` = @edata WHERE `id` = @itemId LIMIT 1");
-                    dbClient.AddParameter("itemId", present.Id);
-                    dbClient.AddParameter("BaseItem", row["base_id"]);
-                    dbClient.AddParameter("edata", row["extra_data"]);
-                    dbClient.RunQuery();
-
-                    dbClient.RunQuery("DELETE FROM `user_presents` WHERE `item_id` = " + present.Id + " LIMIT 1");
+                    db.items.Where(i => i.id == itemId).ExecuteUpdate(s => s.SetProperty(i => i.base_item, baseItemVal).SetProperty(i => i.extra_data, edata));
+                    db.user_presents.Where(p => p.item_id == itemId).ExecuteDelete();
                 }
 
-                present.BaseItem = Convert.ToInt32(row["base_id"]);
+                present.BaseItem = baseId;
                 present.ResetBaseItem();
-                present.ExtraData = (!string.IsNullOrEmpty(Convert.ToString(row["extra_data"])) ? Convert.ToString(row["extra_data"]) : "");
+                present.ExtraData = !string.IsNullOrEmpty(extraData) ? extraData : "";
 
                 if (present.Data.Type == 's') {
                     if (!room.GetRoomItemHandler().SetFloorItem(session, present, present.GetX, present.GetY, present.Rotation, true, false, true)) {
-                        using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                        {
-                            dbClient.SetQuery("UPDATE `items` SET `room_id` = '0' WHERE `id` = @itemId LIMIT 1");
-                            dbClient.AddParameter("itemId", present.Id);
-                            dbClient.RunQuery();
-                        }
+                        using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                            db.items.Where(i => i.id == itemId).ExecuteUpdate(s => s.SetProperty(i => i.room_id, (uint)0));
 
                         itemIsInRoom = false;
                     }
                 } else {
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                    {
-                        dbClient.SetQuery("UPDATE `items` SET `room_id` = '0' WHERE `id` = @itemId LIMIT 1");
-                        dbClient.AddParameter("itemId", present.Id);
-                        dbClient.RunQuery();
-                    }
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                        db.items.Where(i => i.id == itemId).ExecuteUpdate(s => s.SetProperty(i => i.room_id, (uint)0));
 
                     itemIsInRoom = false;
                 }

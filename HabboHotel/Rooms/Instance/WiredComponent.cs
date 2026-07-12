@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
 using System.Linq;
-using Plus.Database.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
+using Plus.Database.EF.Entities;
 using Plus.HabboHotel.Items;
 using Plus.HabboHotel.Items.Wired;
 using Plus.HabboHotel.Items.Wired.Boxes;
@@ -54,14 +55,15 @@ namespace Plus.HabboHotel.Rooms.Instance
         {
             IWiredItem newBox = GenerateNewBox(item);
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            int itemId = item.Id;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT * FROM wired_items WHERE id=@id LIMIT 1");
-                dbClient.AddParameter("id", item.Id);
-                DataRow row = dbClient.GetRow();
+                var row = db.wired_items.Where(w => w.id == itemId)
+                    .Select(w => new { w._string, w._bool, w.items, w.delay })
+                    .FirstOrDefault();
 
                 if (row != null) {
-                    if (string.IsNullOrEmpty(Convert.ToString(row["string"]))) {
+                    if (string.IsNullOrEmpty(row._string)) {
                         if (newBox.Type == WiredBoxType.ConditionMatchStateAndPosition || newBox.Type == WiredBoxType.ConditionDontMatchStateAndPosition)
                             newBox.StringData = "0;0;0";
                         else if (newBox.Type == WiredBoxType.ConditionUserCountInRoom || newBox.Type == WiredBoxType.ConditionUserCountDoesntInRoom)
@@ -74,15 +76,15 @@ namespace Plus.HabboHotel.Rooms.Instance
                             newBox.StringData = "0;0";
                     }
 
-                    newBox.StringData = Convert.ToString(row["string"]);
-                    newBox.BoolData = Convert.ToInt32(row["bool"]) == 1;
-                    newBox.ItemsData = Convert.ToString(row["items"]);
+                    newBox.StringData = row._string;
+                    newBox.BoolData = Convert.ToInt32(row._bool) == 1;
+                    newBox.ItemsData = row.items;
 
                     if (newBox is IWiredCycle box) {
-                        box.Delay = Convert.ToInt32(row["delay"]);
+                        box.Delay = row.delay;
                     }
 
-                    foreach (string str in Convert.ToString(row["items"]).Split(';'))
+                    foreach (string str in Convert.ToString(row.items).Split(';'))
                     {
                         int id = 0;
                         string sId = "0";
@@ -443,15 +445,16 @@ namespace Plus.HabboHotel.Rooms.Instance
             if (item.Type == WiredBoxType.EffectMatchPosition || item.Type == WiredBoxType.ConditionMatchStateAndPosition || item.Type == WiredBoxType.ConditionDontMatchStateAndPosition)
                 item.ItemsData = items;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("REPLACE INTO `wired_items` VALUES (@id, @items, @delay, @string, @bool)");
-                dbClient.AddParameter("id", item.Item.Id);
-                dbClient.AddParameter("items", items);
-                dbClient.AddParameter("delay", (item is IWiredCycle) ? cycle.Delay : 0);
-                dbClient.AddParameter("string", item.StringData);
-                dbClient.AddParameter("bool", item.BoolData ? "1" : "0");
-                dbClient.RunQuery();
+                db.wired_items.Upsert(new wired_item
+                {
+                    id = item.Item.Id,
+                    items = items,
+                    delay = (item is IWiredCycle) ? cycle.Delay : 0,
+                    _string = item.StringData,
+                    _bool = item.BoolData ? "1" : "0"
+                }).Run();
             }
         }
 

@@ -1,4 +1,6 @@
-﻿using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 
 namespace Plus.Communication.Packets.Incoming.Users
@@ -10,11 +12,12 @@ namespace Plus.Communication.Packets.Incoming.Users
             bool status = packet.PopBoolean();
 
             session.GetHabbo().AllowMessengerInvites = status;
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            int userId = session.GetHabbo().Id;
+            string messengerInvites = PlusEnvironment.BoolToEnum(status);
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("UPDATE `users` SET `ignore_invites` = @MessengerInvites WHERE `id` = '" + session.GetHabbo().Id + "' LIMIT 1");
-                dbClient.AddParameter("MessengerInvites", PlusEnvironment.BoolToEnum(status));
-                dbClient.RunQuery();
+                db.users.Where(u => u.id == userId)
+                    .ExecuteUpdate(s => s.SetProperty(u => u.ignore_invites, messengerInvites));
             }
         }
     }

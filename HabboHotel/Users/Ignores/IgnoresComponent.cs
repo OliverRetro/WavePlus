@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using Plus.Database.Interfaces;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Plus.Database.EF;
 
 namespace Plus.HabboHotel.Users.Ignores
 {
@@ -19,19 +18,9 @@ namespace Plus.HabboHotel.Users.Ignores
             if (_ignoredUsers.Count > 0)
                 return false;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("SELECT * FROM `user_ignores` WHERE `user_id` = @uid;");
-                dbClient.AddParameter("uid", player.Id);
-                DataTable getIgnores = dbClient.GetTable();
-
-                if (getIgnores != null) {
-                    foreach (DataRow row in getIgnores.Rows)
-                    {
-                        _ignoredUsers.Add(Convert.ToInt32(row["ignore_id"]));
-                    }
-                }
-            }
+            uint uid = (uint)player.Id;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                _ignoredUsers.AddRange(db.user_ignores.Where(x => x.user_id == uid).Select(x => (int)x.ignore_id).ToList());
 
             return true;
         }

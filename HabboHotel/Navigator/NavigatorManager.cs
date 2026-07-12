@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using log4net;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 
 namespace Plus.HabboHotel.Navigator
 {
@@ -38,31 +37,21 @@ namespace Plus.HabboHotel.Navigator
             if (_featuredRooms.Count > 0)
                 _featuredRooms.Clear();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT * FROM `navigator_categories` ORDER BY `id` ASC");
-                DataTable table = dbClient.GetTable();
-
-                if (table != null) {
-                    foreach (DataRow row in table.Rows)
-                    {
-                        if (Convert.ToInt32(row["enabled"]) == 1) {
-                            if (!_searchResultLists.ContainsKey(Convert.ToInt32(row["id"])))
-                                _searchResultLists.Add(Convert.ToInt32(row["id"]), new SearchResultList(Convert.ToInt32(row["id"]), Convert.ToString(row["category"]), Convert.ToString(row["category_identifier"]), Convert.ToString(row["public_name"]), true, -1, Convert.ToInt32(row["required_rank"]), NavigatorViewModeUtility.GetViewModeByString(Convert.ToString(row["view_mode"])), Convert.ToString(row["category_type"]), Convert.ToString(row["search_allowance"]), Convert.ToInt32(row["order_id"])));
-                        }
+                foreach (var row in db.navigator_categories.OrderBy(c => c.id).ToList())
+                {
+                    if (Convert.ToInt32(row.enabled) == 1) {
+                        if (!_searchResultLists.ContainsKey(row.id))
+                            _searchResultLists.Add(row.id, new SearchResultList(row.id, row.category, row.category_identifier, row.public_name, true, -1, row.required_rank, NavigatorViewModeUtility.GetViewModeByString(row.view_mode), row.category_type, row.search_allowance, row.order_id));
                     }
                 }
 
-                dbClient.SetQuery("SELECT `room_id`,`caption`,`description`,`image_url`,`enabled` FROM `navigator_publics` ORDER BY `order_num` ASC");
-                DataTable getPublics = dbClient.GetTable();
-
-                if (getPublics != null) {
-                    foreach (DataRow row in getPublics.Rows)
-                    {
-                        if (Convert.ToInt32(row["enabled"]) == 1) {
-                            if (!_featuredRooms.ContainsKey(Convert.ToInt32(row["room_id"])))
-                                _featuredRooms.Add(Convert.ToInt32(row["room_id"]), new FeaturedRoom(Convert.ToInt32(row["room_id"]), Convert.ToString(row["caption"]), Convert.ToString(row["description"]), Convert.ToString(row["image_url"])));
-                        }
+                foreach (var row in db.navigator_publics.OrderBy(p => p.order_num).Select(p => new { p.room_id, p.caption, p.description, p.image_url, p.enabled }).ToList())
+                {
+                    if (Convert.ToInt32(row.enabled) == 1) {
+                        if (!_featuredRooms.ContainsKey(row.room_id))
+                            _featuredRooms.Add(row.room_id, new FeaturedRoom(row.room_id, row.caption, row.description, row.image_url));
                     }
                 }
             }

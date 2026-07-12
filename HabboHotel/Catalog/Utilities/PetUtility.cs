@@ -1,5 +1,6 @@
-﻿using System;
-using Plus.Database.Interfaces;
+﻿using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
+using Plus.Database.EF.Entities;
 using Plus.HabboHotel.Rooms.AI;
 
 namespace Plus.HabboHotel.Catalog.Utilities
@@ -18,16 +19,23 @@ namespace Plus.HabboHotel.Catalog.Utilities
         {
             Pet pet = new(0, userId, 0, name, type, race, colour, 0, 100, 100, 0, PlusEnvironment.GetUnixTimestamp(), 0, 0, 0.0, 0, 0, 0, -1, "-1");
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("INSERT INTO bots (user_id,name, ai_type) VALUES (" + pet.OwnerId + ",@" + pet.PetId + "name, 'pet')");
-                dbClient.AddParameter(pet.PetId + "name", pet.Name);
-                pet.PetId = Convert.ToInt32(dbClient.InsertQuery());
+                // motto/look are NOT NULL without a scaffolded model default; set empty to match the legacy partial insert.
+                bot botEntity = new()
+                {
+                    user_id = (uint)pet.OwnerId,
+                    name = pet.Name,
+                    ai_type = "pet",
+                    motto = "",
+                    look = ""
+                };
+                db.bots.Add(botEntity);
+                db.SaveChanges();
+                pet.PetId = (int)botEntity.id;
 
-                dbClient.SetQuery("INSERT INTO bots_petdata (id,type,race,color,experience,energy,createstamp) VALUES (" + pet.PetId + ", " + pet.Type + ",@" + pet.PetId + "race,@" + pet.PetId + "color,0,100,UNIX_TIMESTAMP())");
-                dbClient.AddParameter(pet.PetId + "race", pet.Race);
-                dbClient.AddParameter(pet.PetId + "color", pet.Color);
-                dbClient.RunQuery();
+                // Explicit PK (mirrors bots.id) → raw insert; UNIX_TIMESTAMP() kept as literal SQL.
+                db.Database.ExecuteSqlInterpolated($"INSERT INTO bots_petdata (id,type,race,color,experience,energy,createstamp) VALUES ({pet.PetId}, {pet.Type}, {pet.Race}, {pet.Color}, 0, 100, UNIX_TIMESTAMP())");
             }
 
             return pet;

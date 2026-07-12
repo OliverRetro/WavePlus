@@ -1,5 +1,7 @@
 ﻿using Plus.Communication.Packets.Outgoing.Rooms.Engine;
-using Plus.Database.Interfaces;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
 using Plus.HabboHotel.Rooms;
@@ -32,14 +34,14 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
             if (int1 > 255 || int2 > 255 || int3 > 255)
                 return;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            uint itemDbId = (uint)item.Id;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("UPDATE `room_items_toner` SET `enabled` = '1', `data1` = @data1, `data2` = @data2, `data3` = @data3 WHERE `id` = @itemId LIMIT 1");
-                dbClient.AddParameter("itemId", item.Id);
-                dbClient.AddParameter("data1", int1);
-                dbClient.AddParameter("data3", int3);
-                dbClient.AddParameter("data2", int2);
-                dbClient.RunQuery();
+                db.room_items_toners.Where(t => t.id == itemDbId).ExecuteUpdate(s => s
+                    .SetProperty(t => t.enabled, "1")
+                    .SetProperty(t => t.data1, int1)
+                    .SetProperty(t => t.data2, int2)
+                    .SetProperty(t => t.data3, int3));
             }
 
             room.TonerData.Hue = int1;

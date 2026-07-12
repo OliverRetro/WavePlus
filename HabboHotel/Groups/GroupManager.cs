@@ -4,7 +4,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using log4net;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
+using Microsoft.EntityFrameworkCore;
 using Plus.HabboHotel.Users;
 
 namespace Plus.HabboHotel.Groups
@@ -51,60 +52,48 @@ namespace Plus.HabboHotel.Groups
             _permissionKeys.Clear();
             _permissionKeysByKey.Clear();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+
+            var groupItems = db.groups_items.Where(g => g.enabled == "1")
+                .Select(g => new { g.id, g.type, g.firstvalue, g.secondvalue }).ToList();
+
+            foreach (var groupItem in groupItems)
             {
-                dbClient.SetQuery("SELECT `id`,`type`,`firstvalue`,`secondvalue` FROM `groups_items` WHERE `enabled` = '1'");
-                DataTable groupItems = dbClient.GetTable();
-
-                foreach (DataRow groupItem in groupItems.Rows)
+                switch (groupItem.type)
                 {
-                    switch (groupItem["type"].ToString())
-                    {
-                        case "base":
-                            _bases.Add(new GroupBadgeParts(Convert.ToInt32(groupItem["id"]), groupItem["firstvalue"].ToString(), groupItem["secondvalue"].ToString()));
-                            break;
+                    case "base":
+                        _bases.Add(new GroupBadgeParts(groupItem.id, groupItem.firstvalue, groupItem.secondvalue));
+                        break;
 
-                        case "symbol":
-                            _symbols.Add(new GroupBadgeParts(Convert.ToInt32(groupItem["id"]), groupItem["firstvalue"].ToString(), groupItem["secondvalue"].ToString()));
-                            break;
+                    case "symbol":
+                        _symbols.Add(new GroupBadgeParts(groupItem.id, groupItem.firstvalue, groupItem.secondvalue));
+                        break;
 
-                        case "color":
-                            _baseColours.Add(new GroupColours(Convert.ToInt32(groupItem["id"]), groupItem["firstvalue"].ToString()));
-                            break;
+                    case "color":
+                        _baseColours.Add(new GroupColours(groupItem.id, groupItem.firstvalue));
+                        break;
 
-                        case "color2":
-                            _symbolColours.Add(Convert.ToInt32(groupItem["id"]), new GroupColours(Convert.ToInt32(groupItem["id"]), groupItem["firstvalue"].ToString()));
-                            break;
+                    case "color2":
+                        _symbolColours.Add(groupItem.id, new GroupColours(groupItem.id, groupItem.firstvalue));
+                        break;
 
-                        case "color3":
-                            _backgroundColours.Add(Convert.ToInt32(groupItem["id"]), new GroupColours(Convert.ToInt32(groupItem["id"]), groupItem["firstvalue"].ToString()));
-                            break;
-                    }
+                    case "color3":
+                        _backgroundColours.Add(groupItem.id, new GroupColours(groupItem.id, groupItem.firstvalue));
+                        break;
                 }
+            }
 
-                dbClient.SetQuery("SELECT `id`,`name`,`key`,`description`,`type_specific` FROM `group_permission_keys`");
-                DataTable permissionKeys = dbClient.GetTable();
-                if (permissionKeys != null) {
-                    foreach (DataRow row in permissionKeys.Rows)
-                    {
-                        GroupPermissionKey permissionKey = new GroupPermissionKey(
-                            Convert.ToInt32(row["id"]),
-                            Convert.ToString(row["name"]),
-                            Convert.ToString(row["key"]),
-                            Convert.ToString(row["description"]),
-                            Convert.ToString(row["type_specific"]));
+            var permissionKeys = db.group_permission_keys
+                .Select(k => new { k.id, k.name, k.key, k.description, k.type_specific }).ToList();
+            foreach (var row in permissionKeys)
+            {
+                GroupPermissionKey permissionKey = new GroupPermissionKey(row.id, row.name, row.key, row.description, row.type_specific);
 
-                        _permissionKeys[permissionKey.Id] = permissionKey;
-                        _permissionKeysByKey[permissionKey.Key] = permissionKey;
-                    }
-                }
+                _permissionKeys[permissionKey.Id] = permissionKey;
+                _permissionKeysByKey[permissionKey.Key] = permissionKey;
             }
         }
 
-        /// <summary>
-        /// Hot-reload everything group related: badge/permission-key definitions plus the
-        /// roles and permissions of every already-loaded group.
-        /// </summary>
         public void ReloadAll()
         {
             Init();
@@ -128,19 +117,15 @@ namespace Plus.HabboHotel.Groups
                 if (_groups.ContainsKey(id))
                     return _groups.TryGetValue(id, out group);
 
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                {
-                    dbClient.SetQuery("SELECT * FROM `groups` WHERE `id` = @id LIMIT 1");
-                    dbClient.AddParameter("id", id);
-                    DataRow row = dbClient.GetRow();
+                uint gid = (uint)id;
+                using WavePlusContext db = PlusEnvironment.GetDbContext();
+                var r = db.groups.FirstOrDefault(x => x.id == gid);
 
-                    if (row != null) {
-                        group = new Group(
-                            Convert.ToInt32(row["id"]), Convert.ToString(row["name"]), Convert.ToString(row["desc"]), Convert.ToString(row["badge"]), Convert.ToInt32(row["room_id"]), Convert.ToInt32(row["owner_id"]),
-                            Convert.ToInt32(row["created"]), Convert.ToInt32(row["state"]), Convert.ToInt32(row["group_type"]), Convert.ToInt32(row["colour1"]), Convert.ToInt32(row["colour2"]), Convert.ToInt32(row["admindeco"]), Convert.ToInt32(row["forum_enabled"]) == 1);
-                        _groups.TryAdd(group.Id, group);
-                        return true;
-                    }
+                if (r != null)
+                {
+                    group = new Group((int)r.id, r.name, r.desc, r.badge, (int)r.room_id, (int)r.owner_id, r.created, Convert.ToInt32(r.state), r.group_type, r.colour1, r.colour2, Convert.ToInt32(r.admindeco), Convert.ToInt32(r.forum_enabled) == 1);
+                    _groups.TryAdd(group.Id, group);
+                    return true;
                 }
             }
 
@@ -153,31 +138,36 @@ namespace Plus.HabboHotel.Groups
             if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(badge))
                 return false;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            var entity = new Database.EF.Entities.group
             {
-                dbClient.SetQuery("INSERT INTO `groups` (`name`, `desc`, `badge`, `owner_id`, `created`, `room_id`, `state`, `group_type`, `colour1`, `colour2`, `admindeco`) VALUES (@name, @desc, @badge, @owner, UNIX_TIMESTAMP(), @room, '0', '0', @colour1, @colour2, '0')");
-                dbClient.AddParameter("name", group.Name);
-                dbClient.AddParameter("desc", group.Description);
-                dbClient.AddParameter("owner", group.CreatorId);
-                dbClient.AddParameter("badge", group.Badge);
-                dbClient.AddParameter("room", group.RoomId);
-                dbClient.AddParameter("colour1", group.Colour1);
-                dbClient.AddParameter("colour2", group.Colour2);
-                group.Id = Convert.ToInt32(dbClient.InsertQuery());
+                name = group.Name,
+                desc = group.Description,
+                badge = group.Badge,
+                owner_id = (uint)group.CreatorId,
+                created = (int)PlusEnvironment.GetUnixTimestamp(),
+                room_id = (uint)group.RoomId,
+                state = "0",
+                group_type = 0,
+                colour1 = group.Colour1,
+                colour2 = group.Colour2,
+                admindeco = "0"
+            };
+            db.groups.Add(entity);
+            db.SaveChanges();
+            group.Id = (int)entity.id;
 
-                group.AddMember(player.Id, 0);
-                group.AddRole("Member", 0, string.Empty, string.Empty, 5, true);
+            group.AddMember(player.Id, 0);
+            group.AddRole("Member", 0, string.Empty, string.Empty, 5, true);
 
-                if (!_groups.TryAdd(group.Id, group))
-                    return false;
+            if (!_groups.TryAdd(group.Id, group))
+                return false;
 
-                dbClient.SetQuery("UPDATE `rooms` SET `group_id` = @gid WHERE `id` = @rid LIMIT 1");
-                dbClient.AddParameter("gid", group.Id);
-                dbClient.AddParameter("rid", group.RoomId);
-                dbClient.RunQuery();
-
-                dbClient.RunQuery("DELETE FROM `room_rights` WHERE `room_id` = '" + roomId + "'");
-            }
+            uint groupIdValue = (uint)group.Id;
+            int roomIdInt = group.RoomId;
+            uint roomIdValue = (uint)group.RoomId;
+            db.rooms.Where(x => x.id == roomIdInt).ExecuteUpdate(s => s.SetProperty(x => x.group_id, groupIdValue));
+            db.room_rights.Where(x => x.room_id == roomIdValue).ExecuteDelete();
 
             return true;
         }
@@ -192,15 +182,14 @@ namespace Plus.HabboHotel.Groups
             _roleSaveTick = RoleSaveIntervalTicks;
         }
 
-        /// <summary>Flush every group's dirty roles and permissions to the database immediately.</summary>
         public void SaveAll()
         {
             foreach (Group group in _groups.Values)
-            {
-                group.SaveRoles();
-                group.SavePermissions();
-            }
+                group.Flush();
         }
+
+        /// <summary>Every currently-loaded group (used by the Redis group mirror).</summary>
+        public IEnumerable<Group> GetLoadedGroups() => _groups.Values;
 
         public bool TryGetPermissionKey(int permissionId, out GroupPermissionKey permissionKey)
         {
@@ -236,19 +225,11 @@ namespace Plus.HabboHotel.Groups
             if (_groups.ContainsKey(id))
                 _groups.TryRemove(id, out group);
 
+            Plus.Core.Cache.GroupCache.Remove(id);
             group?.Dispose();
         }
 
-        /// <summary>
-        /// Group kinds a user can hold a job / work shifts in.
-        /// Only Corporation (1) and Business (5) — never a gang/cartel/mafia.
-        /// </summary>
         public static bool IsWorkableKind(GroupKind kind) => kind == GroupKind.Corporation || kind == GroupKind.Business;
-
-        /// <summary>
-        /// Returns the single corporation/business group a user belongs to (if any).
-        /// A user can only be in one workable group at a time.
-        /// </summary>
         public bool TryGetWorkGroupForUser(int userId, out Group workGroup)
         {
             workGroup = null;
@@ -266,19 +247,31 @@ namespace Plus.HabboHotel.Groups
         public List<Group> GetGroupsForUser(int userId)
         {
             List<Group> groups = new();
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("SELECT g.id FROM `group_memberships` AS m RIGHT JOIN `groups` AS g ON m.group_id = g.id WHERE m.user_id = @user");
-                dbClient.AddParameter("user", userId);
-                DataTable getGroups = dbClient.GetTable();
+            HashSet<int> seen = new();
 
-                if (getGroups != null) {
-                    foreach (DataRow row in getGroups.Rows)
-                    {
-                        if (TryGetGroup(Convert.ToInt32(row["id"]), out Group group))
-                            groups.Add(group);
-                    }
-                }
+            // Loaded groups are the authoritative (cached) source: membership changes are deferred
+            // to the 15-minute DB flush, so the DB alone would be stale for recent joins/leaves.
+            foreach (Group group in _groups.Values)
+            {
+                if (group.IsMember(userId) && seen.Add(group.Id))
+                    groups.Add(group);
+            }
+
+            // Fall back to the DB only for groups not currently loaded (last-flushed membership).
+            uint uid = (uint)userId;
+            List<int> ids;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
+            {
+                ids = db.group_memberships.Where(m => m.user_id == uid).Select(m => (int)m.group_id).ToList();
+            }
+
+            foreach (int gid in ids)
+            {
+                if (_groups.ContainsKey(gid))
+                    continue; // already handled authoritatively above
+
+                if (TryGetGroup(gid, out Group group) && group.IsMember(userId) && seen.Add(gid))
+                    groups.Add(group);
             }
 
             return groups;

@@ -3,8 +3,7 @@ using Plus.HabboHotel.GameClients;
 namespace Plus.Communication.Packets.Incoming.Roleplay
 {
     /// <summary>
-    /// Requests the latest banking snapshot (ATM + Phone composers) for the requesting user.
-    /// No payload required.
+    /// Requests the latest banking snapshot for the requesting user.
     /// </summary>
     internal class RequestBankDataEvent : IPacketEvent
     {

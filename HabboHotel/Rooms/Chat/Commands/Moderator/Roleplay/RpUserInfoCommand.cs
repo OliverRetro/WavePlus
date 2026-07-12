@@ -1,13 +1,13 @@
 ﻿using Plus.Communication.Packets.Outgoing.Handshake;
 using Plus.Communication.Packets.Outgoing.Quests;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Roleplay.Skill;
 using Plus.HabboHotel.Users;
 using System;
-using System.Data;
 using System.Linq;
 using System.Text;
+using Microsoft.EntityFrameworkCore;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
 {
@@ -27,42 +27,40 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
                 return;
             }
 
-            DataRow userData = null;
-            DataRow userRpInfo = null;
-            DataTable userSkills = null;
             string username = @params[1];
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("SELECT `id`,`username`,`mail`,`rank`,`motto`,`credits`,`activity_points`,`vip_points`,`gotw_points`,`online`,`rank_vip` FROM users WHERE `username` = @Username LIMIT 1");
-                dbClient.AddParameter("Username", username);
-                userData = dbClient.GetRow();
-            }
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+
+            var userData = db.users
+                .Where(u => u.username == username)
+                .Select(u => new { u.id, u.username })
+                .FirstOrDefault();
 
             if (userData == null) {
                 session.SendNotification("Oops, there is no user in the database with that username (" + username + ")!");
                 return;
             }
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("SELECT * FROM `user_rp_statistics` WHERE `user_id` = '" + Convert.ToInt32(userData["id"]) + "' LIMIT 1");
-                userRpInfo = dbClient.GetRow();
-                if (userRpInfo == null) {
-                    dbClient.RunQuery("INSERT INTO `user_rp_statistics` (`user_id`) VALUES ('" + Convert.ToInt32(userData["id"]) + "')");
+            int userId = userData.id;
 
-                    dbClient.SetQuery("SELECT * FROM `user_rp_statistics` WHERE `user_id` = '" + Convert.ToInt32(userData["id"]) + "' LIMIT 1");
-                    userRpInfo = dbClient.GetRow();
-                }
+            var userRpInfo = db.user_rp_statistics
+                .Where(s => s.user_id == userId)
+                .Select(s => new { s.health, s.shield, s.energy, s.hunger, s.experience, s.knockouts, s.deaths })
+                .FirstOrDefault();
+
+            if (userRpInfo == null) {
+                db.Database.ExecuteSqlInterpolated($"INSERT INTO `user_rp_statistics` (`user_id`) VALUES ({userId})");
+
+                userRpInfo = db.user_rp_statistics
+                    .Where(s => s.user_id == userId)
+                    .Select(s => new { s.health, s.shield, s.energy, s.hunger, s.experience, s.knockouts, s.deaths })
+                    .FirstOrDefault();
             }
 
-
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("SELECT * FROM `user_rp_skills` WHERE `user_id` = @uid");
-                dbClient.AddParameter("uid", Convert.ToInt32(userData["id"]));
-                userSkills = dbClient.GetTable();
-            }
+            var userSkills = db.user_rp_skills
+                .Where(s => s.user_id == userId)
+                .Select(s => new { s.skill_id, s.progress, s.equipped })
+                .ToList();
 
             GameClient targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(username);
 
@@ -96,23 +94,23 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
                     habboInfo.Append($"{skill.Name}: Level {level} {(equipped ? "[Equipped]" : "")}\r");
                 }
             } else {
-                habboInfo.Append("Username: " + Convert.ToString(userData["username"]) + "" + " (ID: <b>" + Convert.ToInt32(userData["id"]) + "</b>\r\r");
+                habboInfo.Append("Username: " + userData.username + "" + " (ID: <b>" + userData.id + "</b>\r\r");
                 habboInfo.Append("Online Status: " + (targetClient != null ? "True" : "False") + "\r\r");
-                habboInfo.Append("Health: " + Convert.ToInt32(userRpInfo["health"]) + "\r");
-                habboInfo.Append("Shield: " + Convert.ToInt32(userRpInfo["shield"]) + "\r");
-                habboInfo.Append("Energy: " + Convert.ToInt32(userRpInfo["energy"]) + "\r");
-                habboInfo.Append("Hunger: " + Convert.ToInt32(userRpInfo["hunger"]) + "\r");
-                habboInfo.Append("Experience: " + Convert.ToInt32(userRpInfo["experience"]) + "\r");
-                habboInfo.Append("Kills: " + Convert.ToInt32(userRpInfo["knockouts"]) + "\r");
-                habboInfo.Append("Deaths: " + Convert.ToInt32(userRpInfo["deaths"]) + "\r\r");
+                habboInfo.Append("Health: " + userRpInfo.health + "\r");
+                habboInfo.Append("Shield: " + userRpInfo.shield + "\r");
+                habboInfo.Append("Energy: " + userRpInfo.energy + "\r");
+                habboInfo.Append("Hunger: " + userRpInfo.hunger + "\r");
+                habboInfo.Append("Experience: " + userRpInfo.experience + "\r");
+                habboInfo.Append("Kills: " + userRpInfo.knockouts + "\r");
+                habboInfo.Append("Deaths: " + userRpInfo.deaths + "\r\r");
                 habboInfo.Append("<b>Skills:</b>\r");
 
                 if (userSkills != null) {
-                    foreach (DataRow row in userSkills.Rows)
+                    foreach (var row in userSkills)
                     {
-                        int skillId = Convert.ToInt32(row["skill_id"]);
-                        int progress = Convert.ToInt32(row["progress"]);
-                        bool equipped = Convert.ToBoolean(row["equipped"]);
+                        int skillId = row.skill_id;
+                        int progress = row.progress;
+                        bool equipped = row.equipped;
 
                         Skill skill = PlusEnvironment.GetSkillManager().GetSkillById(skillId);
 

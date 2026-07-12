@@ -1,9 +1,8 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using log4net;
-using Plus.Database.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.Roleplay.RpItem.Weapon;
 
 namespace Plus.HabboHotel.Permissions
@@ -20,55 +19,45 @@ namespace Plus.HabboHotel.Permissions
             _weapons.Clear();
             _skins.Clear();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
                 // Load weapons
-                dbClient.SetQuery("SELECT * FROM `rp_weapons`");
-                DataTable getWeapons = dbClient.GetTable();
+                foreach (var row in db.rp_weapons.AsNoTracking().ToList())
+                {
+                    var weapon = new Weapon(
+                        row.id,
+                        row.name,
+                        row.description,
+                        row.hit_message,
+                        row.critical_hit_message,
+                        row.minimum_damage,
+                        row.maximum_damage,
+                        row.critical_chance,
+                        row.critical_multiplier,
+                        row.effect_id,
+                        row.range,
+                        row.durability,
+                        row.stun_chance,
+                        row.image
+                    );
 
-                if (getWeapons != null) {
-                    foreach (DataRow row in getWeapons.Rows)
-                    {
-                        var weapon = new Weapon(
-                            Convert.ToInt32(row["id"]),
-                            Convert.ToString(row["name"]),
-                            Convert.ToString(row["description"]),
-                            Convert.ToString(row["hit_message"]),
-                            Convert.ToString(row["critical_hit_message"]),
-                            Convert.ToInt32(row["minimum_damage"]),
-                            Convert.ToInt32(row["maximum_damage"]),
-                            Convert.ToInt32(row["critical_chance"]),
-                            Convert.ToDouble(row["critical_multiplier"]),
-                            Convert.ToInt32(row["effect_id"]),
-                            Convert.ToInt32(row["range"]),
-                            Convert.ToInt32(row["durability"]),
-                            Convert.ToInt32(row["stun_chance"]),
-                            Convert.ToString(row["image"])
-                        );
-
-                        _weapons.Add(weapon.Id, weapon);
-                    }
+                    _weapons.Add(weapon.Id, weapon);
                 }
 
-                dbClient.SetQuery("SELECT * FROM `rp_weapon_skins`");
-                DataTable getSkins = dbClient.GetTable();
+                foreach (var row in db.rp_weapon_skins.AsNoTracking().ToList())
+                {
+                    WeaponSkin skin = new(
+                        row.id,
+                        row.weapon_id,
+                        row.name,
+                        row.hit_message,
+                        row.critical_hit_message,
+                        row.base_price,
+                        row.rarity,
+                        row.effect_id
+                    );
 
-                if (getSkins != null) {
-                    foreach (DataRow row in getSkins.Rows)
-                    {
-                        WeaponSkin skin = new(
-                            Convert.ToInt32(row["id"]),
-                            Convert.ToInt32(row["weapon_id"]),
-                            Convert.ToString(row["name"]),
-                            Convert.ToString(row["hit_message"]),
-                            Convert.ToString(row["critical_hit_message"]),
-                            Convert.ToInt32(row["base_price"]),
-                            Convert.ToInt32(row["rarity"]),
-                            Convert.ToInt32(row["effect_id"])
-                        );
-
-                        _skins[skin.Id] = skin;
-                    }
+                    _skins[skin.Id] = skin;
                 }
 
                 _weapons.Add(0, new Weapon(0, "Fists", "Basic hand attack", "*punches %username% with their fists, dealing %damage% damage*", "*lands a critical hit on %username%*, dealing %damage% damage.", 1, 3, 0, 1, 0, 1, 999999, 1, "fists.png"));

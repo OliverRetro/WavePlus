@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Plus.Communication.Packets.Outgoing.Moderation;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Rooms.Chat.Logs;
@@ -31,20 +30,21 @@ namespace Plus.Communication.Packets.Incoming.Moderation
 
             List<ChatLogEntry> chats = new();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            uint rid = (uint)roomId;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT * FROM `chatlogs` WHERE `room_id` = @id ORDER BY `id` DESC LIMIT 100");
-                dbClient.AddParameter("id", roomId);
-                var data = dbClient.GetTable();
+                var data = db.chatlogs.Where(c => c.room_id == rid)
+                    .OrderByDescending(c => c.id)
+                    .Select(c => new { c.user_id, c.message, c.timestamp })
+                    .Take(100)
+                    .ToList();
 
-                if (data != null) {
-                    foreach (DataRow row in data.Rows)
-                    {
-                        Habbo habbo = PlusEnvironment.GetHabboById(Convert.ToInt32(row["user_id"]));
+                foreach (var row in data)
+                {
+                    Habbo habbo = PlusEnvironment.GetHabboById((int)row.user_id);
 
-                        if (habbo != null) {
-                            chats.Add(new ChatLogEntry(Convert.ToInt32(row["user_id"]), roomId, Convert.ToString(row["message"]), Convert.ToDouble(row["timestamp"]), habbo));
-                        }
+                    if (habbo != null) {
+                        chats.Add(new ChatLogEntry((int)row.user_id, roomId, row.message, row.timestamp, habbo));
                     }
                 }
             }

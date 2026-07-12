@@ -1,7 +1,8 @@
 ﻿using System.Drawing;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Outgoing.Inventory.Pets;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Rooms.AI;
 
@@ -64,10 +65,15 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                     session.SendPacket(new PetInventoryComposer(session.GetHabbo().GetInventoryComponent().GetPets()));
                 }
 
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                uint petId = (uint)pet.PetId;
+                int petExperience = pet.Experience;
+                int petEnergy = pet.Energy;
+                int petNutrition = pet.Nutrition;
+                int petRespect = pet.Respect;
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    dbClient.RunQuery("UPDATE `bots` SET `room_id` = '0', `x` = '0', `Y` = '0', `Z` = '0' WHERE `id` = '" + pet.PetId + "' LIMIT 1");
-                    dbClient.RunQuery("UPDATE `bots_petdata` SET `experience` = '" + pet.Experience + "', `energy` = '" + pet.Energy + "', `nutrition` = '" + pet.Nutrition + "', `respect` = '" + pet.Respect + "' WHERE `id` = '" + pet.PetId + "' LIMIT 1");
+                    db.bots.Where(b => b.id == petId).ExecuteUpdate(s => s.SetProperty(b => b.room_id, 0u).SetProperty(b => b.x, 0).SetProperty(b => b.y, 0).SetProperty(b => b.z, 0));
+                    db.bots_petdata.Where(p => p.id == petId).ExecuteUpdate(s => s.SetProperty(p => p.experience, petExperience).SetProperty(p => p.energy, petEnergy).SetProperty(p => p.nutrition, petNutrition).SetProperty(p => p.respect, petRespect));
                 }
             }
 

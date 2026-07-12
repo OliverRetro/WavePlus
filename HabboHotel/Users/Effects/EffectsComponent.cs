@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using Plus.Communication.Packets.Outgoing.Rooms.Avatar;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.Rooms;
 
 namespace Plus.HabboHotel.Users.Effects
@@ -26,18 +25,18 @@ namespace Plus.HabboHotel.Users.Effects
             if (_effects.Count > 0)
                 return false;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            uint uid = (uint)habbo.Id;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT * FROM `user_effects` WHERE `user_id` = @id;");
-                dbClient.AddParameter("id", habbo.Id);
-                DataTable getEffects = dbClient.GetTable();
+                var effects = db.user_effects
+                    .Where(e => e.user_id == uid)
+                    .Select(e => new { e.id, e.user_id, e.effect_id, e.total_duration, e.is_activated, e.activated_stamp, e.quantity })
+                    .ToList();
 
-                if (getEffects != null) {
-                    foreach (DataRow row in getEffects.Rows)
-                    {
-                        if (_effects.TryAdd(Convert.ToInt32(row["id"]), new AvatarEffect(Convert.ToInt32(row["id"]), Convert.ToInt32(row["user_id"]), Convert.ToInt32(row["effect_id"]), Convert.ToDouble(row["total_duration"]), PlusEnvironment.EnumToBool(row["is_activated"].ToString()), Convert.ToDouble(row["activated_stamp"]), Convert.ToInt32(row["quantity"])))) {
-                            //umm?
-                        }
+                foreach (var row in effects)
+                {
+                    if (_effects.TryAdd(row.id, new AvatarEffect(row.id, (int)(row.user_id ?? 0), row.effect_id ?? 0, row.total_duration ?? 0, PlusEnvironment.EnumToBool(row.is_activated), row.activated_stamp ?? 0, row.quantity ?? 0))) {
+                        //umm?
                     }
                 }
             }

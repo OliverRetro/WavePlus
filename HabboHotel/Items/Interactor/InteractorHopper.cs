@@ -1,4 +1,5 @@
-﻿using Plus.Database.Interfaces;
+﻿using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Rooms;
 
@@ -9,12 +10,12 @@ namespace Plus.HabboHotel.Items.Interactor
         public void OnPlace(GameClient session, Item item)
         {
             item.GetRoom().GetRoomItemHandler().HopperCount++;
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            int hopperId = item.Id;
+            int hopperRoomId = item.RoomId;
+            // NOTE: no EF entity exists for `items_hopper`; raw parameterized SQL through the context.
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("INSERT INTO items_hopper (hopper_id, room_id) VALUES (@hopperid, @roomid);");
-                dbClient.AddParameter("hopperid", item.Id);
-                dbClient.AddParameter("roomid", item.RoomId);
-                dbClient.RunQuery();
+                db.Database.ExecuteSqlInterpolated($"INSERT INTO items_hopper (hopper_id, room_id) VALUES ({hopperId}, {hopperRoomId});");
             }
 
             if (item.InteractingUser != 0) {
@@ -33,12 +34,13 @@ namespace Plus.HabboHotel.Items.Interactor
         public void OnRemove(GameClient session, Item item)
         {
             item.GetRoom().GetRoomItemHandler().HopperCount--;
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            int hid = item.Id;
+            int hopperRoomId = item.GetRoom().RoomId;
+            // NOTE: no EF entity exists for `items_hopper`; raw parameterized SQL through the context.
+            // NOTE: legacy query filters on column `item_id` here though the insert wrote `hopper_id`; preserved as-is.
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("DELETE FROM items_hopper WHERE item_id=@hid OR room_id=" + item.GetRoom().RoomId +
-                                  " LIMIT 1");
-                dbClient.AddParameter("hid", item.Id);
-                dbClient.RunQuery();
+                db.Database.ExecuteSqlInterpolated($"DELETE FROM items_hopper WHERE item_id={hid} OR room_id={hopperRoomId} LIMIT 1");
             }
 
             if (item.InteractingUser != 0) {

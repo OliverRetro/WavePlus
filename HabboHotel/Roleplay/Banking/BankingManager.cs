@@ -1,10 +1,12 @@
 using Plus.Communication.Packets.Outgoing.Inventory.Purse;
 using Plus.Communication.Packets.Outgoing.Roleplay;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
+using Plus.Database.EF.Entities;
 using Plus.HabboHotel.Users;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
-using System.Data;
+using System.Linq;
 
 namespace Plus.HabboHotel.Roleplay.Banking
 {
@@ -33,28 +35,15 @@ namespace Plus.HabboHotel.Roleplay.Banking
 
         public List<UserRpBankLog> LoadRecentLogs(int userId)
         {
-            List<UserRpBankLog> logs = new();
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("SELECT `user_id`,`amount`,`action_type`,`management_type`,`fee_paid`,`timestamp` FROM `user_rp_bank_logs` WHERE `user_id` = @user_id ORDER BY `timestamp` DESC LIMIT @limit");
-                dbClient.AddParameter("user_id", userId);
-                dbClient.AddParameter("limit", RecentLogLimit);
-                DataTable table = dbClient.GetTable();
-                if (table != null) {
-                    foreach (DataRow row in table.Rows)
-                    {
-                        logs.Add(new UserRpBankLog(
-                            Convert.ToInt32(row["user_id"]),
-                            Convert.ToInt32(row["amount"]),
-                            Convert.ToString(row["action_type"]),
-                            Convert.ToString(row["management_type"]),
-                            Convert.ToInt32(row["fee_paid"]),
-                            Convert.ToDateTime(row["timestamp"])));
-                    }
-                }
-            }
-
-            return logs;
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            return db.user_rp_bank_logs
+                .Where(l => l.user_id == userId)
+                .OrderByDescending(l => l.timestamp)
+                .Take(RecentLogLimit)
+                .Select(l => new { l.user_id, l.amount, l.action_type, l.management_type, l.fee_paid, l.timestamp })
+                .ToList()
+                .Select(l => new UserRpBankLog(l.user_id, l.amount, l.action_type, l.management_type, l.fee_paid, l.timestamp))
+                .ToList();
         }
 
         private static double GetDepositFeeFraction()
@@ -65,19 +54,14 @@ namespace Plus.HabboHotel.Roleplay.Banking
 
         public UserRpBankAccount LoadAccount(int userId)
         {
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("SELECT `user_id`,`balance`,`account_opened` FROM `user_rp_bank` WHERE `user_id` = @user_id LIMIT 1");
-                dbClient.AddParameter("user_id", userId);
-                DataRow row = dbClient.GetRow();
-                if (row == null)
-                    return null;
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            var row = db.user_rp_banks.Where(b => b.user_id == userId)
+                .Select(b => new { b.user_id, b.balance, b.account_opened })
+                .FirstOrDefault();
+            if (row == null)
+                return null;
 
-                return new UserRpBankAccount(
-                    Convert.ToInt32(row["user_id"]),
-                    Convert.ToInt32(row["balance"]),
-                    Convert.ToDateTime(row["account_opened"]));
-            }
+            return new UserRpBankAccount(row.user_id, row.balance, row.account_opened);
         }
 
         public bool CreateAccount(Habbo habbo)
@@ -96,14 +80,14 @@ namespace Plus.HabboHotel.Roleplay.Banking
             account.MarkSaved();
             habbo.SetBankAccount(account);
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            db.user_rp_banks.Add(new user_rp_bank
             {
-                dbClient.SetQuery("INSERT INTO `user_rp_bank` (`user_id`, `balance`, `account_opened`) VALUES (@user_id, @balance, @account_opened)");
-                dbClient.AddParameter("user_id", habbo.Id);
-                dbClient.AddParameter("balance", 0);
-                dbClient.AddParameter("account_opened", account.AccountOpened);
-                dbClient.RunQuery();
-            }
+                user_id = habbo.Id,
+                balance = 0,
+                account_opened = account.AccountOpened
+            });
+            db.SaveChanges();
 
             return true;
         }
@@ -113,15 +97,10 @@ namespace Plus.HabboHotel.Roleplay.Banking
             if (habbo?.GetBankAccount() == null)
                 return false;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("DELETE FROM `user_rp_bank_logs` WHERE `user_id` = @user_id");
-                dbClient.AddParameter("user_id", habbo.Id);
-                dbClient.RunQuery();
-
-                dbClient.SetQuery("DELETE FROM `user_rp_bank` WHERE `user_id` = @user_id LIMIT 1");
-                dbClient.AddParameter("user_id", habbo.Id);
-                dbClient.RunQuery();
+                db.user_rp_bank_logs.Where(l => l.user_id == habbo.Id).ExecuteDelete();
+                db.user_rp_banks.Where(b => b.user_id == habbo.Id).ExecuteDelete();
             }
 
             habbo.SetBankAccount(null);
@@ -191,28 +170,25 @@ namespace Plus.HabboHotel.Roleplay.Banking
             if (account == null)
                 return;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                if (account.Dirty) {
-                    dbClient.SetQuery("UPDATE `user_rp_bank` SET `balance` = @balance WHERE `user_id` = @user_id LIMIT 1");
-                    dbClient.AddParameter("balance", account.Balance);
-                    dbClient.AddParameter("user_id", habbo.Id);
-                    dbClient.RunQuery();
-                    account.MarkSaved();
-                }
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-                foreach (UserRpBankLog log in account.PendingLogs)
+            if (account.Dirty) {
+                db.user_rp_banks.Where(b => b.user_id == habbo.Id)
+                    .ExecuteUpdate(s => s.SetProperty(b => b.balance, account.Balance));
+                account.MarkSaved();
+            }
+
+            if (account.PendingLogs.Count > 0) {
+                db.user_rp_bank_logs.AddRange(account.PendingLogs.Select(log => new user_rp_bank_log
                 {
-                    dbClient.SetQuery("INSERT INTO `user_rp_bank_logs` (`user_id`, `amount`, `action_type`, `management_type`, `fee_paid`, `timestamp`) VALUES (@user_id, @amount, @action_type, @management_type, @fee_paid, @timestamp)");
-                    dbClient.AddParameter("user_id", log.UserId);
-                    dbClient.AddParameter("amount", log.Amount);
-                    dbClient.AddParameter("action_type", log.ActionType);
-                    dbClient.AddParameter("management_type", log.ManagementType);
-                    dbClient.AddParameter("fee_paid", log.FeePaid);
-                    dbClient.AddParameter("timestamp", log.Timestamp);
-                    dbClient.RunQuery();
-                }
-
+                    user_id = log.UserId,
+                    amount = log.Amount,
+                    action_type = log.ActionType,
+                    management_type = log.ManagementType,
+                    fee_paid = log.FeePaid,
+                    timestamp = log.Timestamp
+                }));
+                db.SaveChanges();
                 account.PendingLogs.Clear();
             }
         }

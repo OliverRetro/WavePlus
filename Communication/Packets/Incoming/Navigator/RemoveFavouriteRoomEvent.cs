@@ -1,5 +1,7 @@
-﻿using Plus.Communication.Packets.Outgoing.Navigator;
-using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Communication.Packets.Outgoing.Navigator;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 
 namespace Plus.Communication.Packets.Incoming.Navigator
@@ -13,9 +15,11 @@ namespace Plus.Communication.Packets.Incoming.Navigator
             session.GetHabbo().FavoriteRooms.Remove(id);
             session.SendPacket(new UpdateFavouriteRoomComposer(id, false));
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            uint userId = (uint)session.GetHabbo().Id;
+            uint roomId = (uint)id;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.RunQuery("DELETE FROM user_favorites WHERE user_id = " + session.GetHabbo().Id + " AND room_id = " + id + " LIMIT 1");
+                db.user_favorites.Where(f => f.user_id == userId && f.room_id == roomId).ExecuteDelete();
             }
         }
     }

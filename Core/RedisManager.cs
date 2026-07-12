@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using log4net;
+using Newtonsoft.Json;
 using StackExchange.Redis;
 
 namespace Plus.Core
@@ -12,6 +14,9 @@ namespace Plus.Core
         private IDatabase _database;
 
         public bool IsConnected => _connection != null && _connection.IsConnected;
+
+        /// <summary>True when Redis is available for the write-behind cache to use.</summary>
+        public bool IsAvailable => _database != null;
 
         public void Init()
         {
@@ -80,6 +85,132 @@ namespace Plus.Core
             {
                 Log.Error($"Redis ListPush failed: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// Stores an object as JSON. JSON keeps the cached value readable via redis-cli
+        /// (GET key) while still round-tripping to strongly-typed C#. Returns false when
+        /// Redis is unavailable so callers can fall back to the database.
+        /// </summary>
+        public bool SetObject<T>(string key, T value, TimeSpan? expiry = null)
+        {
+            if (_database == null)
+                return false;
+
+            try
+            {
+                string json = JsonConvert.SerializeObject(value);
+                return _database.StringSet(key, json, expiry);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Redis SetObject({key}) failed: {ex.Message}");
+                return false;
+            }
+        }
+
+        public T GetObject<T>(string key)
+        {
+            if (_database == null)
+                return default;
+
+            try
+            {
+                RedisValue value = _database.StringGet(key);
+                if (value.IsNullOrEmpty)
+                    return default;
+
+                return JsonConvert.DeserializeObject<T>(value);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Redis GetObject({key}) failed: {ex.Message}");
+                return default;
+            }
+        }
+
+        public bool KeyExists(string key)
+        {
+            if (_database == null)
+                return false;
+
+            try
+            {
+                return _database.KeyExists(key);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Redis KeyExists({key}) failed: {ex.Message}");
+                return false;
+            }
+        }
+
+        public void Delete(string key)
+        {
+            if (_database == null)
+                return;
+
+            try
+            {
+                _database.KeyDelete(key);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Redis Delete({key}) failed: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Adds a member to an index set (e.g. the set of user ids currently cached).
+        /// Periodic savers iterate these sets instead of SCAN-ing the whole keyspace.
+        /// </summary>
+        public void SetAdd(string setKey, string member)
+        {
+            if (_database == null)
+                return;
+
+            try
+            {
+                _database.SetAdd(setKey, member);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Redis SetAdd({setKey}) failed: {ex.Message}");
+            }
+        }
+
+        public void SetRemove(string setKey, string member)
+        {
+            if (_database == null)
+                return;
+
+            try
+            {
+                _database.SetRemove(setKey, member);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Redis SetRemove({setKey}) failed: {ex.Message}");
+            }
+        }
+
+        public List<string> SetMembers(string setKey)
+        {
+            var result = new List<string>();
+            if (_database == null)
+                return result;
+
+            try
+            {
+                foreach (RedisValue member in _database.SetMembers(setKey))
+                    result.Add(member);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Redis SetMembers({setKey}) failed: {ex.Message}");
+            }
+
+            return result;
         }
 
         public void Dispose()

@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Outgoing.Inventory.Bots;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Users.Inventory.Bots;
 
@@ -31,11 +32,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                 if (!room.GetRoomUserManager().TryGetBot(user.BotData.Id, out botUser))
                     return;
 
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                uint botId = (uint)user.BotData.Id;
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    dbClient.SetQuery("UPDATE `bots` SET `room_id` = '0' WHERE `id` = @id LIMIT 1");
-                    dbClient.AddParameter("id", user.BotData.Id);
-                    dbClient.RunQuery();
+                    db.bots.Where(b => b.id == botId).ExecuteUpdate(s => s.SetProperty(b => b.room_id, 0u));
                 }
 
                 session.GetHabbo().GetInventoryComponent().TryAddBot(new Bot(Convert.ToInt32(botUser.BotData.Id), Convert.ToInt32(botUser.BotData.OwnerId), botUser.BotData.Name, botUser.BotData.Motto, botUser.BotData.Look, botUser.BotData.Gender));

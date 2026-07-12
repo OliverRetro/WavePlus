@@ -1,6 +1,8 @@
 ﻿using Plus.Communication.Packets.Outgoing.Inventory.Furni;
 using Plus.Communication.Packets.Outgoing.Inventory.Purse;
-using Plus.Database.Interfaces;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
 using Plus.HabboHotel.Rooms;
@@ -40,11 +42,10 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
                 session.SendPacket(new CreditBalanceComposer(session.GetHabbo().Credits));
             }
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            uint exchangeId = (uint)exchange.Id;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("DELETE FROM `items` WHERE `id` = @exchangeId LIMIT 1");
-                dbClient.AddParameter("exchangeId", exchange.Id);
-                dbClient.RunQuery();
+                db.items.Where(i => i.id == exchangeId).ExecuteDelete();
             }
 
             session.SendPacket(new FurniListUpdateComposer());

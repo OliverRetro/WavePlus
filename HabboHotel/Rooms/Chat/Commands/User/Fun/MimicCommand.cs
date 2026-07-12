@@ -1,6 +1,8 @@
-﻿using Plus.Communication.Packets.Outgoing.Rooms.Avatar;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Communication.Packets.Outgoing.Rooms.Avatar;
 using Plus.Communication.Packets.Outgoing.Rooms.Engine;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Fun
@@ -40,13 +42,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Fun
             session.GetHabbo().Gender = targetUser.GetClient().GetHabbo().Gender;
             session.GetHabbo().Look = targetUser.GetClient().GetHabbo().Look;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            int userId = session.GetHabbo().Id;
+            string gender = session.GetHabbo().Gender;
+            string look = session.GetHabbo().Look;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("UPDATE `users` SET `gender` = @gender, `look` = @look WHERE `id` = @id LIMIT 1");
-                dbClient.AddParameter("gender", session.GetHabbo().Gender);
-                dbClient.AddParameter("look", session.GetHabbo().Look);
-                dbClient.AddParameter("id", session.GetHabbo().Id);
-                dbClient.RunQuery();
+                db.users.Where(u => u.id == userId).ExecuteUpdate(s => s.SetProperty(u => u.gender, gender).SetProperty(u => u.look, look));
             }
 
             RoomUser user = room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id);

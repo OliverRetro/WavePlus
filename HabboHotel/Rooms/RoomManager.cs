@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using log4net;
 using Plus.Core;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 
 namespace Plus.HabboHotel.Rooms
@@ -68,47 +68,35 @@ namespace Plus.HabboHotel.Rooms
             if (_roomModels.Count > 0)
                 _roomModels.Clear();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            var models = db.room_models.Where(m => m.custom == "0")
+                .Select(m => new { m.id, m.door_x, m.door_y, m.door_z, m.door_dir, m.heightmap, m.club_only, m.wall_height })
+                .ToList();
+
+            foreach (var m in models)
             {
-                dbClient.SetQuery("SELECT id,door_x,door_y,door_z,door_dir,heightmap,club_only,poolmap,`wall_height` FROM `room_models` WHERE `custom` = '0'");
-                DataTable data = dbClient.GetTable();
-
-                if (data == null)
-                    return;
-
-                foreach (DataRow row in data.Rows)
-                {
-                    string model = Convert.ToString(row["id"]);
-
-                    if (model != null)
-                        _roomModels.Add(model, new RoomModel(model, Convert.ToInt32(row["door_x"]),
-                            Convert.ToInt32(row["door_y"]), (double) row["door_z"], Convert.ToInt32(row["door_dir"]),
-                            Convert.ToString(row["heightmap"]), PlusEnvironment.EnumToBool(row["club_only"].ToString()),
-                            Convert.ToInt32(row["wall_height"]), false));
-                }
+                if (m.id != null)
+                    _roomModels.Add(m.id, new RoomModel(m.id, m.door_x, m.door_y, m.door_z, m.door_dir,
+                        m.heightmap, PlusEnvironment.EnumToBool(m.club_only), m.wall_height, false));
             }
         }
 
         public bool LoadModel(string id)
         {
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("SELECT id,door_x,door_y,door_z,door_dir,heightmap,club_only,poolmap,`wall_height` FROM `room_models` WHERE `custom` = '1' AND `id` = @modelId LIMIT 1");
-                dbClient.AddParameter("modelId", id);
-                DataRow row = dbClient.GetRow();
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            var m = db.room_models.Where(x => x.custom == "1" && x.id == id)
+                .Select(x => new { x.id, x.door_x, x.door_y, x.door_z, x.door_dir, x.heightmap, x.club_only, x.wall_height })
+                .FirstOrDefault();
 
-                if (row == null)
-                    return false;
+            if (m == null)
+                return false;
 
-                string model = Convert.ToString(row["id"]);
-
-                if (model != null && !_roomModels.ContainsKey(model)) {
-                    _roomModels.Add(model, new RoomModel(model, Convert.ToInt32(row["door_x"]), Convert.ToInt32(row["door_y"]), Convert.ToDouble(row["door_z"]), Convert.ToInt32(row["door_dir"]),
-                        Convert.ToString(row["heightmap"]), PlusEnvironment.EnumToBool(row["club_only"].ToString()), Convert.ToInt32(row["wall_height"]), true));
-                }
-
-                return true;
+            if (m.id != null && !_roomModels.ContainsKey(m.id)) {
+                _roomModels.Add(m.id, new RoomModel(m.id, m.door_x, m.door_y, m.door_z, m.door_dir,
+                    m.heightmap, PlusEnvironment.EnumToBool(m.club_only), m.wall_height, true));
             }
+
+            return true;
         }
 
         public void ReloadModel(string id)
@@ -259,20 +247,24 @@ namespace Plus.HabboHotel.Rooms
                 return null;
             }
 
-            int roomId = 0;
+            int roomId;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("INSERT INTO `rooms` (`roomtype`,`caption`,`description`,`owner`,`model_name`,`category`,`users_max`,`trade_settings`) VALUES ('private',@caption,@description,@UserId,@model,@category,@usersmax,@tradesettings)");
-                dbClient.AddParameter("caption", name);
-                dbClient.AddParameter("description", description);
-                dbClient.AddParameter("UserId", session.GetHabbo().Id);
-                dbClient.AddParameter("model", model.Id);
-                dbClient.AddParameter("category", category);
-                dbClient.AddParameter("usersmax", maxVisitors);
-                dbClient.AddParameter("tradesettings", tradeSettings);
-
-                roomId = Convert.ToInt32(dbClient.InsertQuery());
+                var newRoom = new Database.EF.Entities.room
+                {
+                    roomtype = "private",
+                    caption = name,
+                    description = description,
+                    owner = session.GetHabbo().Id.ToString(),
+                    model_name = model.Id,
+                    category = category,
+                    users_max = maxVisitors,
+                    trade_settings = tradeSettings
+                };
+                db.rooms.Add(newRoom);
+                db.SaveChanges();
+                roomId = newRoom.id;
             }
 
             RoomData data = new(roomId, name, model.Id, session.GetHabbo().Username, session.GetHabbo().Id, "", 0, "public", "open", 0, maxVisitors, category, description, string.Empty,

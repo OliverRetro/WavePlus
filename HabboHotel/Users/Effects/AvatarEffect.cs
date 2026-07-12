@@ -1,5 +1,7 @@
-﻿using Plus.Communication.Packets.Outgoing.Inventory.AvatarEffects;
-using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Communication.Packets.Outgoing.Inventory.AvatarEffects;
+using Plus.Database.EF;
 using Plus.Utilities;
 
 namespace Plus.HabboHotel.Users.Effects
@@ -55,18 +57,14 @@ namespace Plus.HabboHotel.Users.Effects
         public bool Activate()
         {
             double tsNow = UnixTimestamp.GetNow();
+            int id = Id;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("UPDATE `user_effects` SET `is_activated` = '1', `activated_stamp` = @ts WHERE `id` = @id");
-                dbClient.AddParameter("ts", tsNow);
-                dbClient.AddParameter("id", Id);
-                dbClient.RunQuery();
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                db.user_effects.Where(e => e.id == id).ExecuteUpdate(s => s.SetProperty(e => e.is_activated, "1").SetProperty(e => e.activated_stamp, tsNow));
 
-                Activated = true;
-                TimestampActivated = tsNow;
-                return true;
-            }
+            Activated = true;
+            TimestampActivated = tsNow;
+            return true;
         }
 
         public void HandleExpiration(Habbo habbo)
@@ -76,17 +74,17 @@ namespace Plus.HabboHotel.Users.Effects
             Activated = false;
             TimestampActivated = 0;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            int id = Id;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
                 if (Quantity < 1) {
-                    dbClient.SetQuery("DELETE FROM `user_effects` WHERE `id` = @id");
-                    dbClient.AddParameter("id", Id);
-                    dbClient.RunQuery();
+                    db.user_effects.Where(e => e.id == id).ExecuteDelete();
                 } else {
-                    dbClient.SetQuery("UPDATE `user_effects` SET `quantity` = @qt, `is_activated` = '0', `activated_stamp` = 0 WHERE `id` = @id");
-                    dbClient.AddParameter("qt", Quantity);
-                    dbClient.AddParameter("id", Id);
-                    dbClient.RunQuery();
+                    int qt = Quantity;
+                    db.user_effects.Where(e => e.id == id).ExecuteUpdate(s => s
+                        .SetProperty(e => e.quantity, qt)
+                        .SetProperty(e => e.is_activated, "0")
+                        .SetProperty(e => e.activated_stamp, (double?)0));
                 }
             }
 
@@ -98,13 +96,10 @@ namespace Plus.HabboHotel.Users.Effects
         {
             Quantity++;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("UPDATE `user_effects` SET `quantity` = @qt WHERE `id` = @id");
-                dbClient.AddParameter("qt", Quantity);
-                dbClient.AddParameter("id", Id);
-                dbClient.RunQuery();
-            }
+            int id = Id;
+            int qt = Quantity;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                db.user_effects.Where(e => e.id == id).ExecuteUpdate(s => s.SetProperty(e => e.quantity, qt));
         }
     }
 }

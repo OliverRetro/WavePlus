@@ -1,5 +1,8 @@
-﻿using Plus.Communication.Packets.Outgoing.Marketplace;
-using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Communication.Packets.Outgoing.Marketplace;
+using Plus.Database.EF;
+using Plus.Database.EF.Entities;
 using Plus.HabboHotel.Catalog.Utilities;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
@@ -36,14 +39,28 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
             if (item.GetBaseItem().Type == 'i')
                 itemType++;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            int ownerId = session.GetHabbo().Id;
+            uint itemIdU = (uint)itemId;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("INSERT INTO `catalog_marketplace_offers` (`furni_id`,`item_id`,`user_id`,`asking_price`,`total_price`,`public_name`,`sprite_id`,`item_type`,`timestamp`,`extra_data`,`limited_number`,`limited_stack`) VALUES ('" + itemId + "','" + item.BaseItem + "','" + session.GetHabbo().Id + "','" + sellingPrice + "','" + totalPrice + "',@public_name,'" + item.GetBaseItem().SpriteId + "','" + itemType + "','" + PlusEnvironment.GetUnixTimestamp() + "',@extra_data, '" + item.LimitedNo + "', '" + item.LimitedTot + "')");
-                dbClient.AddParameter("public_name", item.GetBaseItem().PublicName);
-                dbClient.AddParameter("extra_data", item.ExtraData);
-                dbClient.RunQuery();
+                db.catalog_marketplace_offers.Add(new catalog_marketplace_offer
+                {
+                    furni_id = itemIdU,
+                    item_id = (uint)item.BaseItem,
+                    user_id = (uint)ownerId,
+                    asking_price = sellingPrice,
+                    total_price = totalPrice,
+                    public_name = item.GetBaseItem().PublicName,
+                    sprite_id = item.GetBaseItem().SpriteId,
+                    item_type = itemType.ToString(),
+                    timestamp = PlusEnvironment.GetUnixTimestamp(),
+                    extra_data = item.ExtraData,
+                    limited_number = item.LimitedNo,
+                    limited_stack = item.LimitedTot
+                });
+                db.SaveChanges();
 
-                dbClient.RunQuery("DELETE FROM `items` WHERE `id` = '" + itemId + "' AND `user_id` = '" + session.GetHabbo().Id + "' LIMIT 1");
+                db.items.Where(i => i.id == itemIdU && i.user_id == ownerId).ExecuteDelete();
             }
 
             session.GetHabbo().GetInventoryComponent().RemoveItem(itemId);

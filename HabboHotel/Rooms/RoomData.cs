@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
+using System.Linq;
 using Plus.HabboHotel.Groups;
 using Plus.Utilities;
 
@@ -181,19 +182,20 @@ namespace Plus.HabboHotel.Rooms
 
         public void LoadPromotions()
         {
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("SELECT * FROM `room_promotions` WHERE `room_id` = " + Id + " LIMIT 1;");
-                DataRow getPromotion = dbClient.GetRow();
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            var promo = db.room_promotions.Where(p => p.room_id == Id)
+                .Select(p => new { p.title, p.description, p.timestamp_start, p.timestamp_expire, p.category_id })
+                .FirstOrDefault();
 
-                if (getPromotion != null) {
-                    if (Convert.ToDouble(getPromotion["timestamp_expire"]) > UnixTimestamp.GetNow())
-                        Promotion = new RoomPromotion(Convert.ToString(getPromotion["title"]), Convert.ToString(getPromotion["description"]), Convert.ToDouble(getPromotion["timestamp_start"]), Convert.ToDouble(getPromotion["timestamp_expire"]), Convert.ToInt32(getPromotion["category_id"]));
-                }
-            }
+            if (promo != null && promo.timestamp_expire > UnixTimestamp.GetNow())
+                Promotion = new RoomPromotion(promo.title, promo.description, promo.timestamp_start, promo.timestamp_expire, promo.category_id);
         }
 
         public bool HasActivePromotion => Promotion != null;
+
+        /// <summary>Public rooms stay pinned in memory for the whole uptime and only touch
+        /// the database at boot/shutdown (state lives in memory + Redis meanwhile).</summary>
+        public bool IsPublic => Type == "public";
 
         public void EndPromotion()
         {

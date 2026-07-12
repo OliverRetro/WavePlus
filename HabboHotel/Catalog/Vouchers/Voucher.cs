@@ -1,4 +1,6 @@
-﻿using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 
 namespace Plus.HabboHotel.Catalog.Vouchers
 {
@@ -16,9 +18,10 @@ namespace Plus.HabboHotel.Catalog.Vouchers
         public void UpdateUses()
         {
             CurrentUses += 1;
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            string code = Code;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.RunQuery("UPDATE `catalog_vouchers` SET `current_uses` = `current_uses` + '1' WHERE `voucher` = '" + Code + "' LIMIT 1");
+                db.catalog_vouchers.Where(v => v.voucher == code).ExecuteUpdate(s => s.SetProperty(v => v.current_uses, v => v.current_uses + 1));
             }
         }
 

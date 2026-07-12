@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using Plus.Database.Interfaces;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Plus.Database.EF;
 
 namespace Plus.HabboHotel.Catalog.Vouchers
 {
@@ -19,17 +18,13 @@ namespace Plus.HabboHotel.Catalog.Vouchers
             if (_vouchers.Count > 0)
                 _vouchers.Clear();
 
-            DataTable data = null;
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT `voucher`,`type`,`value`,`current_uses`,`max_uses` FROM `catalog_vouchers` WHERE `enabled` = '1'");
-                data = dbClient.GetTable();
-            }
-
-            if (data != null) {
-                foreach (DataRow row in data.Rows)
+                var rows = db.catalog_vouchers.Where(v => v.enabled == "1")
+                    .Select(v => new { v.voucher, v.type, v.value, v.current_uses, v.max_uses }).ToList();
+                foreach (var row in rows)
                 {
-                    _vouchers.Add(Convert.ToString(row["voucher"]), new Voucher(Convert.ToString(row["voucher"]), Convert.ToString(row["type"]), Convert.ToInt32(row["value"]), Convert.ToInt32(row["current_uses"]), Convert.ToInt32(row["max_uses"])));
+                    _vouchers.Add(row.voucher, new Voucher(row.voucher, row.type, row.value, row.current_uses, row.max_uses));
                 }
             }
         }

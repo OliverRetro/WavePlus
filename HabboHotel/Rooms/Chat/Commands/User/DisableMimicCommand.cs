@@ -1,4 +1,6 @@
-﻿using Plus.Database.Interfaces;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.User
@@ -16,12 +18,11 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
             session.GetHabbo().AllowMimic = !session.GetHabbo().AllowMimic;
             session.SendWhisper("You're " + (session.GetHabbo().AllowMimic ? "now" : "no longer") + " able to be mimiced.");
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("UPDATE `users` SET `allow_mimic` = @AllowMimic WHERE `id` = '" + session.GetHabbo().Id + "'");
-                dbClient.AddParameter("AllowMimic", PlusEnvironment.BoolToEnum(session.GetHabbo().AllowMimic));
-                dbClient.RunQuery();
-            }
+            int userId = session.GetHabbo().Id;
+            string allowMimic = PlusEnvironment.BoolToEnum(session.GetHabbo().AllowMimic);
+
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            db.users.Where(u => u.id == userId).ExecuteUpdate(s => s.SetProperty(u => u.allow_mimic, allowMimic));
         }
     }
 }

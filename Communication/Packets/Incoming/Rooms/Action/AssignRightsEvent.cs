@@ -1,6 +1,7 @@
 ﻿using Plus.Communication.Packets.Outgoing.Rooms.Permissions;
 using Plus.Communication.Packets.Outgoing.Rooms.Settings;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
+using Plus.Database.EF.Entities;
 using Plus.HabboHotel.Cache.Type;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Rooms;
@@ -29,9 +30,10 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Action
 
             room.UsersWithRights.Add(userId);
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.RunQuery("INSERT INTO `room_rights` (`room_id`,`user_id`) VALUES ('" + room.RoomId + "','" + userId + "')");
+                db.room_rights.Add(new room_right { room_id = (uint)room.RoomId, user_id = (uint)userId });
+                db.SaveChanges();
             }
 
             RoomUser roomUser = room.GetRoomUserManager().GetRoomUserByHabbo(userId);

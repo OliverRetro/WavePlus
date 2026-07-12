@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using log4net;
-using Plus.Database.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
+using Plus.Database.EF.Entities;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
@@ -36,39 +37,31 @@ namespace Plus.HabboHotel.Roleplay.Crime
             _byTag.Clear();
             _penalties.Clear();
 
-            using IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor();
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-            dbClient.SetQuery("SELECT * FROM `rp_crimes`");
-            DataTable crimes = dbClient.GetTable();
-            if (crimes != null) {
-                foreach (DataRow row in crimes.Rows)
-                {
-                    RpCrime crime = new(
-                        Convert.ToInt32(row["id"]),
-                        Convert.ToString(row["crime_tag"]),
-                        Convert.ToString(row["crime_name"]),
-                        Convert.ToInt32(row["severity"]),
-                        Convert.ToInt32(row["time_active"]),
-                        Convert.ToInt32(row["automatic_report"]) == 1,
-                        Convert.ToInt32(row["police_alert"]) == 1,
-                        Convert.ToString(row["note"]));
+            foreach (var row in db.rp_crimes.AsNoTracking().ToList())
+            {
+                RpCrime crime = new(
+                    row.id,
+                    row.crime_tag,
+                    row.crime_name,
+                    row.severity,
+                    row.time_active,
+                    row.automatic_report == 1,
+                    row.police_alert == 1,
+                    row.note);
 
-                    _byId[crime.Id] = crime;
-                    _byTag[crime.Tag] = crime;
-                }
+                _byId[crime.Id] = crime;
+                _byTag[crime.Tag] = crime;
             }
 
-            dbClient.SetQuery("SELECT * FROM `rp_crime_penalties` ORDER BY `star_level` ASC");
-            DataTable penalties = dbClient.GetTable();
-            if (penalties != null) {
-                foreach (DataRow row in penalties.Rows)
-                {
-                    _penalties.Add(new RpCrimePenalty(
-                        Convert.ToInt32(row["id"]),
-                        Convert.ToInt32(row["star_level"]),
-                        Convert.ToInt32(row["fine_amount"]),
-                        Convert.ToInt32(row["jail_time"])));
-                }
+            foreach (var row in db.rp_crime_penalties.AsNoTracking().OrderBy(x => x.star_level).ToList())
+            {
+                _penalties.Add(new RpCrimePenalty(
+                    row.id,
+                    row.star_level,
+                    row.fine_amount,
+                    row.jail_time));
             }
 
             Log.Info($"[RP] Loaded {_byId.Count} crimes and {_penalties.Count} crime penalties.");
@@ -271,16 +264,18 @@ namespace Plus.HabboHotel.Roleplay.Crime
 
             try
             {
-                using IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor();
+                using WavePlusContext db = PlusEnvironment.GetDbContext();
                 foreach (PendingCrimeLog log in logs)
                 {
-                    dbClient.SetQuery("INSERT INTO `rp_crime_log` (`crime_id`, `user_id`, `timestamp`, `expired`) VALUES (@cid, @uid, @ts, @exp)");
-                    dbClient.AddParameter("cid", log.CrimeId);
-                    dbClient.AddParameter("uid", userId);
-                    dbClient.AddParameter("ts", log.Timestamp.ToString("yyyy-MM-dd HH:mm:ss.ffffff"));
-                    dbClient.AddParameter("exp", log.Expired ? 1 : 0);
-                    dbClient.RunQuery();
+                    db.rp_crime_logs.Add(new rp_crime_log
+                    {
+                        crime_id = log.CrimeId,
+                        user_id = userId,
+                        timestamp = log.Timestamp,
+                        expired = (sbyte)(log.Expired ? 1 : 0)
+                    });
                 }
+                db.SaveChanges();
             }
             catch (Exception e)
             {

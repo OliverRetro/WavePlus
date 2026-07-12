@@ -1,10 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Outgoing.Navigator;
 using Plus.Communication.Packets.Outgoing.Rooms.Engine;
 using Plus.Communication.Packets.Outgoing.Rooms.Settings;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Navigator;
 using Plus.HabboHotel.Rooms;
@@ -173,33 +174,35 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Settings
                     break;
             }
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            int roomIdVal = room.Id;
+            string tagsStr = formattedTags.ToString();
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("UPDATE `rooms` SET `caption` = @caption, `description` = @description, `password` = @password, `category` = @categoryId, `state` = @state, `tags` = @tags, `users_max` = @maxUsers, `allow_pets` = @allowPets, `allow_pets_eat` = @allowPetsEat, `room_blocking_disabled` = @roomBlockingDisabled, `allow_hidewall` = @allowHidewall, `floorthick` = @floorThick, `wallthick` = @wallThick, `mute_settings` = @muteSettings, `kick_settings` = @kickSettings, `ban_settings` = @banSettings, `chat_mode` = @chatMode, `chat_size` = @chatSize, `chat_speed` = @chatSpeed, `chat_extra_flood` = @extraFlood, `chat_hearing_distance` = @chatDistance, `trade_settings` = @tradeSettings WHERE `id` = @roomId LIMIT 1");
-                dbClient.AddParameter("categoryId", categoryId);
-                dbClient.AddParameter("maxUsers", maxUsers);
-                dbClient.AddParameter("allowPets", allowPets);
-                dbClient.AddParameter("allowPetsEat", allowPetsEat);
-                dbClient.AddParameter("roomBlockingDisabled", roomBlockingEnabled);
-                dbClient.AddParameter("allowHidewall", room.HideWall);
-                dbClient.AddParameter("floorThick", room.FloorThickness);
-                dbClient.AddParameter("wallThick", room.WallThickness);
-                dbClient.AddParameter("muteSettings", room.WhoCanMute);
-                dbClient.AddParameter("kickSettings", room.WhoCanKick);
-                dbClient.AddParameter("banSettings", room.WhoCanBan);
-                dbClient.AddParameter("chatMode", room.ChatMode);
-                dbClient.AddParameter("chatSize", room.ChatSize);
-                dbClient.AddParameter("chatSpeed", room.ChatSpeed);
-                dbClient.AddParameter("extraFlood", room.ExtraFlood);
-                dbClient.AddParameter("chatDistance", room.ChatDistance);
-                dbClient.AddParameter("tradeSettings", room.TradeSettings);
-                dbClient.AddParameter("roomId", room.Id);
-                dbClient.AddParameter("caption", room.Name);
-                dbClient.AddParameter("description", room.Description);
-                dbClient.AddParameter("password", room.Password);
-                dbClient.AddParameter("state", accessStr);
-                dbClient.AddParameter("tags", formattedTags.ToString());
-                dbClient.RunQuery();
+                db.rooms.Where(r => r.id == roomIdVal)
+                    .ExecuteUpdate(s => s
+                        .SetProperty(r => r.caption, room.Name)
+                        .SetProperty(r => r.description, room.Description)
+                        .SetProperty(r => r.password, room.Password)
+                        .SetProperty(r => r.category, categoryId)
+                        .SetProperty(r => r.state, accessStr)
+                        .SetProperty(r => r.tags, tagsStr)
+                        .SetProperty(r => r.users_max, maxUsers)
+                        .SetProperty(r => r.allow_pets, allowPets != 0)
+                        .SetProperty(r => r.allow_pets_eat, allowPetsEat != 0)
+                        // NOTE: legacy maps room_blocking_disabled to roomBlockingEnabled value; preserved as-is.
+                        .SetProperty(r => r.room_blocking_disabled, roomBlockingEnabled != 0)
+                        .SetProperty(r => r.allow_hidewall, (bool?)(room.HideWall != 0))
+                        .SetProperty(r => r.floorthick, room.FloorThickness)
+                        .SetProperty(r => r.wallthick, room.WallThickness)
+                        .SetProperty(r => r.mute_settings, (bool?)(room.WhoCanMute != 0))
+                        .SetProperty(r => r.kick_settings, (sbyte)room.WhoCanKick)
+                        .SetProperty(r => r.ban_settings, (bool?)(room.WhoCanBan != 0))
+                        .SetProperty(r => r.chat_mode, room.ChatMode)
+                        .SetProperty(r => r.chat_size, room.ChatSize)
+                        .SetProperty(r => r.chat_speed, room.ChatSpeed)
+                        .SetProperty(r => r.chat_extra_flood, room.ExtraFlood)
+                        .SetProperty(r => r.chat_hearing_distance, room.ChatDistance)
+                        .SetProperty(r => r.trade_settings, room.TradeSettings));
             }
 
             room.GetGameMap().GenerateMaps();

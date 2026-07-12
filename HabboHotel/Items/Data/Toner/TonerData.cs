@@ -1,6 +1,6 @@
-﻿using System;
-using System.Data;
-using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 
 namespace Plus.HabboHotel.Items.Data.Toner
 {
@@ -16,28 +16,20 @@ namespace Plus.HabboHotel.Items.Data.Toner
         {
             ItemId = item;
 
-            DataRow row;
+            uint idKey = (uint)ItemId;
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("SELECT enabled,data1,data2,data3 FROM room_items_toner WHERE id=" + ItemId + " LIMIT 1");
-                row = dbClient.GetRow();
-            }
+            var row = db.room_items_toners.Where(t => t.id == idKey).Select(t => new { t.enabled, t.data1, t.data2, t.data3 }).FirstOrDefault();
 
             if (row == null) {
-                //throw new NullReferenceException("No toner data found in the database for " + ItemId);
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                {
-                    dbClient.RunQuery("INSERT INTO `room_items_toner` VALUES (" + ItemId + ",'0',0,0,0)");
-                    dbClient.SetQuery("SELECT enabled,data1,data2,data3 FROM room_items_toner WHERE id=" + ItemId + " LIMIT 1");
-                    row = dbClient.GetRow();
-                }
+                db.Database.ExecuteSqlInterpolated($"INSERT INTO `room_items_toner` VALUES ({ItemId}, '0', 0, 0, 0)");
+                row = db.room_items_toners.Where(t => t.id == idKey).Select(t => new { t.enabled, t.data1, t.data2, t.data3 }).FirstOrDefault();
             }
 
-            Enabled = int.Parse(row[0].ToString());
-            Hue = Convert.ToInt32(row[1]);
-            Saturation = Convert.ToInt32(row[2]);
-            Lightness = Convert.ToInt32(row[3]);
+            Enabled = int.Parse(row.enabled);
+            Hue = row.data1;
+            Saturation = row.data2;
+            Lightness = row.data3;
         }
     }
 }

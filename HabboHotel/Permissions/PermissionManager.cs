@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using log4net;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.Users;
 
 namespace Plus.HabboHotel.Permissions
@@ -29,103 +28,59 @@ namespace Plus.HabboHotel.Permissions
             _permissionGroups.Clear();
             _permissionGroupRights.Clear();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("SELECT * FROM `permissions`");
-                DataTable getPermissions = dbClient.GetTable();
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-                if (getPermissions != null) {
-                    foreach (DataRow row in getPermissions.Rows)
+            foreach (var row in db.permissions.Select(p => new { p.id, p.permission1, p.description }).ToList())
+                _permissions.Add(row.id, new Permission(row.id, row.permission1, row.description));
+
+            foreach (var row in db.permissions_commands.Select(c => new { c.command, c.group_id, c.subscription_id }).ToList())
+                _commands.Add(row.command, new PermissionCommand(row.command, row.group_id, row.subscription_id));
+
+            foreach (var row in db.permissions_groups.Select(g => new { g.id }).ToList())
+                _permissionGroups.Add(row.id, new PermissionGroup(Convert.ToString("name"), Convert.ToString("description"), Convert.ToString("badge")));
+
+            foreach (var row in db.permissions_rights.Select(r => new { r.group_id, r.permission_id }).ToList())
+            {
+                int groupId = row.group_id;
+                int permissionId = row.permission_id;
+
+                if (!_permissionGroups.ContainsKey(groupId)) {
+                    continue; // permission group does not exist
+                }
+
+                if (!_permissions.TryGetValue(permissionId, out Permission permission)) {
+                    continue; // permission does not exist
+                }
+
+                if (_permissionGroupRights.ContainsKey(groupId)) {
+                    _permissionGroupRights[groupId].Add(permission.PermissionName);
+                } else {
+                    List<string> rightsSet = new()
                     {
-                        _permissions.Add(Convert.ToInt32(row["id"]), new Permission(Convert.ToInt32(row["id"]), Convert.ToString(row["permission"]), Convert.ToString(row["description"])));
-                    }
+                        permission.PermissionName
+                    };
+
+                    _permissionGroupRights.Add(groupId, rightsSet);
                 }
             }
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            foreach (var row in db.permissions_subscriptions.Select(sub => new { sub.permission_id, sub.subscription_id }).ToList())
             {
-                dbClient.SetQuery("SELECT * FROM `permissions_commands`");
-                DataTable getCommands = dbClient.GetTable();
+                int permissionId = row.permission_id;
+                int subscriptionId = row.subscription_id;
 
-                if (getCommands != null) {
-                    foreach (DataRow row in getCommands.Rows)
+                if (!_permissions.TryGetValue(permissionId, out Permission permission))
+                    continue; // permission does not exist
+
+                if (_permissionSubscriptionRights.ContainsKey(subscriptionId)) {
+                    _permissionSubscriptionRights[subscriptionId].Add(permission.PermissionName);
+                } else {
+                    List<string> rightsSet = new()
                     {
-                        _commands.Add(Convert.ToString(row["command"]), new PermissionCommand(Convert.ToString(row["command"]), Convert.ToInt32(row["group_id"]), Convert.ToInt32(row["subscription_id"])));
-                    }
-                }
-            }
+                        permission.PermissionName
+                    };
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("SELECT * FROM `permissions_groups`");
-                DataTable getPermissionGroups = dbClient.GetTable();
-
-                if (getPermissionGroups != null) {
-                    foreach (DataRow row in getPermissionGroups.Rows)
-                    {
-                        _permissionGroups.Add(Convert.ToInt32(row["id"]), new PermissionGroup(Convert.ToString("name"), Convert.ToString("description"), Convert.ToString("badge")));
-                    }
-                }
-            }
-
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("SELECT * FROM `permissions_rights`");
-                DataTable getPermissionRights = dbClient.GetTable();
-
-                if (getPermissionRights != null) {
-                    foreach (DataRow row in getPermissionRights.Rows)
-                    {
-                        int groupId = Convert.ToInt32(row["group_id"]);
-                        int permissionId = Convert.ToInt32(row["permission_id"]);
-
-                        if (!_permissionGroups.ContainsKey(groupId)) {
-                            continue; // permission group does not exist
-                        }
-
-                        if (!_permissions.TryGetValue(permissionId, out Permission permission)) {
-                            continue; // permission does not exist
-                        }
-
-                        if (_permissionGroupRights.ContainsKey(groupId)) {
-                            _permissionGroupRights[groupId].Add(permission.PermissionName);
-                        } else {
-                            List<string> rightsSet = new()
-                            {
-                                permission.PermissionName
-                            };
-
-                            _permissionGroupRights.Add(groupId, rightsSet);
-                        }
-                    }
-                }
-            }
-
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("SELECT * FROM `permissions_subscriptions`");
-                DataTable getPermissionSubscriptions = dbClient.GetTable();
-
-                if (getPermissionSubscriptions != null) {
-                    foreach (DataRow row in getPermissionSubscriptions.Rows)
-                    {
-                        int permissionId = Convert.ToInt32(row["permission_id"]);
-                        int subscriptionId = Convert.ToInt32(row["subscription_id"]);
-
-                        if (!_permissions.TryGetValue(permissionId, out Permission permission))
-                            continue; // permission does not exist
-
-                        if (_permissionSubscriptionRights.ContainsKey(subscriptionId)) {
-                            _permissionSubscriptionRights[subscriptionId].Add(permission.PermissionName);
-                        } else {
-                            List<string> rightsSet = new()
-                            {
-                                permission.PermissionName
-                            };
-
-                            _permissionSubscriptionRights.Add(subscriptionId, rightsSet);
-                        }
-                    }
+                    _permissionSubscriptionRights.Add(subscriptionId, rightsSet);
                 }
             }
 

@@ -1,5 +1,6 @@
 ﻿using Plus.Communication.Packets.Outgoing.Users;
 using Plus.HabboHotel.GameClients;
+using Plus.HabboHotel.Roleplay.TargetLock;
 using Plus.HabboHotel.Users;
 
 namespace Plus.Communication.Packets.Incoming.Users
@@ -14,6 +15,12 @@ namespace Plus.Communication.Packets.Incoming.Users
                 return;
 
             session.SendPacket(new HabboUserBadgesComposer(habbo));
+
+            if (session?.GetHabbo() != null) {
+                Habbo target = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(userId)?.GetHabbo();
+                if (target != null)
+                    TargetLockService.StickyClick(session.GetHabbo(), target);
+            }
         }
     }
 }

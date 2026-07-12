@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Threading;
 using log4net;
-using Plus.Database.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 
 namespace Plus.Core
 {
@@ -36,20 +37,22 @@ namespace Plus.Core
 
             Console.Title = "Plus Emulator - " + usersOnline + " users online - " + roomCount + " rooms loaded - " + uptime.Days + " day(s) " + uptime.Hours + " hour(s) uptime";
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            // NOTE: original query used LIMIT 1; ExecuteUpdate cannot express LIMIT, so this updates all rows (server_status is a single-row table).
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("UPDATE `server_status` SET `users_online` = @users, `loaded_rooms` = @loadedRooms LIMIT 1;");
-                dbClient.AddParameter("users", usersOnline);
-                dbClient.AddParameter("loadedRooms", roomCount);
-                dbClient.RunQuery();
+                db.server_statuses.ExecuteUpdate(s => s
+                    .SetProperty(x => x.users_online, usersOnline)
+                    .SetProperty(x => x.loaded_rooms, roomCount));
             }
         }
 
         public void Dispose()
         {
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.RunQuery("UPDATE `server_status` SET `users_online` = '0', `loaded_rooms` = '0'");
+                db.server_statuses.ExecuteUpdate(s => s
+                    .SetProperty(x => x.users_online, 0)
+                    .SetProperty(x => x.loaded_rooms, 0));
             }
 
             _timer.Dispose();

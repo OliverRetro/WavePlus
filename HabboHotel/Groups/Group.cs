@@ -3,7 +3,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
+using Microsoft.EntityFrameworkCore;
 using Plus.HabboHotel.Rooms;
 
 namespace Plus.HabboHotel.Groups
@@ -30,6 +31,10 @@ namespace Plus.HabboHotel.Groups
         private readonly List<int> _deletedRoleIds;
         private readonly ConcurrentDictionary<string, GroupPermissionAssignment> _permissions;
         private readonly List<int> _deletedPermissionIds;
+
+        // Set when metadata (name/desc/badge/colours/state/etc.) or the member/request sets change.
+        // Persisted (and cleared) only by Flush() on the 15-minute world-save timer — never per-mutation.
+        private volatile bool _dirty;
 
         private RoomData _room;
 
@@ -70,100 +75,70 @@ namespace Plus.HabboHotel.Groups
 
         public void InitMembers()
         {
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            uint gid = (uint)Id;
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+
+            var members = db.group_memberships.Where(m => m.group_id == gid)
+                .Select(m => new { m.user_id, m.level }).ToList();
+
+            foreach (var row in members)
             {
-                dbClient.SetQuery("SELECT `user_id`, `level` FROM `group_memberships` WHERE `group_id` = @id");
-                dbClient.AddParameter("id", Id);
-                DataTable members = dbClient.GetTable();
-
-                if (members != null) {
-                    foreach (DataRow row in members.Rows)
-                    {
-                        int userId = Convert.ToInt32(row["user_id"]);
-                        int level = Convert.ToInt32(row["level"]);
-                        if (userId == CreatorId)
-                            level = 0;
-
-                        _memberLevels[userId] = level;
-
-                        if (userId == CreatorId && Convert.ToInt32(row["level"]) != 0) {
-                            dbClient.SetQuery("UPDATE `group_memberships` SET `level` = '0' WHERE `user_id` = @uid AND `group_id` = @gid LIMIT 1");
-                            dbClient.AddParameter("uid", userId);
-                            dbClient.AddParameter("gid", Id);
-                            dbClient.RunQuery();
-                        }
-                    }
+                int userId = (int)row.user_id;
+                int level = row.level;
+                if (userId == CreatorId) {
+                    level = 0;
+                    if (row.level != 0)
+                        MarkDirty(); // creator level correction; persisted on the next flush
                 }
 
-                if (!_memberLevels.ContainsKey(CreatorId)) {
-                    dbClient.SetQuery("INSERT INTO `group_memberships` (`user_id`, `group_id`, `level`) VALUES (@uid, @gid, '0')");
-                    dbClient.AddParameter("uid", CreatorId);
-                    dbClient.AddParameter("gid", Id);
-                    dbClient.RunQuery();
-                    _memberLevels[CreatorId] = 0;
-                }
+                _memberLevels[userId] = level;
+            }
 
-                dbClient.SetQuery("SELECT `user_id` FROM `group_requests` WHERE `group_id` = @id");
-                dbClient.AddParameter("id", Id);
-                DataTable requests = dbClient.GetTable();
+            if (!_memberLevels.ContainsKey(CreatorId)) {
+                _memberLevels[CreatorId] = 0;
+                MarkDirty();
+            }
 
-                if (requests != null) {
-                    foreach (DataRow row in requests.Rows)
-                    {
-                        int userId = Convert.ToInt32(row["user_id"]);
-
-                        if (_memberLevels.ContainsKey(userId)) {
-                            dbClient.RunQuery("DELETE FROM `group_requests` WHERE `group_id` = '" + Id + "' AND `user_id` = '" + userId + "'");
-                        } else if (!_requests.Contains(userId)) {
-                            _requests.Add(userId);
-                        }
-                    }
-                }
+            var requests = db.group_requests.Where(r => r.group_id == gid).Select(r => (int)r.user_id).ToList();
+            foreach (int userId in requests)
+            {
+                if (_memberLevels.ContainsKey(userId))
+                    MarkDirty(); // stale request (already a member) is dropped on the next resync
+                else if (!_requests.Contains(userId))
+                    _requests.Add(userId);
             }
         }
 
         public void InitRoles()
         {
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            int gid = Id;
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+
+            var roles = db.group_roles.Where(r => r.group_id == gid).OrderBy(r => r.level)
+                .Select(r => new { r.id, r.group_id, r.level, r.name, r.shift_pay, r.shift_costume, r.shift_duration, r.shift_motto, r.created_at }).ToList();
+
+            foreach (var row in roles)
             {
-                dbClient.SetQuery("SELECT `id`, `group_id`, `level`, `name`, `shift_pay`, `shift_costume`, `shift_duration`, `shift_motto`, `created_at` FROM `group_roles` WHERE `group_id` = @group_id ORDER BY `level` ASC");
-                dbClient.AddParameter("group_id", Id);
-                DataTable roles = dbClient.GetTable();
+                GroupRole role = new(row.id, row.group_id, row.level, row.name, row.shift_pay, row.shift_costume, row.shift_duration == null ? 5 : (int)row.shift_duration, row.shift_motto, row.created_at);
 
-                if (roles != null) {
-                    foreach (DataRow row in roles.Rows)
-                    {
-                        GroupRole role = new(Convert.ToInt32(row["id"]), Convert.ToInt32(row["group_id"]), Convert.ToInt32(row["level"]), Convert.ToString(row["name"]), Convert.ToInt32(row["shift_pay"]), Convert.ToString(row["shift_costume"]), row["shift_duration"] == DBNull.Value ? 5 : Convert.ToInt32(row["shift_duration"]), Convert.ToString(row["shift_motto"]), Convert.ToDateTime(row["created_at"]));
-
-                        _roles[role.Level] = role;
-                    }
-                }
+                _roles[role.Level] = role;
             }
-
         }
 
         public void InitPermissions()
         {
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            int gid = Id;
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+
+            var permissions = db.group_permissions.Where(p => p.group_id == gid)
+                .Select(p => new { p.id, p.group_id, p.level_id, p.permission_id, p.created_at }).ToList();
+
+            foreach (var row in permissions)
             {
-                dbClient.SetQuery("SELECT `id`, `group_id`, `level_id`, `permission_id`, `created_at` FROM `group_permissions` WHERE `group_id` = @group_id");
-                dbClient.AddParameter("group_id", Id);
-                DataTable permissions = dbClient.GetTable();
+                GroupPermissionAssignment assignment = new GroupPermissionAssignment(
+                    row.id, row.group_id, row.level_id, row.permission_id, row.created_at);
 
-                if (permissions == null)
-                    return;
-
-                foreach (DataRow row in permissions.Rows)
-                {
-                    GroupPermissionAssignment assignment = new GroupPermissionAssignment(
-                        Convert.ToInt32(row["id"]),
-                        Convert.ToInt32(row["group_id"]),
-                        Convert.ToInt32(row["level_id"]),
-                        Convert.ToInt32(row["permission_id"]),
-                        Convert.ToDateTime(row["created_at"]));
-
-                    _permissions[BuildPermissionKey(assignment.LevelId, assignment.PermissionId)] = assignment;
-                }
+                _permissions[BuildPermissionKey(assignment.LevelId, assignment.PermissionId)] = assignment;
             }
         }
 
@@ -388,23 +363,12 @@ namespace Plus.HabboHotel.Groups
             if (IsMember(id) || Type == GroupType.Locked && _requests.Contains(id))
                 return;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                if (Type == GroupType.Locked) {
-                    dbClient.SetQuery("INSERT INTO `group_requests` (user_id, group_id) VALUES (@uid, @gid)");
-                    _requests.Add(id);
-                } else {
-                    dbClient.SetQuery("INSERT INTO `group_memberships` (`user_id`, `group_id`, `level`) VALUES (@uid, @gid, @rank)");
-                    dbClient.AddParameter("rank", level);
-                }
-
-                dbClient.AddParameter("gid", Id);
-                dbClient.AddParameter("uid", id);
-                dbClient.RunQuery();
-            }
-
-            if (Type != GroupType.Locked)
+            if (Type == GroupType.Locked)
+                _requests.Add(id);
+            else
                 _memberLevels[id] = level;
+
+            MarkDirty();
         }
 
         public void DeleteMember(int id)
@@ -413,37 +377,18 @@ namespace Plus.HabboHotel.Groups
                 return;
 
             _memberLevels.TryRemove(id, out _);
-
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("DELETE FROM group_memberships WHERE user_id=@uid AND group_id=@gid LIMIT 1");
-                dbClient.AddParameter("gid", Id);
-                dbClient.AddParameter("uid", id);
-                dbClient.RunQuery();
-            }
+            MarkDirty();
         }
 
         public void HandleRequest(int id, bool accepted)
         {
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                if (accepted) {
-                    dbClient.SetQuery("INSERT INTO `group_memberships` (`user_id`, `group_id`, `level`) VALUES (@uid, @gid, 1)");
-                    dbClient.AddParameter("gid", Id);
-                    dbClient.AddParameter("uid", id);
-                    dbClient.RunQuery();
-
-                    _memberLevels[id] = 1;
-                }
-
-                dbClient.SetQuery("DELETE FROM group_requests WHERE user_id=@uid AND group_id=@gid LIMIT 1");
-                dbClient.AddParameter("gid", Id);
-                dbClient.AddParameter("uid", id);
-                dbClient.RunQuery();
-            }
+            if (accepted)
+                _memberLevels[id] = 1;
 
             if (_requests.Contains(id))
                 _requests.Remove(id);
+
+            MarkDirty();
         }
 
         public RoomData GetRoom()
@@ -502,46 +447,52 @@ namespace Plus.HabboHotel.Groups
             if (_deletedRoleIds.Count == 0 && _roles.Values.All(x => !x.Dirty && !x.IsNew))
                 return;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+
+            foreach (int deletedRoleId in _deletedRoleIds.ToList())
             {
-                foreach (int deletedRoleId in _deletedRoleIds.ToList())
-                {
-                    dbClient.SetQuery("DELETE FROM `group_roles` WHERE `id` = @id LIMIT 1");
-                    dbClient.AddParameter("id", deletedRoleId);
-                    dbClient.RunQuery();
+                int rid = deletedRoleId;
+                db.group_roles.Where(r => r.id == rid).ExecuteDelete();
+            }
+
+            _deletedRoleIds.Clear();
+
+            foreach (GroupRole role in _roles.Values.OrderBy(x => x.Level))
+            {
+                if (role.IsNew) {
+                    var entity = new Database.EF.Entities.group_role
+                    {
+                        group_id = role.GroupId,
+                        level = role.Level,
+                        name = role.Name,
+                        shift_pay = role.ShiftPay,
+                        shift_costume = role.ShiftCostume,
+                        shift_duration = (short)role.ShiftDuration,
+                        shift_motto = role.ShiftMotto,
+                        created_at = role.CreatedAt
+                    };
+                    db.group_roles.Add(entity);
+                    db.SaveChanges();
+                    role.MarkPersisted(entity.id);
+                    continue;
                 }
 
-                _deletedRoleIds.Clear();
+                if (!role.Dirty)
+                    continue;
 
-                foreach (GroupRole role in _roles.Values.OrderBy(x => x.Level))
-                {
-                    if (role.IsNew) {
-                        dbClient.SetQuery("INSERT INTO `group_roles` (`group_id`, `level`, `name`, `shift_pay`, `shift_costume`, `shift_duration`, `shift_motto`, `created_at`) VALUES (@group_id, @level, @name, @shift_pay, @shift_costume, @shift_duration, @shift_motto, @created_at)");
-                        dbClient.AddParameter("group_id", role.GroupId);
-                        dbClient.AddParameter("level", role.Level);
-                        dbClient.AddParameter("name", role.Name);
-                        dbClient.AddParameter("shift_pay", role.ShiftPay);
-                        dbClient.AddParameter("shift_costume", role.ShiftCostume);
-                        dbClient.AddParameter("shift_duration", role.ShiftDuration);
-                        dbClient.AddParameter("shift_motto", role.ShiftMotto);
-                        dbClient.AddParameter("created_at", role.CreatedAt);
-                        role.MarkPersisted(Convert.ToInt32(dbClient.InsertQuery()));
-                        continue;
-                    }
-
-                    if (!role.Dirty)
-                        continue;
-
-                    dbClient.SetQuery("UPDATE `group_roles` SET `name` = @name, `shift_pay` = @shift_pay, `shift_costume` = @shift_costume, `shift_duration` = @shift_duration, `shift_motto` = @shift_motto WHERE `id` = @id LIMIT 1");
-                    dbClient.AddParameter("id", role.Id);
-                    dbClient.AddParameter("name", role.Name);
-                    dbClient.AddParameter("shift_pay", role.ShiftPay);
-                    dbClient.AddParameter("shift_costume", role.ShiftCostume);
-                    dbClient.AddParameter("shift_duration", role.ShiftDuration);
-                    dbClient.AddParameter("shift_motto", role.ShiftMotto);
-                    dbClient.RunQuery();
-                    role.MarkSaved();
-                }
+                int roleId = role.Id;
+                string name = role.Name;
+                int shiftPay = role.ShiftPay;
+                string shiftCostume = role.ShiftCostume;
+                short shiftDuration = (short)role.ShiftDuration;
+                string shiftMotto = role.ShiftMotto;
+                db.group_roles.Where(r => r.id == roleId).ExecuteUpdate(s => s
+                    .SetProperty(r => r.name, name)
+                    .SetProperty(r => r.shift_pay, shiftPay)
+                    .SetProperty(r => r.shift_costume, shiftCostume)
+                    .SetProperty(r => r.shift_duration, shiftDuration)
+                    .SetProperty(r => r.shift_motto, shiftMotto));
+                role.MarkSaved();
             }
         }
 
@@ -550,29 +501,31 @@ namespace Plus.HabboHotel.Groups
             if (_deletedPermissionIds.Count == 0 && _permissions.Values.All(x => !x.IsNew))
                 return;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+
+            foreach (int deletedPermissionId in _deletedPermissionIds.ToList())
             {
-                foreach (int deletedPermissionId in _deletedPermissionIds.ToList())
+                int pid = deletedPermissionId;
+                db.group_permissions.Where(p => p.id == pid).ExecuteDelete();
+            }
+
+            _deletedPermissionIds.Clear();
+
+            foreach (GroupPermissionAssignment assignment in _permissions.Values.ToList())
+            {
+                if (!assignment.IsNew)
+                    continue;
+
+                var entity = new Database.EF.Entities.group_permission
                 {
-                    dbClient.SetQuery("DELETE FROM `group_permissions` WHERE `id` = @id LIMIT 1");
-                    dbClient.AddParameter("id", deletedPermissionId);
-                    dbClient.RunQuery();
-                }
-
-                _deletedPermissionIds.Clear();
-
-                foreach (GroupPermissionAssignment assignment in _permissions.Values.ToList())
-                {
-                    if (!assignment.IsNew)
-                        continue;
-
-                    dbClient.SetQuery("INSERT INTO `group_permissions` (`group_id`, `level_id`, `permission_id`, `created_at`) VALUES (@group_id, @level_id, @permission_id, @created_at)");
-                    dbClient.AddParameter("group_id", assignment.GroupId);
-                    dbClient.AddParameter("level_id", assignment.LevelId);
-                    dbClient.AddParameter("permission_id", assignment.PermissionId);
-                    dbClient.AddParameter("created_at", assignment.CreatedAt);
-                    assignment.MarkPersisted(Convert.ToInt32(dbClient.InsertQuery()));
-                }
+                    group_id = assignment.GroupId,
+                    level_id = assignment.LevelId,
+                    permission_id = assignment.PermissionId,
+                    created_at = assignment.CreatedAt
+                };
+                db.group_permissions.Add(entity);
+                db.SaveChanges();
+                assignment.MarkPersisted(entity.id);
             }
         }
 
@@ -582,10 +535,72 @@ namespace Plus.HabboHotel.Groups
             _requests.Clear();
         }
 
-        public void Dispose()
+        /// <summary>Marks the group's metadata/member state as needing a DB write on the next flush.</summary>
+        public void MarkDirty()
+        {
+            _dirty = true;
+        }
+
+        /// <summary>Read-only snapshot of member id → level, for the Redis mirror.</summary>
+        public IReadOnlyDictionary<int, int> MemberLevelsSnapshot => new Dictionary<int, int>(_memberLevels);
+
+        /// <summary>
+        /// Persists the group to the database. Called by GroupManager.SaveAll on the 15-minute
+        /// world-save timer (and at shutdown) — NOT on individual mutations. Flushes roles and
+        /// permissions via their existing dirty-tracked savers, and, when metadata or the member/
+        /// request sets changed, rewrites the group row plus a full resync of the (bounded) member
+        /// and request sets. group_memberships has an identity PK with no unique (user_id,group_id)
+        /// key, so delete-all + re-insert is the safe way to mirror the in-memory set. Finally
+        /// refreshes the Redis mirror.
+        /// </summary>
+        public void Flush()
         {
             SaveRoles();
             SavePermissions();
+
+            if (_dirty) {
+                uint gid = (uint)Id;
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                {
+                    db.groups.Where(g => g.id == gid).ExecuteUpdate(s => s
+                        .SetProperty(g => g.name, Name)
+                        .SetProperty(g => g.desc, Description)
+                        .SetProperty(g => g.badge, Badge)
+                        .SetProperty(g => g.colour1, Colour1)
+                        .SetProperty(g => g.colour2, Colour2)
+                        .SetProperty(g => g.state, ((int)Type).ToString())
+                        .SetProperty(g => g.admindeco, AdminOnlyDeco.ToString())
+                        .SetProperty(g => g.forum_enabled, ForumEnabled ? "1" : "0")
+                        .SetProperty(g => g.group_type, (short)Kind));
+
+                    db.group_memberships.Where(m => m.group_id == gid).ExecuteDelete();
+                    db.group_memberships.AddRange(_memberLevels.Select(kv => new Database.EF.Entities.group_membership
+                    {
+                        group_id = gid,
+                        user_id = (uint)kv.Key,
+                        level = (short)kv.Value
+                    }));
+
+                    db.group_requests.Where(r => r.group_id == gid).ExecuteDelete();
+                    db.group_requests.AddRange(_requests.Select(uid => new Database.EF.Entities.group_request
+                    {
+                        group_id = gid,
+                        user_id = (uint)uid
+                    }));
+
+                    db.SaveChanges();
+                }
+
+                _dirty = false;
+            }
+
+            Plus.Core.Cache.GroupCache.Mirror(this);
+        }
+
+        public void Dispose()
+        {
+            // Memory-only teardown (used on group deletion). Persistence happens on the 15-minute
+            // SaveAll/Flush path; flushing here would re-insert the rows a deletion just removed.
             _requests.Clear();
             _memberLevels.Clear();
             _roles.Clear();
@@ -599,16 +614,8 @@ namespace Plus.HabboHotel.Groups
             if (!_memberLevels.ContainsKey(userId))
                 return;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("UPDATE `group_memberships` SET `level` = @level WHERE `user_id` = @uid AND `group_id` = @gid LIMIT 1");
-                dbClient.AddParameter("level", level);
-                dbClient.AddParameter("gid", Id);
-                dbClient.AddParameter("uid", userId);
-                dbClient.RunQuery();
-            }
-
             _memberLevels[userId] = level;
+            MarkDirty();
         }
 
         private void NormalizeRoleValues(ref int shiftPay, ref string shiftCostume, ref int shiftDuration, ref string shiftMotto)

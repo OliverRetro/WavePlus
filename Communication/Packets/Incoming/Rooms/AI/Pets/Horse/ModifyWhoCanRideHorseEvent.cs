@@ -1,5 +1,7 @@
-﻿using Plus.Communication.Packets.Outgoing.Rooms.AI.Pets;
-using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Communication.Packets.Outgoing.Rooms.AI.Pets;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Rooms;
 
@@ -22,9 +24,11 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Pets.Horse
 
             pet.PetData.AnyoneCanRide = pet.PetData.AnyoneCanRide == 1 ? 0 : 1;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            uint petDbId = (uint)petId;
+            int anyoneRide = pet.PetData.AnyoneCanRide;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.RunQuery("UPDATE `bots_petdata` SET `anyone_ride` = '" + pet.PetData.AnyoneCanRide + "' WHERE `id` = '" + petId + "' LIMIT 1");
+                db.bots_petdata.Where(p => p.id == petDbId).ExecuteUpdate(s => s.SetProperty(p => p.anyone_ride, anyoneRide));
             }
 
             room.SendPacket(new PetInformationComposer(pet.PetData));

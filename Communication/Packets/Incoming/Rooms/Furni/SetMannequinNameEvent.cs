@@ -1,5 +1,7 @@
 ﻿using System;
-using Plus.Database.Interfaces;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
 using Plus.HabboHotel.Rooms;
@@ -27,12 +29,11 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
             } else
                 item.ExtraData = "m" + Convert.ToChar(5) + ".ch-210-1321.lg-285-92" + Convert.ToChar(5) + "Default Mannequin";
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            uint itemDbId = (uint)item.Id;
+            string extraData = item.ExtraData;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("UPDATE `items` SET `extra_data` = @Ed WHERE `id` = @itemId LIMIT 1");
-                dbClient.AddParameter("itemId", item.Id);
-                dbClient.AddParameter("Ed", item.ExtraData);
-                dbClient.RunQuery();
+                db.items.Where(i => i.id == itemDbId).ExecuteUpdate(s => s.SetProperty(i => i.extra_data, extraData));
             }
 
             item.UpdateState(true, true);

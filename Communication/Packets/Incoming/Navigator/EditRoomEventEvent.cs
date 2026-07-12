@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Outgoing.Rooms.Engine;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Rooms;
 
@@ -25,12 +27,10 @@ namespace Plus.Communication.Packets.Incoming.Navigator
                 return;
             }
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("UPDATE `room_promotions` SET `title` = @title, `description` = @desc WHERE `room_id` = " + roomId + " LIMIT 1");
-                dbClient.AddParameter("title", name);
-                dbClient.AddParameter("desc", desc);
-                dbClient.RunQuery();
+                db.room_promotions.Where(p => p.room_id == roomId)
+                    .ExecuteUpdate(s => s.SetProperty(p => p.title, name).SetProperty(p => p.description, desc));
             }
 
             if (!PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(Convert.ToInt32(roomId), out Room room))

@@ -1,7 +1,9 @@
-﻿using System;
-using System.Data;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Outgoing.Inventory.Purse;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
 
@@ -21,39 +23,35 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
 
             try
             {
-                DataTable table;
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                int userId = session.GetHabbo().Id;
+
+                List<uint> itemIds;
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    dbClient.SetQuery("SELECT `id` FROM `items` WHERE `user_id` = '" + session.GetHabbo().Id + "' AND (`room_id`=  '0' OR `room_id` = '')");
-                    table = dbClient.GetTable();
+                    // NOTE: legacy query also matched room_id = '' which cannot occur for a uint column; kept room_id == 0 only.
+                    itemIds = db.items.Where(i => i.user_id == userId && i.room_id == 0).Select(i => i.id).ToList();
                 }
 
-                if (table == null) {
-                    session.SendWhisper("You currently have no items in your inventory!");
-                    return;
-                }
-
-                if (table.Rows.Count > 0) {
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                {
+                    foreach (uint id in itemIds)
                     {
-                        foreach (DataRow row in table.Rows)
-                        {
-                            Item item = session.GetHabbo().GetInventoryComponent().GetItem(Convert.ToInt32(row[0]));
-                            if (item == null || item.RoomId > 0 || item.Data.InteractionType != InteractionType.Exchange)
-                                continue;
+                        Item item = session.GetHabbo().GetInventoryComponent().GetItem(Convert.ToInt32(id));
+                        if (item == null || item.RoomId > 0 || item.Data.InteractionType != InteractionType.Exchange)
+                            continue;
 
-                            int value = item.Data.BehaviourData;
+                        int value = item.Data.BehaviourData;
 
-                            dbClient.RunQuery("DELETE FROM `items` WHERE `id` = '" + item.Id + "' LIMIT 1");
+                        uint itemId = (uint)item.Id;
+                        db.items.Where(i => i.id == itemId).ExecuteDelete();
 
-                            session.GetHabbo().GetInventoryComponent().RemoveItem(item.Id);
+                        session.GetHabbo().GetInventoryComponent().RemoveItem(item.Id);
 
-                            totalValue += value;
+                        totalValue += value;
 
-                            if (value > 0) {
-                                session.GetHabbo().Credits += value;
-                                session.SendPacket(new CreditBalanceComposer(session.GetHabbo().Credits));
-                            }
+                        if (value > 0) {
+                            session.GetHabbo().Credits += value;
+                            session.SendPacket(new CreditBalanceComposer(session.GetHabbo().Credits));
                         }
                     }
                 }

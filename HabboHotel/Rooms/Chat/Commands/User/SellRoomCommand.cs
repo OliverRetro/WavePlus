@@ -1,4 +1,6 @@
-﻿using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.User
@@ -36,12 +38,9 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                 return;
             }
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("UPDATE `rooms` SET `sale_price` = @SalePrice WHERE `id` = @Id LIMIT 1");
-                dbClient.AddParameter("SalePrice", price);
-                dbClient.AddParameter("Id", room.Id);
-                dbClient.RunQuery();
+                db.rooms.Where(r => r.id == room.Id).ExecuteUpdate(s => s.SetProperty(r => r.sale_price, price));
             }
 
             session.SendNotification("Your room is now up for sale. The the current room visitors have been alerted, any item that belongs to you in this room will be transferred to the new owner once purchased. Other items shall be ejected.");

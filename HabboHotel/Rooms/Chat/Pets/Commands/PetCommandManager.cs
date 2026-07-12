@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using Plus.Database.Interfaces;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Plus.Database.EF;
 
 namespace Plus.HabboHotel.Rooms.Chat.Pets.Commands
 {
@@ -26,17 +25,14 @@ namespace Plus.HabboHotel.Rooms.Chat.Pets.Commands
             _commandRegister.Clear();
             _commandDatabase.Clear();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT * FROM `bots_pet_commands`");
-                DataTable table = dbClient.GetTable();
+                var commands = db.bots_pet_commands.Select(c => new { c.id, c.input_title, c.input }).ToList();
 
-                if (table != null) {
-                    foreach (DataRow row in table.Rows)
-                    {
-                        _commandRegister.Add(Convert.ToInt32(row[0]), row[1].ToString());
-                        _commandDatabase.Add(row[1] + ".input", row[2].ToString());
-                    }
+                foreach (var row in commands)
+                {
+                    _commandRegister.Add(row.id, row.input_title);
+                    _commandDatabase.Add(row.input_title + ".input", row.input);
                 }
             }
 

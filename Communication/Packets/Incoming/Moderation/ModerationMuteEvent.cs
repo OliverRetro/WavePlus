@@ -1,4 +1,6 @@
-﻿using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Users;
 
@@ -28,10 +30,10 @@ namespace Plus.Communication.Packets.Incoming.Moderation
                 return;
             }
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.RunQuery("UPDATE `users` SET `time_muted` = '" + length + "' WHERE `id` = '" + habbo.Id + "' LIMIT 1");
-            }
+            int targetId = habbo.Id;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                db.users.Where(u => u.id == targetId)
+                    .ExecuteUpdate(s => s.SetProperty(u => u.time_muted, length));
 
             if (habbo.GetClient() != null) {
                 habbo.TimeMuted = length;

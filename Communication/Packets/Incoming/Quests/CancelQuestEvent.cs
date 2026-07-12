@@ -1,5 +1,7 @@
-﻿using Plus.Communication.Packets.Outgoing.Quests;
-using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Communication.Packets.Outgoing.Quests;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Quests;
 
@@ -13,10 +15,13 @@ namespace Plus.Communication.Packets.Incoming.Quests
             if (quest == null)
                 return;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            uint questUserId = (uint)session.GetHabbo().Id;
+            uint questId = (uint)quest.Id;
+            int statsId = session.GetHabbo().Id;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.RunQuery("DELETE FROM `user_quests` WHERE `user_id` = '" + session.GetHabbo().Id + "' AND `quest_id` = '" + quest.Id + "';" +
-                                  "UPDATE `user_stats` SET `quest_id` = '0' WHERE `id` = '" + session.GetHabbo().Id + "' LIMIT 1");
+                db.user_quests.Where(q => q.user_id == questUserId && q.quest_id == questId).ExecuteDelete();
+                db.user_stats.Where(s => s.id == statsId).ExecuteUpdate(x => x.SetProperty(s => s.quest_id, 0u));
             }
 
             session.GetHabbo().GetStats().QuestId = 0;

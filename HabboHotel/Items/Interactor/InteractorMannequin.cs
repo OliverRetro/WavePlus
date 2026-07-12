@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Outgoing.Rooms.Engine;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Rooms;
 
@@ -52,12 +54,12 @@ namespace Plus.HabboHotel.Items.Interactor
 
                 session.GetHabbo().Look = final.TrimEnd('.');
 
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                int habboId = session.GetHabbo().Id;
+                string look = session.GetHabbo().Look;
+                string gender = session.GetHabbo().Gender;
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    dbClient.SetQuery("UPDATE users SET look = @look, gender = @gender WHERE id = '" + session.GetHabbo().Id + "' LIMIT 1");
-                    dbClient.AddParameter("look", session.GetHabbo().Look);
-                    dbClient.AddParameter("gender", session.GetHabbo().Gender);
-                    dbClient.RunQuery();
+                    db.users.Where(u => u.id == habboId).ExecuteUpdate(s => s.SetProperty(u => u.look, look).SetProperty(u => u.gender, gender));
                 }
 
                 Room room = session.GetHabbo().CurrentRoom;

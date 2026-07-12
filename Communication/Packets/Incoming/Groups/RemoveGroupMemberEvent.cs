@@ -2,7 +2,8 @@
 using System.Linq;
 using Plus.Communication.Packets.Outgoing.Groups;
 using Plus.Communication.Packets.Outgoing.Rooms.Permissions;
-using Plus.Database.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.Cache.Type;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
@@ -49,11 +50,9 @@ namespace Plus.Communication.Packets.Incoming.Groups
                 session.SendPacket(new GroupInfoComposer(group, session));
                 if (session.GetHabbo().GetStats().FavouriteGroupId == groupId) {
                     session.GetHabbo().GetStats().FavouriteGroupId = 0;
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
                     {
-                        dbClient.SetQuery("UPDATE `user_stats` SET `groupid` = '0' WHERE `id` = @userId LIMIT 1");
-                        dbClient.AddParameter("userId", userId);
-                        dbClient.RunQuery();
+                        db.user_stats.Where(x => x.id == userId).ExecuteUpdate(s => s.SetProperty(x => x.groupid, 0));
                     }
 
                     if (group.AdminOnlyDeco == 0) {

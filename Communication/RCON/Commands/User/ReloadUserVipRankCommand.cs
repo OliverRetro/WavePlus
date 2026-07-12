@@ -1,4 +1,5 @@
-﻿using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 
 namespace Plus.Communication.Rcon.Commands.User
@@ -18,11 +19,9 @@ namespace Plus.Communication.Rcon.Commands.User
             if (client == null || client.GetHabbo() == null)
                 return false;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT `rank_vip` FROM `users` WHERE `id` = @userId LIMIT 1");
-                dbClient.AddParameter("userId", userId);
-                client.GetHabbo().VipRank = dbClient.GetInteger();
+                client.GetHabbo().VipRank = db.users.Where(u => u.id == userId).Select(u => u.rank_vip).FirstOrDefault() ?? 0;
             }
 
             client.GetHabbo().GetPermissions().Init(client.GetHabbo());

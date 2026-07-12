@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Outgoing.Rooms.Engine;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Quests;
 using Plus.HabboHotel.Rooms;
@@ -42,13 +44,9 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Avatar
 
             session.GetHabbo().Motto = newMotto;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("UPDATE `users` SET `motto` = @motto WHERE `id` = @userId LIMIT 1");
-                dbClient.AddParameter("userId", session.GetHabbo().Id);
-                dbClient.AddParameter("motto", newMotto);
-                dbClient.RunQuery();
-            }
+            int userId = session.GetHabbo().Id;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                db.users.Where(u => u.id == userId).ExecuteUpdate(s => s.SetProperty(x => x.motto, newMotto));
 
             PlusEnvironment.GetGame().GetQuestManager().ProgressUserQuest(session, QuestType.ProfileChangeMotto);
             PlusEnvironment.GetGame().GetAchievementManager().ProgressAchievement(session, "ACH_Motto", 1);

@@ -1,4 +1,6 @@
-﻿using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 
 namespace Plus.Communication.Packets.Incoming.Users
@@ -10,11 +12,12 @@ namespace Plus.Communication.Packets.Incoming.Users
             bool focusPreference = packet.PopBoolean();
 
             session.GetHabbo().FocusPreference = focusPreference;
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            int userId = session.GetHabbo().Id;
+            string focusPref = PlusEnvironment.BoolToEnum(focusPreference);
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("UPDATE `users` SET `focus_preference` = @focusPreference WHERE `id` = '" + session.GetHabbo().Id + "' LIMIT 1");
-                dbClient.AddParameter("focusPreference", PlusEnvironment.BoolToEnum(focusPreference));
-                dbClient.RunQuery();
+                db.users.Where(u => u.id == userId)
+                    .ExecuteUpdate(s => s.SetProperty(u => u.focus_preference, focusPref));
             }
         }
     }

@@ -1,6 +1,8 @@
-﻿using System.Text;
+﻿using System.Linq;
+using System.Text;
+using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Outgoing.Rooms.Engine;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.User
@@ -48,11 +50,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                 case "push":
                 {
                     room.PushEnabled = !room.PushEnabled;
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                    bool pushEnabled = room.PushEnabled;
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
                     {
-                        dbClient.SetQuery("UPDATE `rooms` SET `push_enabled` = @PushEnabled WHERE `id` = '" + room.Id + "' LIMIT 1");
-                        dbClient.AddParameter("PushEnabled", PlusEnvironment.BoolToEnum(room.PushEnabled));
-                        dbClient.RunQuery();
+                        db.rooms.Where(r => r.id == room.Id).ExecuteUpdate(s => s.SetProperty(r => r.push_enabled, pushEnabled));
                     }
 
                     session.SendWhisper("Push mode is now " + (room.PushEnabled ? "enabled!" : "disabled!"));
@@ -62,11 +63,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                 case "spush":
                 {
                     room.SuperPushEnabled = !room.SuperPushEnabled;
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                    string superPushEnabled = PlusEnvironment.BoolToEnum(room.SuperPushEnabled);
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
                     {
-                        dbClient.SetQuery("UPDATE `rooms` SET `spush_enabled` = @PushEnabled WHERE `id` = '" + room.Id + "' LIMIT 1");
-                        dbClient.AddParameter("PushEnabled", PlusEnvironment.BoolToEnum(room.SuperPushEnabled));
-                        dbClient.RunQuery();
+                        db.rooms.Where(r => r.id == room.Id).ExecuteUpdate(s => s.SetProperty(r => r.spush_enabled, superPushEnabled));
                     }
 
                     session.SendWhisper("Super Push mode is now " + (room.SuperPushEnabled ? "enabled!" : "disabled!"));
@@ -76,11 +76,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                 case "spull":
                 {
                     room.SuperPullEnabled = !room.SuperPullEnabled;
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                    bool superPullEnabled = room.SuperPullEnabled;
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
                     {
-                        dbClient.SetQuery("UPDATE `rooms` SET `spull_enabled` = @PullEnabled WHERE `id` = '" + room.Id + "' LIMIT 1");
-                        dbClient.AddParameter("PullEnabled", PlusEnvironment.BoolToEnum(room.SuperPullEnabled));
-                        dbClient.RunQuery();
+                        db.rooms.Where(r => r.id == room.Id).ExecuteUpdate(s => s.SetProperty(r => r.spull_enabled, superPullEnabled));
                     }
 
                     session.SendWhisper("Super Pull mode is now " + (room.SuperPullEnabled ? "enabled!" : "disabled!"));
@@ -90,11 +89,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                 case "pull":
                 {
                     room.PullEnabled = !room.PullEnabled;
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                    bool pullEnabled = room.PullEnabled;
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
                     {
-                        dbClient.SetQuery("UPDATE `rooms` SET `pull_enabled` = @PullEnabled WHERE `id` = '" + room.Id + "' LIMIT 1");
-                        dbClient.AddParameter("PullEnabled", PlusEnvironment.BoolToEnum(room.PullEnabled));
-                        dbClient.RunQuery();
+                        db.rooms.Where(r => r.id == room.Id).ExecuteUpdate(s => s.SetProperty(r => r.pull_enabled, pullEnabled));
                     }
 
                     session.SendWhisper("Pull mode is now " + (room.PullEnabled ? "enabled!" : "disabled!"));
@@ -105,11 +103,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                 case "enables":
                 {
                     room.EnablesEnabled = !room.EnablesEnabled;
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                    bool enablesEnabled = room.EnablesEnabled;
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
                     {
-                        dbClient.SetQuery("UPDATE `rooms` SET `enables_enabled` = @EnablesEnabled WHERE `id` = '" + room.Id + "' LIMIT 1");
-                        dbClient.AddParameter("EnablesEnabled", PlusEnvironment.BoolToEnum(room.EnablesEnabled));
-                        dbClient.RunQuery();
+                        db.rooms.Where(r => r.id == room.Id).ExecuteUpdate(s => s.SetProperty(r => r.enables_enabled, enablesEnabled));
                     }
 
                     session.SendWhisper("Enables mode set to " + (room.EnablesEnabled ? "enabled!" : "disabled!"));
@@ -119,11 +116,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                 case "respect":
                 {
                     room.RespectNotificationsEnabled = !room.RespectNotificationsEnabled;
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                    bool respectNotificationsEnabled = room.RespectNotificationsEnabled;
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
                     {
-                        dbClient.SetQuery("UPDATE `rooms` SET `respect_notifications_enabled` = @RespectNotificationsEnabled WHERE `id` = '" + room.Id + "' LIMIT 1");
-                        dbClient.AddParameter("RespectNotificationsEnabled", PlusEnvironment.BoolToEnum(room.RespectNotificationsEnabled));
-                        dbClient.RunQuery();
+                        db.rooms.Where(r => r.id == room.Id).ExecuteUpdate(s => s.SetProperty(r => r.respect_notifications_enabled, respectNotificationsEnabled));
                     }
 
                     session.SendWhisper("Respect notifications mode set to " + (room.RespectNotificationsEnabled ? "enabled!" : "disabled!"));
@@ -133,11 +129,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                 case "safezone":
                 {
                     room.Safezone = !room.Safezone;
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                    string safezone = PlusEnvironment.BoolToEnum(room.Safezone);
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
                     {
-                        dbClient.SetQuery("UPDATE `rooms` SET `safezone` = @Safezone WHERE `id` = '" + room.Id + "' LIMIT 1");
-                        dbClient.AddParameter("Safezone", PlusEnvironment.BoolToEnum(room.Safezone));
-                        dbClient.RunQuery();
+                        db.rooms.Where(r => r.id == room.Id).ExecuteUpdate(s => s.SetProperty(r => r.safezone, safezone));
                     }
 
                      session.SendWhisper("Safezone mode set to " + (room.Safezone ? "enabled!" : "disabled!"));
@@ -149,11 +144,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                 case "morphs":
                 {
                     room.PetMorphsAllowed = !room.PetMorphsAllowed;
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                    bool petMorphsAllowed = room.PetMorphsAllowed;
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
                     {
-                        dbClient.SetQuery("UPDATE `rooms` SET `pet_morphs_allowed` = @PetMorphsAllowed WHERE `id` = '" + room.Id + "' LIMIT 1");
-                        dbClient.AddParameter("PetMorphsAllowed", PlusEnvironment.BoolToEnum(room.PetMorphsAllowed));
-                        dbClient.RunQuery();
+                        db.rooms.Where(r => r.id == room.Id).ExecuteUpdate(s => s.SetProperty(r => r.pet_morphs_allowed, petMorphsAllowed));
                     }
 
                     session.SendWhisper("Human pet morphs notifications mode set to " + (room.PetMorphsAllowed ? "enabled!" : "disabled!"));

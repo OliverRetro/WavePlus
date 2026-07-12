@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
+using System.Linq;
 using log4net;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 
 namespace Plus.HabboHotel.Rooms.Chat.Styles
 {
@@ -22,23 +22,20 @@ namespace Plus.HabboHotel.Rooms.Chat.Styles
             if (_styles.Count > 0)
                 _styles.Clear();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT * FROM `room_chat_styles`;");
-                DataTable table = dbClient.GetTable();
+                var rows = db.room_chat_styles.Select(s => new { s.id, s.name, s.required_right }).ToList();
 
-                if (table != null) {
-                    foreach (DataRow row in table.Rows)
+                foreach (var row in rows)
+                {
+                    try
                     {
-                        try
-                        {
-                            if (!_styles.ContainsKey(Convert.ToInt32(row["id"])))
-                                _styles.Add(Convert.ToInt32(row["id"]), new ChatStyle(Convert.ToInt32(row["id"]), Convert.ToString(row["name"]), Convert.ToString(row["required_right"])));
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error("Unable to load ChatBubble for ID [" + Convert.ToInt32(row["id"]) + "]", ex);
-                        }
+                        if (!_styles.ContainsKey(row.id))
+                            _styles.Add(row.id, new ChatStyle(row.id, row.name, row.required_right));
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error("Unable to load ChatBubble for ID [" + row.id + "]", ex);
                     }
                 }
             }

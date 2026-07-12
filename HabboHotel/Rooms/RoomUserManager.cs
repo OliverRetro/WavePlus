@@ -4,7 +4,8 @@ using Plus.Communication.Packets.Outgoing.Rooms.Engine;
 using Plus.Communication.Packets.Outgoing.Rooms.Permissions;
 using Plus.Communication.Packets.Outgoing.Rooms.Session;
 using Plus.Core;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
+using Microsoft.EntityFrameworkCore;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
 using Plus.HabboHotel.Roleplay.Utilities;
@@ -270,6 +271,11 @@ namespace Plus.HabboHotel.Rooms
             return true;
         }
 
+        public ICollection<RoomUser> GetBots()
+        {
+            return _bots.Values;
+        }
+
         public void RemoveUserFromRoom(GameClient session, bool notifyUser, bool notifyKick = false)
         {
             try
@@ -280,11 +286,17 @@ namespace Plus.HabboHotel.Rooms
                 if (session == null || session.GetHabbo() == null)
                     return;
 
+                PlusEnvironment.GetGame().GetShiftManager().HandleRoomExit(session.GetHabbo(), _room);
+
                 if (notifyKick)
                     session.SendPacket(new GenericErrorComposer(4008));
 
-                if (notifyUser)
-                    session.SendPacket(new CloseConnectionComposer());
+                // Involuntary exit (kick / room ban): forward to the configured RP home room,
+                // falling back to the hotel view when no home room is configured.
+                if (notifyUser) {
+                    if (!Plus.HabboHotel.Roleplay.Utilities.RpHomeRoomService.SendHome(session))
+                        session.SendPacket(new CloseConnectionComposer());
+                }
 
                 if (session.GetHabbo().TentId > 0)
                     session.GetHabbo().TentId = 0;
@@ -339,10 +351,26 @@ namespace Plus.HabboHotel.Rooms
                     if (session.GetHabbo().GetMessenger() != null)
                         session.GetHabbo().GetMessenger().OnStatusChanged(true);
 
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
                     {
-                        dbClient.RunQuery("UPDATE user_roomvisits SET exit_timestamp = '" + DateTimeOffset.UtcNow.ToUnixTimeSeconds() + "' WHERE room_id = '" + _room.RoomId + "' AND user_id = '" + session.GetHabbo().Id + "' ORDER BY exit_timestamp DESC LIMIT 1");
-                        dbClient.RunQuery("UPDATE `rooms` SET `users_now` = '" + _room.UsersNow + "' WHERE `id` = '" + _room.RoomId + "' LIMIT 1");
+                        uint roomId = (uint)_room.RoomId;
+                        uint userId = (uint)session.GetHabbo().Id;
+                        double exitTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+                        // ORDER BY exit_timestamp DESC LIMIT 1: update only the most recent matching visit.
+                        int visitId = db.user_roomvisits
+                            .Where(v => v.room_id == roomId && v.user_id == userId)
+                            .OrderByDescending(v => v.exit_timestamp)
+                            .Select(v => v.id)
+                            .FirstOrDefault();
+                        if (visitId != 0)
+                            db.user_roomvisits.Where(v => v.id == visitId)
+                                .ExecuteUpdate(s => s.SetProperty(v => v.exit_timestamp, exitTimestamp));
+
+                        int roomIdInt = _room.RoomId;
+                        int usersNow = _room.UsersNow;
+                        db.rooms.Where(r => r.id == roomIdInt)
+                            .ExecuteUpdate(s => s.SetProperty(r => r.users_now, usersNow));
                     }
 
                     user.Dispose();
@@ -456,7 +484,7 @@ namespace Plus.HabboHotel.Rooms
         {
             bool foundBot = _bots.Any(x => x.Value.BotData != null && x.Value.BotData.Name.ToLower() == name.ToLower());
             if (foundBot) {
-                int id = _bots.FirstOrDefault(x => x.Value.BotData != null && x.Value.BotData.Name.ToLower() == name.ToLower()).Value.BotData.Id;
+                int id = _bots.FirstOrDefault(x => x.Value.BotData != null && x.Value.BotData.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase)).Value.BotData.Id;
 
                 return _bots[id];
             }
@@ -468,9 +496,11 @@ namespace Plus.HabboHotel.Rooms
         {
             UserCount = count;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.RunQuery("UPDATE `rooms` SET `users_now` = '" + count + "' WHERE `id` = '" + _room.RoomId + "' LIMIT 1");
+                int roomId = _room.RoomId;
+                db.rooms.Where(r => r.id == roomId)
+                    .ExecuteUpdate(s => s.SetProperty(r => r.users_now, count));
             }
         }
 
@@ -513,55 +543,78 @@ namespace Plus.HabboHotel.Rooms
 
         public void UpdatePets()
         {
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            foreach (Pet pet in GetPets().ToList())
             {
-                foreach (Pet pet in GetPets().ToList())
-                {
-                    if (pet == null)
-                        continue;
+                if (pet == null)
+                    continue;
 
-                    if (pet.DbState == PetDatabaseUpdateState.NeedsInsert) {
-                        dbClient.SetQuery("INSERT INTO `bots` (`id`,`user_id`,`room_id`,`name`,`x`,`y`,`z`) VALUES ('" + pet.PetId + "','" + pet.OwnerId + "','" + pet.RoomId + "',@name,'0','0','0')");
-                        dbClient.AddParameter("name", pet.Name);
-                        dbClient.RunQuery();
+                if (pet.DbState == PetDatabaseUpdateState.NeedsInsert) {
+                    // Explicit PK (pet.PetId) preserved via raw insert; remaining bot columns rely on DB defaults.
+                    db.Database.ExecuteSqlInterpolated($"INSERT INTO `bots` (`id`,`user_id`,`room_id`,`name`,`x`,`y`,`z`) VALUES ({pet.PetId},{pet.OwnerId},{pet.RoomId},{pet.Name},'0','0','0')");
 
-                        dbClient.SetQuery("INSERT INTO `bots_petdata` (`type`,`race`,`color`,`experience`,`energy`,`createstamp`,`nutrition`,`respect`) VALUES ('" + pet.Type + "',@race,@color,'0','100','" + pet.CreationStamp + "','0','0')");
-                        dbClient.AddParameter(pet.PetId + "race", pet.Race);
-                        dbClient.AddParameter(pet.PetId + "color", pet.Color);
-                        dbClient.RunQuery();
-                    } else if (pet.DbState == PetDatabaseUpdateState.NeedsUpdate) {
-                        //Surely this can be *99 better? // TODO
-                        RoomUser user = GetRoomUserByVirtualId(pet.VirtualId);
+                    // NOTE: the legacy code registered the @race/@color parameters under mismatched names
+                    // (pet.PetId + "race"/"color"), so they never bound to the query and were inserted empty.
+                    // Binding them correctly here to the pet's race/color (the evident intent).
+                    db.Database.ExecuteSqlInterpolated($"INSERT INTO `bots_petdata` (`type`,`race`,`color`,`experience`,`energy`,`createstamp`,`nutrition`,`respect`) VALUES ({pet.Type},{pet.Race},{pet.Color},'0','100',{pet.CreationStamp},'0','0')");
+                } else if (pet.DbState == PetDatabaseUpdateState.NeedsUpdate) {
+                    //Surely this can be *99 better? // TODO
+                    RoomUser user = GetRoomUserByVirtualId(pet.VirtualId);
 
-                        dbClient.RunQuery("UPDATE `bots` SET room_id = " + pet.RoomId + ", x = " + (user != null ? user.X : 0) + ", Y = " + (user != null ? user.Y : 0) + ", Z = " + (user != null ? user.Z : 0) + " WHERE `id` = '" + pet.PetId + "' LIMIT 1");
-                        dbClient.RunQuery("UPDATE `bots_petdata` SET `experience` = '" + pet.Experience + "', `energy` = '" + pet.Energy + "', `nutrition` = '" + pet.Nutrition + "', `respect` = '" + pet.Respect + "' WHERE `id` = '" + pet.PetId + "' LIMIT 1");
-                    }
+                    uint petId = (uint)pet.PetId;
+                    uint petRoomId = (uint)pet.RoomId;
+                    int px = user != null ? user.X : 0;
+                    int py = user != null ? user.Y : 0;
+                    int pz = user != null ? (int)user.Z : 0;
+                    db.bots.Where(b => b.id == petId)
+                        .ExecuteUpdate(s => s
+                            .SetProperty(b => b.room_id, petRoomId)
+                            .SetProperty(b => b.x, px)
+                            .SetProperty(b => b.y, py)
+                            .SetProperty(b => b.z, pz));
 
-                    pet.DbState = PetDatabaseUpdateState.Updated;
+                    int petExperience = pet.Experience;
+                    int petEnergy = pet.Energy;
+                    int petNutrition = pet.Nutrition;
+                    int petRespect = pet.Respect;
+                    db.bots_petdata.Where(d => d.id == petId)
+                        .ExecuteUpdate(s => s
+                            .SetProperty(d => d.experience, petExperience)
+                            .SetProperty(d => d.energy, petEnergy)
+                            .SetProperty(d => d.nutrition, petNutrition)
+                            .SetProperty(d => d.respect, petRespect));
                 }
+
+                pet.DbState = PetDatabaseUpdateState.Updated;
             }
         }
 
         private void UpdateBots()
         {
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            // NOTE: preserved as-is — GetRoomUsers() already filters out bots (Where(!IsBot)), so the
+            // inner IsBot check never passes and this loop updates nothing. Faithful to the legacy behavior.
+            foreach (RoomUser user in GetRoomUsers().ToList())
             {
-                foreach (RoomUser user in GetRoomUsers().ToList())
-                {
-                    if (user == null || !user.IsBot)
-                        continue;
+                if (user == null || !user.IsBot)
+                    continue;
 
-                    if (user.IsBot) {
-                        dbClient.SetQuery("UPDATE bots SET x=@x, y=@y, z=@z, name=@name, look=@look, rotation=@rotation WHERE id=@id LIMIT 1;");
-                        dbClient.AddParameter("name", user.BotData.Name);
-                        dbClient.AddParameter("look", user.BotData.Look);
-                        dbClient.AddParameter("rotation", user.BotData.Rot);
-                        dbClient.AddParameter("x", user.X);
-                        dbClient.AddParameter("y", user.Y);
-                        dbClient.AddParameter("z", user.Z);
-                        dbClient.AddParameter("id", user.BotData.BotId);
-                        dbClient.RunQuery();
-                    }
+                if (user.IsBot) {
+                    uint botId = (uint)user.BotData.BotId;
+                    int bx = user.X;
+                    int by = user.Y;
+                    int bz = (int)user.Z;
+                    string botName = user.BotData.Name;
+                    string botLook = user.BotData.Look;
+                    int botRot = user.BotData.Rot;
+                    db.bots.Where(b => b.id == botId)
+                        .ExecuteUpdate(s => s
+                            .SetProperty(b => b.x, bx)
+                            .SetProperty(b => b.y, by)
+                            .SetProperty(b => b.z, bz)
+                            .SetProperty(b => b.name, botName)
+                            .SetProperty(b => b.look, botLook)
+                            .SetProperty(b => b.rotation, botRot));
                 }
             }
         }
@@ -1253,9 +1306,11 @@ namespace Plus.HabboHotel.Rooms
             UpdateBots();
 
             _room.UsersNow = 0;
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.RunQuery("UPDATE `rooms` SET `users_now` = '0' WHERE `id` = '" + _room.Id + "' LIMIT 1");
+                int roomId = _room.Id;
+                db.rooms.Where(r => r.id == roomId)
+                    .ExecuteUpdate(s => s.SetProperty(r => r.users_now, 0));
             }
 
             _users.Clear();

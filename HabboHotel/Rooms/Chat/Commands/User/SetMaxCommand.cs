@@ -1,4 +1,6 @@
-﻿using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.User
@@ -32,9 +34,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                     session.SendWhisper("visitor amount set to " + maxAmount + ".");
 
                 room.UsersMax = maxAmount;
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                int roomId = room.Id;
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    dbClient.RunQuery("UPDATE `rooms` SET `users_max` = " + maxAmount + " WHERE `id` = '" + room.Id + "' LIMIT 1");
+                    db.rooms.Where(r => r.id == roomId).ExecuteUpdate(s => s.SetProperty(r => r.users_max, maxAmount));
                 }
             } else
                 session.SendWhisper("Invalid amount, please enter a valid number.");

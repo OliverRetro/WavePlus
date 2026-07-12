@@ -1,5 +1,4 @@
 using Plus.Communication.Packets.Outgoing.Notifications;
-using Plus.Database.Interfaces;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
 using Plus.HabboHotel.Items.Wired;
@@ -332,15 +331,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
 
         public void LogCommand(int userId, string data, string machineId)
         {
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("INSERT INTO `logs_client_staff` (`user_id`,`data_string`,`machine_id`, `timestamp`) VALUES (@UserId,@Data,@MachineId,@Timestamp)");
-                dbClient.AddParameter("UserId", userId);
-                dbClient.AddParameter("Data", data);
-                dbClient.AddParameter("MachineId", machineId);
-                dbClient.AddParameter("Timestamp", PlusEnvironment.GetUnixTimestamp());
-                dbClient.RunQuery();
-            }
+            Core.Persistence.LogBuffer.LogCommand(userId, data, machineId);
         }
 
         public bool TryGetCommand(string command, out IChatCommand chatCommand)

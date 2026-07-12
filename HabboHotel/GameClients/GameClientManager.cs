@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -12,7 +11,7 @@ using Plus.Communication.Packets.Outgoing;
 using Plus.Communication.Packets.Outgoing.Handshake;
 using Plus.Communication.Packets.Outgoing.Notifications;
 using Plus.Core;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.Users.Messenger;
 
 namespace Plus.HabboHotel.GameClients
@@ -83,11 +82,9 @@ namespace Plus.HabboHotel.GameClients
                 return client.GetHabbo().Username;
 
             string username;
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT username FROM users WHERE id = @id LIMIT 1");
-                dbClient.AddParameter("id", id);
-                username = dbClient.GetString();
+                username = db.users.Where(u => u.id == id).Select(u => u.username).FirstOrDefault();
             }
 
             return username;
@@ -149,16 +146,14 @@ namespace Plus.HabboHotel.GameClients
             builder.Append("Reported User: " + target.GetHabbo().Username + "\r\r");
             builder.Append(target.GetHabbo().Username + "s last 10 messages:\r\r");
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            uint targetId = (uint)target.GetHabbo().Id;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT `message` FROM `chatlogs` WHERE `user_id` = '" + target.GetHabbo().Id +
-                                  "' ORDER BY `id` DESC LIMIT 10");
                 int number = 11;
-                var reader = dbClient.GetTable();
-                foreach (DataRow row in reader.Rows)
+                foreach (string message in db.chatlogs.Where(c => c.user_id == targetId).OrderByDescending(c => c.id).Take(10).Select(c => c.message).ToList())
                 {
                     number -= 1;
-                    builder.Append(number + ": " + row["message"] + "\r");
+                    builder.Append(number + ": " + message + "\r");
                 }
             }
 

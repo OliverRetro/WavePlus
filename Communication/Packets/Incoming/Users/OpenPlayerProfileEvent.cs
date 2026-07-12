@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Plus.Communication.Packets.Outgoing.Users;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
 using Plus.HabboHotel.Roleplay.Skill;
@@ -23,12 +24,11 @@ namespace Plus.Communication.Packets.Incoming.Users
 
             List<Group> groups = PlusEnvironment.GetGame().GetGroupManager().GetGroupsForUser(targetData.Id);
 
+            uint uid = (uint)userId;
             int friendCount;
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT COUNT(0) FROM `messenger_friendships` WHERE (`user_one_id` = @userid OR `user_two_id` = @userid)");
-                dbClient.AddParameter("userid", userId);
-                friendCount = dbClient.GetInteger();
+                friendCount = db.messenger_friendships.Count(f => f.user_one_id == uid || f.user_two_id == uid);
             }
 
             session.SendPacket(new ProfileInformationComposer(targetData, session, groups, friendCount));

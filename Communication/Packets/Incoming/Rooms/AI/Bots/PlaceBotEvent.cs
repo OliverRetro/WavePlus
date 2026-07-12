@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Outgoing.Inventory.Bots;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Rooms.AI;
@@ -53,37 +53,27 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Bots
             }
 
             //TODO: Hmm, maybe not????
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("UPDATE `bots` SET `room_id` = @roomId, `x` = @CoordX, `y` = @CoordY WHERE `id` = @BotId LIMIT 1");
-                dbClient.AddParameter("roomId", room.RoomId);
-                dbClient.AddParameter("BotId", bot.Id);
-                dbClient.AddParameter("CoordX", x);
-                dbClient.AddParameter("CoordY", y);
-                dbClient.RunQuery();
-            }
+            uint botDbId = (uint)bot.Id;
+            uint roomDbId = (uint)room.RoomId;
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            db.bots.Where(b => b.id == botDbId).ExecuteUpdate(s => s
+                .SetProperty(b => b.room_id, roomDbId)
+                .SetProperty(b => b.x, x)
+                .SetProperty(b => b.y, y));
 
             List<RandomSpeech> botSpeechList = new();
 
             //TODO: Grab data?
-            DataRow getData;
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            var getData = db.bots.Where(b => b.id == botDbId)
+                .Select(b => new { b.ai_type, b.rotation, b.walk_mode, b.automatic_chat, b.speaking_interval, b.mix_sentences, b.chat_bubble, b.effect_id, b.gender, b.motto })
+                .FirstOrDefault();
+
+            foreach (string speechText in db.bots_speeches.Where(s => s.bot_id == botDbId).Select(s => s.text).ToList())
             {
-                dbClient.SetQuery("SELECT `ai_type`,`rotation`,`walk_mode`,`automatic_chat`,`speaking_interval`,`mix_sentences`,`chat_bubble`,`effect_id`,`gender`,`motto` FROM `bots` WHERE `id` = @BotId LIMIT 1");
-                dbClient.AddParameter("BotId", bot.Id);
-                getData = dbClient.GetRow();
-
-                dbClient.SetQuery("SELECT `text` FROM `bots_speech` WHERE `bot_id` = @BotId");
-                dbClient.AddParameter("BotId", bot.Id);
-                DataTable botSpeech = dbClient.GetTable();
-
-                foreach (DataRow speech in botSpeech.Rows)
-                {
-                    botSpeechList.Add(new RandomSpeech(Convert.ToString(speech["text"]), bot.Id));
-                }
+                botSpeechList.Add(new RandomSpeech(speechText, bot.Id));
             }
 
-            RoomUser botUser = room.GetRoomUserManager().DeployBot(new RoomBot(bot.Id, session.GetHabbo().CurrentRoomId, Convert.ToString(getData["ai_type"]), Convert.ToString(getData["walk_mode"]), bot.Name, Convert.ToString(getData["motto"]), bot.Figure, x, y, 0, Convert.ToInt32(getData["rotation"]), 0, 0, 0, 0, ref botSpeechList, Convert.ToString(getData["gender"]), 0, bot.OwnerId, PlusEnvironment.EnumToBool(getData["automatic_chat"].ToString()), Convert.ToInt32(getData["speaking_interval"]), PlusEnvironment.EnumToBool(getData["mix_sentences"].ToString()), Convert.ToInt32(getData["chat_bubble"]), Convert.ToInt32(getData["effect_id"])), null);
+            RoomUser botUser = room.GetRoomUserManager().DeployBot(new RoomBot(bot.Id, session.GetHabbo().CurrentRoomId, getData.ai_type, getData.walk_mode, bot.Name, getData.motto, bot.Figure, x, y, 0, getData.rotation, 0, 0, 0, 0, ref botSpeechList, getData.gender, 0, bot.OwnerId, PlusEnvironment.EnumToBool(getData.automatic_chat), getData.speaking_interval, PlusEnvironment.EnumToBool(getData.mix_sentences), getData.chat_bubble, getData.effect_id), null);
 
             if (botUser.BotData.RandomSpeech.Count > 0)
                 botUser.Chat(botUser.BotData.GetRandomSpeech().Message);

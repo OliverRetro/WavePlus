@@ -7,7 +7,9 @@ using Plus.Communication.Packets.Outgoing;
 using Plus.Communication.Packets.Outgoing.Inventory.Furni;
 using Plus.Communication.Packets.Outgoing.Rooms.Engine;
 using Plus.Core;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
+using Plus.Database.EF.Entities;
+using Microsoft.EntityFrameworkCore;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
 using Plus.HabboHotel.Items.Data.Moodlight;
@@ -122,12 +124,12 @@ namespace Plus.HabboHotel.Rooms
 
             // Re-assign orphaned items to the room owner in a single statement instead of one
             // UPDATE (and one borrowed DB connection) per item during room load.
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            uint roomIdKey = (uint)_room.Id;
+            int ownerId = _room.OwnerId;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("UPDATE `items` SET `user_id` = @UserId WHERE `room_id` = @RoomId AND `user_id` = 0");
-                dbClient.AddParameter("RoomId", _room.Id);
-                dbClient.AddParameter("UserId", _room.OwnerId);
-                dbClient.RunQuery();
+                db.items.Where(i => i.room_id == roomIdKey && i.user_id == 0)
+                    .ExecuteUpdate(s => s.SetProperty(i => i.user_id, ownerId));
             }
 
             List<Item> items = ItemLoader.GetItemsForRoom(_room.Id, _room);
@@ -138,9 +140,10 @@ namespace Plus.HabboHotel.Rooms
 
                 if (item.IsFloorItem) {
                     if (!_room.GetGameMap().ValidTile(item.GetX, item.GetY)) {
-                        using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                        uint orphanId = (uint)item.Id;
+                        using (WavePlusContext db = PlusEnvironment.GetDbContext())
                         {
-                            dbClient.RunQuery("UPDATE `items` SET `room_id` = '0' WHERE `id` = '" + item.Id + "' LIMIT 1");
+                            db.items.Where(i => i.id == orphanId).ExecuteUpdate(s => s.SetProperty(i => i.room_id, (uint)0));
                         }
 
                         GameClient client = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(item.UserId);
@@ -156,11 +159,10 @@ namespace Plus.HabboHotel.Rooms
                         _floorItems.TryAdd(item.Id, item);
                 } else if (item.IsWallItem) {
                     if (string.IsNullOrWhiteSpace(item.WallCoord)) {
-                        using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                        uint wallItemId = (uint)item.Id;
+                        using (WavePlusContext db = PlusEnvironment.GetDbContext())
                         {
-                            dbClient.SetQuery("UPDATE `items` SET `wall_pos` = @WallPosition WHERE `id` = '" + item.Id + "' LIMIT 1");
-                            dbClient.AddParameter("WallPosition", ":w=0,2 l=11,53 l");
-                            dbClient.RunQuery();
+                            db.items.Where(i => i.id == wallItemId).ExecuteUpdate(s => s.SetProperty(i => i.wall_pos, ":w=0,2 l=11,53 l"));
                         }
 
                         item.WallCoord = ":w=0,2 l=11,53 l";
@@ -172,11 +174,10 @@ namespace Plus.HabboHotel.Rooms
                     }
                     catch
                     {
-                        using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                        uint wallItemId = (uint)item.Id;
+                        using (WavePlusContext db = PlusEnvironment.GetDbContext())
                         {
-                            dbClient.SetQuery("UPDATE `items` SET `wall_pos` = @WallPosition WHERE `id` = '" + item.Id + "' LIMIT 1");
-                            dbClient.AddParameter("WallPosition", ":w=0,2 l=11,53 l");
-                            dbClient.RunQuery();
+                            db.items.Where(i => i.id == wallItemId).ExecuteUpdate(s => s.SetProperty(i => i.wall_pos, ":w=0,2 l=11,53 l"));
                         }
 
                         item.WallCoord = ":w=0,2 l=11,53 l";
@@ -393,30 +394,40 @@ namespace Plus.HabboHotel.Rooms
             return mMessage;
         }
 
+        /// <summary>Flushes batched item moves to MySQL. Used by the 15-minute world
+        /// failsafe on top of the existing unload/shutdown save.</summary>
+        public void FlushMovedItems()
+        {
+            SaveFurniture();
+        }
+
         private void SaveFurniture()
         {
             try
             {
                 if (_movedItems.Count > 0) {
-                    // TODO: Big string builder?
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                    using WavePlusContext db = PlusEnvironment.GetDbContext();
+                    foreach (Item item in _movedItems.Values.ToList())
                     {
-                        foreach (Item item in _movedItems.Values.ToList())
-                        {
-                            if (!string.IsNullOrEmpty(item.ExtraData)) {
-                                dbClient.SetQuery("UPDATE `items` SET `extra_data` = @edata" + item.Id + " WHERE `id` = '" + item.Id + "' LIMIT 1");
-                                dbClient.AddParameter("edata" + item.Id, item.ExtraData);
-                                dbClient.RunQuery();
-                            }
+                        uint itemId = (uint)item.Id;
 
-                            if (item.IsWallItem && (!item.GetBaseItem().ItemName.Contains("wallpaper_single") || !item.GetBaseItem().ItemName.Contains("floor_single") || !item.GetBaseItem().ItemName.Contains("landscape_single"))) {
-                                dbClient.SetQuery("UPDATE `items` SET `wall_pos` = @wallPos WHERE `id` = '" + item.Id + "' LIMIT 1");
-                                dbClient.AddParameter("wallPos", item.WallCoord);
-                                dbClient.RunQuery();
-                            }
-
-                            dbClient.RunQuery("UPDATE `items` SET `x` = '" + item.GetX + "', `y` = '" + item.GetY + "', `z` = '" + item.GetZ + "', `rot` = '" + item.Rotation + "' WHERE `id` = '" + item.Id + "' LIMIT 1");
+                        if (!string.IsNullOrEmpty(item.ExtraData)) {
+                            string edata = item.ExtraData;
+                            db.items.Where(i => i.id == itemId).ExecuteUpdate(s => s.SetProperty(i => i.extra_data, edata));
                         }
+
+                        if (item.IsWallItem && (!item.GetBaseItem().ItemName.Contains("wallpaper_single") || !item.GetBaseItem().ItemName.Contains("floor_single") || !item.GetBaseItem().ItemName.Contains("landscape_single"))) {
+                            string wallPos = item.WallCoord;
+                            db.items.Where(i => i.id == itemId).ExecuteUpdate(s => s.SetProperty(i => i.wall_pos, wallPos));
+                        }
+
+                        int x = item.GetX, y = item.GetY, rot = item.Rotation;
+                        double z = item.GetZ;
+                        db.items.Where(i => i.id == itemId).ExecuteUpdate(s => s
+                            .SetProperty(i => i.x, x)
+                            .SetProperty(i => i.y, y)
+                            .SetProperty(i => i.z, z)
+                            .SetProperty(i => i.rot, rot));
                     }
                 }
             }
@@ -618,9 +629,18 @@ namespace Plus.HabboHotel.Rooms
                 _room.AddTent(item.Id);
             }
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            uint floorItemId = (uint)item.Id;
+            uint floorRoomId = (uint)_room.RoomId;
+            int fx = item.GetX, fy = item.GetY, frot = item.Rotation;
+            double fz = item.GetZ;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.RunQuery("UPDATE `items` SET `room_id` = '" + _room.RoomId + "', `x` = '" + item.GetX + "', `y` = '" + item.GetY + "', `z` = '" + item.GetZ + "', `rot` = '" + item.Rotation + "' WHERE `id` = '" + item.Id + "' LIMIT 1");
+                db.items.Where(i => i.id == floorItemId).ExecuteUpdate(s => s
+                    .SetProperty(i => i.room_id, floorRoomId)
+                    .SetProperty(i => i.x, fx)
+                    .SetProperty(i => i.y, fy)
+                    .SetProperty(i => i.z, fz)
+                    .SetProperty(i => i.rot, frot));
             }
 
             return true;
@@ -676,11 +696,20 @@ namespace Plus.HabboHotel.Rooms
                 }
             }
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            uint wallSaveId = (uint)item.Id;
+            uint wallRoomId = (uint)_room.RoomId;
+            int wx = item.GetX, wy = item.GetY, wrot = item.Rotation;
+            double wz = item.GetZ;
+            string wallCoord = item.WallCoord;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("UPDATE `items` SET `room_id` = '" + _room.RoomId + "', `x` = '" + item.GetX + "', `y` = '" + item.GetY + "', `z` = '" + item.GetZ + "', `rot` = '" + item.Rotation + "', `wall_pos` = @WallPos WHERE `id` = '" + item.Id + "' LIMIT 1");
-                dbClient.AddParameter("WallPos", item.WallCoord);
-                dbClient.RunQuery();
+                db.items.Where(i => i.id == wallSaveId).ExecuteUpdate(s => s
+                    .SetProperty(i => i.room_id, wallRoomId)
+                    .SetProperty(i => i.x, wx)
+                    .SetProperty(i => i.y, wy)
+                    .SetProperty(i => i.z, wz)
+                    .SetProperty(i => i.rot, wrot)
+                    .SetProperty(i => i.wall_pos, wallCoord));
             }
 
             _wallItems.TryAdd(item.Id, item);

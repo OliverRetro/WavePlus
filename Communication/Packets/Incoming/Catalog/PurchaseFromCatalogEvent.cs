@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Outgoing.Catalog;
 using Plus.Communication.Packets.Outgoing.Inventory.AvatarEffects;
 using Plus.Communication.Packets.Outgoing.Inventory.Bots;
@@ -10,7 +11,7 @@ using Plus.Communication.Packets.Outgoing.Inventory.Pets;
 using Plus.Communication.Packets.Outgoing.Inventory.Purse;
 using Plus.Communication.Packets.Outgoing.Moderation;
 using Plus.Core;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.Badges;
 using Plus.HabboHotel.Catalog;
 using Plus.HabboHotel.Catalog.Utilities;
@@ -178,16 +179,15 @@ namespace Plus.Communication.Packets.Incoming.Catalog
                 }
 
                 item.LimitedEditionSells++;
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                int limitSells = item.LimitedEditionSells;
+                int catalogItemId = item.Id;
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    dbClient.SetQuery("UPDATE `catalog_items` SET `limited_sells` = @limitSells WHERE `id` = @itemId LIMIT 1");
-                    dbClient.AddParameter("limitSells", item.LimitedEditionSells);
-                    dbClient.AddParameter("itemId", item.Id);
-                    dbClient.RunQuery();
-
-                    limitedEditionSells = item.LimitedEditionSells;
-                    limitedEditionStack = item.LimitedEditionStack;
+                    db.catalog_items.Where(c => c.id == catalogItemId).ExecuteUpdate(s => s.SetProperty(c => c.limited_sells, limitSells));
                 }
+
+                limitedEditionSells = item.LimitedEditionSells;
+                limitedEditionStack = item.LimitedEditionStack;
             }
 
             if (item.CostCredits > 0) {

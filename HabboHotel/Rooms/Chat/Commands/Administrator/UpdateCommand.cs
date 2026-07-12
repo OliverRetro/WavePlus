@@ -307,6 +307,30 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator
                     break;
                 }
 
+                case "rp_items":
+                {
+                    if (!session.GetHabbo().GetPermissions().HasCommand("command_update_rp_items")) {
+                        session.SendWhisper("Oops, you do not have the 'command_update_rp_items' permission.");
+                        break;
+                    }
+
+                    PlusEnvironment.GetRpItemManager().Init();
+                    session.SendWhisper("Roleplay item definitions successfully reloaded.");
+                    break;
+                }
+
+                case "rp_weapons":
+                {
+                    if (!session.GetHabbo().GetPermissions().HasCommand("command_update_rp_weapons")) {
+                        session.SendWhisper("Oops, you do not have the 'command_update_rp_weapons' permission.");
+                        break;
+                    }
+
+                    PlusEnvironment.GetWeaponManager().Init();
+                    session.SendWhisper("Roleplay weapon definitions successfully reloaded.");
+                    break;
+                }
+
                 default:
                     session.SendWhisper("'" + updateVariable + "' is not a valid thing to reload.");
                     break;

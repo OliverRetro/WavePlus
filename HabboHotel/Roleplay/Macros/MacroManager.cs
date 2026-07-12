@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
+using Plus.Database.EF.Entities;
 using System.Text.Json;
-using Plus.Database.Interfaces;
 
 namespace Plus.HabboHotel.Roleplay.Macros
 {
@@ -46,19 +47,18 @@ namespace Plus.HabboHotel.Roleplay.Macros
         {
             _enabled[userId] = enabled;
 
-            using IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor();
-            dbClient.SetQuery("INSERT INTO `users_macro_settings` (`user_id`, `enabled`) VALUES (@uid, @enabled) ON DUPLICATE KEY UPDATE `enabled` = @enabled");
-            dbClient.AddParameter("uid", userId);
-            dbClient.AddParameter("enabled", enabled ? "1" : "0");
-            dbClient.RunQuery();
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            db.users_macro_settings.Upsert(new users_macro_setting
+            {
+                user_id = userId,
+                enabled = enabled
+            }).Run();
         }
 
         private bool LoadEnabled(int userId)
         {
-            using IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor();
-            dbClient.SetQuery("SELECT `enabled` FROM `users_macro_settings` WHERE `user_id` = @uid LIMIT 1");
-            dbClient.AddParameter("uid", userId);
-            return dbClient.GetInteger() == 1;
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            return db.users_macro_settings.Where(x => x.user_id == userId).Select(x => x.enabled).FirstOrDefault();
         }
 
         public Macro GetSelected(int userId)
@@ -83,13 +83,12 @@ namespace Plus.HabboHotel.Roleplay.Macros
         {
             Dictionary<int, Macro> macros = GetUserMacros(userId);
             int id;
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("INSERT INTO `users_macros` (`user_id`, `name`, `configs`) VALUES (@uid, @name, @configs)");
-                dbClient.AddParameter("uid", userId);
-                dbClient.AddParameter("name", name);
-                dbClient.AddParameter("configs", "{}");
-                id = Convert.ToInt32(dbClient.InsertQuery());
+                var entity = new Database.EF.Entities.users_macro { user_id = userId, name = name, configs = "{}" };
+                db.users_macros.Add(entity);
+                db.SaveChanges();
+                id = entity.id;
             }
 
             Macro macro = new(id, userId, name);
@@ -109,13 +108,11 @@ namespace Plus.HabboHotel.Roleplay.Macros
                 foreach (var kvp in sets)
                     macro.Sets[kvp.Key] = kvp.Value;
 
-            using IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor();
-            dbClient.SetQuery("UPDATE `users_macros` SET `name` = @name, `configs` = @configs WHERE `id` = @id AND `user_id` = @uid LIMIT 1");
-            dbClient.AddParameter("name", macro.Name);
-            dbClient.AddParameter("configs", JsonSerializer.Serialize(macro.Sets));
-            dbClient.AddParameter("id", macroId);
-            dbClient.AddParameter("uid", userId);
-            dbClient.RunQuery();
+            string macroName = macro.Name;
+            string configs = JsonSerializer.Serialize(macro.Sets);
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            db.users_macros.Where(m => m.id == macroId && m.user_id == userId)
+                .ExecuteUpdate(s => s.SetProperty(m => m.name, macroName).SetProperty(m => m.configs, configs));
         }
 
         public void DeleteMacro(int userId, int macroId)
@@ -127,11 +124,8 @@ namespace Plus.HabboHotel.Roleplay.Macros
             if (_selected.TryGetValue(userId, out int sel) && sel == macroId)
                 _selected.TryRemove(userId, out _);
 
-            using IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor();
-            dbClient.SetQuery("DELETE FROM `users_macros` WHERE `id` = @id AND `user_id` = @uid LIMIT 1");
-            dbClient.AddParameter("id", macroId);
-            dbClient.AddParameter("uid", userId);
-            dbClient.RunQuery();
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            db.users_macros.Where(m => m.id == macroId && m.user_id == userId).ExecuteDelete();
         }
 
         public void Unload(int userId)
@@ -144,17 +138,11 @@ namespace Plus.HabboHotel.Roleplay.Macros
         private Dictionary<int, Macro> LoadFromDatabase(int userId)
         {
             Dictionary<int, Macro> macros = new();
-            using IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor();
-            dbClient.SetQuery("SELECT `id`, `user_id`, `name`, `configs` FROM `users_macros` WHERE `user_id` = @uid");
-            dbClient.AddParameter("uid", userId);
-            DataTable table = dbClient.GetTable();
-            if (table != null) {
-                foreach (DataRow row in table.Rows)
-                {
-                    int id = Convert.ToInt32(row["id"]);
-                    Dictionary<string, string> sets = ParseConfigs(Convert.ToString(row["configs"]));
-                    macros[id] = new Macro(id, userId, Convert.ToString(row["name"]), sets);
-                }
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            foreach (var row in db.users_macros.Where(m => m.user_id == userId).Select(m => new { m.id, m.name, m.configs }).ToList())
+            {
+                Dictionary<string, string> sets = ParseConfigs(row.configs);
+                macros[row.id] = new Macro(row.id, userId, row.name, sets);
             }
 
             return macros;

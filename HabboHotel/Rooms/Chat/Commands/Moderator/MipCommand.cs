@@ -1,5 +1,7 @@
 ﻿using System;
-using Plus.Database.Interfaces;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Moderation;
 using Plus.HabboHotel.Users;
@@ -36,12 +38,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
             double expire = PlusEnvironment.GetUnixTimestamp() + 78892200;
             string username = habbo.Username;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            int habboId = habbo.Id;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.RunQuery("UPDATE `user_info` SET `bans` = `bans` + '1' WHERE `user_id` = '" + habbo.Id + "' LIMIT 1");
+                db.user_infos.Where(ui => ui.user_id == habboId).ExecuteUpdate(s => s.SetProperty(ui => ui.bans, ui => ui.bans + 1));
 
-                dbClient.SetQuery("SELECT `ip_last` FROM `users` WHERE `id` = '" + habbo.Id + "' LIMIT 1");
-                ipAddress = dbClient.GetString();
+                ipAddress = db.users.Where(u => u.id == habboId).Select(u => u.ip_last).FirstOrDefault() ?? string.Empty;
             }
 
             string reason;

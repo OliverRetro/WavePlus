@@ -1,4 +1,6 @@
-﻿using Plus.Database.Interfaces;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.User
@@ -14,9 +16,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
         public void Execute(GameClient session, Room room, string[] @params)
         {
             session.GetHabbo().AllowPetSpeech = !session.GetHabbo().AllowPetSpeech;
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+
+            int userId = session.GetHabbo().Id;
+            string petsMuted = session.GetHabbo().AllowPetSpeech ? "1" : "0";
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.RunQuery("UPDATE `users` SET `pets_muted` = '" + ((session.GetHabbo().AllowPetSpeech) ? 1 : 0) + "' WHERE `id` = '" + session.GetHabbo().Id + "' LIMIT 1");
+                db.users.Where(u => u.id == userId).ExecuteUpdate(s => s.SetProperty(u => u.pets_muted, petsMuted));
             }
 
             if (session.GetHabbo().AllowPetSpeech)

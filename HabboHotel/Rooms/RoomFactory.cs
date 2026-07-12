@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Data;
-using Plus.Database.Interfaces;
+using System.Linq;
+using Plus.Database.EF;
 
 namespace Plus.HabboHotel.Rooms
 {
@@ -10,34 +10,21 @@ namespace Plus.HabboHotel.Rooms
         public static List<RoomData> GetRoomsDataByOwnerSortByName(int ownerId)
         {
             List<RoomData> data = new();
+            string ownerStr = ownerId.ToString();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            string username = db.users.Where(u => u.id == ownerId).Select(u => u.username).FirstOrDefault();
+            List<Database.EF.Entities.room> rooms = db.rooms.Where(r => r.owner == ownerStr).OrderBy(r => r.caption).ToList();
+
+            foreach (Database.EF.Entities.room r in rooms)
             {
-                dbClient.SetQuery("SELECT `username`, `rooms`.* FROM `users` INNER JOIN `rooms` ON `owner` = `users`.`id` WHERE `users`.`id` = @ownerid ORDER BY `caption`;");
-                dbClient.AddParameter("ownerid", ownerId);
-                DataTable rooms = dbClient.GetTable();
+                if (PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(r.id, out Room room)) {
+                    data.Add(room);
+                } else {
+                    if (!PlusEnvironment.GetGame().GetRoomManager().TryGetModel(r.model_name, out RoomModel model))
+                        continue;
 
-                if (rooms != null) {
-                    foreach (DataRow row in rooms.Rows)
-                    {
-                        if (PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(Convert.ToInt32(row["id"]), out Room room)) {
-                            data.Add(room);
-                        } else {
-                            if (!PlusEnvironment.GetGame().GetRoomManager().TryGetModel(Convert.ToString(row["model_name"]), out RoomModel model)) {
-                                continue;
-                            }
-
-                            data.Add(new RoomData(Convert.ToInt32(row["id"]), Convert.ToString(row["caption"]), Convert.ToString(row["model_name"]), Convert.ToString(row["username"]), Convert.ToInt32(row["owner"]),
-                                Convert.ToString(row["password"]), Convert.ToInt32(row["score"]), Convert.ToString(row["roomtype"]), Convert.ToString(row["state"]), Convert.ToInt32(row["users_now"]),
-                                Convert.ToInt32(row["users_max"]), Convert.ToInt32(row["category"]), Convert.ToString(row["description"]), Convert.ToString(row["tags"]), Convert.ToString(row["floor"]),
-                                Convert.ToString(row["landscape"]), Convert.ToInt32(row["allow_pets"]), Convert.ToInt32(row["allow_pets_eat"]), Convert.ToInt32(row["room_blocking_disabled"]), Convert.ToInt32(row["allow_hidewall"]),
-                                Convert.ToInt32(row["wallthick"]), Convert.ToInt32(row["floorthick"]), Convert.ToString(row["wallpaper"]), Convert.ToInt32(row["mute_settings"]), Convert.ToInt32(row["ban_settings"]),
-                                Convert.ToInt32(row["kick_settings"]), Convert.ToInt32(row["chat_mode"]), Convert.ToInt32(row["chat_size"]), Convert.ToInt32(row["chat_speed"]), Convert.ToInt32(row["chat_extra_flood"]),
-                                Convert.ToInt32(row["chat_hearing_distance"]), Convert.ToInt32(row["trade_settings"]), Convert.ToString(row["push_enabled"]) == "1", Convert.ToString(row["pull_enabled"]) == "1",
-                                Convert.ToString(row["spush_enabled"]) == "1", Convert.ToString(row["spull_enabled"]) == "1", Convert.ToString(row["enables_enabled"]) == "1", Convert.ToString(row["respect_notifications_enabled"]) == "1",
-                                Convert.ToString(row["pet_morphs_allowed"]) == "1", Convert.ToInt32(row["group_id"]), Convert.ToInt32(row["sale_price"]), Convert.ToString(row["lay_enabled"]) == "1", model, Convert.ToString(row["safezone"]) == "1"));
-                        }
-                    }
+                    data.Add(BuildRoomData(r, username, model));
                 }
             }
 
@@ -51,36 +38,43 @@ namespace Plus.HabboHotel.Rooms
                 return true;
             }
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("SELECT `rooms`.*, `users`.`username` FROM `rooms` INNER JOIN `users` ON `users`.`id` = `rooms`.`owner` WHERE `rooms`.`id` = @id LIMIT 1");
-                dbClient.AddParameter("id", roomId);
-                DataRow row = dbClient.GetRow();
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            Database.EF.Entities.room r = db.rooms.FirstOrDefault(x => x.id == roomId);
 
-                if (row != null) {
-                    if (!PlusEnvironment.GetGame().GetRoomManager().TryGetModel(Convert.ToString(row["model_name"]), out RoomModel model)) {
-                        data = null;
-                        return false;
-                    }
-
-                    // TODO: Revise this?
-                    string username = !string.IsNullOrEmpty(Convert.ToString(row["username"])) ? Convert.ToString(row["username"]) : "Habboon";
-
-                    data = new RoomData(Convert.ToInt32(row["id"]), Convert.ToString(row["caption"]), Convert.ToString(row["model_name"]), username, Convert.ToInt32(row["owner"]),
-                        Convert.ToString(row["password"]), Convert.ToInt32(row["score"]), Convert.ToString(row["roomtype"]), Convert.ToString(row["state"]), Convert.ToInt32(row["users_now"]),
-                        Convert.ToInt32(row["users_max"]), Convert.ToInt32(row["category"]), Convert.ToString(row["description"]), Convert.ToString(row["tags"]), Convert.ToString(row["floor"]),
-                        Convert.ToString(row["landscape"]), Convert.ToInt32(row["allow_pets"]), Convert.ToInt32(row["allow_pets_eat"]), Convert.ToInt32(row["room_blocking_disabled"]), Convert.ToInt32(row["allow_hidewall"]),
-                        Convert.ToInt32(row["wallthick"]), Convert.ToInt32(row["floorthick"]), Convert.ToString(row["wallpaper"]), Convert.ToInt32(row["mute_settings"]), Convert.ToInt32(row["ban_settings"]),
-                        Convert.ToInt32(row["kick_settings"]), Convert.ToInt32(row["chat_mode"]), Convert.ToInt32(row["chat_size"]), Convert.ToInt32(row["chat_speed"]), Convert.ToInt32(row["chat_extra_flood"]),
-                        Convert.ToInt32(row["chat_hearing_distance"]), Convert.ToInt32(row["trade_settings"]), Convert.ToInt32(row["push_enabled"]) == 1, Convert.ToInt32(row["pull_enabled"]) == 1,
-                        Convert.ToInt32(row["spush_enabled"]) == 1, Convert.ToInt32(row["spull_enabled"]) == 1, Convert.ToInt32(row["enables_enabled"]) == 1, Convert.ToInt32(row["respect_notifications_enabled"]) == 1,
-                        Convert.ToString(row["pet_morphs_allowed"]) == "1", Convert.ToInt32(row["group_id"]), Convert.ToInt32(row["sale_price"]), Convert.ToString(row["lay_enabled"]) == "1", model, Convert.ToString(row["safezone"]) == "1");
-                    return true;
+            if (r != null) {
+                if (!PlusEnvironment.GetGame().GetRoomManager().TryGetModel(r.model_name, out RoomModel model)) {
+                    data = null;
+                    return false;
                 }
+
+                int ownerId = Convert.ToInt32(r.owner);
+                string username = db.users.Where(u => u.id == ownerId).Select(u => u.username).FirstOrDefault();
+                username = !string.IsNullOrEmpty(username) ? username : "Habboon";
+
+                data = BuildRoomData(r, username, model);
+                return true;
             }
 
             data = null;
             return false;
+        }
+
+        /// <summary>
+        /// Maps a scaffolded <c>rooms</c> row to a <see cref="RoomData"/>. Several tinyint(1)
+        /// columns scaffold as nullable bool and a couple (spush_enabled/lay_enabled/safezone)
+        /// as enum-strings; both are normalised back to the flags/ints RoomData expects.
+        /// </summary>
+        private static RoomData BuildRoomData(Database.EF.Entities.room r, string username, RoomModel model)
+        {
+            return new RoomData(r.id, r.caption, r.model_name, username, Convert.ToInt32(r.owner),
+                r.password, r.score, r.roomtype, r.state, r.users_now,
+                r.users_max, r.category, r.description, r.tags, r.floor,
+                r.landscape, r.allow_pets ? 1 : 0, r.allow_pets_eat ? 1 : 0, r.room_blocking_disabled ? 1 : 0, r.allow_hidewall == true ? 1 : 0,
+                r.wallthick, r.floorthick, r.wallpaper, r.mute_settings == true ? 1 : 0, r.ban_settings == true ? 1 : 0,
+                r.kick_settings, r.chat_mode, r.chat_size, r.chat_speed, r.chat_extra_flood,
+                r.chat_hearing_distance, r.trade_settings, r.push_enabled == true, r.pull_enabled == true,
+                r.spush_enabled == "1", r.spull_enabled == true, r.enables_enabled == true, r.respect_notifications_enabled == true,
+                r.pet_morphs_allowed == true, (int)r.group_id, r.sale_price, r.lay_enabled == "1", model, r.safezone == "1");
         }
     }
 }

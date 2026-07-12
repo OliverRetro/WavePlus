@@ -1,4 +1,6 @@
-﻿using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
@@ -14,12 +16,11 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
         public void Execute(GameClient session, Room room, string[] @params)
         {
             session.GetHabbo().DisableForcedEffects = !session.GetHabbo().DisableForcedEffects;
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("UPDATE `users` SET `disable_forced_effects` = @DisableForcedEffects WHERE `id` = '" + session.GetHabbo().Id + "' LIMIT 1");
-                dbClient.AddParameter("DisableForcedEffects", (session.GetHabbo().DisableForcedEffects ? 1 : 0).ToString());
-                dbClient.RunQuery();
-            }
+            int userId = session.GetHabbo().Id;
+            string disabled = (session.GetHabbo().DisableForcedEffects ? 1 : 0).ToString();
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                db.users.Where(u => u.id == userId)
+                    .ExecuteUpdate(s => s.SetProperty(u => u.disable_forced_effects, disabled));
 
             session.SendWhisper("Forced FX mode is now " + (session.GetHabbo().DisableForcedEffects ? "disabled!" : "enabled!"));
         }

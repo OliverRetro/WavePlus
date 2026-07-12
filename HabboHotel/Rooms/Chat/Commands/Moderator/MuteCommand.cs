@@ -1,4 +1,6 @@
-﻿using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Users;
 
@@ -34,9 +36,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
                 if (time > 600 && !session.GetHabbo().GetPermissions().HasRight("mod_mute_limit_override"))
                     time = 600;
 
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                int habboId = habbo.Id;
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    dbClient.RunQuery("UPDATE `users` SET `time_muted` = '" + time + "' WHERE `id` = '" + habbo.Id + "' LIMIT 1");
+                    db.users.Where(u => u.id == habboId).ExecuteUpdate(s => s.SetProperty(u => u.time_muted, time));
                 }
 
                 if (habbo.GetClient() != null) {

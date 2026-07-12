@@ -1,5 +1,7 @@
 ﻿using System;
-using Plus.Database.Interfaces;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Users;
 
@@ -26,10 +28,11 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
                 return;
             }
 
+            int habboId = habbo.Id;
             if (Convert.ToDouble(@params[2]) == 0) {
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    dbClient.RunQuery("UPDATE `user_info` SET `trading_locked` = '0' WHERE `user_id` = '" + habbo.Id + "' LIMIT 1");
+                    db.user_infos.Where(ui => ui.user_id == habboId).ExecuteUpdate(s => s.SetProperty(ui => ui.trading_locked, 0d));
                 }
 
                 if (habbo.GetClient() != null) {
@@ -49,9 +52,9 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
                     days = 365;
 
                 double length = (PlusEnvironment.GetUnixTimestamp() + (days * 86400));
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    dbClient.RunQuery("UPDATE `user_info` SET `trading_locked` = '" + length + "', `trading_locks_count` = `trading_locks_count` + '1' WHERE `user_id` = '" + habbo.Id + "' LIMIT 1");
+                    db.user_infos.Where(ui => ui.user_id == habboId).ExecuteUpdate(s => s.SetProperty(ui => ui.trading_locked, length).SetProperty(ui => ui.trading_locks_count, ui => ui.trading_locks_count + 1));
                 }
 
                 if (habbo.GetClient() != null) {

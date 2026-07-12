@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Data;
+using System.Collections.Generic;
+using System.Linq;
 using log4net;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 
 namespace Plus.Core.Language
 {
@@ -21,16 +21,12 @@ namespace Plus.Core.Language
             if (_values.Count > 0)
                 _values.Clear();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT * FROM `server_locale`");
-                DataTable table = dbClient.GetTable();
-
-                if (table != null) {
-                    foreach (DataRow row in table.Rows)
-                    {
-                        _values.Add(row["key"].ToString(), row["value"].ToString());
-                    }
+                var rows = db.server_locales.Select(l => new { l.key, l.value }).ToList();
+                foreach (var row in rows)
+                {
+                    _values.Add(row.key, row.value);
                 }
             }
 

@@ -22,6 +22,10 @@ namespace Plus.Communication.Packets.Incoming
     /// </summary>
     internal class WebOverlayCallbackEvent : IPacketEvent
     {
+        // Macro placeholder that stands in for the user's current RP target (locked or clicked).
+        // e.g. a bind of ":hit x" fires against whoever is targeted, not a player named "x".
+        private const string MacroTargetPlaceholder = "x";
+
         public void Parse(GameClient session, ClientPacket packet)
         {
             // DIAGNOSTIC: proves packet 314 reached this handler at all.
@@ -527,14 +531,26 @@ namespace Plus.Communication.Packets.Incoming
 
             user.UnIdle();
 
-            // A keybind fires a bare command (e.g. ":hit"). Auto-fill the user's current
-            // target — the clicked user when nothing is locked, otherwise the locked
-            // target — as the command argument, so binds act on whoever is targeted.
+            // Keybinds act on the user's current target — the clicked user when nothing is
+            // locked, otherwise the locked target. A bare command (":hit") auto-fills that
+            // target as its argument; a command using the placeholder (":hit x") has the
+            // placeholder swapped for it. Any other explicit argument is left untouched.
             if (text.StartsWith(":", StringComparison.CurrentCulture)) {
-                if (!text.Contains(' ')) {
-                    Habbo target = TargetLockService.GetTarget(habbo);
+                Habbo target = TargetLockService.GetTarget(habbo);
+                int space = text.IndexOf(' ');
+
+                if (space < 0) {
                     if (target != null)
                         text += " " + target.Username;
+                } else {
+                    string command = text.Substring(0, space);
+                    string argument = text.Substring(space + 1).Trim();
+
+                    // Only the placeholder is substituted; a real username stays as typed.
+                    // With no target, fall back to the bare command so the command's own
+                    // targeting/error handling takes over.
+                    if (string.Equals(argument, MacroTargetPlaceholder, StringComparison.OrdinalIgnoreCase))
+                        text = target != null ? command + " " + target.Username : command;
                 }
 
                 if (PlusEnvironment.GetGame().GetChatManager().GetCommands().Parse(session, text))

@@ -1,4 +1,6 @@
-﻿using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 
 namespace Plus.Communication.Packets.Incoming.Moderation
@@ -17,10 +19,10 @@ namespace Plus.Communication.Packets.Incoming.Moderation
             if (client == null || client.GetHabbo() == null)
                 return;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.RunQuery("UPDATE `user_info` SET `cautions` = `cautions` + '1' WHERE `user_id` = '" + client.GetHabbo().Id + "' LIMIT 1");
-            }
+            int targetId = client.GetHabbo().Id;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                db.user_infos.Where(u => u.user_id == targetId)
+                    .ExecuteUpdate(s => s.SetProperty(u => u.cautions, u => u.cautions + 1));
 
             client.SendNotification(message);
         }

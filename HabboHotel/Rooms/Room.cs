@@ -9,7 +9,7 @@ using Plus.Communication.Packets.Outgoing.Rooms.Avatar;
 using Plus.Communication.Packets.Outgoing.Rooms.Engine;
 using Plus.Communication.Packets.Outgoing.Rooms.Session;
 using Plus.Core;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
 using Plus.HabboHotel.Items.Data.Moodlight;
@@ -205,55 +205,42 @@ namespace Plus.HabboHotel.Rooms
 
         public void InitBots()
         {
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            uint roomKey = (uint)RoomId;
+            var bots = db.bots.Where(b => b.room_id == roomKey && b.ai_type != "pet").ToList();
+
+            foreach (var bot in bots)
             {
-                dbClient.SetQuery("SELECT `id`,`room_id`,`name`,`motto`,`look`,`x`,`y`,`z`,`rotation`,`gender`,`user_id`,`ai_type`,`walk_mode`,`automatic_chat`,`speaking_interval`,`mix_sentences`,`chat_bubble`,`effect_id` FROM `bots` WHERE `room_id` = '" + RoomId + "' AND `ai_type` != 'pet'");
-                DataTable data = dbClient.GetTable();
-                if (data == null)
-                    return;
+                List<RandomSpeech> speeches = db.bots_speeches.Where(s => s.bot_id == bot.id)
+                    .Select(s => s.text).ToList()
+                    .Select(t => new RandomSpeech(t, (int)bot.id)).ToList();
 
-                foreach (DataRow bot in data.Rows)
-                {
-                    dbClient.SetQuery("SELECT `text` FROM `bots_speech` WHERE `bot_id` = '" + Convert.ToInt32(bot["id"]) + "'");
-                    DataTable botSpeech = dbClient.GetTable();
-
-                    List<RandomSpeech> speeches = new();
-
-                    foreach (DataRow speech in botSpeech.Rows)
-                    {
-                        speeches.Add(new RandomSpeech(Convert.ToString(speech["text"]), Convert.ToInt32(bot["id"])));
-                    }
-
-                    _roomUserManager.DeployBot(new RoomBot(Convert.ToInt32(bot["id"]), Convert.ToInt32(bot["room_id"]), Convert.ToString(bot["ai_type"]), Convert.ToString(bot["walk_mode"]), Convert.ToString(bot["name"]), Convert.ToString(bot["motto"]), Convert.ToString(bot["look"]), int.Parse(bot["x"].ToString()), int.Parse(bot["y"].ToString()), int.Parse(bot["z"].ToString()), int.Parse(bot["rotation"].ToString()), 0, 0, 0, 0, ref speeches, Convert.ToString(bot["gender"]), 0, Convert.ToInt32(bot["user_id"].ToString()), Convert.ToBoolean(bot["automatic_chat"]), Convert.ToInt32(bot["speaking_interval"]), PlusEnvironment.EnumToBool(bot["mix_sentences"].ToString()), Convert.ToInt32(bot["chat_bubble"]), Convert.ToInt32(bot["effect_id"])), null);
-                }
+                _roomUserManager.DeployBot(new RoomBot((int)bot.id, (int)bot.room_id, bot.ai_type, bot.walk_mode, bot.name, bot.motto, bot.look, bot.x, bot.y, bot.z, bot.rotation, 0, 0, 0, 0, ref speeches, bot.gender, 0, (int)bot.user_id, Convert.ToBoolean(bot.automatic_chat), bot.speaking_interval, PlusEnvironment.EnumToBool(bot.mix_sentences), bot.chat_bubble, bot.effect_id), null);
             }
         }
 
         public void InitPets()
         {
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            uint roomKey = (uint)RoomId;
+            var pets = db.bots.Where(b => b.room_id == roomKey && b.ai_type == "pet")
+                .Select(b => new { b.id, b.user_id, b.room_id, b.name, b.x, b.y, b.z }).ToList();
+
+            foreach (var row in pets)
             {
-                dbClient.SetQuery("SELECT `id`,`user_id`,`room_id`,`name`,`x`,`y`,`z` FROM `bots` WHERE `room_id` = '" + RoomId + "' AND `ai_type` = 'pet'");
-                DataTable data = dbClient.GetTable();
+                var mRow = db.bots_petdata.Where(p => p.id == row.id)
+                    .Select(p => new { p.type, p.race, p.color, p.experience, p.energy, p.nutrition, p.respect, p.createstamp, p.have_saddle, p.anyone_ride, p.hairdye, p.pethair, p.gnome_clothing })
+                    .FirstOrDefault();
+                if (mRow == null)
+                    continue;
 
-                if (data == null)
-                    return;
+                Pet pet = new((int)row.id, (int)row.user_id, (int)row.room_id, row.name, (int)(mRow.type ?? 0), mRow.race,
+                    mRow.color, mRow.experience ?? 0, mRow.energy ?? 0, mRow.nutrition ?? 0, mRow.respect ?? 0, (double)(mRow.createstamp ?? 0), row.x, row.y,
+                    (double)row.z, mRow.have_saddle ?? 0, mRow.anyone_ride ?? 0, mRow.hairdye ?? 0, mRow.pethair ?? 0, mRow.gnome_clothing);
 
-                foreach (DataRow row in data.Rows)
-                {
-                    dbClient.SetQuery("SELECT `type`,`race`,`color`,`experience`,`energy`,`nutrition`,`respect`,`createstamp`,`have_saddle`,`anyone_ride`,`hairdye`,`pethair`,`gnome_clothing` FROM `bots_petdata` WHERE `id` = '" + row[0] + "' LIMIT 1");
-                    DataRow mRow = dbClient.GetRow();
-                    if (mRow == null)
-                        continue;
+                var rndSpeechList = new List<RandomSpeech>();
 
-                    Pet pet = new(Convert.ToInt32(row["id"]), Convert.ToInt32(row["user_id"]), Convert.ToInt32(row["room_id"]), Convert.ToString(row["name"]), Convert.ToInt32(mRow["type"]), Convert.ToString(mRow["race"]),
-                        Convert.ToString(mRow["color"]), Convert.ToInt32(mRow["experience"]), Convert.ToInt32(mRow["energy"]), Convert.ToInt32(mRow["nutrition"]), Convert.ToInt32(mRow["respect"]), Convert.ToDouble(mRow["createstamp"]), Convert.ToInt32(row["x"]), Convert.ToInt32(row["y"]),
-                        Convert.ToDouble(row["z"]), Convert.ToInt32(mRow["have_saddle"]), Convert.ToInt32(mRow["anyone_ride"]), Convert.ToInt32(mRow["hairdye"]), Convert.ToInt32(mRow["pethair"]), Convert.ToString(mRow["gnome_clothing"]));
-
-                    var rndSpeechList = new List<RandomSpeech>();
-
-                    _roomUserManager.DeployBot(new RoomBot(pet.PetId, RoomId, "pet", "freeroam", pet.Name, "", pet.Look, pet.X, pet.Y, Convert.ToInt32(pet.Z), 0, 0, 0, 0, 0, ref rndSpeechList, "", 0, pet.OwnerId, false, 0, false, 0, 0), pet);
-                }
+                _roomUserManager.DeployBot(new RoomBot(pet.PetId, RoomId, "pet", "freeroam", pet.Name, "", pet.Look, pet.X, pet.Y, Convert.ToInt32(pet.Z), 0, 0, 0, 0, 0, ref rndSpeechList, "", 0, pet.OwnerId, false, 0, false, 0, 0), pet);
             }
         }
 
@@ -283,42 +270,15 @@ namespace Plus.HabboHotel.Rooms
             if (Group != null)
                 return;
 
-            DataTable data = null;
-
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("SELECT room_rights.user_id FROM room_rights WHERE room_id = @roomid");
-                dbClient.AddParameter("roomid", Id);
-                data = dbClient.GetTable();
-            }
-
-            if (data != null) {
-                foreach (DataRow row in data.Rows)
-                {
-                    UsersWithRights.Add(Convert.ToInt32(row["user_id"]));
-                }
-            }
+            uint roomKey = (uint)Id;
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            UsersWithRights = db.room_rights.Where(r => r.room_id == roomKey).Select(r => (int)r.user_id).ToList();
         }
 
         private void LoadFilter()
         {
-            WordFilterList = new List<string>();
-
-            DataTable data;
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("SELECT * FROM `room_filter` WHERE `room_id` = @roomid;");
-                dbClient.AddParameter("roomid", Id);
-                data = dbClient.GetTable();
-            }
-
-            if (data == null)
-                return;
-
-            foreach (DataRow row in data.Rows)
-            {
-                WordFilterList.Add(Convert.ToString(row["word"]));
-            }
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            WordFilterList = db.room_filters.Where(f => f.room_id == Id).Select(f => f.word).ToList();
         }
 
         public bool CheckRights(GameClient session)
@@ -420,7 +380,7 @@ namespace Plus.HabboHotel.Rooms
                     EndPromotion();
                 }
 
-                if (IdleTime >= 60 && !HasActivePromotion) {
+                if (IdleTime >= 60 && !HasActivePromotion && !IsPublic) {
                     PlusEnvironment.GetGame().GetRoomManager().UnloadRoom(Id);
                     return;
                 }
@@ -725,7 +685,16 @@ namespace Plus.HabboHotel.Rooms
 
         public void Dispose()
         {
-            SendPacket(new CloseConnectionComposer());
+            // Boot everyone still inside to the configured RP home room (room unload / deletion);
+            // fall back to the hotel view for anyone without a valid home room configured.
+            foreach (RoomUser user in _roomUserManager.GetUserList().ToList())
+            {
+                if (user == null || user.IsBot || user.GetClient() == null)
+                    continue;
+
+                if (!Plus.HabboHotel.Roleplay.Utilities.RpHomeRoomService.SendHome(user.GetClient()))
+                    user.GetClient().SendPacket(new CloseConnectionComposer());
+            }
 
             if (!mDisposed) {
                 IsCrashed = false;

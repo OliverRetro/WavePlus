@@ -1,5 +1,7 @@
-﻿using Plus.Communication.Packets.Outgoing.Groups;
-using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Communication.Packets.Outgoing.Groups;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
 
@@ -19,17 +21,9 @@ namespace Plus.Communication.Packets.Incoming.Groups
             if (group.CreatorId != session.GetHabbo().Id)
                 return;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("UPDATE `groups` SET `name`= @name, `desc` = @desc WHERE `id` = @groupId LIMIT 1");
-                dbClient.AddParameter("name", name);
-                dbClient.AddParameter("desc", desc);
-                dbClient.AddParameter("groupId", groupId);
-                dbClient.RunQuery();
-            }
-
             group.Name = name;
             group.Description = desc;
+            group.MarkDirty(); // cached; written to DB on the 15-minute group flush
 
             session.SendPacket(new GroupInfoComposer(group, session));
         }

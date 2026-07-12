@@ -1,5 +1,8 @@
-﻿using System.Text.RegularExpressions;
-using Plus.Database.Interfaces;
+using System.Linq;
+using System.Text.RegularExpressions;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
+using Plus.Database.EF.Entities;
 
 namespace Plus.HabboHotel.Rooms.Instance
 {
@@ -20,12 +23,10 @@ namespace Plus.HabboHotel.Rooms.Instance
             if (_instance.WordFilterList.Contains(word))
                 return false;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("INSERT INTO `room_filter` (`room_id`,`word`) VALUES(@rid,@word);");
-                dbClient.AddParameter("rid", _instance.Id);
-                dbClient.AddParameter("word", word);
-                dbClient.RunQuery();
+                db.room_filters.Add(new room_filter { room_id = _instance.Id, word = word });
+                db.SaveChanges();
             }
 
             _instance.WordFilterList.Add(word);
@@ -37,12 +38,10 @@ namespace Plus.HabboHotel.Rooms.Instance
             if (!_instance.WordFilterList.Contains(word))
                 return false;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            int rid = _instance.Id;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("DELETE FROM `room_filter` WHERE `room_id` = @rid AND `word` = @word;");
-                dbClient.AddParameter("rid", _instance.Id);
-                dbClient.AddParameter("word", word);
-                dbClient.RunQuery();
+                db.room_filters.Where(f => f.room_id == rid && f.word == word).ExecuteDelete();
             }
 
             _instance.WordFilterList.Remove(word);

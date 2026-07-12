@@ -1,5 +1,7 @@
-﻿using Plus.Communication.Packets.Outgoing.Moderation;
-using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Communication.Packets.Outgoing.Moderation;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Moderation;
 
@@ -26,10 +28,10 @@ namespace Plus.Communication.Packets.Incoming.Moderation
             client?.SendPacket(new ModeratorSupportTicketResponseComposer(result));
 
             if (result == 2) {
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                {
-                    dbClient.RunQuery("UPDATE `user_info` SET `cfhs_abusive` = `cfhs_abusive` + 1 WHERE `user_id` = '" + ticket.Sender.Id + "' LIMIT 1");
-                }
+                int senderId = ticket.Sender.Id;
+                using WavePlusContext db = PlusEnvironment.GetDbContext();
+                db.user_infos.Where(u => u.user_id == senderId)
+                    .ExecuteUpdate(s => s.SetProperty(u => u.cfhs_abusive, u => u.cfhs_abusive + 1));
             }
 
             ticket.Answered = true;

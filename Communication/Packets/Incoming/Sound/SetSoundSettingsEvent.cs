@@ -1,4 +1,6 @@
-﻿using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 
 namespace Plus.Communication.Packets.Incoming.Sound
@@ -21,11 +23,11 @@ namespace Plus.Communication.Packets.Incoming.Sound
                     volume += vol;
             }
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            int userId = session.GetHabbo().Id;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("UPDATE users SET volume = @volume WHERE `id` = '" + session.GetHabbo().Id + "' LIMIT 1");
-                dbClient.AddParameter("volume", volume);
-                dbClient.RunQuery();
+                db.users.Where(u => u.id == userId)
+                    .ExecuteUpdate(s => s.SetProperty(u => u.volume, volume));
             }
         }
     }

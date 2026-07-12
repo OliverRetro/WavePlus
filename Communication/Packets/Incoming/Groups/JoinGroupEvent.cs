@@ -2,7 +2,8 @@
 using Plus.Communication.Packets.Outgoing.Groups;
 using Plus.Communication.Packets.Outgoing.Moderation;
 using Plus.Communication.Packets.Outgoing.Users;
-using Plus.Database.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
 using Plus.HabboHotel.Rooms;
@@ -60,11 +61,12 @@ namespace Plus.Communication.Packets.Incoming.Groups
             } else {
                 if (session.GetHabbo().GetStats().FavouriteGroupId == 0 && (group.Kind == GroupKind.Gang || group.Kind == GroupKind.Cartel || group.Kind == GroupKind.Mafia)) {
                     session.GetHabbo().GetStats().FavouriteGroupId = group.Id;
-                    using IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor();
-                    dbClient.SetQuery("UPDATE `user_stats` SET `groupid` = @groupId WHERE `id` = @userId LIMIT 1");
-                    dbClient.AddParameter("groupId", session.GetHabbo().GetStats().FavouriteGroupId);
-                    dbClient.AddParameter("userId", session.GetHabbo().Id);
-                    dbClient.RunQuery();
+                    int favGroupId = session.GetHabbo().GetStats().FavouriteGroupId;
+                    int statsUserId = session.GetHabbo().Id;
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                    {
+                        db.user_stats.Where(x => x.id == statsUserId).ExecuteUpdate(s => s.SetProperty(x => x.groupid, favGroupId));
+                    }
 
                     if (session.GetHabbo().InRoom && session.GetHabbo().CurrentRoom != null) {
                         session.GetHabbo().CurrentRoom.SendPacket(new RefreshFavouriteGroupComposer(session.GetHabbo().Id));

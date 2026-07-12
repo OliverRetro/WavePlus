@@ -1,7 +1,6 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using Plus.Database.Interfaces;
+using System.Linq;
+using Plus.Database.EF;
 
 namespace Plus.HabboHotel.Talents
 {
@@ -46,18 +45,15 @@ namespace Plus.HabboHotel.Talents
 
         public void Init()
         {
-            DataTable getTable;
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            int level = Level;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT `sub_level`,`badge_code`,`required_progress` FROM `talents_sub_levels` WHERE `talent_level` = @TalentLevel");
-                dbClient.AddParameter("TalentLevel", Level);
-                getTable = dbClient.GetTable();
-            }
-
-            if (getTable != null) {
-                foreach (DataRow row in getTable.Rows)
+                var rows = db.talents_sub_levels.Where(t => t.talent_level == level)
+                    .Select(t => new { t.sub_level, t.badge_code, t.required_progress })
+                    .ToList();
+                foreach (var row in rows)
                 {
-                    _subLevels.Add(Convert.ToInt32(row["sub_level"]), new TalentTrackSubLevel(Convert.ToInt32(row["sub_level"]), Convert.ToString(row["badge_code"]), Convert.ToInt32(row["required_progress"])));
+                    _subLevels.Add(row.sub_level, new TalentTrackSubLevel(row.sub_level, row.badge_code, row.required_progress));
                 }
             }
         }

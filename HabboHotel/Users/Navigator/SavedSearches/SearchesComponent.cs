@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Data;
-using Plus.Database.Interfaces;
+using System.Linq;
+using Plus.Database.EF;
 
 namespace Plus.HabboHotel.Users.Navigator.SavedSearches
 {
@@ -20,17 +19,17 @@ namespace Plus.HabboHotel.Users.Navigator.SavedSearches
             if (_savedSearches.Count > 0)
                 _savedSearches.Clear();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            int userId = habbo.Id;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT `id`,`filter`,`search_code` FROM `user_saved_searches` WHERE `user_id` = @UserId");
-                dbClient.AddParameter("UserId", habbo.Id);
-                DataTable getSearches = dbClient.GetTable();
+                var searches = db.user_saved_searches
+                    .Where(s => s.user_id == userId)
+                    .Select(s => new { s.id, s.filter, s.search_code })
+                    .ToList();
 
-                if (getSearches != null) {
-                    foreach (DataRow row in getSearches.Rows)
-                    {
-                        _savedSearches.TryAdd(Convert.ToInt32(row["id"]), new SavedSearch(Convert.ToInt32(row["id"]), Convert.ToString(row["filter"]), Convert.ToString(row["search_code"])));
-                    }
+                foreach (var row in searches)
+                {
+                    _savedSearches.TryAdd(row.id, new SavedSearch(row.id, row.filter, row.search_code));
                 }
             }
 

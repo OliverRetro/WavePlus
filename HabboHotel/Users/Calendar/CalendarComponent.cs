@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using Plus.Database.Interfaces;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Plus.Database.EF;
 
 namespace Plus.HabboHotel.Users.Calendar
 {
@@ -35,21 +34,16 @@ namespace Plus.HabboHotel.Users.Calendar
             if (_openedBoxes.Count > 0)
                 _openedBoxes.Clear();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            int playerId = player.Id;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT * FROM `user_xmas15_calendar` WHERE `user_id` = @id;");
-                dbClient.AddParameter("id", player.Id);
-                DataTable getData = dbClient.GetTable();
-
-                if (getData != null) {
-                    foreach (DataRow row in getData.Rows)
-                    {
-                        if (Convert.ToInt32(row["status"]) == 0) {
-                            _lateBoxes.Add(Convert.ToInt32(row["day"]));
-                        } else {
-                            _openedBoxes.Add(Convert.ToInt32(row["day"]));
-                        }
-                    }
+                var boxes = db.user_xmas15_calendars.Where(c => c.user_id == playerId).Select(c => new { c.status, c.day }).ToList();
+                foreach (var box in boxes)
+                {
+                    if (box.status == 0)
+                        _lateBoxes.Add(box.day);
+                    else
+                        _openedBoxes.Add(box.day);
                 }
             }
 

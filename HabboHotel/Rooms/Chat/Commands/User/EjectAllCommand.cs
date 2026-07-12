@@ -1,5 +1,6 @@
 ﻿using System.Linq;
-using Plus.Database.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
 
@@ -32,9 +33,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                         targetClient.GetHabbo().GetInventoryComponent().UpdateItems(false);
                     } else {
                         room.GetRoomItemHandler().RemoveFurniture(null, item.Id);
-                        using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                        uint itemId = (uint)item.Id;
+                        using (WavePlusContext db = PlusEnvironment.GetDbContext())
                         {
-                            dbClient.RunQuery("UPDATE `items` SET `room_id` = '0' WHERE `id` = '" + item.Id + "' LIMIT 1");
+                            db.items.Where(i => i.id == itemId).ExecuteUpdate(s => s.SetProperty(i => i.room_id, 0u));
                         }
                     }
                 }
@@ -51,9 +53,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                         targetClient.GetHabbo().GetInventoryComponent().UpdateItems(false);
                     } else {
                         room.GetRoomItemHandler().RemoveFurniture(null, item.Id);
-                        using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                        uint itemId = (uint)item.Id;
+                        using (WavePlusContext db = PlusEnvironment.GetDbContext())
                         {
-                            dbClient.RunQuery("UPDATE `items` SET `room_id` = '0' WHERE `id` = '" + item.Id + "' LIMIT 1");
+                            db.items.Where(i => i.id == itemId).ExecuteUpdate(s => s.SetProperty(i => i.room_id, 0u));
                         }
                     }
                 }

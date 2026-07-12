@@ -3,7 +3,7 @@ using Plus.Communication.Packets.Outgoing.Navigator;
 using Plus.Communication.Packets.Outgoing.Rooms.Engine;
 using Plus.Communication.Packets.Outgoing.Rooms.Session;
 using Plus.Communication.Packets.Outgoing.Users;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
@@ -38,11 +38,9 @@ namespace Plus.Communication.Packets.Incoming.Users
             }
 
             bool inUse;
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT COUNT(0) FROM `users` WHERE `username` = @name LIMIT 1");
-                dbClient.AddParameter("name", newName);
-                inUse = dbClient.GetInteger() == 1;
+                inUse = db.users.Any(u => u.username == newName);
             }
 
             char[] letters = newName.ToLower().ToCharArray();
@@ -82,15 +80,7 @@ namespace Plus.Communication.Packets.Incoming.Users
             session.SendPacket(new UpdateUsernameComposer(newName));
             room.SendPacket(new UserNameChangeComposer(room.Id, user.VirtualId, newName));
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("INSERT INTO `logs_client_namechange` (`user_id`,`new_name`,`old_name`,`timestamp`) VALUES (@userId, @name, @oldName, @timestamp)");
-                dbClient.AddParameter("userId", session.GetHabbo().Id);
-                dbClient.AddParameter("name", newName);
-                dbClient.AddParameter("oldName", oldName);
-                dbClient.AddParameter("timestamp", PlusEnvironment.GetUnixTimestamp());
-                dbClient.RunQuery();
-            }
+            Plus.Core.Persistence.LogBuffer.LogNameChange(session.GetHabbo().Id, newName, oldName);
 
             foreach (Room ownRooms in PlusEnvironment.GetGame().GetRoomManager().GetRooms().ToList())
             {

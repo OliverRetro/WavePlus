@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using log4net;
-using Plus.Database.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
+using Plus.Database.EF.Entities;
 
 namespace Plus.HabboHotel.Moderation
 {
@@ -34,122 +35,54 @@ namespace Plus.HabboHotel.Moderation
             if (_bans.Count > 0)
                 _bans.Clear();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+
+            foreach (var row in db.moderation_presets.Select(p => new { p.type, p.message }).ToList())
             {
-                dbClient.SetQuery("SELECT * FROM `moderation_presets`;");
-                DataTable presetsTable = dbClient.GetTable();
+                switch (row.type?.ToLower())
+                {
+                    case "user":
+                        _userPresets.Add(row.message);
+                        break;
 
-                if (presetsTable != null) {
-                    foreach (DataRow row in presetsTable.Rows)
-                    {
-                        string type = Convert.ToString(row["type"])?.ToLower();
-                        switch (type)
-                        {
-                            case "user":
-                                _userPresets.Add(Convert.ToString(row["message"]));
-                                break;
-
-                            case "room":
-                                _roomPresets.Add(Convert.ToString(row["message"]));
-                                break;
-                        }
-                    }
+                    case "room":
+                        _roomPresets.Add(row.message);
+                        break;
                 }
             }
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            foreach (var row in db.moderation_topics.Select(t => new { t.id, t.caption }).ToList())
             {
-                dbClient.SetQuery("SELECT * FROM `moderation_topics`;");
-                DataTable moderationTopics = dbClient.GetTable();
-
-                if (moderationTopics != null) {
-                    foreach (DataRow row in moderationTopics.Rows)
-                    {
-                        if (!_moderationCfhTopics.ContainsKey(Convert.ToInt32(row["id"])))
-                            _moderationCfhTopics.Add(Convert.ToInt32(row["id"]), Convert.ToString(row["caption"]));
-                    }
-                }
+                if (!_moderationCfhTopics.ContainsKey((int)row.id))
+                    _moderationCfhTopics.Add((int)row.id, row.caption);
             }
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            foreach (var row in db.moderation_topic_actions.Select(a => new { a.id, a.parent_id, a.type, a.caption, a.message_text, a.mute_time, a.ban_time, a.ip_time, a.trade_lock_time, a.default_sanction }).ToList())
             {
-                dbClient.SetQuery("SELECT * FROM `moderation_topic_actions`;");
-                DataTable moderationTopicsActions = dbClient.GetTable();
+                int parentId = row.parent_id;
 
-                if (moderationTopicsActions != null) {
-                    foreach (DataRow row in moderationTopicsActions.Rows)
-                    {
-                        int parentId = Convert.ToInt32(row["parent_id"]);
+                if (!_moderationCfhTopicActions.ContainsKey(parentId))
+                    _moderationCfhTopicActions.Add(parentId, new List<ModerationPresetActions>());
 
-                        if (!_moderationCfhTopicActions.ContainsKey(parentId)) {
-                            _moderationCfhTopicActions.Add(parentId, new List<ModerationPresetActions>());
-                        }
-
-                        _moderationCfhTopicActions[parentId].Add(new ModerationPresetActions(Convert.ToInt32(row["id"]), Convert.ToInt32(row["parent_id"]), Convert.ToString(row["type"]), Convert.ToString(row["caption"]), Convert.ToString(row["message_text"]),
-                            Convert.ToInt32(row["mute_time"]), Convert.ToInt32(row["ban_time"]), Convert.ToInt32(row["ip_time"]), Convert.ToInt32(row["trade_lock_time"]), Convert.ToString(row["default_sanction"])));
-                    }
-                }
+                _moderationCfhTopicActions[parentId].Add(new ModerationPresetActions((int)row.id, row.parent_id, row.type, row.caption, row.message_text,
+                    row.mute_time, row.ban_time, row.ip_time, row.trade_lock_time, row.default_sanction));
             }
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("SELECT * FROM `moderation_preset_action_categories`;");
-                DataTable presetsActionCats = dbClient.GetTable();
+            foreach (var row in db.moderation_preset_action_categories.Select(c => new { c.id, c.caption }).ToList())
+                _userActionPresetCategories.Add((int)row.id, row.caption);
 
-                if (presetsActionCats != null) {
-                    foreach (DataRow row in presetsActionCats.Rows)
-                    {
-                        _userActionPresetCategories.Add(Convert.ToInt32(row["id"]), Convert.ToString(row["caption"]));
-                    }
-                }
+            foreach (var row in db.moderation_preset_action_messages.Select(m => new { m.id, m.parent_id, m.caption, m.message_text, m.mute_hours, m.ban_hours, m.ip_ban_hours, m.trade_lock_days, m.notice }).ToList())
+            {
+                int parentId = (int)row.parent_id;
+
+                if (!_userActionPresetMessages.ContainsKey(parentId))
+                    _userActionPresetMessages.Add(parentId, new List<ModerationPresetActionMessages>());
+
+                _userActionPresetMessages[parentId].Add(new ModerationPresetActionMessages((int)row.id, (int)row.parent_id, row.caption, row.message_text,
+                    row.mute_hours, row.ban_hours, row.ip_ban_hours, row.trade_lock_days, row.notice));
             }
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("SELECT * FROM `moderation_preset_action_messages`;");
-                DataTable presetsActionMessages = dbClient.GetTable();
-
-                if (presetsActionMessages != null) {
-                    foreach (DataRow row in presetsActionMessages.Rows)
-                    {
-                        int parentId = Convert.ToInt32(row["parent_id"]);
-
-                        if (!_userActionPresetMessages.ContainsKey(parentId)) {
-                            _userActionPresetMessages.Add(parentId, new List<ModerationPresetActionMessages>());
-                        }
-
-                        _userActionPresetMessages[parentId].Add(new ModerationPresetActionMessages(Convert.ToInt32(row["id"]), Convert.ToInt32(row["parent_id"]), Convert.ToString(row["caption"]), Convert.ToString(row["message_text"]),
-                            Convert.ToInt32(row["mute_hours"]), Convert.ToInt32(row["ban_hours"]), Convert.ToInt32(row["ip_ban_hours"]), Convert.ToInt32(row["trade_lock_days"]), Convert.ToString(row["notice"])));
-                    }
-                }
-            }
-
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("SELECT `bantype`,`value`,`reason`,`expire` FROM `bans` WHERE `bantype` = 'machine' OR `bantype` = 'user'");
-                DataTable getBans = dbClient.GetTable();
-
-                if (getBans != null) {
-                    foreach (DataRow row in getBans.Rows)
-                    {
-                        string value = Convert.ToString(row["value"]);
-                        string reason = Convert.ToString(row["reason"]);
-                        double expires = (double) row["expire"];
-                        string type = Convert.ToString(row["bantype"]);
-
-                        ModerationBan ban = new(BanTypeUtility.GetModerationBanType(type), value, reason, expires);
-                        if (expires > PlusEnvironment.GetUnixTimestamp()) {
-                            if (value != null && !_bans.ContainsKey(value))
-                                _bans.Add(value, ban);
-                        } else {
-                            dbClient.SetQuery("DELETE FROM `bans` WHERE `bantype` = @banType AND `value` = @key LIMIT 1");
-                            dbClient.AddParameter("banType", BanTypeUtility.FromModerationBanType(ban.Type));
-                            dbClient.AddParameter("key", value);
-                            dbClient.RunQuery();
-                        }
-                    }
-                }
-            }
+            LoadBans(db);
 
             Log.Info("Loaded " + (_userPresets.Count + _roomPresets.Count) + " moderation presets.");
             Log.Info("Loaded " + _userActionPresetCategories.Count + " moderation categories.");
@@ -162,50 +95,50 @@ namespace Plus.HabboHotel.Moderation
             if (_bans.Count > 0)
                 _bans.Clear();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("SELECT `bantype`,`value`,`reason`,`expire` FROM `bans` WHERE `bantype` = 'machine' OR `bantype` = 'user'");
-                DataTable getBans = dbClient.GetTable();
-
-                if (getBans != null) {
-                    foreach (DataRow row in getBans.Rows)
-                    {
-                        string value = Convert.ToString(row["value"]);
-                        string reason = Convert.ToString(row["reason"]);
-                        double expires = (double) row["expire"];
-                        string type = Convert.ToString(row["bantype"]);
-
-                        ModerationBan ban = new(BanTypeUtility.GetModerationBanType(type), value, reason, expires);
-                        if (expires > PlusEnvironment.GetUnixTimestamp()) {
-                            if (value != null && !_bans.ContainsKey(value))
-                                _bans.Add(value, ban);
-                        } else {
-                            dbClient.SetQuery("DELETE FROM `bans` WHERE `bantype` = @banType AND `value` = @key LIMIT 1");
-                            dbClient.AddParameter("banType", BanTypeUtility.FromModerationBanType(ban.Type));
-                            dbClient.AddParameter("key", value);
-                            dbClient.RunQuery();
-                        }
-                    }
-                }
-            }
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            LoadBans(db);
 
             Log.Info("Cached " + _bans.Count + " username and machine bans.");
+        }
+
+        /// <summary>Loads the cached machine/user bans, purging any that have already expired.</summary>
+        private void LoadBans(WavePlusContext db)
+        {
+            var rows = db.bans.Where(b => b.bantype == "machine" || b.bantype == "user")
+                .Select(b => new { b.bantype, b.value, b.reason, b.expire }).ToList();
+
+            foreach (var row in rows)
+            {
+                string value = row.value;
+                double expires = row.expire;
+
+                ModerationBan ban = new(BanTypeUtility.GetModerationBanType(row.bantype), value, row.reason, expires);
+                if (expires > PlusEnvironment.GetUnixTimestamp()) {
+                    if (value != null && !_bans.ContainsKey(value))
+                        _bans.Add(value, ban);
+                } else {
+                    string banType = BanTypeUtility.FromModerationBanType(ban.Type);
+                    db.bans.Where(b => b.bantype == banType && b.value == value).ExecuteDelete();
+                }
+            }
         }
 
         public void BanUser(string mod, ModerationBanType type, string banValue, string reason, double expireTimestamp)
         {
             string banType = type == ModerationBanType.Ip ? "ip" : type == ModerationBanType.Machine ? "machine" : "user";
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("REPLACE INTO `bans` (`bantype`, `value`, `reason`, `expire`, `added_by`,`added_date`) VALUES (@banType, @banValue, @reason, @expireTimestamp, @mod, @timestamp);");
-                dbClient.AddParameter("banType", banType);
-                dbClient.AddParameter("banValue", banValue);
-                dbClient.AddParameter("reason", reason);
-                dbClient.AddParameter("expireTimestamp", expireTimestamp);
-                dbClient.AddParameter("mod", mod);
-                dbClient.AddParameter("timestamp", PlusEnvironment.GetUnixTimestamp());
-                dbClient.RunQuery();
-            }
+            double timestamp = PlusEnvironment.GetUnixTimestamp();
+
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                db.bans.Upsert(new ban
+                {
+                    bantype = banType,
+                    value = banValue,
+                    reason = reason,
+                    expire = expireTimestamp,
+                    added_by = mod,
+                    added_date = timestamp.ToString(),
+                    appeal_state = "0"
+                }).On(b => new { b.bantype, b.value }).Run();
 
             if (type == ModerationBanType.Machine || type == ModerationBanType.Username) {
                 if (!_bans.ContainsKey(banValue))
@@ -264,9 +197,6 @@ namespace Plus.HabboHotel.Moderation
         /// <summary>
         /// Runs a quick check to see if a ban record is cached in the server.
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="ban"></param>
-        /// <returns></returns>
         public bool IsBanned(string key, out ModerationBan ban)
         {
             if (_bans.TryGetValue(key, out ban)) {
@@ -274,13 +204,9 @@ namespace Plus.HabboHotel.Moderation
                     return true;
 
                 //This ban has expired, let us quickly remove it here.
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                {
-                    dbClient.SetQuery("DELETE FROM `bans` WHERE `bantype` = @banType AND `value` = @key LIMIT 1");
-                    dbClient.AddParameter("banType", BanTypeUtility.FromModerationBanType(ban.Type));
-                    dbClient.AddParameter("key", key);
-                    dbClient.RunQuery();
-                }
+                string banType = BanTypeUtility.FromModerationBanType(ban.Type);
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                    db.bans.Where(b => b.bantype == banType && b.value == key).ExecuteDelete();
 
                 //And finally, let us remove the ban record from the cache.
                 if (_bans.ContainsKey(key))
@@ -294,22 +220,15 @@ namespace Plus.HabboHotel.Moderation
         /// <summary>
         /// Run a quick database check to see if this ban exists in the database.
         /// </summary>
-        /// <param name="machineId">The value of the ban.</param>
-        /// <returns></returns>
         public bool MachineBanCheck(string machineId)
         {
             if (PlusEnvironment.GetGame().GetModerationManager().IsBanned(machineId, out ModerationBan _)) {
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                {
-                    dbClient.SetQuery("SELECT * FROM `bans` WHERE `bantype` = 'machine' AND `value` = @value LIMIT 1");
-                    dbClient.AddParameter("value", machineId);
-                    DataRow banRow = dbClient.GetRow();
+                using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-                    //If there is no more ban record, then we can simply remove it from our cache!
-                    if (banRow == null) {
-                        PlusEnvironment.GetGame().GetModerationManager().RemoveBan(machineId);
-                        return false;
-                    }
+                //If there is no more ban record, then we can simply remove it from our cache!
+                if (!db.bans.Any(b => b.bantype == "machine" && b.value == machineId)) {
+                    PlusEnvironment.GetGame().GetModerationManager().RemoveBan(machineId);
+                    return false;
                 }
             }
 
@@ -319,22 +238,15 @@ namespace Plus.HabboHotel.Moderation
         /// <summary>
         /// Run a quick database check to see if this ban exists in the database.
         /// </summary>
-        /// <param name="username">The value of the ban.</param>
-        /// <returns></returns>
         public bool UsernameBanCheck(string username)
         {
             if (PlusEnvironment.GetGame().GetModerationManager().IsBanned(username, out ModerationBan _)) {
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                {
-                    dbClient.SetQuery("SELECT * FROM `bans` WHERE `bantype` = 'user' AND `value` = @value LIMIT 1");
-                    dbClient.AddParameter("value", username);
-                    DataRow banRow = dbClient.GetRow();
+                using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-                    //If there is no more ban record, then we can simply remove it from our cache!
-                    if (banRow == null) {
-                        PlusEnvironment.GetGame().GetModerationManager().RemoveBan(username);
-                        return false;
-                    }
+                //If there is no more ban record, then we can simply remove it from our cache!
+                if (!db.bans.Any(b => b.bantype == "user" && b.value == username)) {
+                    PlusEnvironment.GetGame().GetModerationManager().RemoveBan(username);
+                    return false;
                 }
             }
 
@@ -344,7 +256,6 @@ namespace Plus.HabboHotel.Moderation
         /// <summary>
         /// Remove a ban from the cache based on a given value.
         /// </summary>
-        /// <param name="value"></param>
         public void RemoveBan(string value)
         {
             _bans.Remove(value);

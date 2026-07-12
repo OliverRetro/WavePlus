@@ -1,4 +1,7 @@
-﻿using Plus.Database.Interfaces;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
+using Plus.Database.EF.Entities;
 using Plus.HabboHotel.GameClients;
 
 namespace Plus.Communication.Packets.Incoming.Avatar
@@ -13,27 +16,28 @@ namespace Plus.Communication.Packets.Incoming.Avatar
 
             look = PlusEnvironment.GetFigureManager().ProcessFigure(look, gender, session.GetHabbo().GetClothing().GetClothingParts, true);
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("SELECT null FROM `user_wardrobe` WHERE `user_id` = @id AND `slot_id` = @slot");
-                dbClient.AddParameter("id", session.GetHabbo().Id);
-                dbClient.AddParameter("slot", slotId);
+            uint uid = (uint)session.GetHabbo().Id;
+            uint slot = (uint)slotId;
+            string genderUpper = gender.ToUpper();
 
-                if (dbClient.GetRow() != null) {
-                    dbClient.SetQuery("UPDATE `user_wardrobe` SET `look` = @look, `gender` = @gender WHERE `user_id` = @id AND `slot_id` = @slot LIMIT 1");
-                    dbClient.AddParameter("id", session.GetHabbo().Id);
-                    dbClient.AddParameter("slot", slotId);
-                    dbClient.AddParameter("look", look);
-                    dbClient.AddParameter("gender", gender.ToUpper());
-                    dbClient.RunQuery();
-                } else {
-                    dbClient.SetQuery("INSERT INTO `user_wardrobe` (`user_id`,`slot_id`,`look`,`gender`) VALUES (@id,@slot,@look,@gender)");
-                    dbClient.AddParameter("id", session.GetHabbo().Id);
-                    dbClient.AddParameter("slot", slotId);
-                    dbClient.AddParameter("look", look);
-                    dbClient.AddParameter("gender", gender.ToUpper());
-                    dbClient.RunQuery();
-                }
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            bool exists = db.user_wardrobes.Any(w => w.user_id == uid && w.slot_id == slot);
+
+            if (exists) {
+                db.user_wardrobes
+                    .Where(w => w.user_id == uid && w.slot_id == slot)
+                    .ExecuteUpdate(s => s
+                        .SetProperty(x => x.look, look)
+                        .SetProperty(x => x.gender, genderUpper));
+            } else {
+                db.user_wardrobes.Add(new user_wardrobe
+                {
+                    user_id = uid,
+                    slot_id = slot,
+                    look = look,
+                    gender = genderUpper
+                });
+                db.SaveChanges();
             }
         }
     }

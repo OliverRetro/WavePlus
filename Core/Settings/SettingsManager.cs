@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Data;
+using System.Collections.Generic;
+using System.Linq;
 using log4net;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 
 namespace Plus.Core.Settings
 {
@@ -21,16 +21,12 @@ namespace Plus.Core.Settings
             if (_settings.Count > 0)
                 _settings.Clear();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT * FROM `server_settings`");
-                DataTable table = dbClient.GetTable();
-
-                if (table != null) {
-                    foreach (DataRow row in table.Rows)
-                    {
-                        _settings.Add(row["key"].ToString().ToLower(), row["value"].ToString().ToLower());
-                    }
+                var rows = db.server_settings.Select(s => new { s.key, s.value }).ToList();
+                foreach (var row in rows)
+                {
+                    _settings.Add(row.key.ToLower(), row.value.ToLower());
                 }
             }
 
@@ -39,7 +35,7 @@ namespace Plus.Core.Settings
 
         public string TryGetValue(string value)
         {
-            return _settings.ContainsKey(value) ? _settings[value] : "0";
+            return _settings.TryGetValue(value, out string value1) ? value1 : "0";
         }
     }
 }

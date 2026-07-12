@@ -1,5 +1,7 @@
-﻿using Plus.Communication.Packets.Outgoing.Users;
-using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Communication.Packets.Outgoing.Users;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Quests;
 using Plus.HabboHotel.Rooms;
@@ -12,11 +14,10 @@ namespace Plus.Communication.Packets.Incoming.Inventory.Badges
         {
             session.GetHabbo().GetBadgeComponent().ResetSlots();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            uint badgeUserId = (uint)session.GetHabbo().Id;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("UPDATE `user_badges` SET `badge_slot` = '0' WHERE `user_id` = @userId");
-                dbClient.AddParameter("userId", session.GetHabbo().Id);
-                dbClient.RunQuery();
+                db.user_badges.Where(b => b.user_id == badgeUserId).ExecuteUpdate(s => s.SetProperty(b => b.badge_slot, 0));
             }
 
             for (int i = 0; i < 5; i++)
@@ -32,13 +33,11 @@ namespace Plus.Communication.Packets.Incoming.Inventory.Badges
 
                 session.GetHabbo().GetBadgeComponent().GetBadge(badge).Slot = slot;
 
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                int badgeSlot = slot;
+                string badgeId = badge;
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    dbClient.SetQuery("UPDATE `user_badges` SET `badge_slot` = @slot WHERE `badge_id` = @badge AND `user_id` = @userId LIMIT 1");
-                    dbClient.AddParameter("slot", slot);
-                    dbClient.AddParameter("badge", badge);
-                    dbClient.AddParameter("userId", session.GetHabbo().Id);
-                    dbClient.RunQuery();
+                    db.user_badges.Where(b => b.badge_id == badgeId && b.user_id == badgeUserId).ExecuteUpdate(s => s.SetProperty(b => b.badge_slot, badgeSlot));
                 }
             }
 

@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
+﻿using System.Collections.Generic;
+using System.Linq;
 using log4net;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 
 namespace Plus.HabboHotel.Badges
 {
@@ -19,17 +18,15 @@ namespace Plus.HabboHotel.Badges
 
         public void Init()
         {
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT * FROM `badge_definitions`;");
-                DataTable data = dbClient.GetTable();
-
-                foreach (DataRow row in data.Rows)
+                var rows = db.badge_definitions.Select(b => new { b.code, b.required_right }).ToList();
+                foreach (var row in rows)
                 {
-                    string code = Convert.ToString(row["code"]).ToUpper();
+                    string code = row.code.ToUpper();
 
                     if (!_badges.ContainsKey(code))
-                        _badges.Add(code, new BadgeDefinition(code, Convert.ToString(row["required_right"])));
+                        _badges.Add(code, new BadgeDefinition(code, row.required_right));
                 }
             }
 

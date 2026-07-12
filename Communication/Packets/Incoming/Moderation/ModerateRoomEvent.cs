@@ -1,7 +1,8 @@
 ﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Outgoing.Navigator;
 using Plus.Communication.Packets.Outgoing.Rooms.Settings;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Rooms;
 
@@ -35,14 +36,25 @@ namespace Plus.Communication.Packets.Incoming.Moderation
             if (room.HasActivePromotion)
                 room.EndPromotion();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            int roomId = room.RoomId;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
+                // NOTE: legacy sets `state` = '1' even though the column is an enum('open','locked','password','invisible'); preserved as-is.
                 if (setName && setLock)
-                    dbClient.RunQuery("UPDATE `rooms` SET `caption` = 'Inappropriate to Hotel Management', `description` = 'Inappropriate to Hotel Management', `tags` = '', `state` = '1' WHERE `id` = '" + room.RoomId + "' LIMIT 1");
+                    db.rooms.Where(r => r.id == roomId).ExecuteUpdate(s => s
+                        .SetProperty(r => r.caption, "Inappropriate to Hotel Management")
+                        .SetProperty(r => r.description, "Inappropriate to Hotel Management")
+                        .SetProperty(r => r.tags, "")
+                        .SetProperty(r => r.state, "1"));
                 else if (setName)
-                    dbClient.RunQuery("UPDATE `rooms` SET `caption` = 'Inappropriate to Hotel Management', `description` = 'Inappropriate to Hotel Management', `tags` = '' WHERE `id` = '" + room.RoomId + "' LIMIT 1");
+                    db.rooms.Where(r => r.id == roomId).ExecuteUpdate(s => s
+                        .SetProperty(r => r.caption, "Inappropriate to Hotel Management")
+                        .SetProperty(r => r.description, "Inappropriate to Hotel Management")
+                        .SetProperty(r => r.tags, ""));
                 else if (setLock)
-                    dbClient.RunQuery("UPDATE `rooms` SET `state` = '1', `tags` = '' WHERE `id` = '" + room.RoomId + "' LIMIT 1");
+                    db.rooms.Where(r => r.id == roomId).ExecuteUpdate(s => s
+                        .SetProperty(r => r.state, "1")
+                        .SetProperty(r => r.tags, ""));
             }
 
             room.SendPacket(new RoomSettingsSavedComposer(room.RoomId));

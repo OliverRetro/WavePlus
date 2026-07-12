@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using Plus.Database.Interfaces;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Plus.Database.EF;
 
 namespace Plus.HabboHotel.Catalog.Clothing
 {
@@ -19,17 +18,12 @@ namespace Plus.HabboHotel.Catalog.Clothing
             if (_clothing.Count > 0)
                 _clothing.Clear();
 
-            DataTable data = null;
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT `id`,`clothing_name`,`clothing_parts` FROM `catalog_clothing`");
-                data = dbClient.GetTable();
-            }
-
-            if (data != null) {
-                foreach (DataRow row in data.Rows)
+                var rows = db.catalog_clothings.Select(c => new { c.id, c.clothing_name, c.clothing_parts }).ToList();
+                foreach (var row in rows)
                 {
-                    _clothing.Add(Convert.ToInt32(row["id"]), new ClothingItem(Convert.ToInt32(row["id"]), Convert.ToString(row["clothing_name"]), Convert.ToString(row["clothing_parts"])));
+                    _clothing.Add(row.id, new ClothingItem(row.id, row.clothing_name, row.clothing_parts));
                 }
             }
         }

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Data;
-using Plus.Database.Interfaces;
+using System.Linq;
+using Plus.Database.EF;
 
 namespace Plus.HabboHotel.Rooms.Chat.Pets.Locale
 {
@@ -18,16 +18,13 @@ namespace Plus.HabboHotel.Rooms.Chat.Pets.Locale
         public void Init()
         {
             _values = new Dictionary<string, string[]>();
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT * FROM `bots_pet_responses`");
-                DataTable pets = dbClient.GetTable();
+                var pets = db.bots_pet_responses.Select(p => new { p.pet_id, p.responses }).ToList();
 
-                if (pets != null) {
-                    foreach (DataRow row in pets.Rows)
-                    {
-                        _values.Add(row[0].ToString(), row[1].ToString().Split(';'));
-                    }
+                foreach (var row in pets)
+                {
+                    _values.Add(row.pet_id, row.responses.Split(';'));
                 }
             }
         }

@@ -1,6 +1,5 @@
-﻿using System;
-using System.Data;
-using Plus.Database.Interfaces;
+﻿using Plus.Database.EF;
+using Plus.Database.EF.Entities;
 using Plus.HabboHotel.Items;
 using Plus.HabboHotel.Rooms.AI;
 using Plus.HabboHotel.Users.Inventory.Bots;
@@ -11,20 +10,26 @@ namespace Plus.HabboHotel.Catalog.Utilities
     {
         public static Bot CreateBot(ItemData itemData, int ownerId)
         {
-            DataRow bot;
             if (!PlusEnvironment.GetGame().GetCatalog().TryGetBot(itemData.Id, out CatalogBot cataBot))
                 return null;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            bot botEntity = new()
             {
-                dbClient.SetQuery("INSERT INTO bots (`user_id`,`name`,`motto`,`look`,`gender`,`ai_type`) VALUES ('" + ownerId + "', '" + cataBot.Name + "', '" + cataBot.Motto + "', '" + cataBot.Figure + "', '" + cataBot.Gender + "', '" + cataBot.AIType + "')");
-                int id = Convert.ToInt32(dbClient.InsertQuery());
+                user_id = (uint)ownerId,
+                name = cataBot.Name,
+                motto = cataBot.Motto,
+                look = cataBot.Figure,
+                gender = cataBot.Gender,
+                ai_type = cataBot.AIType
+            };
 
-                dbClient.SetQuery("SELECT `id`,`user_id`,`name`,`motto`,`look`,`gender` FROM `bots` WHERE `user_id` = '" + ownerId + "' AND `id` = '" + id + "' LIMIT 1");
-                bot = dbClient.GetRow();
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
+            {
+                db.bots.Add(botEntity);
+                db.SaveChanges();
             }
 
-            return new Bot(Convert.ToInt32(bot["id"]), Convert.ToInt32(bot["user_id"]), Convert.ToString(bot["name"]), Convert.ToString(bot["motto"]), Convert.ToString(bot["look"]), Convert.ToString(bot["gender"]));
+            return new Bot((int)botEntity.id, (int)botEntity.user_id, botEntity.name, botEntity.motto, botEntity.look, botEntity.gender);
         }
 
 

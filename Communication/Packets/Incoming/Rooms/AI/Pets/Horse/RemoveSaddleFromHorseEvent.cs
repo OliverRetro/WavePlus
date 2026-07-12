@@ -1,8 +1,10 @@
 ﻿using Plus.Communication.Packets.Outgoing.Catalog;
 using Plus.Communication.Packets.Outgoing.Inventory.Furni;
 using Plus.Communication.Packets.Outgoing.Rooms.AI.Pets;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Outgoing.Rooms.Engine;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.Catalog.Utilities;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
@@ -32,9 +34,10 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Pets.Horse
             //Remove the saddle from the pet.
             petUser.PetData.Saddle = 0;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            uint petDbId = (uint)petUser.PetData.PetId;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.RunQuery("UPDATE `bots_petdata` SET `have_saddle` = '0' WHERE `id` = '" + petUser.PetData.PetId + "' LIMIT 1");
+                db.bots_petdata.Where(p => p.id == petDbId).ExecuteUpdate(s => s.SetProperty(p => p.have_saddle, 0));
             }
 
             //Give the saddle back to the user.

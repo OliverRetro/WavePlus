@@ -1,7 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Outgoing.Inventory.Badges;
 using Plus.Communication.Packets.Outgoing.Inventory.Furni;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
+using Plus.Database.EF.Entities;
 using Plus.HabboHotel.Badges;
 using Plus.HabboHotel.GameClients;
 
@@ -78,14 +81,13 @@ namespace Plus.HabboHotel.Users.Badges
                 return;
 
             if (inDatabase) {
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                {
-                    dbClient.SetQuery("REPLACE INTO `user_badges` (`user_id`,`badge_id`,`badge_slot`) VALUES (@userId, @badge, @slot)");
-                    dbClient.AddParameter("userId", _player.Id);
-                    dbClient.AddParameter("badge", code);
-                    dbClient.AddParameter("slot", 0);
-                    dbClient.RunQuery();
-                }
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                    db.user_badges.Upsert(new user_badge
+                    {
+                        user_id = (uint)_player.Id,
+                        badge_id = code,
+                        badge_slot = 0
+                    }).On(b => new { b.user_id, b.badge_id }).Run();
             }
 
             _badges.Add(code, new Badge(code, 0));
@@ -110,13 +112,9 @@ namespace Plus.HabboHotel.Users.Badges
                 return;
             }
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("DELETE FROM user_badges WHERE badge_id = @badge AND user_id = @userId LIMIT 1");
-                dbClient.AddParameter("badge", badge);
-                dbClient.AddParameter("userId", _player.Id);
-                dbClient.RunQuery();
-            }
+            uint uid = (uint)_player.Id;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                db.user_badges.Where(b => b.badge_id == badge && b.user_id == uid).ExecuteDelete();
 
             if (_badges.ContainsKey(badge))
                 _badges.Remove(badge);

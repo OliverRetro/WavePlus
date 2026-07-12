@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Outgoing.Inventory.Furni;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
 
@@ -23,12 +24,11 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
             room.GetRoomItemHandler().RemoveItems(session);
             room.GetGameMap().GenerateMaps();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            uint roomId = (uint)room.Id;
+            int userId = session.GetHabbo().Id;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("UPDATE `items` SET `room_id` = '0' WHERE `room_id` = @RoomId AND `user_id` = @UserId");
-                dbClient.AddParameter("RoomId", room.Id);
-                dbClient.AddParameter("UserId", session.GetHabbo().Id);
-                dbClient.RunQuery();
+                db.items.Where(i => i.room_id == roomId && i.user_id == userId).ExecuteUpdate(s => s.SetProperty(i => i.room_id, 0u));
             }
 
             List<Item> items = room.GetRoomItemHandler().GetWallAndFloor.ToList();

@@ -3,7 +3,8 @@ using Plus.HabboHotel.GameClients;
 using System;
 using System.Collections.Generic;
 using Plus.HabboHotel.Rooms.Chat.Styles;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
+using Plus.Database.EF.Entities;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 {
@@ -53,12 +54,15 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
                 return;
             }
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("INSERT INTO `user_chat_bubbles` (`chat_bubble_id`, `user_id`, `created_at`) VALUES (@bubbleId, @userId, NOW())");
-                dbClient.AddParameter("bubbleId", bubbleId);
-                dbClient.AddParameter("userId", targetClient.GetHabbo().Id);
-                dbClient.RunQuery();
+                db.user_chat_bubbles.Add(new user_chat_bubble
+                {
+                    chat_bubble_id = bubbleId,
+                    user_id = targetClient.GetHabbo().Id,
+                    created_at = DateTime.Now
+                });
+                db.SaveChanges();
             }
 
             targetClient.GetHabbo().OwnedChatBubbleIds.Add(bubbleId);

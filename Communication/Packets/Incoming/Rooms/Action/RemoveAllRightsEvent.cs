@@ -3,7 +3,8 @@ using System.Linq;
 using Plus.Communication.Packets.Outgoing.Rooms.Engine;
 using Plus.Communication.Packets.Outgoing.Rooms.Permissions;
 using Plus.Communication.Packets.Outgoing.Rooms.Settings;
-using Plus.Database.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Rooms;
 
@@ -32,12 +33,11 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Action
                     user.GetClient().SendPacket(new YouAreControllerComposer(0));
                 }
 
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                uint uid = (uint)userId;
+                uint rid = (uint)instance.Id;
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    dbClient.SetQuery("DELETE FROM `room_rights` WHERE `user_id` = @uid AND `room_id` = @rid LIMIT 1");
-                    dbClient.AddParameter("uid", userId);
-                    dbClient.AddParameter("rid", instance.Id);
-                    dbClient.RunQuery();
+                    db.room_rights.Where(r => r.user_id == uid && r.room_id == rid).ExecuteDelete();
                 }
 
                 session.SendPacket(new FlatControllerRemovedComposer(instance.Id, userId));

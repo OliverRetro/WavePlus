@@ -1,8 +1,8 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Data;
+using System.Linq;
 using log4net;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.Cache.Process;
 using Plus.HabboHotel.Cache.Type;
 using Plus.HabboHotel.GameClients;
@@ -43,15 +43,14 @@ namespace Plus.HabboHotel.Cache
                 return user;
             }
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT `username`, `motto`, `look` FROM users WHERE id = @id LIMIT 1");
-                dbClient.AddParameter("id", id);
-
-                DataRow dRow = dbClient.GetRow();
+                var dRow = db.users.Where(u => u.id == id)
+                    .Select(u => new { u.username, u.motto, u.look })
+                    .FirstOrDefault();
 
                 if (dRow != null) {
-                    user = new UserCache(id, dRow["username"].ToString(), dRow["motto"].ToString(), dRow["look"].ToString());
+                    user = new UserCache(id, dRow.username, dRow.motto, dRow.look);
                     _usersCached.TryAdd(id, user);
                 }
             }

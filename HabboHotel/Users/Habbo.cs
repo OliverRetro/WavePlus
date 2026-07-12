@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
 using System.Linq;
 using Plus.Communication.Packets.Outgoing.Handshake;
@@ -11,7 +10,9 @@ using Plus.Communication.Packets.Outgoing.Navigator;
 using Plus.Communication.Packets.Outgoing.Rooms.Engine;
 using Plus.Communication.Packets.Outgoing.Rooms.Session;
 using Plus.Core;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
+using Plus.Database.EF.Entities;
+using Microsoft.EntityFrameworkCore;
 using Plus.HabboHotel.Achievements;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
@@ -272,19 +273,17 @@ namespace Plus.HabboHotel.Users
             _timeCached = DateTime.Now;
 
             TradingLockExpiry = tradingLock;
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.GetRowOrInsert(
-                    "SELECT `user_id` FROM `user_info` WHERE `user_id` = @user_id LIMIT 1",
-                    query => query.AddParameter("user_id", id),
-                    "INSERT INTO `user_info` (`user_id`) VALUES (@user_id)",
-                    query => query.AddParameter("user_id", id));
+                if (!db.user_infos.Any(u => u.user_id == id)) {
+                    db.user_infos.Add(new user_info { user_id = id });
+                    db.SaveChanges();
+                }
 
                 if (TradingLockExpiry > 0 && PlusEnvironment.GetUnixTimestamp() > TradingLockExpiry) {
                     TradingLockExpiry = 0;
-                    dbClient.SetQuery("UPDATE `user_info` SET `trading_locked` = 0 WHERE `user_id` = @user_id LIMIT 1");
-                    dbClient.AddParameter("user_id", id);
-                    dbClient.RunQuery();
+                    db.user_infos.Where(u => u.user_id == id)
+                        .ExecuteUpdate(s => s.SetProperty(u => u.trading_locked, 0.0));
                 }
             }
 
@@ -351,34 +350,35 @@ namespace Plus.HabboHotel.Users
 
             #region Stats
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                DataRow statRow = dbClient.GetRowOrInsert(
-                    "SELECT `id`,`roomvisits`,`onlinetime`,`respect`,`respectgiven`,`giftsgiven`,`giftsreceived`,`dailyrespectpoints`,`dailypetrespectpoints`,`achievementscore`,`quest_id`,`quest_progress`,`groupid`,`tickets_answered`,`respectstimestamp`,`forum_posts` FROM `user_stats` WHERE `id` = @user_id LIMIT 1",
-                    query => query.AddParameter("user_id", id),
-                    "INSERT INTO `user_stats` (`id`) VALUES (@user_id)",
-                    query => query.AddParameter("user_id", id));
+                user_stat statRow = db.user_stats.FirstOrDefault(s => s.id == id);
+                if (statRow == null) {
+                    statRow = new user_stat { id = id };
+                    db.user_stats.Add(statRow);
+                    db.SaveChanges();
+                }
 
                 try
                 {
                     _habboStats = new HabboStats(
-                        Convert.ToInt32(statRow["roomvisits"]),
-                        Convert.ToDouble(statRow["onlineTime"]),
-                        Convert.ToInt32(statRow["respect"]),
-                        Convert.ToInt32(statRow["respectGiven"]),
-                        Convert.ToInt32(statRow["giftsGiven"]),
-                        Convert.ToInt32(statRow["giftsReceived"]),
-                        Convert.ToInt32(statRow["dailyRespectPoints"]),
-                        Convert.ToInt32(statRow["dailyPetRespectPoints"]),
-                        Convert.ToInt32(statRow["AchievementScore"]),
-                        Convert.ToInt32(statRow["quest_id"]),
-                        Convert.ToInt32(statRow["quest_progress"]),
-                        Convert.ToInt32(statRow["groupid"]),
-                        Convert.ToString(statRow["respectsTimestamp"]),
-                        Convert.ToInt32(statRow["forum_posts"])
+                        statRow.RoomVisits,
+                        statRow.OnlineTime,
+                        statRow.Respect,
+                        statRow.RespectGiven,
+                        statRow.GiftsGiven,
+                        statRow.GiftsReceived,
+                        statRow.DailyRespectPoints,
+                        statRow.DailyPetRespectPoints,
+                        statRow.AchievementScore,
+                        (int)statRow.quest_id,
+                        statRow.quest_progress,
+                        statRow.groupid,
+                        statRow.respectsTimestamp,
+                        statRow.forum_posts
                     );
 
-                    if (Convert.ToString(statRow["respectsTimestamp"]) != DateTime.Today.ToString("MM/dd")) {
+                    if (statRow.respectsTimestamp != DateTime.Today.ToString("MM/dd")) {
                         _habboStats.RespectsTimestamp = DateTime.Today.ToString("MM/dd");
 
                         int dailyRespects = 10;
@@ -391,12 +391,12 @@ namespace Plus.HabboHotel.Users
                         _habboStats.DailyRespectPoints = dailyRespects;
                         _habboStats.DailyPetRespectPoints = dailyRespects;
 
-                        dbClient.SetQuery("UPDATE `user_stats` SET `dailyRespectPoints` = @daily_respects, `dailyPetRespectPoints` = @daily_pet_respects, `respectsTimestamp` = @respects_timestamp WHERE `id` = @user_id LIMIT 1");
-                        dbClient.AddParameter("daily_respects", dailyRespects);
-                        dbClient.AddParameter("daily_pet_respects", dailyRespects);
-                        dbClient.AddParameter("respects_timestamp", DateTime.Today.ToString("MM/dd"));
-                        dbClient.AddParameter("user_id", id);
-                        dbClient.RunQuery();
+                        string respectsTimestamp = DateTime.Today.ToString("MM/dd");
+                        db.user_stats.Where(s => s.id == id)
+                            .ExecuteUpdate(s => s
+                                .SetProperty(x => x.DailyRespectPoints, dailyRespects)
+                                .SetProperty(x => x.DailyPetRespectPoints, dailyRespects)
+                                .SetProperty(x => x.respectsTimestamp, respectsTimestamp));
                     }
                 }
                 catch (Exception e)
@@ -404,19 +404,14 @@ namespace Plus.HabboHotel.Users
                     ExceptionLogger.LogException(e);
                 }
 
-                dbClient.SetQuery("SELECT `chat_bubble_id` FROM `user_chat_bubbles` WHERE `user_id` = @user_id");
-                dbClient.AddParameter("user_id", id);
-                DataTable chatBubbleTable = dbClient.GetTable();
-                if (chatBubbleTable != null) {
-                    foreach (DataRow row in chatBubbleTable.Rows)
-                    {
-                        int chatBubbleId = Convert.ToInt32(row["chat_bubble_id"]);
-                        if (!OwnedChatBubbleIds.Contains(chatBubbleId))
-                            OwnedChatBubbleIds.Add(chatBubbleId);
-                    }
-
-                    OwnedChatBubbleIds.Add(0);
+                List<int> chatBubbleIds = db.user_chat_bubbles.Where(b => b.user_id == id).Select(b => b.chat_bubble_id).ToList();
+                foreach (int chatBubbleId in chatBubbleIds)
+                {
+                    if (!OwnedChatBubbleIds.Contains(chatBubbleId))
+                        OwnedChatBubbleIds.Add(chatBubbleId);
                 }
+
+                OwnedChatBubbleIds.Add(0);
             }
 
             _bankAccount = PlusEnvironment.GetBankingManager().LoadAccount(id);
@@ -424,48 +419,49 @@ namespace Plus.HabboHotel.Users
             if (!PlusEnvironment.GetGame().GetGroupManager().TryGetGroup(_habboStats.FavouriteGroupId, out Group _))
                 _habboStats.FavouriteGroupId = 0;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                DataRow statRow = dbClient.GetRowOrInsert(
-                    "SELECT * FROM `user_rp_statistics` WHERE `user_id` = @user_id LIMIT 1",
-                    query => query.AddParameter("user_id", id),
-                    "INSERT INTO `user_rp_statistics` (`user_id`) VALUES (@user_id)",
-                    query => query.AddParameter("user_id", id));
+                user_rp_statistic statRow = db.user_rp_statistics.FirstOrDefault(s => s.user_id == id);
+                if (statRow == null) {
+                    statRow = new user_rp_statistic { user_id = id };
+                    db.user_rp_statistics.Add(statRow);
+                    db.SaveChanges();
+                }
 
                 try
                 {
                     _rpStats = new UserRpStats(
                         id,
-                        Convert.ToInt32(statRow["health"]),
-                        Convert.ToInt32(statRow["shield"]),
-                        Convert.ToInt32(statRow["energy"]),
-                        Convert.ToInt32(statRow["hunger"]),
-                        Convert.ToInt32(statRow["experience"]),
-                        Convert.ToInt32(statRow["knockouts"]),
-                        Convert.ToInt32(statRow["deaths"]),
-                        Convert.ToInt32(statRow["arrested"]),
-                        Convert.ToInt32(statRow["escapes"]),
-                        Convert.ToInt32(statRow["damage_dealt"]),
-                        Convert.ToInt32(statRow["damage_taken"]),
-                        Convert.ToInt32(statRow["attacks"]),
-                        Convert.ToInt32(statRow["attacked"]),
-                        Convert.ToInt32(statRow["knowledge"]),
-                        Convert.ToInt32(statRow["strength"]),
-                        statRow.Table.Columns.Contains("is_dead") && Convert.ToInt32(statRow["is_dead"]) == 1,
-                        statRow.Table.Columns.Contains("hospital_release_time") ? Convert.ToDouble(statRow["hospital_release_time"]) : 0,
-                        statRow.Table.Columns.Contains("hospital_heal_start_time") ? Convert.ToDouble(statRow["hospital_heal_start_time"]) : 0,
-                        statRow.Table.Columns.Contains("hospital_health_start") ? Convert.ToInt32(statRow["hospital_health_start"]) : 0,
-                        Convert.ToInt32(statRow["aggression"]),
-                        Convert.ToInt32(statRow["passive_mode"]) == 1,
-                        Convert.ToInt32(statRow["robberies"]),
-                        Convert.ToInt32(statRow["robbed"]),
-                        statRow.Table.Columns.Contains("is_cuffed") && Convert.ToInt32(statRow["is_cuffed"]) == 1,
-                        statRow.Table.Columns.Contains("jail_release_time") ? Convert.ToDouble(statRow["jail_release_time"]) : 0,
-                        statRow.Table.Columns.Contains("jail_pending") && Convert.ToInt32(statRow["jail_pending"]) == 1,
-                        statRow.Table.Columns.Contains("jail_stars") ? Convert.ToInt32(statRow["jail_stars"]) : 0,
-                        statRow.Table.Columns.Contains("jail_revert_look") ? Convert.ToString(statRow["jail_revert_look"]) : "",
-                        statRow.Table.Columns.Contains("jail_room_id") ? Convert.ToInt32(statRow["jail_room_id"]) : 0,
-                        statRow.Table.Columns.Contains("jail_time_left") ? Convert.ToDouble(statRow["jail_time_left"]) : 0
+                        statRow.health,
+                        statRow.shield,
+                        statRow.energy,
+                        statRow.hunger,
+                        statRow.experience,
+                        statRow.knockouts,
+                        statRow.deaths,
+                        statRow.arrested,
+                        statRow.escapes,
+                        (int)statRow.damage_dealt,
+                        (int)statRow.damage_taken,
+                        statRow.attacks,
+                        statRow.attacked,
+                        statRow.knowledge,
+                        statRow.strength,
+                        statRow.is_dead == 1,
+                        statRow.hospital_release_time,
+                        statRow.hospital_heal_start_time,
+                        statRow.hospital_health_start,
+                        statRow.aggression,
+                        statRow.passive_mode == 1,
+                        statRow.robberies,
+                        statRow.robbed,
+                        statRow.is_cuffed,
+                        statRow.jail_release_time,
+                        statRow.jail_pending,
+                        statRow.jail_stars,
+                        statRow.jail_revert_look ?? "",
+                        statRow.jail_room_id,
+                        statRow.jail_time_left
                     );
                 }
                 catch (Exception e)
@@ -474,25 +470,19 @@ namespace Plus.HabboHotel.Users
                 }
             }
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT * FROM `user_rp_weapons` WHERE `user_id` = @user_id");
-                dbClient.AddParameter("user_id", id);
-                DataTable weaponTable = dbClient.GetTable();
+                var weaponRows = db.user_rp_weapons.Where(w => w.user_id == id)
+                    .Select(w => new { w.id, w.weapon_id, w.durability_left, w.slot }).ToList();
 
                 List<UserWeapon> loadedWeapons = new();
-                if (weaponTable != null) {
-                    bool hasWeaponSlot = weaponTable.Columns.Contains("slot");
-                    foreach (DataRow row in weaponTable.Rows)
-                    {
-                        int weaponId = Convert.ToInt32(row["weapon_id"]);
-                        Weapon weaponData = PlusEnvironment.GetWeaponManager().GetWeaponById(weaponId);
-                        if (weaponData == null)
-                            continue;
+                foreach (var row in weaponRows)
+                {
+                    Weapon weaponData = PlusEnvironment.GetWeaponManager().GetWeaponById(row.weapon_id);
+                    if (weaponData == null)
+                        continue;
 
-                        int weaponSlot = hasWeaponSlot && row["slot"] != DBNull.Value ? Convert.ToInt32(row["slot"]) : -1;
-                        loadedWeapons.Add(new UserWeapon(Convert.ToInt32(row["id"]), id, weaponId, Convert.ToInt32(row["durability_left"]), weaponData, false, weaponSlot));
-                    }
+                    loadedWeapons.Add(new UserWeapon(row.id, id, row.weapon_id, row.durability_left, weaponData, false, row.slot));
                 }
 
                 _rpWeapons = new UserRpWeapons(id, PlusEnvironment.GetWeaponManager(), loadedWeapons);
@@ -500,72 +490,53 @@ namespace Plus.HabboHotel.Users
                 _rpStats.Weapons = _rpWeapons;
             }
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT `id`,`skin_id`,`equipped` FROM `user_rp_weapon_skins` WHERE `user_id` = @user_id");
-                dbClient.AddParameter("user_id", id);
-                DataTable skinTable = dbClient.GetTable();
+                var skinRows = db.user_rp_weapon_skins.Where(s => s.user_id == id)
+                    .Select(s => new { s.id, s.skin_id, s.equipped }).ToList();
 
                 List<UserWeaponSkin> loadedSkins = new();
-                if (skinTable != null) {
-                    foreach (DataRow row in skinTable.Rows)
-                    {
-                        WeaponSkin skinData = PlusEnvironment.GetWeaponManager().GetSkinById(Convert.ToInt32(row["skin_id"]));
-                        if (skinData == null)
-                            continue;
+                foreach (var row in skinRows)
+                {
+                    WeaponSkin skinData = PlusEnvironment.GetWeaponManager().GetSkinById(row.skin_id);
+                    if (skinData == null)
+                        continue;
 
-                        loadedSkins.Add(new UserWeaponSkin(Convert.ToInt32(row["id"]), id, skinData.Id, Convert.ToInt32(row["equipped"]) == 1, skinData));
-                    }
+                    loadedSkins.Add(new UserWeaponSkin(row.id, id, skinData.Id, row.equipped == 1, skinData));
                 }
 
                 _rpWeaponSkins = new UserRpWeaponSkins(loadedSkins);
                 _rpWeaponSkins.MarkSaved();
             }
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT `skill_id`,`progress`,`equipped` FROM `user_rp_skills` WHERE `user_id` = @user_id");
-                dbClient.AddParameter("user_id", id);
-                DataTable skillTable = dbClient.GetTable();
+                var skillRows = db.user_rp_skills.Where(s => s.user_id == id)
+                    .Select(s => new { s.skill_id, s.progress, s.equipped }).ToList();
 
                 List<UserSkillData> loadedSkills = new();
-                if (skillTable != null) {
-                    foreach (DataRow row in skillTable.Rows)
-                    {
-                        loadedSkills.Add(new UserSkillData(
-                            Convert.ToInt32(row["skill_id"]),
-                            Convert.ToInt32(row["progress"]),
-                            Convert.ToInt32(row["equipped"]) == 1));
-                    }
+                foreach (var row in skillRows)
+                {
+                    loadedSkills.Add(new UserSkillData(row.skill_id, row.progress, row.equipped));
                 }
 
                 _rpSkills = new UserRpSkills(PlusEnvironment.GetSkillManager(), loadedSkills);
                 _rpSkills.MarkSaved();
             }
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT * FROM `user_rp_items` WHERE `user_id` = @user_id");
-                dbClient.AddParameter("user_id", id);
-                DataTable itemTable = dbClient.GetTable();
+                var itemRows = db.user_rp_items.Where(i => i.user_id == id)
+                    .Select(i => new { i.id, i.item_id, i.uses, i.slot, i.durability_left, i.equipped }).ToList();
 
                 List<UserRpItem> loadedItems = new();
-                if (itemTable != null) {
-                    bool hasSlot = itemTable.Columns.Contains("slot");
-                    bool hasDurability = itemTable.Columns.Contains("durability_left");
-                    bool hasEquipped = itemTable.Columns.Contains("equipped");
-                    foreach (DataRow row in itemTable.Rows)
-                    {
-                        int itemId = Convert.ToInt32(row["item_id"]);
-                        RpItemData itemData = PlusEnvironment.GetRpItemManager().GetItemById(itemId);
-                        if (itemData == null)
-                            continue;
+                foreach (var row in itemRows)
+                {
+                    RpItemData itemData = PlusEnvironment.GetRpItemManager().GetItemById(row.item_id);
+                    if (itemData == null)
+                        continue;
 
-                        int slot = hasSlot && row["slot"] != DBNull.Value ? Convert.ToInt32(row["slot"]) : -1;
-                        int durabilityLeft = hasDurability && row["durability_left"] != DBNull.Value ? Convert.ToInt32(row["durability_left"]) : -1;
-                        bool equipped = hasEquipped && row["equipped"] != DBNull.Value && Convert.ToInt32(row["equipped"]) == 1;
-                        loadedItems.Add(new UserRpItem(Convert.ToInt32(row["id"]), id, itemId, Convert.ToInt32(row["uses"]), itemData, slot, durabilityLeft, equipped));
-                    }
+                    loadedItems.Add(new UserRpItem(row.id, id, row.item_id, row.uses, itemData, row.slot, row.durability_left, row.equipped));
                 }
 
                 _rpItems = new UserRpItems(id, PlusEnvironment.GetRpItemManager(), loadedItems);
@@ -725,11 +696,10 @@ namespace Plus.HabboHotel.Users
             roomUser.UpdateNeeded = true;
             CurrentRoom.GetRoomUserManager().UpdateUserStatus(roomUser, false);
 
-            if (GetRpWeapons() != null && GetRpWeapons().SetActiveWeaponId(HomeRoomData.weapon)) {
-                UserWeapon activeWeapon = GetRpWeapons().GetActiveWeapon();
-                UserWeaponSkin equippedSkin = GetRpWeaponSkins()?.GetEquippedSkinForWeapon(activeWeapon.WeaponId);
-                Effects().ApplyEffect(equippedSkin?.SkinData?.EffectId ?? activeWeapon.WeaponData.Effect);
-            }
+            // Resolve the RP effect the canonical way: when weapon == 0 this clears any equipped
+            // weapon effect (properly unequipping), while still respecting staff/passive priority.
+            if (GetRpWeapons() != null && GetRpWeapons().SetActiveWeaponId(HomeRoomData.weapon))
+                Plus.HabboHotel.Roleplay.Utilities.RpEffectService.Refresh(this);
 
             PendingReconnectPlacement = false;
         }
@@ -829,57 +799,68 @@ namespace Plus.HabboHotel.Users
 
         public void SaveRpStats()
         {
+            if (_rpStats == null)
+                return;
+
             try
             {
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                using WavePlusContext db = PlusEnvironment.GetDbContext();
+                db.user_rp_statistics.Upsert(new user_rp_statistic
                 {
-                    dbClient.UpdateOrInsert(
-                        "UPDATE `user_rp_statistics` SET `health` = @health, `shield` = @shield, `energy` = @energy, `hunger` = @hunger, `experience` = @experience, `knockouts` = @knockouts, `deaths` = @deaths, `arrested` = @arrested, `escapes` = @escapes, `damage_dealt` = @damage_dealt, `damage_taken` = @damage_taken, `attacks` = @attacks, `attacked` = @attacked, `knowledge` = @knowledge, `strength` = @strength, `is_dead` = @is_dead, `hospital_release_time` = @hospital_release_time, `hospital_heal_start_time` = @hospital_heal_start_time, `hospital_health_start` = @hospital_health_start, `aggression` = @aggression, `passive_mode` = @passive_mode, `robberies` = @robberies, `robbed` = @robbed, `is_cuffed` = @is_cuffed, `jail_release_time` = @jail_release_time, `jail_pending` = @jail_pending, `jail_stars` = @jail_stars, `jail_revert_look` = @jail_revert_look, `jail_room_id` = @jail_room_id, `jail_time_left` = @jail_time_left WHERE `user_id` = @user_id LIMIT 1",
-                        query =>
-                        {
-                            query.AddParameter("health", _rpStats.Health);
-                            query.AddParameter("shield", _rpStats.Shield);
-                            query.AddParameter("energy", _rpStats.Energy);
-                            query.AddParameter("hunger", _rpStats.Hunger);
-                            query.AddParameter("experience", _rpStats.Experience);
-                            query.AddParameter("knockouts", _rpStats.Knockouts);
-                            query.AddParameter("deaths", _rpStats.Deaths);
-                            query.AddParameter("arrested", _rpStats.Arrested);
-                            query.AddParameter("escapes", _rpStats.Escapes);
-                            query.AddParameter("damage_dealt", _rpStats.DamageDealt);
-                            query.AddParameter("damage_taken", _rpStats.DamageTaken);
-                            query.AddParameter("attacks", _rpStats.Attacks);
-                            query.AddParameter("attacked", _rpStats.Attacked);
-                            query.AddParameter("knowledge", _rpStats.Knowledge);
-                            query.AddParameter("strength", _rpStats.Strength);
-                            query.AddParameter("is_dead", _rpStats.IsDead ? 1 : 0);
-                            query.AddParameter("hospital_release_time", _rpStats.HospitalReleaseTime);
-                            query.AddParameter("hospital_heal_start_time", _rpStats.HospitalHealStartTime);
-                            query.AddParameter("hospital_health_start", _rpStats.HospitalHealthStart);
-                            query.AddParameter("aggression", GetAggressionSecondsRemaining());
-                            query.AddParameter("passive_mode", _rpStats.PassiveMode ? 1 : 0);
-                            query.AddParameter("robberies", _rpStats.Robberies);
-                            query.AddParameter("robbed", _rpStats.Robbed);
-                            query.AddParameter("is_cuffed", _rpStats.IsCuffed ? 1 : 0);
-                            query.AddParameter("jail_release_time", _rpStats.JailReleaseTime);
-                            query.AddParameter("jail_pending", _rpStats.JailPending ? 1 : 0);
-                            query.AddParameter("jail_stars", _rpStats.JailStars);
-                            query.AddParameter("jail_revert_look", _rpStats.JailRevertLook ?? "");
-                            query.AddParameter("jail_room_id", _rpStats.JailRoomId);
-                            query.AddParameter("jail_time_left", _rpStats.JailTimeLeft);
-                            query.AddParameter("user_id", Id);
-                        },
-                        "INSERT INTO `user_rp_statistics` (`user_id`) VALUES (@user_id)",
-                        query =>
-                        {
-                            query.AddParameter("user_id", Id);
-                        });
-                }
+                    user_id = Id,
+                    health = _rpStats.Health,
+                    shield = _rpStats.Shield,
+                    energy = _rpStats.Energy,
+                    hunger = _rpStats.Hunger,
+                    experience = _rpStats.Experience,
+                    knockouts = _rpStats.Knockouts,
+                    deaths = _rpStats.Deaths,
+                    arrested = _rpStats.Arrested,
+                    escapes = _rpStats.Escapes,
+                    damage_dealt = _rpStats.DamageDealt,
+                    damage_taken = _rpStats.DamageTaken,
+                    attacks = _rpStats.Attacks,
+                    attacked = _rpStats.Attacked,
+                    knowledge = _rpStats.Knowledge,
+                    strength = _rpStats.Strength,
+                    is_dead = _rpStats.IsDead ? 1 : 0,
+                    hospital_release_time = _rpStats.HospitalReleaseTime,
+                    hospital_heal_start_time = _rpStats.HospitalHealStartTime,
+                    hospital_health_start = _rpStats.HospitalHealthStart,
+                    aggression = (short)GetAggressionSecondsRemaining(),
+                    passive_mode = (sbyte)(_rpStats.PassiveMode ? 1 : 0),
+                    robberies = _rpStats.Robberies,
+                    robbed = _rpStats.Robbed,
+                    is_cuffed = _rpStats.IsCuffed,
+                    jail_release_time = _rpStats.JailReleaseTime,
+                    jail_pending = _rpStats.JailPending,
+                    jail_stars = _rpStats.JailStars,
+                    jail_revert_look = _rpStats.JailRevertLook ?? "",
+                    jail_room_id = _rpStats.JailRoomId,
+                    jail_time_left = _rpStats.JailTimeLeft
+                })
+                .On(s => s.user_id)
+                .Run();
             }
             catch (Exception e)
             {
                 ExceptionLogger.LogException(e);
             }
+        }
+
+        /// <summary>
+        /// Flushes every piece of this user's roleplay data to the database. Called by the
+        /// 5-minute persistence saver and on disconnect. The individual saves are dirty-gated
+        /// where applicable, so calling this for all online users each cycle is cheap.
+        /// </summary>
+        public void SaveAllRpData()
+        {
+            SaveRpStats();
+            SaveRpSkills();
+            SaveRpWeapons();
+            SaveRpItems();
+            SaveRpWeaponSkins();
+            SaveBank();
         }
 
         public void SaveRpSkills()
@@ -889,28 +870,20 @@ namespace Plus.HabboHotel.Users
 
             try
             {
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                var rows = _rpSkills.Skills.Select(skill => new user_rp_skill
                 {
-                    foreach (UserSkillData skill in _rpSkills.Skills)
-                    {
-                        dbClient.UpdateOrInsert(
-                            "UPDATE `user_rp_skills` SET `progress` = @progress, `equipped` = @equipped WHERE `user_id` = @user_id AND `skill_id` = @skill_id LIMIT 1",
-                            query =>
-                            {
-                                query.AddParameter("progress", skill.Progress);
-                                query.AddParameter("equipped", skill.Equipped ? 1 : 0);
-                                query.AddParameter("user_id", Id);
-                                query.AddParameter("skill_id", skill.SkillId);
-                            },
-                            "INSERT INTO `user_rp_skills` (`user_id`, `skill_id`, `progress`, `equipped`) VALUES (@user_id, @skill_id, @progress, @equipped)",
-                            query =>
-                            {
-                                query.AddParameter("user_id", Id);
-                                query.AddParameter("skill_id", skill.SkillId);
-                                query.AddParameter("progress", skill.Progress);
-                                query.AddParameter("equipped", skill.Equipped ? 1 : 0);
-                            });
-                    }
+                    user_id = Id,
+                    skill_id = skill.SkillId,
+                    progress = skill.Progress,
+                    equipped = skill.Equipped
+                }).ToList();
+
+                if (rows.Count > 0)
+                {
+                    using WavePlusContext db = PlusEnvironment.GetDbContext();
+                    db.user_rp_skills.UpsertRange(rows)
+                        .On(s => new { s.user_id, s.skill_id })
+                        .Run();
                 }
 
                 _rpSkills.MarkSaved();
@@ -928,38 +901,40 @@ namespace Plus.HabboHotel.Users
 
             try
             {
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                using WavePlusContext db = PlusEnvironment.GetDbContext();
+
+                var removed = _rpWeapons.RemovedIds.ToList();
+                if (removed.Count > 0)
+                    db.user_rp_weapons.Where(w => removed.Contains(w.id)).ExecuteDelete();
+
+                // Track new rows so we can copy the DB-generated id back after SaveChanges.
+                var inserted = new List<(UserWeapon Src, user_rp_weapon Row)>();
+
+                foreach (UserWeapon weapon in _rpWeapons.Weapons.ToList())
                 {
-                    foreach (int removedId in _rpWeapons.RemovedIds.ToList())
-                    {
-                        dbClient.SetQuery("DELETE FROM `user_rp_weapons` WHERE `id` = @id LIMIT 1");
-                        dbClient.AddParameter("id", removedId);
-                        dbClient.RunQuery();
+                    if (weapon.IsDefault)
+                        continue;
+
+                    if (weapon.Id > 0) {
+                        var row = new user_rp_weapon { id = weapon.Id, durability_left = weapon.DurabilityLeft, slot = weapon.Slot };
+                        db.user_rp_weapons.Attach(row);
+                        db.Entry(row).Property(w => w.durability_left).IsModified = true;
+                        db.Entry(row).Property(w => w.slot).IsModified = true;
+                        continue;
                     }
 
-                    foreach (UserWeapon weapon in _rpWeapons.Weapons.ToList())
-                    {
-                        if (weapon.IsDefault)
-                            continue;
+                    var newRow = new user_rp_weapon { user_id = Id, weapon_id = weapon.WeaponId, durability_left = weapon.DurabilityLeft, slot = weapon.Slot };
+                    db.user_rp_weapons.Add(newRow);
+                    inserted.Add((weapon, newRow));
+                }
 
-                        if (weapon.Id > 0) {
-                            dbClient.SetQuery("UPDATE `user_rp_weapons` SET `durability_left` = @durability_left, `slot` = @slot WHERE `id` = @id LIMIT 1");
-                            dbClient.AddParameter("durability_left", weapon.DurabilityLeft);
-                            dbClient.AddParameter("slot", weapon.Slot);
-                            dbClient.AddParameter("id", weapon.Id);
-                            dbClient.RunQuery();
-                            continue;
-                        }
+                db.SaveChanges();
 
-                        dbClient.SetQuery("INSERT INTO `user_rp_weapons` (`user_id`, `weapon_id`, `durability_left`, `slot`) VALUES (@user_id, @weapon_id, @durability_left, @slot)");
-                        dbClient.AddParameter("user_id", Id);
-                        dbClient.AddParameter("weapon_id", weapon.WeaponId);
-                        dbClient.AddParameter("durability_left", weapon.DurabilityLeft);
-                        dbClient.AddParameter("slot", weapon.Slot);
-                        int oldId = weapon.Id;
-                        weapon.Id = (int)dbClient.InsertQuery();
-                        _rpWeapons.RekeyWeapon(oldId, weapon.Id);
-                    }
+                foreach ((UserWeapon src, user_rp_weapon row) in inserted)
+                {
+                    int oldId = src.Id;
+                    src.Id = row.id;
+                    _rpWeapons.RekeyWeapon(oldId, src.Id);
                 }
 
                 _rpWeapons.MarkSaved();
@@ -977,39 +952,38 @@ namespace Plus.HabboHotel.Users
 
             try
             {
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                using WavePlusContext db = PlusEnvironment.GetDbContext();
+
+                var removed = _rpItems.RemovedIds.ToList();
+                if (removed.Count > 0)
+                    db.user_rp_items.Where(i => removed.Contains(i.id)).ExecuteDelete();
+
+                var inserted = new List<(UserRpItem Src, user_rp_item Row)>();
+
+                foreach (UserRpItem item in _rpItems.Items.ToList())
                 {
-                    foreach (int removedId in _rpItems.RemovedIds.ToList())
-                    {
-                        dbClient.SetQuery("DELETE FROM `user_rp_items` WHERE `id` = @id LIMIT 1");
-                        dbClient.AddParameter("id", removedId);
-                        dbClient.RunQuery();
+                    if (item.Id > 0) {
+                        var row = new user_rp_item { id = item.Id, uses = (short)item.Uses, slot = item.Slot, durability_left = item.DurabilityLeft, equipped = item.Equipped };
+                        db.user_rp_items.Attach(row);
+                        db.Entry(row).Property(i => i.uses).IsModified = true;
+                        db.Entry(row).Property(i => i.slot).IsModified = true;
+                        db.Entry(row).Property(i => i.durability_left).IsModified = true;
+                        db.Entry(row).Property(i => i.equipped).IsModified = true;
+                        continue;
                     }
 
-                    foreach (UserRpItem item in _rpItems.Items.ToList())
-                    {
-                        if (item.Id > 0) {
-                            dbClient.SetQuery("UPDATE `user_rp_items` SET `uses` = @uses, `slot` = @slot, `durability_left` = @durability_left, `equipped` = @equipped WHERE `id` = @id LIMIT 1");
-                            dbClient.AddParameter("uses", item.Uses);
-                            dbClient.AddParameter("slot", item.Slot);
-                            dbClient.AddParameter("durability_left", item.DurabilityLeft);
-                            dbClient.AddParameter("equipped", item.Equipped ? 1 : 0);
-                            dbClient.AddParameter("id", item.Id);
-                            dbClient.RunQuery();
-                            continue;
-                        }
+                    var newRow = new user_rp_item { user_id = Id, item_id = item.ItemId, uses = (short)item.Uses, slot = item.Slot, durability_left = item.DurabilityLeft, equipped = item.Equipped };
+                    db.user_rp_items.Add(newRow);
+                    inserted.Add((item, newRow));
+                }
 
-                        dbClient.SetQuery("INSERT INTO `user_rp_items` (`user_id`, `item_id`, `uses`, `slot`, `durability_left`, `equipped`) VALUES (@user_id, @item_id, @uses, @slot, @durability_left, @equipped)");
-                        dbClient.AddParameter("user_id", Id);
-                        dbClient.AddParameter("item_id", item.ItemId);
-                        dbClient.AddParameter("uses", item.Uses);
-                        dbClient.AddParameter("slot", item.Slot);
-                        dbClient.AddParameter("durability_left", item.DurabilityLeft);
-                        dbClient.AddParameter("equipped", item.Equipped ? 1 : 0);
-                        int oldId = item.Id;
-                        item.Id = (int)dbClient.InsertQuery();
-                        _rpItems.RekeyItem(oldId, item.Id);
-                    }
+                db.SaveChanges();
+
+                foreach ((UserRpItem src, user_rp_item row) in inserted)
+                {
+                    int oldId = src.Id;
+                    src.Id = row.id;
+                    _rpItems.RekeyItem(oldId, src.Id);
                 }
 
                 _rpItems.MarkSaved();
@@ -1027,26 +1001,31 @@ namespace Plus.HabboHotel.Users
 
             try
             {
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                {
-                    foreach (UserWeaponSkin skin in _rpWeaponSkins.Skins)
-                    {
-                        if (skin.Id > 0) {
-                            dbClient.SetQuery("UPDATE `user_rp_weapon_skins` SET `equipped` = @equipped WHERE `id` = @id LIMIT 1");
-                            dbClient.AddParameter("equipped", skin.Equipped ? 1 : 0);
-                            dbClient.AddParameter("id", skin.Id);
-                            dbClient.RunQuery();
-                            continue;
-                        }
+                using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-                        dbClient.SetQuery("INSERT INTO `user_rp_weapon_skins` (`user_id`, `skin_id`, `equipped`) VALUES (@user_id, @skin_id, @equipped)");
-                        dbClient.AddParameter("user_id", Id);
-                        dbClient.AddParameter("skin_id", skin.SkinId);
-                        dbClient.AddParameter("equipped", skin.Equipped ? 1 : 0);
-                        int oldId = skin.Id;
-                        skin.Id = (int)dbClient.InsertQuery();
-                        _rpWeaponSkins.RekeySkin(oldId, skin.Id);
+                var inserted = new List<(UserWeaponSkin Src, user_rp_weapon_skin Row)>();
+
+                foreach (UserWeaponSkin skin in _rpWeaponSkins.Skins)
+                {
+                    if (skin.Id > 0) {
+                        var row = new user_rp_weapon_skin { id = skin.Id, equipped = skin.Equipped ? 1 : 0 };
+                        db.user_rp_weapon_skins.Attach(row);
+                        db.Entry(row).Property(s => s.equipped).IsModified = true;
+                        continue;
                     }
+
+                    var newRow = new user_rp_weapon_skin { user_id = Id, skin_id = skin.SkinId, equipped = skin.Equipped ? 1 : 0 };
+                    db.user_rp_weapon_skins.Add(newRow);
+                    inserted.Add((skin, newRow));
+                }
+
+                db.SaveChanges();
+
+                foreach ((UserWeaponSkin src, user_rp_weapon_skin row) in inserted)
+                {
+                    int oldId = src.Id;
+                    src.Id = row.id;
+                    _rpWeaponSkins.RekeySkin(oldId, src.Id);
                 }
 
                 _rpWeaponSkins.MarkSaved();
@@ -1219,35 +1198,56 @@ namespace Plus.HabboHotel.Users
 
             if (!_habboSaved) {
                 _habboSaved = true;
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    dbClient.SetQuery("UPDATE `users` SET `online` = '0', `last_online` = @last_online, `activity_points` = @activity_points, `credits` = @credits, `vip_points` = @vip_points, `home_room` = @home_room, `home_room_data` = @home_room_data, `gotw_points` = @gotw_points, `time_muted` = @time_muted, `friend_bar_state` = @friend_bar_state, `bubble` = @bubble WHERE id = @id LIMIT 1;");
-                    dbClient.AddParameter("last_online", PlusEnvironment.GetUnixTimestamp());
-                    dbClient.AddParameter("activity_points", Duckets);
-                    dbClient.AddParameter("credits", Credits);
-                    dbClient.AddParameter("vip_points", Diamonds);
-                    dbClient.AddParameter("home_room", HomeRoom);
-                    dbClient.AddParameter("home_room_data", SerializeHomeRoomData());
-                    dbClient.AddParameter("gotw_points", GotwPoints);
-                    dbClient.AddParameter("time_muted", TimeMuted);
-                    dbClient.AddParameter("friend_bar_state", FriendBarStateUtility.GetInt(FriendBarState));
-                    dbClient.AddParameter("bubble", CustomBubbleId);
-                    dbClient.AddParameter("id", Id);
-                    dbClient.RunQuery();
+                    int lastOnline = (int)PlusEnvironment.GetUnixTimestamp();
+                    string homeRoomData = SerializeHomeRoomData();
+                    bool friendBarState = FriendBarStateUtility.GetInt(FriendBarState) == 1;
+                    short bubble = (short)CustomBubbleId;
+                    db.users.Where(u => u.id == Id)
+                        .ExecuteUpdate(s => s
+                            .SetProperty(u => u.online, "0")
+                            .SetProperty(u => u.last_online, lastOnline)
+                            .SetProperty(u => u.activity_points, Duckets)
+                            .SetProperty(u => u.credits, Credits)
+                            .SetProperty(u => u.vip_points, Diamonds)
+                            .SetProperty(u => u.home_room, HomeRoom)
+                            .SetProperty(u => u.home_room_data, homeRoomData)
+                            .SetProperty(u => u.gotw_points, GotwPoints)
+                            .SetProperty(u => u.time_muted, TimeMuted)
+                            .SetProperty(u => u.friend_bar_state, friendBarState)
+                            .SetProperty(u => u.bubble, bubble));
 
-                    dbClient.RunQuery("UPDATE `user_stats` SET `roomvisits` = '" + _habboStats.RoomVisits + "', `onlineTime` = '" + (PlusEnvironment.GetUnixTimestamp() - SessionStart + _habboStats.OnlineTime) + "', `respect` = '" + _habboStats.Respect + "', `respectGiven` = '" + _habboStats.RespectGiven + "', `giftsGiven` = '" + _habboStats.GiftsGiven + "', `giftsReceived` = '" + _habboStats.GiftsReceived + "', `dailyRespectPoints` = '" + _habboStats.DailyRespectPoints + "', `dailyPetRespectPoints` = '" + _habboStats.DailyPetRespectPoints + "', `AchievementScore` = '" + _habboStats.AchievementPoints + "', `quest_id` = '" + _habboStats.QuestId + "', `quest_progress` = '" + _habboStats.QuestProgress + "', `groupid` = '" + _habboStats.FavouriteGroupId + "',`forum_posts` = '" + _habboStats.ForumPosts + "' WHERE `id` = '" + Id + "' LIMIT 1;");
+                    int onlineTime = (int)(PlusEnvironment.GetUnixTimestamp() - SessionStart + _habboStats.OnlineTime);
+                    uint questId = (uint)_habboStats.QuestId;
+                    db.user_stats.Where(s => s.id == Id)
+                        .ExecuteUpdate(s => s
+                            .SetProperty(x => x.RoomVisits, _habboStats.RoomVisits)
+                            .SetProperty(x => x.OnlineTime, onlineTime)
+                            .SetProperty(x => x.Respect, _habboStats.Respect)
+                            .SetProperty(x => x.RespectGiven, _habboStats.RespectGiven)
+                            .SetProperty(x => x.GiftsGiven, _habboStats.GiftsGiven)
+                            .SetProperty(x => x.GiftsReceived, _habboStats.GiftsReceived)
+                            .SetProperty(x => x.DailyRespectPoints, _habboStats.DailyRespectPoints)
+                            .SetProperty(x => x.DailyPetRespectPoints, _habboStats.DailyPetRespectPoints)
+                            .SetProperty(x => x.AchievementScore, _habboStats.AchievementPoints)
+                            .SetProperty(x => x.quest_id, questId)
+                            .SetProperty(x => x.quest_progress, _habboStats.QuestProgress)
+                            .SetProperty(x => x.groupid, _habboStats.FavouriteGroupId)
+                            .SetProperty(x => x.forum_posts, _habboStats.ForumPosts));
 
-                    if (GetPermissions().HasRight("mod_tickets"))
-                        dbClient.RunQuery("UPDATE `moderation_tickets` SET `status` = 'open', `moderator_id` = '0' WHERE `status` ='picked' AND `moderator_id` = '" + Id + "'");
+                    if (GetPermissions().HasRight("mod_tickets")) {
+                        uint modId = (uint)Id;
+                        db.moderation_tickets.Where(t => t.status == "picked" && t.moderator_id == modId)
+                            .ExecuteUpdate(s => s.SetProperty(t => t.status, "open").SetProperty(t => t.moderator_id, 0u));
+                    }
                 }
 
-                SaveRpStats();
-                SaveRpWeapons();
-                SaveRpWeaponSkins();
-                SaveRpSkills();
-                SaveRpItems();
-                SaveBank();
+                SaveAllRpData();
             }
+
+            // Reset this user's Redis stat mirror + active-set membership.
+            Plus.Core.Cache.RpStatsCache.Remove(Id);
 
             Dispose();
 
@@ -1442,12 +1442,11 @@ namespace Plus.HabboHotel.Users
 
         public void SaveKey(string key, string value)
         {
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("UPDATE `users` SET " + key + " = @value WHERE `id` = '" + Id + "' LIMIT 1;");
-                dbClient.AddParameter("value", value);
-                dbClient.RunQuery();
-            }
+            // NOTE: the target column name is dynamic (caller-supplied), which EF's strongly-typed
+            // ExecuteUpdate cannot express, so a parameterized raw update is retained. The value is
+            // bound as a parameter ({0}); `key` and Id are trusted internal values.
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            db.Database.ExecuteSqlRaw("UPDATE `users` SET " + key + " = {0} WHERE `id` = " + Id + " LIMIT 1;", value);
         }
 
         public void PrepareRoom(int id, string password)
@@ -1550,9 +1549,18 @@ namespace Plus.HabboHotel.Users
             // stops. We must push FurnitureAliases proactively on every room entry so that the
             // client always receives it and triggers GetRoomEntryData in response.
             GetClient().SendPacket(new FurnitureAliasesComposer());
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.RunQuery("INSERT INTO user_roomvisits (user_id,room_id,entry_timestamp,exit_timestamp,hour,minute) VALUES ('" + GetClient().GetHabbo().Id + "','" + GetClient().GetHabbo().CurrentRoomId + "','" + DateTimeOffset.UtcNow.ToUnixTimeSeconds() + "','0','" + DateTime.Now.Hour + "','" + DateTime.Now.Minute + "');"); // +
+                db.user_roomvisits.Add(new user_roomvisit
+                {
+                    user_id = (uint)GetClient().GetHabbo().Id,
+                    room_id = (uint)GetClient().GetHabbo().CurrentRoomId,
+                    entry_timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                    exit_timestamp = 0,
+                    hour = DateTime.Now.Hour,
+                    minute = DateTime.Now.Minute
+                });
+                db.SaveChanges();
             }
 
             if (room.OwnerId != Id) {

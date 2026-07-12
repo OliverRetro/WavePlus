@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Outgoing.Rooms.Furni.LoveLocks;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
 using Plus.HabboHotel.Rooms;
@@ -105,12 +107,11 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni.LoveLocks
 
             item.UpdateState(true, true);
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            uint itemDbId = (uint)item.Id;
+            string extraData = item.ExtraData;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("UPDATE `items` SET `extra_data` = @extraData WHERE `id` = @ID LIMIT 1");
-                dbClient.AddParameter("extraData", item.ExtraData);
-                dbClient.AddParameter("ID", item.Id);
-                dbClient.RunQuery();
+                db.items.Where(i => i.id == itemDbId).ExecuteUpdate(s => s.SetProperty(i => i.extra_data, extraData));
             }
 
             userOne.GetClient().SendPacket(new LoveLockDialogueCloseMessageComposer(pId));

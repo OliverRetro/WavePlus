@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Outgoing.Moderation;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Moderation;
 using Plus.HabboHotel.Users;
@@ -48,15 +50,11 @@ namespace Plus.Communication.Packets.Incoming.Moderation
             if (!PlusEnvironment.GetGame().GetModerationManager().TryAddTicket(ticket))
                 return;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                // TODO: Come back to this.
-                /*dbClient.SetQuery("INSERT INTO `moderation_tickets` (`score`,`type`,`status`,`sender_id`,`reported_id`,`moderator_id`,`message`,`room_id`,`room_name`,`timestamp`) VALUES (1, '" + Category + "', 'open', '" + Session.GetHabbo().Id + "', '" + ReportedUserId + "', '0', @message, '0', '', '" + PlusEnvironment.GetUnixTimestamp() + "')");
-                dbClient.AddParameter("message", Message);
-                dbClient.RunQuery();*/
-
-                dbClient.RunQuery("UPDATE `user_info` SET `cfhs` = `cfhs` + '1' WHERE `user_id` = '" + session.GetHabbo().Id + "' LIMIT 1");
-            }
+            // TODO: Come back to this (persisting the moderation_tickets row).
+            int senderId = session.GetHabbo().Id;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                db.user_infos.Where(u => u.user_id == senderId)
+                    .ExecuteUpdate(s => s.SetProperty(u => u.cfhs, u => u.cfhs + 1));
 
             PlusEnvironment.GetGame().GetClientManager().ModAlert("A new support ticket has been submitted!");
             PlusEnvironment.GetGame().GetClientManager().SendPacket(new ModeratorSupportTicketComposer(session.GetHabbo().Id, ticket), "mod_tool");

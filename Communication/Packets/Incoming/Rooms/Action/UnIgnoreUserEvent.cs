@@ -1,5 +1,7 @@
-﻿using Plus.Communication.Packets.Outgoing.Rooms.Action;
-using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Communication.Packets.Outgoing.Rooms.Action;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
@@ -27,12 +29,11 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Action
                 return;
 
             if (session.GetHabbo().GetIgnores().TryRemove(player.Id)) {
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                uint uid = (uint)session.GetHabbo().Id;
+                uint ignoreId = (uint)player.Id;
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    dbClient.SetQuery("DELETE FROM `user_ignores` WHERE `user_id` = @uid AND `ignore_id` = @ignoreId");
-                    dbClient.AddParameter("uid", session.GetHabbo().Id);
-                    dbClient.AddParameter("ignoreId", player.Id);
-                    dbClient.RunQuery();
+                    db.user_ignores.Where(x => x.user_id == uid && x.ignore_id == ignoreId).ExecuteDelete();
                 }
 
                 session.SendPacket(new IgnoreStatusComposer(3, player.Username));

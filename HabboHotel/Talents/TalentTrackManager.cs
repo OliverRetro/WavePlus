@@ -1,8 +1,7 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Data;
+using System.Linq;
 using log4net;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 
 namespace Plus.HabboHotel.Talents
 {
@@ -19,17 +18,13 @@ namespace Plus.HabboHotel.Talents
 
         public void Init()
         {
-            DataTable data = null;
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT `type`,`level`,`data_actions`,`data_gifts` FROM `talents`");
-                data = dbClient.GetTable();
-            }
-
-            if (data != null) {
-                foreach (DataRow row in data.Rows)
+                var rows = db.talents.Select(t => new { t.type, t.level, t.data_actions, t.data_gifts }).ToList();
+                foreach (var row in rows)
                 {
-                    _citizenshipLevels.Add(Convert.ToInt32(row["level"]), new TalentTrackLevel(Convert.ToString(row["type"]), Convert.ToInt32(row["level"]), Convert.ToString(row["data_actions"]), Convert.ToString(row["data_gifts"])));
+                    int level = row.level ?? 0;
+                    _citizenshipLevels.Add(level, new TalentTrackLevel(row.type, level, row.data_actions, row.data_gifts));
                 }
             }
 

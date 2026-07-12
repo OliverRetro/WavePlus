@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Plus.Communication.Packets.Outgoing.Messenger;
-using Plus.Database.Interfaces;
 using Plus.HabboHotel.GameClients;
 using Plus.Utilities;
 
@@ -45,13 +44,7 @@ namespace Plus.Communication.Packets.Incoming.Messenger
                 client.SendPacket(new RoomInviteComposer(session.GetHabbo().Id, message));
             }
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("INSERT INTO `chatlogs_console_invitations` (`user_id`,`message`,`timestamp`) VALUES (@userId, @message, UNIX_TIMESTAMP())");
-                dbClient.AddParameter("userId", session.GetHabbo().Id);
-                dbClient.AddParameter("message", message);
-                dbClient.RunQuery();
-            }
+            Plus.Core.Persistence.LogBuffer.LogConsoleInvitation(session.GetHabbo().Id, message);
         }
     }
 }

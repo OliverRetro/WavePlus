@@ -1,6 +1,8 @@
-﻿using Plus.Communication.Packets.Outgoing.Rooms.AI.Pets;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Communication.Packets.Outgoing.Rooms.AI.Pets;
 using Plus.Communication.Packets.Outgoing.Rooms.Engine;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
 using Plus.HabboHotel.Rooms;
@@ -32,20 +34,24 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Pets.Horse
 
             if (item.Data.InteractionType == InteractionType.HorseSaddle1) {
                 petUser.PetData.Saddle = 9;
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    dbClient.RunQuery("UPDATE `bots_petdata` SET `have_saddle` = '9' WHERE `id` = '" + petUser.PetData.PetId + "' LIMIT 1");
-                    dbClient.RunQuery("DELETE FROM `items` WHERE `id` = '" + item.Id + "' LIMIT 1");
+                    uint petDataId = (uint)petUser.PetData.PetId;
+                    uint itmId = (uint)item.Id;
+                    db.bots_petdata.Where(p => p.id == petDataId).ExecuteUpdate(s => s.SetProperty(p => p.have_saddle, 9));
+                    db.items.Where(i => i.id == itmId).ExecuteDelete();
                 }
 
                 //We only want to use this if we're successful. 
                 room.GetRoomItemHandler().RemoveFurniture(session, item.Id);
             } else if (item.Data.InteractionType == InteractionType.HorseSaddle2) {
                 petUser.PetData.Saddle = 10;
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    dbClient.RunQuery("UPDATE `bots_petdata` SET `have_saddle` = '10' WHERE `id` = '" + petUser.PetData.PetId + "' LIMIT 1");
-                    dbClient.RunQuery("DELETE FROM `items` WHERE `id` = '" + item.Id + "' LIMIT 1");
+                    uint petDataId = (uint)petUser.PetData.PetId;
+                    uint itmId = (uint)item.Id;
+                    db.bots_petdata.Where(p => p.id == petDataId).ExecuteUpdate(s => s.SetProperty(p => p.have_saddle, 10));
+                    db.items.Where(i => i.id == itmId).ExecuteDelete();
                 }
 
                 //We only want to use this if we're successful. 
@@ -57,10 +63,13 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Pets.Horse
                 parse = parse + int.Parse(hairType);
 
                 petUser.PetData.PetHair = parse;
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    dbClient.RunQuery("UPDATE `bots_petdata` SET `pethair` = '" + petUser.PetData.PetHair + "' WHERE `id` = '" + petUser.PetData.PetId + "' LIMIT 1");
-                    dbClient.RunQuery("DELETE FROM `items` WHERE `id` = '" + item.Id + "' LIMIT 1");
+                    uint petDataId = (uint)petUser.PetData.PetId;
+                    uint itmId = (uint)item.Id;
+                    int petHair = petUser.PetData.PetHair;
+                    db.bots_petdata.Where(p => p.id == petDataId).ExecuteUpdate(s => s.SetProperty(p => p.pethair, petHair));
+                    db.items.Where(i => i.id == itmId).ExecuteDelete();
                 }
 
                 //We only want to use this if we're successful. 
@@ -72,10 +81,13 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Pets.Horse
                 hairDye = hairDye + int.Parse(hairType);
                 petUser.PetData.HairDye = hairDye;
 
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    dbClient.RunQuery("UPDATE `bots_petdata` SET `hairdye` = '" + petUser.PetData.HairDye + "' WHERE `id` = '" + petUser.PetData.PetId + "' LIMIT 1");
-                    dbClient.RunQuery("DELETE FROM `items` WHERE `id` = '" + item.Id + "' LIMIT 1");
+                    uint petDataId = (uint)petUser.PetData.PetId;
+                    uint itmId = (uint)item.Id;
+                    int dye = petUser.PetData.HairDye;
+                    db.bots_petdata.Where(p => p.id == petDataId).ExecuteUpdate(s => s.SetProperty(p => p.hairdye, dye));
+                    db.items.Where(i => i.id == itmId).ExecuteDelete();
                 }
 
                 //We only want to use this if we're successful. 
@@ -94,10 +106,13 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Pets.Horse
                     raceLast = 73;
                 petUser.PetData.Race = raceLast.ToString();
 
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    dbClient.RunQuery("UPDATE `bots_petdata` SET `race` = '" + petUser.PetData.Race + "' WHERE `id` = '" + petUser.PetData.PetId + "' LIMIT 1");
-                    dbClient.RunQuery("DELETE FROM `items` WHERE `id` = '" + item.Id + "' LIMIT 1");
+                    uint petDataId = (uint)petUser.PetData.PetId;
+                    uint itmId = (uint)item.Id;
+                    string race2 = petUser.PetData.Race;
+                    db.bots_petdata.Where(p => p.id == petDataId).ExecuteUpdate(s => s.SetProperty(p => p.race, race2));
+                    db.items.Where(i => i.id == itmId).ExecuteDelete();
                 }
 
                 //We only want to use this if we're successful. 

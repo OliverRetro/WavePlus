@@ -3,7 +3,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Plus.Communication.Packets.Outgoing.Inventory.Furni;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
+using Microsoft.EntityFrameworkCore;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
 using Plus.HabboHotel.Rooms.AI;
@@ -80,9 +81,9 @@ namespace Plus.HabboHotel.Users.Inventory
         {
             UpdateItems(true);
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.RunQuery("DELETE FROM items WHERE room_id='0' AND user_id = " + _userId); //Do join 
+                db.items.Where(i => i.room_id == 0 && i.user_id == _userId).ExecuteDelete();
             }
 
             _floorItems.Clear();
@@ -126,30 +127,33 @@ namespace Plus.HabboHotel.Users.Inventory
         {
             if (toInsert) {
                 if (fromRoom) {
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                    {
-                        dbClient.RunQuery("UPDATE `items` SET `room_id` = '0', `user_id` = '" + _userId + "' WHERE `id` = '" + id + "' LIMIT 1");
-                    }
+                    uint fromRoomId = (uint)id;
+                    int uid = _userId;
+                    using WavePlusContext db = PlusEnvironment.GetDbContext();
+                    db.items.Where(i => i.id == fromRoomId).ExecuteUpdate(s => s
+                        .SetProperty(i => i.room_id, (uint)0)
+                        .SetProperty(i => i.user_id, uid));
                 } else {
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                    {
-                        if (id > 0)
-                            dbClient.RunQuery("INSERT INTO `items` (`id`,`base_item`, `user_id`, `limited_number`, `limited_stack`) VALUES ('" + id + "', '" + baseItem + "', '" + _userId + "', '" + limitedNumber + "', '" + limitedStack + "')");
-                        else {
-                            dbClient.SetQuery("INSERT INTO `items` (`base_item`, `user_id`, `limited_number`, `limited_stack`) VALUES ('" + baseItem + "', '" + _userId + "', '" + limitedNumber + "', '" + limitedStack + "')");
-                            id = Convert.ToInt32(dbClient.InsertQuery());
-                        }
+                    using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-                        SendNewItems(Convert.ToInt32(id));
+                    if (id > 0) {
+                        db.Database.ExecuteSqlInterpolated($"INSERT INTO `items` (`id`,`base_item`, `user_id`, `limited_number`, `limited_stack`) VALUES ({id}, {baseItem}, {_userId}, {limitedNumber}, {limitedStack})");
+                    } else {
+                        var row = new Database.EF.Entities.item { base_item = (uint)baseItem, user_id = _userId, limited_number = limitedNumber, limited_stack = limitedStack };
+                        db.items.Add(row);
+                        db.SaveChanges();
+                        id = (int)row.id;
+                    }
 
-                        if (group > 0)
-                            dbClient.RunQuery("INSERT INTO `items_groups` VALUES (" + id + ", " + group + ")");
+                    SendNewItems(Convert.ToInt32(id));
 
-                        if (!string.IsNullOrEmpty(extraData)) {
-                            dbClient.SetQuery("UPDATE `items` SET `extra_data` = @extradata WHERE `id` = '" + id + "' LIMIT 1");
-                            dbClient.AddParameter("extradata", extraData);
-                            dbClient.RunQuery();
-                        }
+                    if (group > 0)
+                        db.Database.ExecuteSqlInterpolated($"INSERT INTO `items_groups` VALUES ({id}, {group})");
+
+                    if (!string.IsNullOrEmpty(extraData)) {
+                        uint newItemId = (uint)id;
+                        string ed = extraData;
+                        db.items.Where(i => i.id == newItemId).ExecuteUpdate(s => s.SetProperty(i => i.extra_data, ed));
                     }
                 }
             }

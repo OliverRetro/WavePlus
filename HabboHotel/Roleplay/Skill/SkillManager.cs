@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using log4net;
-using Plus.Database.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.Roleplay.Skill;
-using Plus.HabboHotel.Users;
 
 namespace Plus.HabboHotel.Permissions
 {
@@ -19,44 +18,34 @@ namespace Plus.HabboHotel.Permissions
         {
             _skills.Clear();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
                 // Load skills
-                dbClient.SetQuery("SELECT * FROM `rp_skills`");
-                DataTable getSkills = dbClient.GetTable();
+                foreach (var row in db.rp_skills.AsNoTracking().ToList())
+                {
+                    var skill = new Skill(
+                        row.id,
+                        row.name,
+                        row.progress_category,
+                        row.description,
+                        row.badge_code
+                    );
 
-                if (getSkills != null) {
-                    foreach (DataRow row in getSkills.Rows)
-                    {
-                        var skill = new Skill(
-                            Convert.ToInt32(row["id"]),
-                            Convert.ToString(row["name"]),
-                            Convert.ToString(row["progress_category"]),
-                            Convert.ToString(row["description"]),
-                            Convert.ToString(row["badge_code"])
-                        );
-
-                        _skills.Add(skill.Id, skill);
-                    }
+                    _skills.Add(skill.Id, skill);
                 }
 
                 // Load level requirements
-                dbClient.SetQuery("SELECT * FROM `rp_skills_levels`");
-                DataTable levelTable = dbClient.GetTable();
+                foreach (var row in db.rp_skills_levels.AsNoTracking().ToList())
+                {
+                    int skillId = row.skill_id;
 
-                if (levelTable != null) {
-                    foreach (DataRow row in levelTable.Rows)
-                    {
-                        int skillId = Convert.ToInt32(row["skill_id"]);
+                    if (!_skills.TryGetValue(skillId, out Skill skill))
+                        continue;
 
-                        if (!_skills.TryGetValue(skillId, out Skill skill))
-                            continue;
+                    int level = Convert.ToInt32(row.level);
+                    int required = row.required_progress;
 
-                        int level = Convert.ToInt32(row["level"]);
-                        int required = Convert.ToInt32(row["required_progress"]);
-
-                        skill.Levels[level] = new SkillLevel(level, required);
-                    }
+                    skill.Levels[level] = new SkillLevel(level, required);
                 }
             }
 

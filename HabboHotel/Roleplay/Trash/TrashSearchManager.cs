@@ -1,6 +1,6 @@
 using Plus.Communication.Packets.Outgoing.Inventory.Purse;
 using Plus.Communication.Packets.Outgoing.Rooms.Chat;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
 using Plus.HabboHotel.Roleplay.RpItem;
@@ -8,11 +8,11 @@ using Plus.HabboHotel.Roleplay.RpItem.Item;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Rooms.PathFinding;
 using Plus.HabboHotel.Users;
+using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 
 namespace Plus.HabboHotel.Roleplay.Trash
@@ -37,19 +37,20 @@ namespace Plus.HabboHotel.Roleplay.Trash
 
             try
             {
-                using IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor();
-                dbClient.SetQuery("SELECT * FROM `rp_trash_rewards` WHERE `enabled` = 1");
-                DataTable table = dbClient.GetTable();
-                if (table == null)
-                    return;
+                using WavePlusContext db = PlusEnvironment.GetDbContext();
+                var rows = db.rp_trash_rewards
+                    .AsNoTracking()
+                    .Where(x => x.enabled == true)
+                    .Select(x => new { x.item_id, x.chance_weight, x.min_amount, x.max_amount })
+                    .ToList();
 
-                foreach (DataRow row in table.Rows)
+                foreach (var row in rows)
                 {
                     _rewards.Add(new TrashReward(
-                        Convert.ToInt32(row["item_id"]),
-                        Convert.ToInt32(row["chance_weight"]),
-                        table.Columns.Contains("min_amount") ? Convert.ToInt32(row["min_amount"]) : 1,
-                        table.Columns.Contains("max_amount") ? Convert.ToInt32(row["max_amount"]) : 1));
+                        row.item_id,
+                        row.chance_weight,
+                        row.min_amount,
+                        row.max_amount));
                 }
             }
             catch

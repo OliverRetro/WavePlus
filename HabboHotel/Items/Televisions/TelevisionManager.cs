@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
+﻿using System.Collections.Generic;
+using System.Linq;
 using log4net;
-using Plus.Database.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 
 namespace Plus.HabboHotel.Items.Televisions
 {
@@ -22,17 +22,11 @@ namespace Plus.HabboHotel.Items.Televisions
             if (Televisions.Count > 0)
                 Televisions.Clear();
 
-            DataTable getData = null;
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT * FROM `items_youtube` ORDER BY `id` DESC");
-                getData = dbClient.GetTable();
-
-                if (getData != null) {
-                    foreach (DataRow row in getData.Rows)
-                    {
-                        Televisions.Add(Convert.ToInt32(row["id"]), new TelevisionItem(Convert.ToInt32(row["id"]), row["youtube_id"].ToString(), row["title"].ToString(), row["description"].ToString(), PlusEnvironment.EnumToBool(row["enabled"].ToString())));
-                    }
+                foreach (var row in db.items_youtubes.AsNoTracking().OrderByDescending(x => x.id).ToList())
+                {
+                    Televisions.Add(row.id, new TelevisionItem(row.id, row.youtube_id, row.title, row.description, PlusEnvironment.EnumToBool(row.enabled)));
                 }
             }
 

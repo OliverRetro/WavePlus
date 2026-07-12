@@ -1,5 +1,7 @@
-﻿using Plus.Communication.Packets.Outgoing.Rooms.Engine;
-using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Communication.Packets.Outgoing.Rooms.Engine;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
 using Plus.HabboHotel.Quests;
@@ -64,13 +66,27 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
                     break;
             }
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            int rid = room.RoomId;
+            uint itemDbId = (uint)item.Id;
+            string extraData = item.ExtraData;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("UPDATE `rooms` SET `" + decorationKey + "` = @extradata WHERE `id` = '" + room.RoomId + "' LIMIT 1");
-                dbClient.AddParameter("extradata", item.ExtraData);
-                dbClient.RunQuery();
+                switch (decorationKey)
+                {
+                    case "floor":
+                        db.rooms.Where(r => r.id == rid).ExecuteUpdate(s => s.SetProperty(r => r.floor, extraData));
+                        break;
 
-                dbClient.RunQuery("DELETE FROM `items` WHERE `id` = '" + item.Id + "' LIMIT 1");
+                    case "wallpaper":
+                        db.rooms.Where(r => r.id == rid).ExecuteUpdate(s => s.SetProperty(r => r.wallpaper, extraData));
+                        break;
+
+                    case "landscape":
+                        db.rooms.Where(r => r.id == rid).ExecuteUpdate(s => s.SetProperty(r => r.landscape, extraData));
+                        break;
+                }
+
+                db.items.Where(i => i.id == itemDbId).ExecuteDelete();
             }
 
             session.GetHabbo().GetInventoryComponent().RemoveItem(item.Id);

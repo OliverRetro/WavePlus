@@ -1,7 +1,7 @@
-﻿using System;
-using System.Data;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Outgoing.Inventory.Purse;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 
 namespace Plus.Communication.Packets.Incoming.Marketplace
@@ -10,30 +10,16 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
     {
         public void Parse(GameClient session, ClientPacket packet)
         {
-            int creditsOwed = 0;
+            uint uid = (uint)session.GetHabbo().Id;
 
-            DataTable table;
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("SELECT `asking_price` FROM `catalog_marketplace_offers` WHERE `user_id` = '" + session.GetHabbo().Id + "' AND `state` = '2'");
-                table = dbClient.GetTable();
-            }
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            int creditsOwed = db.catalog_marketplace_offers.Where(o => o.user_id == uid && o.state == "2").Sum(o => (int?)o.asking_price) ?? 0;
 
-            if (table != null) {
-                foreach (DataRow row in table.Rows)
-                {
-                    creditsOwed += Convert.ToInt32(row["asking_price"]);
-                }
+            if (creditsOwed >= 1) {
+                session.GetHabbo().Credits += creditsOwed;
+                session.SendPacket(new CreditBalanceComposer(session.GetHabbo().Credits));
 
-                if (creditsOwed >= 1) {
-                    session.GetHabbo().Credits += creditsOwed;
-                    session.SendPacket(new CreditBalanceComposer(session.GetHabbo().Credits));
-                }
-
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                {
-                    dbClient.RunQuery("DELETE FROM `catalog_marketplace_offers` WHERE `user_id` = '" + session.GetHabbo().Id + "' AND `state` = '2'");
-                }
+                db.catalog_marketplace_offers.Where(o => o.user_id == uid && o.state == "2").ExecuteDelete();
             }
         }
     }

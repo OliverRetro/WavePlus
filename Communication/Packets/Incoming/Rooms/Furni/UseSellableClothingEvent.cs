@@ -1,6 +1,8 @@
 ﻿using Plus.Communication.Packets.Outgoing.Inventory.AvatarEffects;
 using Plus.Communication.Packets.Outgoing.Rooms.Notifications;
-using Plus.Database.Interfaces;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.Catalog.Clothing;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
@@ -45,11 +47,10 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
             }
 
             //Quickly delete it from the database.
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            uint itemDbId = (uint)item.Id;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("DELETE FROM `items` WHERE `id` = @ItemId LIMIT 1");
-                dbClient.AddParameter("ItemId", item.Id);
-                dbClient.RunQuery();
+                db.items.Where(i => i.id == itemDbId).ExecuteDelete();
             }
 
             //Remove the item.

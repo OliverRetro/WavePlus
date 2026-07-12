@@ -1,8 +1,7 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Data;
+using System.Linq;
 using log4net;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 
 namespace Plus.HabboHotel.Subscriptions
 {
@@ -17,17 +16,15 @@ namespace Plus.HabboHotel.Subscriptions
             if (_subscriptions.Count > 0)
                 _subscriptions.Clear();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT * FROM `subscriptions`;");
-                DataTable getSubscriptions = dbClient.GetTable();
-
-                if (getSubscriptions != null) {
-                    foreach (DataRow row in getSubscriptions.Rows)
-                    {
-                        if (!_subscriptions.ContainsKey(Convert.ToInt32(row["id"])))
-                            _subscriptions.Add(Convert.ToInt32(row["id"]), new SubscriptionData(Convert.ToInt32(row["id"]), Convert.ToString(row["name"]), Convert.ToString(row["badge_code"]), Convert.ToInt32(row["credits"]), Convert.ToInt32(row["duckets"]), Convert.ToInt32(row["respects"]), Convert.ToInt32(row["static_aggression"]), getSubscriptions.Columns.Contains("trash_search_cooldown") ? Convert.ToInt32(row["trash_search_cooldown"]) : 60));
-                    }
+                var subs = db.subscriptions
+                    .Select(s => new { s.id, s.name, s.badge_code, s.credits, s.duckets, s.respects, s.static_aggression, s.trash_search_cooldown })
+                    .ToList();
+                foreach (var row in subs)
+                {
+                    if (!_subscriptions.ContainsKey(row.id))
+                        _subscriptions.Add(row.id, new SubscriptionData(row.id, row.name, row.badge_code, row.credits, row.duckets, row.respects, row.static_aggression, row.trash_search_cooldown));
                 }
             }
 

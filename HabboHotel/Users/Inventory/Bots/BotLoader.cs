@@ -1,7 +1,6 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using Plus.Database.Interfaces;
+using System.Linq;
+using Plus.Database.EF;
 
 namespace Plus.HabboHotel.Users.Inventory.Bots
 {
@@ -9,23 +8,15 @@ namespace Plus.HabboHotel.Users.Inventory.Bots
     {
         public static List<Bot> GetBotsForUser(int userId)
         {
-            List<Bot> b = new();
+            uint uid = (uint)userId;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("SELECT `id`,`user_id`,`name`,`motto`,`look`,`gender`FROM `bots` WHERE `user_id` = '" + userId + "' AND `room_id` = '0' AND `ai_type` != 'pet'");
-                DataTable dBots = dbClient.GetTable();
-
-                if (dBots != null) {
-                    foreach (DataRow dRow in dBots.Rows)
-                    {
-                        b.Add(new Bot(Convert.ToInt32(dRow["id"]), Convert.ToInt32(dRow["user_id"]), Convert.ToString(dRow["name"]),
-                            Convert.ToString(dRow["motto"]), Convert.ToString(dRow["look"]), Convert.ToString(dRow["gender"])));
-                    }
-                }
-            }
-
-            return b;
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            return db.bots
+                .Where(b => b.user_id == uid && b.room_id == 0 && b.ai_type != "pet")
+                .Select(b => new { b.id, b.user_id, b.name, b.motto, b.look, b.gender })
+                .AsEnumerable()
+                .Select(b => new Bot((int)b.id, (int)b.user_id, b.name, b.motto, b.look, b.gender))
+                .ToList();
         }
     }
 }

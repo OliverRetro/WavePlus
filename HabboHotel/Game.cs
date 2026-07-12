@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Plus.Communication.Packets;
 using Plus.Core;
+using Plus.Core.Persistence;
 using Plus.HabboHotel.Achievements;
 using Plus.HabboHotel.Badges;
 using Plus.HabboHotel.Bots;
@@ -53,6 +54,7 @@ namespace Plus.HabboHotel
         private readonly SubscriptionManager _subscriptionManager;
         private readonly ShiftManager _shiftManager;
         private readonly MacroManager _macroManager;
+        private readonly PersistenceScheduler _persistenceScheduler;
 
         private bool _cycleEnded;
         private bool _cycleActive;
@@ -133,14 +135,23 @@ namespace Plus.HabboHotel
             _shiftManager = new ShiftManager();
 
             _macroManager = new MacroManager();
+
+            _persistenceScheduler = new PersistenceScheduler();
+            PersistenceRegistry.RegisterAll(_persistenceScheduler);
         }
 
         public void StartGameLoop()
         {
+            // Pin the public rooms (and their items) into memory before clients connect;
+            // from here on they only touch the DB on the 15-minute failsafe and shutdown.
+            Core.Cache.PublicRoomCache.LoadAll();
+
             _gameCycle = new Task(GameCycle);
             _gameCycle.Start();
 
             _cycleActive = true;
+
+            _persistenceScheduler.Start();
         }
 
         private void GameCycle()
@@ -305,6 +316,11 @@ namespace Plus.HabboHotel
         public MacroManager GetMacroManager()
         {
             return _macroManager;
+        }
+
+        public PersistenceScheduler GetPersistenceScheduler()
+        {
+            return _persistenceScheduler;
         }
     }
 }

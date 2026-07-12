@@ -1,7 +1,8 @@
 ﻿using System.Linq;
 using Plus.Communication.Packets.Outgoing.Groups;
 using Plus.Communication.Packets.Outgoing.Rooms.Permissions;
-using Plus.Database.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
 using Plus.HabboHotel.Rooms;
@@ -47,16 +48,8 @@ namespace Plus.Communication.Packets.Incoming.Groups
                 }
             }
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("UPDATE `groups` SET `state` = @GroupState, `admindeco` = @AdminDeco WHERE `id` = @groupId LIMIT 1");
-                dbClient.AddParameter("GroupState", (group.Type == GroupType.Open ? 0 : group.Type == GroupType.Locked ? 1 : 2).ToString());
-                dbClient.AddParameter("AdminDeco", (furniOptions == 1 ? 1 : 0).ToString());
-                dbClient.AddParameter("groupId", group.Id);
-                dbClient.RunQuery();
-            }
-
             group.AdminOnlyDeco = furniOptions;
+            group.MarkDirty(); // state + admindeco cached; written to DB on the 15-minute group flush
 
             if (!PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(group.RoomId, out Room room))
                 return;

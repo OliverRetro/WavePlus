@@ -1,6 +1,6 @@
-﻿using System;
-using System.Data;
-using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.Rooms;
 
 namespace Plus.HabboHotel.Items
@@ -9,17 +9,9 @@ namespace Plus.HabboHotel.Items
     {
         public static int GetLinkedTele(int teleId)
         {
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("SELECT `tele_two_id` FROM `room_items_tele_links` WHERE `tele_one_id` = '" + teleId + "' LIMIT 1");
-                DataRow row = dbClient.GetRow();
-
-                if (row == null) {
-                    return 0;
-                }
-
-                return Convert.ToInt32(row[0]);
-            }
+            uint tid = (uint) teleId;
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            return db.room_items_tele_links.Where(x => x.tele_one_id == tid).Select(x => (int) x.tele_two_id).FirstOrDefault();
         }
 
         public static int GetTeleRoomId(int teleId, Room pRoom)
@@ -27,17 +19,9 @@ namespace Plus.HabboHotel.Items
             if (pRoom.GetRoomItemHandler().GetItem(teleId) != null)
                 return pRoom.RoomId;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("SELECT `room_id` FROM `items` WHERE `id` = " + teleId + " LIMIT 1");
-                DataRow row = dbClient.GetRow();
-
-                if (row == null) {
-                    return 0;
-                }
-
-                return Convert.ToInt32(row[0]);
-            }
+            uint tid = (uint) teleId;
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            return db.items.Where(x => x.id == tid).Select(x => (int) x.room_id).FirstOrDefault();
         }
 
         public static bool IsTeleLinked(int teleId, Room pRoom)

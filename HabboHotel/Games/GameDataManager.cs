@@ -1,9 +1,7 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using log4net;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 
 namespace Plus.HabboHotel.Games
 {
@@ -23,16 +21,14 @@ namespace Plus.HabboHotel.Games
             if (_games.Count > 0)
                 _games.Clear();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT `id`,`name`,`colour_one`,`colour_two`,`resource_path`,`string_three`,`game_swf`,`game_assets`,`game_server_host`,`game_server_port`,`socket_policy_port`,`game_enabled` FROM `games_config`");
-                DataTable data = dbClient.GetTable();
-
-                if (data != null) {
-                    foreach (DataRow row in data.Rows)
-                    {
-                        _games.Add(Convert.ToInt32(row["id"]), new GameData(Convert.ToInt32(row["id"]), Convert.ToString(row["name"]), Convert.ToString(row["colour_one"]), Convert.ToString(row["colour_two"]), Convert.ToString(row["resource_path"]), Convert.ToString(row["string_three"]), Convert.ToString(row["game_swf"]), Convert.ToString(row["game_assets"]), Convert.ToString(row["game_server_host"]), Convert.ToString(row["game_server_port"]), Convert.ToString(row["socket_policy_port"]), PlusEnvironment.EnumToBool(row["game_enabled"].ToString())));
-                    }
+                var rows = db.games_configs
+                    .Select(g => new { g.id, g.name, g.colour_one, g.colour_two, g.resource_path, g.string_three, g.game_swf, g.game_assets, g.game_server_host, g.game_server_port, g.socket_policy_port, g.game_enabled })
+                    .ToList();
+                foreach (var row in rows)
+                {
+                    _games.Add(row.id, new GameData(row.id, row.name, row.colour_one, row.colour_two, row.resource_path, row.string_three, row.game_swf, row.game_assets, row.game_server_host, row.game_server_port, row.socket_policy_port, PlusEnvironment.EnumToBool(row.game_enabled)));
                 }
             }
 

@@ -1,5 +1,8 @@
-﻿using Plus.Communication.Packets.Outgoing.Quests;
-using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Communication.Packets.Outgoing.Quests;
+using Plus.Database.EF;
+using Plus.Database.EF.Entities;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Quests;
 
@@ -18,10 +21,15 @@ namespace Plus.Communication.Packets.Incoming.Quests
             if (nextQuest == null)
                 return;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.RunQuery("REPLACE INTO `user_quests`(`user_id`,`quest_id`) VALUES (" + session.GetHabbo().Id + ", " + nextQuest.Id + ")");
-                dbClient.RunQuery("UPDATE `user_stats` SET `quest_id` = '" + nextQuest.Id + "' WHERE `id` = '" + session.GetHabbo().Id + "' LIMIT 1");
+                db.user_quests.Upsert(new user_quest
+                {
+                    user_id = (uint)session.GetHabbo().Id,
+                    quest_id = (uint)nextQuest.Id
+                }).Run();
+                db.user_stats.Where(s => s.id == session.GetHabbo().Id)
+                    .ExecuteUpdate(s => s.SetProperty(x => x.quest_id, (uint)nextQuest.Id));
             }
 
             session.GetHabbo().GetStats().QuestId = nextQuest.Id;

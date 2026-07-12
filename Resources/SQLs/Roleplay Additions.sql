@@ -54,7 +54,7 @@ CREATE TABLE `group_permission_keys`  (
   `description` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL DEFAULT 'nodesc',
   `type_specific` text CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 23 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 25 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
 
 INSERT INTO `group_permission_keys` VALUES (1, 'Decorate', 'edit_room', 'Edit the room furni.', '{0,1,2,3,4,5}');
 INSERT INTO `group_permission_keys` VALUES (2, 'Hire', 'hire_user', 'Hire new players / accept membership requests.', '{1,5}');
@@ -79,6 +79,7 @@ INSERT INTO `group_permission_keys` VALUES (20, 'Release Prisoner', 'release_use
 INSERT INTO `group_permission_keys` VALUES (21, 'Pardon', 'pardon_user', 'Remove from Wanted List etc.', '{1}');
 INSERT INTO `group_permission_keys` VALUES (22, 'Membership Management', 'manage_group_acceptance', 'nodesc', '{0,1,2,3,4,5}');
 INSERT INTO `group_permission_keys` VALUES (23, 'Heal', 'heal_user', 'For Hospital', '{1}');
+INSERT INTO `group_permission_keys` VALUES (24, 'Room Swap', 'room_swap', 'Stay on shift when moving between rooms.', '{1,5}');
 
 DROP TABLE IF EXISTS `group_permissions`;
 CREATE TABLE `group_permissions`  (

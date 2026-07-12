@@ -1,4 +1,6 @@
-﻿using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator
@@ -22,15 +24,17 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator
                 return;
             }
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            int groupIdInt = room.Group.Id;
+            uint groupIdUint = (uint)room.Group.Id;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.RunQuery("DELETE FROM `groups` WHERE `id` = '" + room.Group.Id + "'");
-                dbClient.RunQuery("DELETE FROM `group_memberships` WHERE `group_id` = '" + room.Group.Id + "'");
-                dbClient.RunQuery("DELETE FROM `group_roles` WHERE `group_id` = '" + room.Group.Id + "'");
-                dbClient.RunQuery("DELETE FROM `group_requests` WHERE `group_id` = '" + room.Group.Id + "'");
-                dbClient.RunQuery("UPDATE `rooms` SET `group_id` = '0' WHERE `group_id` = '" + room.Group.Id + "' LIMIT 1");
-                dbClient.RunQuery("UPDATE `user_stats` SET `groupid` = '0' WHERE `groupid` = '" + room.Group.Id + "' LIMIT 1");
-                dbClient.RunQuery("DELETE FROM `items_groups` WHERE `group_id` = '" + room.Group.Id + "'");
+                db.groups.Where(x => x.id == groupIdUint).ExecuteDelete();
+                db.group_memberships.Where(x => x.group_id == groupIdUint).ExecuteDelete();
+                db.group_roles.Where(x => x.group_id == groupIdInt).ExecuteDelete();
+                db.group_requests.Where(x => x.group_id == groupIdUint).ExecuteDelete();
+                db.rooms.Where(x => x.group_id == groupIdUint).ExecuteUpdate(s => s.SetProperty(x => x.group_id, 0u));
+                db.user_stats.Where(x => x.groupid == groupIdInt).ExecuteUpdate(s => s.SetProperty(x => x.groupid, 0));
+                db.items_groups.Where(x => x.group_id == groupIdInt).ExecuteDelete();
             }
 
             PlusEnvironment.GetGame().GetGroupManager().DeleteGroup(room.Group.Id);

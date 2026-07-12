@@ -1,9 +1,10 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Incoming;
 using Plus.Communication.Packets.Outgoing;
 using Plus.Communication.Packets.Outgoing.Rooms.Engine;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.Rooms;
 
 namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
@@ -64,12 +65,13 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
             Instance.SendPacket(userChangeComposer);
 
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            uint botId = (uint)user.BotData.Id;
+            string look = user.BotData.Look;
+            string gender = user.BotData.Gender;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("UPDATE `bots` SET `look` = @look, `gender` = @gender WHERE `id` = '" + user.BotData.Id + "' LIMIT 1");
-                dbClient.AddParameter("look", user.BotData.Look);
-                dbClient.AddParameter("gender", user.BotData.Gender);
-                dbClient.RunQuery();
+                db.bots.Where(b => b.id == botId)
+                    .ExecuteUpdate(s => s.SetProperty(b => b.look, look).SetProperty(b => b.gender, gender));
             }
 
             return true;

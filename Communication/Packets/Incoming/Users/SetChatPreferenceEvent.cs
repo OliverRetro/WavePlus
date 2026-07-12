@@ -1,4 +1,6 @@
-﻿using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 
 namespace Plus.Communication.Packets.Incoming.Users
@@ -10,11 +12,12 @@ namespace Plus.Communication.Packets.Incoming.Users
             bool preference = packet.PopBoolean();
 
             session.GetHabbo().ChatPreference = preference;
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            int userId = session.GetHabbo().Id;
+            string chatPreference = PlusEnvironment.BoolToEnum(preference);
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("UPDATE `users` SET `chat_preference` = @chatPreference WHERE `id` = '" + session.GetHabbo().Id + "' LIMIT 1");
-                dbClient.AddParameter("chatPreference", PlusEnvironment.BoolToEnum(preference));
-                dbClient.RunQuery();
+                db.users.Where(u => u.id == userId)
+                    .ExecuteUpdate(s => s.SetProperty(u => u.chat_preference, chatPreference));
             }
         }
     }

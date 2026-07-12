@@ -1,7 +1,8 @@
-﻿using System.Data;
+﻿using System.Linq;
 using Plus.Communication.Packets.Outgoing.Catalog;
 using Plus.Communication.Packets.Outgoing.Inventory.Purse;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
+using Plus.Database.EF.Entities;
 using Plus.HabboHotel.Catalog.Vouchers;
 using Plus.HabboHotel.GameClients;
 
@@ -23,26 +24,20 @@ namespace Plus.Communication.Packets.Incoming.Catalog
                 return;
             }
 
-            DataRow row;
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            int voucherUserId = session.GetHabbo().Id;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT * FROM `user_vouchers` WHERE `user_id` = @userId AND `voucher` = @Voucher LIMIT 1");
-                dbClient.AddParameter("userId", session.GetHabbo().Id);
-                dbClient.AddParameter("Voucher", code);
-                row = dbClient.GetRow();
-            }
+                if (db.user_vouchers.Any(v => v.user_id == voucherUserId && v.voucher == code)) {
+                    session.SendNotification("You've already used this voucher code, one per each user, sorry!");
+                    return;
+                }
 
-            if (row != null) {
-                session.SendNotification("You've already used this voucher code, one per each user, sorry!");
-                return;
-            }
-
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("INSERT INTO `user_vouchers` (`user_id`,`voucher`) VALUES (@userId, @Voucher)");
-                dbClient.AddParameter("userId", session.GetHabbo().Id);
-                dbClient.AddParameter("Voucher", code);
-                dbClient.RunQuery();
+                db.user_vouchers.Add(new user_voucher
+                {
+                    user_id = voucherUserId,
+                    voucher = code
+                });
+                db.SaveChanges();
             }
 
             voucher.UpdateUses();

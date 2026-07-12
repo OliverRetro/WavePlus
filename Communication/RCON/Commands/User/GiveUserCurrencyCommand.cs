@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Outgoing.Inventory.Purse;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 
 namespace Plus.Communication.Rcon.Commands.User
@@ -20,7 +22,6 @@ namespace Plus.Communication.Rcon.Commands.User
             if (client == null || client.GetHabbo() == null)
                 return false;
 
-            // Validate the currency type
             if (string.IsNullOrEmpty(Convert.ToString(parameters[1])))
                 return false;
 
@@ -39,13 +40,9 @@ namespace Plus.Communication.Rcon.Commands.User
                 {
                     client.GetHabbo().Credits += amount;
 
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                    {
-                        dbClient.SetQuery("UPDATE `users` SET `credits` = @credits WHERE `id` = @id LIMIT 1");
-                        dbClient.AddParameter("credits", client.GetHabbo().Credits);
-                        dbClient.AddParameter("id", userId);
-                        dbClient.RunQuery();
-                    }
+                    int credits = client.GetHabbo().Credits;
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                        db.users.Where(u => u.id == userId).ExecuteUpdate(s => s.SetProperty(u => u.credits, credits));
 
                     client.SendPacket(new CreditBalanceComposer(client.GetHabbo().Credits));
                     break;
@@ -56,13 +53,9 @@ namespace Plus.Communication.Rcon.Commands.User
                 {
                     client.GetHabbo().Duckets += amount;
 
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                    {
-                        dbClient.SetQuery("UPDATE `users` SET `activity_points` = @duckets WHERE `id` = @id LIMIT 1");
-                        dbClient.AddParameter("duckets", client.GetHabbo().Duckets);
-                        dbClient.AddParameter("id", userId);
-                        dbClient.RunQuery();
-                    }
+                    int duckets = client.GetHabbo().Duckets;
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                        db.users.Where(u => u.id == userId).ExecuteUpdate(s => s.SetProperty(u => u.activity_points, duckets));
 
                     client.SendPacket(new HabboActivityPointNotificationComposer(client.GetHabbo().Duckets, amount));
                     break;
@@ -72,13 +65,9 @@ namespace Plus.Communication.Rcon.Commands.User
                 {
                     client.GetHabbo().Diamonds += amount;
 
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                    {
-                        dbClient.SetQuery("UPDATE `users` SET `vip_points` = @diamonds WHERE `id` = @id LIMIT 1");
-                        dbClient.AddParameter("diamonds", client.GetHabbo().Diamonds);
-                        dbClient.AddParameter("id", userId);
-                        dbClient.RunQuery();
-                    }
+                    int diamonds = client.GetHabbo().Diamonds;
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                        db.users.Where(u => u.id == userId).ExecuteUpdate(s => s.SetProperty(u => u.vip_points, diamonds));
 
                     client.SendPacket(new HabboActivityPointNotificationComposer(client.GetHabbo().Diamonds, 0, 5));
                     break;
@@ -88,13 +77,9 @@ namespace Plus.Communication.Rcon.Commands.User
                 {
                     client.GetHabbo().GotwPoints += amount;
 
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                    {
-                        dbClient.SetQuery("UPDATE `users` SET `gotw_points` = @gotw WHERE `id` = @id LIMIT 1");
-                        dbClient.AddParameter("gotw", client.GetHabbo().GotwPoints);
-                        dbClient.AddParameter("id", userId);
-                        dbClient.RunQuery();
-                    }
+                    int gotw = client.GetHabbo().GotwPoints;
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                        db.users.Where(u => u.id == userId).ExecuteUpdate(s => s.SetProperty(u => u.gotw_points, gotw));
 
                     client.SendPacket(new HabboActivityPointNotificationComposer(client.GetHabbo().GotwPoints, 0, 103));
                     break;

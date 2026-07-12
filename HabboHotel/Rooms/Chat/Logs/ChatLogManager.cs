@@ -1,12 +1,14 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 
 namespace Plus.HabboHotel.Rooms.Chat.Logs
 {
     public sealed class ChatLogManager
     {
-        private const int FlushOnCount = 10;
+        // Memory guard only — the regular flush is the 15-minute world saver (and shutdown).
+        private const int FlushOnCount = 1000;
 
         private readonly List<ChatLogEntry> _chatLogs;
         private readonly ReaderWriterLockSlim _lock;
@@ -39,18 +41,15 @@ namespace Plus.HabboHotel.Rooms.Chat.Logs
             _lock.EnterWriteLock();
 
             if (_chatLogs.Count > 0) {
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                using WavePlusContext db = PlusEnvironment.GetDbContext();
+                db.chatlogs.AddRange(_chatLogs.Select(entry => new Database.EF.Entities.chatlog
                 {
-                    foreach (ChatLogEntry entry in _chatLogs)
-                    {
-                        dbClient.SetQuery("INSERT INTO chatlogs (`user_id`, `room_id`, `timestamp`, `message`) VALUES (@uid, @rid, @time, @msg)");
-                        dbClient.AddParameter("uid", entry.PlayerId);
-                        dbClient.AddParameter("rid", entry.RoomId);
-                        dbClient.AddParameter("time", entry.Timestamp);
-                        dbClient.AddParameter("msg", entry.Message);
-                        dbClient.RunQuery();
-                    }
-                }
+                    user_id = (uint)entry.PlayerId,
+                    room_id = (uint)entry.RoomId,
+                    timestamp = entry.Timestamp,
+                    message = entry.Message
+                }));
+                db.SaveChanges();
             }
 
             _chatLogs.Clear();

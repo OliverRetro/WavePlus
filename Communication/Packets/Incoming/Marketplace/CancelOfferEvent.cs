@@ -1,8 +1,9 @@
 ﻿using System;
-using System.Data;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Outgoing.Inventory.Furni;
 using Plus.Communication.Packets.Outgoing.Marketplace;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
 
@@ -15,44 +16,35 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
             if (session == null || session.GetHabbo() == null)
                 return;
 
-            DataRow row;
             int offerId = packet.PopInt();
+            uint offerIdU = (uint)offerId;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("SELECT `furni_id`, `item_id`, `user_id`, `extra_data`, `offer_id`, `state`, `timestamp`, `limited_number`, `limited_stack` FROM `catalog_marketplace_offers` WHERE `offer_id` = @OfferId LIMIT 1");
-                dbClient.AddParameter("OfferId", offerId);
-                row = dbClient.GetRow();
-            }
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            var offerData = db.catalog_marketplace_offers.Where(o => o.offer_id == offerIdU)
+                .Select(o => new { o.user_id, o.item_id, o.extra_data, o.furni_id, o.limited_number, o.limited_stack })
+                .FirstOrDefault();
 
-            if (row == null) {
+            if (offerData == null) {
                 session.SendPacket(new MarketplaceCancelOfferResultComposer(offerId, false));
                 return;
             }
 
-            if (Convert.ToInt32(row["user_id"]) != session.GetHabbo().Id) {
+            if (offerData.user_id != session.GetHabbo().Id) {
                 session.SendPacket(new MarketplaceCancelOfferResultComposer(offerId, false));
                 return;
             }
 
-            if (!PlusEnvironment.GetGame().GetItemManager().GetItem(Convert.ToInt32(row["item_id"]), out ItemData item)) {
+            if (!PlusEnvironment.GetGame().GetItemManager().GetItem((int)offerData.item_id, out ItemData item)) {
                 session.SendPacket(new MarketplaceCancelOfferResultComposer(offerId, false));
                 return;
             }
 
-            //PlusEnvironment.GetGame().GetCatalog().DeliverItems(Session, Item, 1, Convert.ToString(Row["extra_data"]), Convert.ToInt32(Row["limited_number"]), Convert.ToInt32(Row["limited_stack"]), Convert.ToInt32(Row["furni_id"]));
-
-            Item giveItem = ItemFactory.CreateSingleItem(item, session.GetHabbo(), Convert.ToString(row["extra_data"]), Convert.ToString(row["extra_data"]), Convert.ToInt32(row["furni_id"]), Convert.ToInt32(row["limited_number"]), Convert.ToInt32(row["limited_stack"]));
+            Item giveItem = ItemFactory.CreateSingleItem(item, session.GetHabbo(), offerData.extra_data, offerData.extra_data, (int)offerData.furni_id, offerData.limited_number, offerData.limited_stack);
             session.SendPacket(new FurniListNotificationComposer(giveItem.Id, 1));
             session.SendPacket(new FurniListUpdateComposer());
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("DELETE FROM `catalog_marketplace_offers` WHERE `offer_id` = @OfferId AND `user_id` = @UserId LIMIT 1");
-                dbClient.AddParameter("OfferId", offerId);
-                dbClient.AddParameter("UserId", session.GetHabbo().Id);
-                dbClient.RunQuery();
-            }
+            uint ownerId = (uint)session.GetHabbo().Id;
+            db.catalog_marketplace_offers.Where(o => o.offer_id == offerIdU && o.user_id == ownerId).ExecuteDelete();
 
             session.GetHabbo().GetInventoryComponent().UpdateItems(true);
             session.SendPacket(new MarketplaceCancelOfferResultComposer(offerId, true));

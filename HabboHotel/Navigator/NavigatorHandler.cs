@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Outgoing;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.Groups;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
@@ -33,29 +33,23 @@ namespace Plus.HabboHotel.Navigator
 
                     if (query.ToLower().StartsWith("owner:")) {
                         if (query.Length > 0) {
-                            DataTable getRooms = null;
-                            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                            List<int> roomIds;
+                            using (WavePlusContext db = PlusEnvironment.GetDbContext())
                             {
-                                if (query.ToLower().StartsWith("owner:")) {
-                                    dbClient.SetQuery("SELECT `id` FROM `users` WHERE `username` = @username LIMIT 1");
-                                    dbClient.AddParameter("username", query.Remove(0, 6));
-                                    int userId = dbClient.GetInteger();
-
-                                    dbClient.SetQuery("SELECT * FROM `rooms` WHERE `owner` = '" + userId + "' and `state` != 'invisible' ORDER BY `users_now` DESC LIMIT 50");
-                                    getRooms = dbClient.GetTable();
-                                }
+                                string username = query.Remove(0, 6);
+                                int userId = db.users.Where(u => u.username == username).Select(u => u.id).FirstOrDefault();
+                                string ownerId = userId.ToString();
+                                roomIds = db.rooms.Where(r => r.owner == ownerId && r.state != "invisible").OrderByDescending(r => r.users_now).Take(50).Select(r => r.id).ToList();
                             }
 
                             List<RoomData> results = new();
-                            if (getRooms != null) {
-                                foreach (DataRow row in getRooms.Rows)
-                                {
-                                    if (!RoomFactory.TryGetData(Convert.ToInt32(row["id"]), out RoomData data))
-                                        continue;
+                            foreach (int roomId in roomIds)
+                            {
+                                if (!RoomFactory.TryGetData(roomId, out RoomData data))
+                                    continue;
 
-                                    if (!results.Contains(data))
-                                        results.Add(data);
-                                }
+                                if (!results.Contains(data))
+                                    results.Add(data);
                             }
 
                             packet.WriteInteger(results.Count);
@@ -84,27 +78,24 @@ namespace Plus.HabboHotel.Navigator
                         }
                     } else {
                         if (query.Length > 0) {
-                            DataTable table;
-                            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                            string like = query + "%";
+                            var rows = new List<(int Id, string State)>();
+                            using (WavePlusContext db = PlusEnvironment.GetDbContext())
                             {
-                                dbClient.SetQuery("SELECT `id`,`caption`,`description`,`roomtype`,`owner`,`state`,`category`,`users_now`,`users_max`,`model_name`,`score`,`allow_pets`,`allow_pets_eat`,`room_blocking_disabled`,`allow_hidewall`,`password`,`wallpaper`,`floor`,`landscape`,`floorthick`,`wallthick`,`mute_settings`,`kick_settings`,`ban_settings`,`chat_mode`,`chat_speed`,`chat_size`,`trade_settings`,`group_id`,`tags`,`push_enabled`,`pull_enabled`,`enables_enabled`,`respect_notifications_enabled`,`pet_morphs_allowed`,`spush_enabled`,`spull_enabled`,`sale_price` FROM rooms WHERE `caption` LIKE @query ORDER BY `users_now` DESC LIMIT 50");
-                                dbClient.AddParameter("query", query + "%");
-                                table = dbClient.GetTable();
+                                rows = db.rooms.Where(r => EF.Functions.Like(r.caption, like)).OrderByDescending(r => r.users_now).Take(50).Select(r => new { r.id, r.state }).AsEnumerable().Select(r => (r.id, r.state)).ToList();
                             }
 
                             List<RoomData> results = new();
-                            if (table != null) {
-                                foreach (DataRow row in table.Rows)
-                                {
-                                    if (Convert.ToString(row["state"]) == "invisible")
-                                        continue;
+                            foreach ((int Id, string State) row in rows)
+                            {
+                                if (row.State == "invisible")
+                                    continue;
 
-                                    if (!RoomFactory.TryGetData(Convert.ToInt32(row["id"]), out RoomData data))
-                                        continue;
+                                if (!RoomFactory.TryGetData(row.Id, out RoomData data))
+                                    continue;
 
-                                    if (!results.Contains(data))
-                                        results.Add(data);
-                                }
+                                if (!results.Contains(data))
+                                    results.Add(data);
                             }
 
                             packet.WriteInteger(results.Count);
@@ -231,16 +222,14 @@ namespace Plus.HabboHotel.Navigator
                     List<RoomData> myRights = new();
 
                     if (habbo != null) {
-                        using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                        uint uid = (uint)habbo.Id;
+                        using (WavePlusContext db = PlusEnvironment.GetDbContext())
                         {
-                            dbClient.SetQuery("SELECT `room_id` FROM `room_rights` WHERE `user_id` = @UserId LIMIT @FetchLimit");
-                            dbClient.AddParameter("UserId", habbo.Id);
-                            dbClient.AddParameter("FetchLimit", limit);
-                            DataTable getRights = dbClient.GetTable();
+                            List<uint> rightRoomIds = db.room_rights.Where(r => r.user_id == uid).Take(limit).Select(r => r.room_id).ToList();
 
-                            foreach (DataRow row in getRights.Rows)
+                            foreach (uint roomId in rightRoomIds)
                             {
-                                if (!RoomFactory.TryGetData(Convert.ToInt32(row["room_id"]), out RoomData data))
+                                if (!RoomFactory.TryGetData((int)roomId, out RoomData data))
                                     continue;
 
                                 if (!myRights.Contains(data))

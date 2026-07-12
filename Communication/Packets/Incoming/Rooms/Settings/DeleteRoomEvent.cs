@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Plus.Database.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
 using Plus.HabboHotel.Rooms;
@@ -31,12 +32,9 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Settings
                     continue;
 
                 if (item.GetBaseItem().InteractionType == InteractionType.Moodlight) {
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                    {
-                        dbClient.SetQuery("DELETE FROM `room_items_moodlight` WHERE `item_id` = @itemId LIMIT 1");
-                        dbClient.AddParameter("itemId", item.Id);
-                        dbClient.RunQuery();
-                    }
+                    uint moodItemId = (uint)item.Id;
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                        db.room_items_moodlights.Where(m => m.item_id == moodItemId).ExecuteDelete();
                 }
 
                 itemsToRemove.Add(item);
@@ -54,25 +52,23 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Settings
                 else //No, query time.
                 {
                     room.GetRoomItemHandler().RemoveFurniture(null, item.Id);
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                    {
-                        dbClient.SetQuery("UPDATE `items` SET `room_id` = '0' WHERE `id` = @itemId LIMIT 1");
-                        dbClient.AddParameter("itemId", item.Id);
-                        dbClient.RunQuery();
-                    }
+                    uint moveItemId = (uint)item.Id;
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                        db.items.Where(i => i.id == moveItemId).ExecuteUpdate(s => s.SetProperty(i => i.room_id, 0u));
                 }
             }
 
             PlusEnvironment.GetGame().GetRoomManager().UnloadRoom(room.Id);
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            uint roomIdU = (uint)roomId;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.RunQuery("DELETE FROM `user_roomvisits` WHERE `room_id` = '" + roomId + "'");
-                dbClient.RunQuery("DELETE FROM `rooms` WHERE `id` = '" + roomId + "' LIMIT 1");
-                dbClient.RunQuery("DELETE FROM `user_favorites` WHERE `room_id` = '" + roomId + "'");
-                dbClient.RunQuery("DELETE FROM `items` WHERE `room_id` = '" + roomId + "'");
-                dbClient.RunQuery("DELETE FROM `room_rights` WHERE `room_id` = '" + roomId + "'");
-                dbClient.RunQuery("UPDATE `users` SET `home_room` = '0' WHERE `home_room` = '" + roomId + "'");
+                db.user_roomvisits.Where(v => v.room_id == roomIdU).ExecuteDelete();
+                db.rooms.Where(r => r.id == roomId).ExecuteDelete();
+                db.user_favorites.Where(f => f.room_id == roomIdU).ExecuteDelete();
+                db.items.Where(i => i.room_id == roomIdU).ExecuteDelete();
+                db.room_rights.Where(r => r.room_id == roomIdU).ExecuteDelete();
+                db.users.Where(u => u.home_room == roomId).ExecuteUpdate(s => s.SetProperty(u => u.home_room, 0));
             }
 
             PlusEnvironment.GetGame().GetRoomManager().UnloadRoom(room.Id);

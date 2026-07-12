@@ -1,17 +1,20 @@
 using Plus.Communication.Packets.Outgoing.Inventory.Purse;
 using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.Communication.Packets.Outgoing.Rooms.Engine;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
+using Plus.Database.EF.Entities;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
 using Plus.HabboHotel.Roleplay.Utilities;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
+using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 
 namespace Plus.HabboHotel.Roleplay.Corporation
 {
@@ -229,6 +232,24 @@ namespace Plus.HabboHotel.Roleplay.Corporation
             RpEffectService.Refresh(habbo);
         }
 
+        /// <summary>
+        /// Called when a working user leaves the room they're on shift in (summon, follow,
+        /// or simply walking out). The shift ends unless the user's corporation role carries
+        /// the `room_swap` permission, which lets that role roam between rooms while on shift.
+        /// </summary>
+        public void HandleRoomExit(Habbo habbo, Room room)
+        {
+            if (habbo == null || !_activeShifts.TryGetValue(habbo.Id, out ActiveShift shift))
+                return;
+
+            if (PlusEnvironment.GetGame().GetGroupManager().TryGetGroup(shift.GroupId, out Group group)
+                && group.HasPermission(habbo.Id, "room_swap"))
+                return;
+
+            habbo.GetClient()?.SendWhisper("You stopped working because you left the workplace.", 1);
+            InterruptShift(habbo, room);
+        }
+
         public void OnDisconnect(Habbo habbo)
         {
             if (_activeShifts.TryRemove(habbo.Id, out ActiveShift shift)) {
@@ -303,16 +324,17 @@ namespace Plus.HabboHotel.Roleplay.Corporation
             int total = 0, weekly = 0;
             try
             {
-                using IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor();
-                dbClient.SetQuery("SELECT COUNT(*) FROM `rp_shift_logs` WHERE `group_id` = @gid AND `user_id` = @uid");
-                dbClient.AddParameter("gid", groupId);
-                dbClient.AddParameter("uid", userId);
-                total = dbClient.GetInteger();
+                using WavePlusContext db = PlusEnvironment.GetDbContext();
+                total = db.rp_shift_logs.Count(x => x.group_id == groupId && x.user_id == userId);
 
-                dbClient.SetQuery("SELECT COUNT(*) FROM `rp_shift_logs` WHERE `group_id` = @gid AND `user_id` = @uid AND YEARWEEK(`shift_finished`, 1) = YEARWEEK(NOW(), 1)");
-                dbClient.AddParameter("gid", groupId);
-                dbClient.AddParameter("uid", userId);
-                weekly = dbClient.GetInteger();
+                // YEARWEEK(..,1)=YEARWEEK(NOW(),1) is the ISO current-week test; EF can't
+                // translate YEARWEEK, so pull this user's shift-finish times and count the
+                // ones in the current ISO week in memory (IsCurrentWeek uses ISOWeek).
+                weekly = db.rp_shift_logs
+                    .Where(x => x.group_id == groupId && x.user_id == userId)
+                    .Select(x => x.shift_finished)
+                    .ToList()
+                    .Count(IsCurrentWeek);
             }
             catch { }
 
@@ -333,16 +355,18 @@ namespace Plus.HabboHotel.Roleplay.Corporation
 
             try
             {
-                using IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor();
+                using WavePlusContext db = PlusEnvironment.GetDbContext();
                 foreach (var (groupId, credits, finished) in snapshot)
                 {
-                    dbClient.SetQuery("INSERT INTO `rp_shift_logs` (`group_id`, `user_id`, `credits_paid`, `shift_finished`) VALUES (@gid, @uid, @credits, @finished)");
-                    dbClient.AddParameter("gid", groupId);
-                    dbClient.AddParameter("uid", userId);
-                    dbClient.AddParameter("credits", credits);
-                    dbClient.AddParameter("finished", finished.ToString("yyyy-MM-dd HH:mm:ss"));
-                    dbClient.RunQuery();
+                    db.rp_shift_logs.Add(new rp_shift_log
+                    {
+                        group_id = groupId,
+                        user_id = userId,
+                        credits_paid = credits,
+                        shift_finished = finished
+                    });
                 }
+                db.SaveChanges();
             }
             catch { }
         }

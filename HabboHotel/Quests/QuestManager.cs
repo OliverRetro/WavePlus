@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using log4net;
+using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Incoming;
 using Plus.Communication.Packets.Outgoing.Inventory.Purse;
 using Plus.Communication.Packets.Outgoing.Quests;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Users.Messenger;
 
@@ -30,29 +30,39 @@ namespace Plus.HabboHotel.Quests
             if (_quests.Count > 0)
                 _quests.Clear();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT `id`,`type`,`level_num`,`goal_type`,`goal_data`,`action`,`pixel_reward`,`data_bit`,`reward_type`,`timestamp_unlock`,`timestamp_lock` FROM `quests`");
-                DataTable dTable = dbClient.GetTable();
+                var rows = db.quests.Select(q => new
+                {
+                    q.id,
+                    q.type,
+                    q.level_num,
+                    q.goal_type,
+                    q.goal_data,
+                    q.action,
+                    q.pixel_reward,
+                    q.data_bit,
+                    q.reward_type,
+                    q.timestamp_unlock,
+                    q.timestamp_lock
+                }).ToList();
 
-                if (dTable != null) {
-                    foreach (DataRow dRow in dTable.Rows)
-                    {
-                        int id = Convert.ToInt32(dRow["id"]);
-                        string category = Convert.ToString(dRow["type"]);
-                        int num = Convert.ToInt32(dRow["level_num"]);
-                        int type = Convert.ToInt32(dRow["goal_type"]);
-                        int goalData = Convert.ToInt32(dRow["goal_data"]);
-                        string name = Convert.ToString(dRow["action"]);
-                        int reward = Convert.ToInt32(dRow["pixel_reward"]);
-                        string dataBit = Convert.ToString(dRow["data_bit"]);
-                        int rewardType = Convert.ToInt32(dRow["reward_type"].ToString());
-                        int time = Convert.ToInt32(dRow["timestamp_unlock"]);
-                        int locked = Convert.ToInt32(dRow["timestamp_lock"]);
+                foreach (var dRow in rows)
+                {
+                    int id = Convert.ToInt32(dRow.id);
+                    string category = Convert.ToString(dRow.type);
+                    int num = Convert.ToInt32(dRow.level_num);
+                    int type = Convert.ToInt32(dRow.goal_type);
+                    int goalData = Convert.ToInt32(dRow.goal_data);
+                    string name = Convert.ToString(dRow.action);
+                    int reward = Convert.ToInt32(dRow.pixel_reward);
+                    string dataBit = Convert.ToString(dRow.data_bit);
+                    int rewardType = Convert.ToInt32(dRow.reward_type);
+                    int time = Convert.ToInt32(dRow.timestamp_unlock);
+                    int locked = Convert.ToInt32(dRow.timestamp_lock);
 
-                        _quests.Add(id, new Quest(id, category, num, (QuestType) type, goalData, name, reward, dataBit, rewardType, time, locked));
-                        AddToCounter(category);
-                    }
+                    _quests.Add(id, new Quest(id, category, num, (QuestType) type, goalData, name, reward, dataBit, rewardType, time, locked));
+                    AddToCounter(category);
                 }
             }
 
@@ -138,12 +148,16 @@ namespace Plus.HabboHotel.Quests
                     break;
             }
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            uint progressUserId = (uint)session.GetHabbo().Id;
+            uint progressQuestId = (uint)quest.Id;
+            int progressStatsId = session.GetHabbo().Id;
+            int progressValue = totalProgress;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.RunQuery("UPDATE `user_quests` SET `progress` = '" + totalProgress + "' WHERE `user_id` = '" + session.GetHabbo().Id + "' AND `quest_id` = '" + quest.Id + "' LIMIT 1");
+                db.user_quests.Where(q => q.user_id == progressUserId && q.quest_id == progressQuestId).ExecuteUpdate(s => s.SetProperty(q => q.progress, progressValue));
 
                 if (completeQuest)
-                    dbClient.RunQuery("UPDATE `user_stats` SET `quest_id` = '0' WHERE `id` = '" + session.GetHabbo().Id + "' LIMIT 1");
+                    db.user_stats.Where(s => s.id == progressStatsId).ExecuteUpdate(x => x.SetProperty(s => s.quest_id, 0u));
             }
 
             session.GetHabbo().Quests[session.GetHabbo().GetStats().QuestId] = totalProgress;

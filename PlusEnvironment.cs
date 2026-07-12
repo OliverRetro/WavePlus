@@ -3,9 +3,11 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using log4net;
+using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
 using Plus.Communication.Encryption;
 using Plus.Communication.Encryption.Keys;
@@ -16,7 +18,7 @@ using Plus.Core.FigureData;
 using Plus.Core.Language;
 using Plus.Core.Settings;
 using Plus.Database;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel;
 using Plus.HabboHotel.Cache.Type;
 using Plus.HabboHotel.GameClients;
@@ -48,7 +50,6 @@ namespace Plus
         private static ConfigurationData _configuration;
         private static LanguageManager _languageManager;
         private static SettingsManager _settingsManager;
-        private static DatabaseManager _manager;
         private static RedisManager _redisManager;
         private static RconSocket _rcon;
         private static FigureDataManager _figureManager;
@@ -128,9 +129,27 @@ namespace Plus
                     SslMode = MySqlSslMode.None
                 };
 
-                _manager = new DatabaseManager(connectionString.ToString());
+                WavePlusContextFactory.Init(
+                    GetConfig().Data["db.hostname"],
+                    uint.Parse(GetConfig().Data["db.port"]),
+                    GetConfig().Data["db.name"],
+                    GetConfig().Data["db.username"],
+                    GetConfig().Data["db.password"],
+                    uint.Parse(GetConfig().Data["db.pool.minsize"]),
+                    uint.Parse(GetConfig().Data["db.pool.maxsize"]));
 
-                if (!_manager.IsConnected()) {
+                bool dbConnected;
+                try
+                {
+                    using WavePlusContext db = GetDbContext();
+                    dbConnected = db.Database.CanConnect();
+                }
+                catch
+                {
+                    dbConnected = false;
+                }
+
+                if (!dbConnected) {
                     Log.Error("Failed to Connect to the specified MySQL server.");
                     Console.ReadKey(true);
                     Environment.Exit(1);
@@ -143,12 +162,12 @@ namespace Plus
                 _redisManager.Init();
 
                 //Reset our statistics first.
-                using (IQueryAdapter dbClient = GetDatabaseManager().GetQueryReactor())
+                using (WavePlusContext db = GetDbContext())
                 {
-                    dbClient.RunQuery("TRUNCATE `catalog_marketplace_data`");
-                    dbClient.RunQuery("UPDATE `rooms` SET `users_now` = '0' WHERE `users_now` > '0';");
-                    dbClient.RunQuery("UPDATE `users` SET `online` = '0' WHERE `online` = '1'");
-                    dbClient.RunQuery("UPDATE `server_status` SET `users_online` = '0', `loaded_rooms` = '0'");
+                    db.Database.ExecuteSqlRaw("TRUNCATE `catalog_marketplace_data`");
+                    db.rooms.Where(r => r.users_now > 0).ExecuteUpdate(s => s.SetProperty(r => r.users_now, 0));
+                    db.users.Where(u => u.online == "1").ExecuteUpdate(s => s.SetProperty(u => u.online, "0"));
+                    db.server_statuses.ExecuteUpdate(s => s.SetProperty(x => x.users_online, 0).SetProperty(x => x.loaded_rooms, 0));
                 }
 
                 //Get the configuration & Game set.
@@ -303,12 +322,8 @@ namespace Plus
             if (user != null)
                 return user.Username;
 
-            using (IQueryAdapter dbClient = GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("SELECT `username` FROM `users` WHERE `id` = @id LIMIT 1");
-                dbClient.AddParameter("id", userId);
-                name = dbClient.GetString();
-            }
+            using (WavePlusContext db = GetDbContext())
+                name = db.users.Where(u => u.id == userId).Select(u => u.username).FirstOrDefault();
 
             if (string.IsNullOrEmpty(name))
                 name = "Unknown User";
@@ -359,13 +374,11 @@ namespace Plus
         {
             try
             {
-                using (IQueryAdapter dbClient = GetDatabaseManager().GetQueryReactor())
+                using (WavePlusContext db = GetDbContext())
                 {
-                    dbClient.SetQuery("SELECT `id` FROM `users` WHERE `username` = @user LIMIT 1");
-                    dbClient.AddParameter("user", userName);
-                    int id = dbClient.GetInteger();
+                    int id = db.users.Where(u => u.username == userName).Select(u => u.id).FirstOrDefault();
                     if (id > 0)
-                        return GetHabboById(Convert.ToInt32(id));
+                        return GetHabboById(id);
                 }
 
                 return null;
@@ -384,6 +397,8 @@ namespace Plus
 
             GetGame().GetClientManager().SendPacket(new BroadcastMessageAlertComposer(GetLanguageManager().TryGetValue("server.shutdown.message")));
             GetGame().StopGameLoop();
+            GetGame().GetPersistenceScheduler().Stop();
+            GetGame().GetPersistenceScheduler().FlushAll(); //Final failsafe flush (user + world data)
             Thread.Sleep(2500);
             GetGame().GetPacketManager().UnregisterAll(); //Unregister the packets.
             GetGame().GetPacketManager().WaitForAllToComplete();
@@ -393,12 +408,12 @@ namespace Plus
             _bootstrap.ShutdownWorkers();
             GetGame().GetRoomManager().Dispose(); //Stop the game loop.
 
-            using (IQueryAdapter dbClient = _manager.GetQueryReactor())
+            using (WavePlusContext db = GetDbContext())
             {
-                dbClient.RunQuery("TRUNCATE `catalog_marketplace_data`");
-                dbClient.RunQuery("UPDATE `users` SET `online` = '0', `auth_ticket` = NULL");
-                dbClient.RunQuery("UPDATE `rooms` SET `users_now` = '0' WHERE `users_now` > '0'");
-                dbClient.RunQuery("UPDATE `server_status` SET `users_online` = '0', `loaded_rooms` = '0'");
+                db.Database.ExecuteSqlRaw("TRUNCATE `catalog_marketplace_data`");
+                db.users.ExecuteUpdate(s => s.SetProperty(u => u.online, "0").SetProperty(u => u.auth_ticket, (string)null));
+                db.rooms.Where(r => r.users_now > 0).ExecuteUpdate(s => s.SetProperty(r => r.users_now, 0));
+                db.server_statuses.ExecuteUpdate(s => s.SetProperty(x => x.users_online, 0).SetProperty(x => x.loaded_rooms, 0));
             }
 
             Log.Info("Plus Emulator has successfully shutdown.");
@@ -437,9 +452,13 @@ namespace Plus
             return _figureManager;
         }
 
-        public static DatabaseManager GetDatabaseManager()
+        /// <summary>
+        /// Returns a fresh EF context for the new persistence layer. Wrap in a using
+        /// block; contexts are short-lived and single-threaded.
+        /// </summary>
+        public static WavePlusContext GetDbContext()
         {
-            return _manager;
+            return WavePlusContextFactory.Create();
         }
 
         public static LanguageManager GetLanguageManager()

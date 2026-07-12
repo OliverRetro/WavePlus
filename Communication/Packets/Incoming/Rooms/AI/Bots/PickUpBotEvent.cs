@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Drawing;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Outgoing.Inventory.Bots;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users.Inventory.Bots;
@@ -31,11 +33,10 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Bots
                 return;
             }
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            uint bId = (uint)botId;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("UPDATE `bots` SET `room_id` = '0' WHERE `id` = @id LIMIT 1");
-                dbClient.AddParameter("id", botId);
-                dbClient.RunQuery();
+                db.bots.Where(b => b.id == bId).ExecuteUpdate(s => s.SetProperty(b => b.room_id, 0u));
             }
 
 

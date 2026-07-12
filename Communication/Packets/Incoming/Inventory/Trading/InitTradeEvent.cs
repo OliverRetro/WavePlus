@@ -1,5 +1,7 @@
-﻿using Plus.Communication.Packets.Outgoing.Inventory.Trading;
-using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Communication.Packets.Outgoing.Inventory.Trading;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Rooms.Trading;
@@ -34,9 +36,11 @@ namespace Plus.Communication.Packets.Incoming.Inventory.Trading
                 session.GetHabbo().TradingLockExpiry = 0;
                 session.SendNotification("Your trading ban has now expired.");
 
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                // NOTE: legacy SQL used WHERE `id`, but user_info has no `id` column; the key is `user_id`.
+                int tradeUserId = session.GetHabbo().Id;
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    dbClient.RunQuery("UPDATE `user_info` SET `trading_locked` = '0' WHERE `id` = '" + session.GetHabbo().Id + "' LIMIT 1");
+                    db.user_infos.Where(u => u.user_id == tradeUserId).ExecuteUpdate(s => s.SetProperty(u => u.trading_locked, 0d));
                 }
             }
 

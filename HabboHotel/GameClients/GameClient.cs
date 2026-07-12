@@ -10,7 +10,7 @@ using Plus.Communication.Packets.Outgoing.Notifications;
 using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.Communication.Packets.Outgoing.Sound;
 using Plus.Core;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.Permissions;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Subscriptions;
@@ -20,6 +20,8 @@ using Plus.HabboHotel.Users.UserData;
 using Plus.Network.Codec;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using static System.Collections.Specialized.BitVector32;
 
 namespace Plus.HabboHotel.GameClients
@@ -101,12 +103,11 @@ namespace Plus.HabboHotel.GameClients
 
                     if (!string.IsNullOrEmpty(MachineId)) {
                         if (_habbo.MachineId != MachineId) {
-                            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                            int habboId = _habbo.Id;
+                            string machineId = MachineId;
+                            using (WavePlusContext db = PlusEnvironment.GetDbContext())
                             {
-                                dbClient.SetQuery("UPDATE `users` SET `machine_id` = @MachineId WHERE `id` = @id LIMIT 1");
-                                dbClient.AddParameter("MachineId", MachineId);
-                                dbClient.AddParameter("id", _habbo.Id);
-                                dbClient.RunQuery();
+                                db.users.Where(u => u.id == habboId).ExecuteUpdate(s => s.SetProperty(u => u.machine_id, machineId));
                             }
                         }
 
@@ -203,9 +204,10 @@ namespace Plus.HabboHotel.GameClients
                 if (GetHabbo() != null) {
                     try
                     {
-                        using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                        using (WavePlusContext db = PlusEnvironment.GetDbContext())
                         {
-                            dbClient.RunQuery(GetHabbo().GetQueryString);
+                            // NOTE: GetQueryString is a prebuilt multi-statement UPDATE (users + user_stats); run it raw.
+                            db.Database.ExecuteSqlRaw(GetHabbo().GetQueryString);
                         }
                     }
                     catch (Exception e)

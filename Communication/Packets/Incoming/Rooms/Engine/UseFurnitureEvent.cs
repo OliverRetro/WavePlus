@@ -1,6 +1,7 @@
 ﻿using Plus.Communication.Packets.Outgoing.Rooms.Engine;
 using Plus.Communication.Packets.Outgoing.Rooms.Furni;
-using Plus.Database.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
 using Plus.HabboHotel.Items.Wired;
@@ -39,9 +40,11 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
 
                 item.UpdateState();
 
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                // NOTE: preserves legacy behavior - no WHERE clause, updates a single (first) row via LIMIT 1.
+                string tonerEnabled = room.TonerData.Enabled.ToString();
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    dbClient.RunQuery("UPDATE `room_items_toner` SET `enabled` = '" + room.TonerData.Enabled + "' LIMIT 1");
+                    db.Database.ExecuteSqlInterpolated($"UPDATE `room_items_toner` SET `enabled` = {tonerEnabled} LIMIT 1");
                 }
 
                 return;

@@ -1,4 +1,6 @@
-﻿using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
 using Plus.HabboHotel.Quests;
@@ -39,15 +41,16 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
                 if (item.GetBaseItem().InteractionType == InteractionType.Tent || item.GetBaseItem().InteractionType == InteractionType.TentSmall)
                     room.RemoveTent(item.Id);
 
+                uint itemDbId = (uint)item.Id;
                 if (item.GetBaseItem().InteractionType == InteractionType.Moodlight) {
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
                     {
-                        dbClient.RunQuery("DELETE FROM `room_items_moodlight` WHERE `item_id` = '" + item.Id + "' LIMIT 1");
+                        db.room_items_moodlights.Where(m => m.item_id == itemDbId).ExecuteDelete();
                     }
                 } else if (item.GetBaseItem().InteractionType == InteractionType.Toner) {
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
                     {
-                        dbClient.RunQuery("DELETE FROM `room_items_toner` WHERE `id` = '" + item.Id + "' LIMIT 1");
+                        db.room_items_toners.Where(t => t.id == itemDbId).ExecuteDelete();
                     }
                 }
 
@@ -74,9 +77,10 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
                     else //No, query time.
                     {
                         room.GetRoomItemHandler().RemoveFurniture(null, item.Id);
-                        using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                        uint ejectItemId = (uint)item.Id;
+                        using (WavePlusContext db = PlusEnvironment.GetDbContext())
                         {
-                            dbClient.RunQuery("UPDATE `items` SET `room_id` = '0' WHERE `id` = '" + item.Id + "' LIMIT 1");
+                            db.items.Where(i => i.id == ejectItemId).ExecuteUpdate(s => s.SetProperty(i => i.room_id, (uint)0));
                         }
                     }
                 }

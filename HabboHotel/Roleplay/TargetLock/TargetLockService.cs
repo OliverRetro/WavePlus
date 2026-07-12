@@ -89,6 +89,21 @@ namespace Plus.HabboHotel.Roleplay.TargetLock
             LockTarget(requester, target);
         }
 
+        public static void StickyClick(Habbo requester, Habbo target)
+        {
+            if (requester == null || target == null)
+                return;
+
+            // Preserve an existing lock — never swap the target on a subsequent click.
+            if (IsLocked(requester.Id))
+                return;
+
+            if (!IsValidTarget(requester, target))
+                return;
+
+            LockTarget(requester, target);
+        }
+
         public static bool LockTarget(Habbo requester, Habbo target)
         {
             if (!IsValidTarget(requester, target)) {

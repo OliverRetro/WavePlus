@@ -1,6 +1,8 @@
 ﻿using Plus.Communication.Packets.Outgoing.Catalog;
 using Plus.Communication.Packets.Outgoing.Rooms.Engine;
-using Plus.Database.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
+using Plus.Database.EF.Entities;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users.Messenger;
@@ -36,16 +38,17 @@ namespace Plus.Communication.Packets.Incoming.Catalog
                 data.Promotion.TimestampExpires += 7200;
             }
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("REPLACE INTO `room_promotions` (`room_id`,`title`,`description`,`timestamp_start`,`timestamp_expire`,`category_id`) VALUES (@room_id, @title, @description, @start, @expires, @CategoryId)");
-                dbClient.AddParameter("room_id", roomId);
-                dbClient.AddParameter("title", name);
-                dbClient.AddParameter("description", desc);
-                dbClient.AddParameter("start", data.Promotion.TimestampStarted);
-                dbClient.AddParameter("expires", data.Promotion.TimestampExpires);
-                dbClient.AddParameter("CategoryId", categoryId);
-                dbClient.RunQuery();
+                db.room_promotions.Upsert(new room_promotion
+                {
+                    room_id = roomId,
+                    title = name,
+                    description = desc,
+                    timestamp_start = data.Promotion.TimestampStarted,
+                    timestamp_expire = data.Promotion.TimestampExpires,
+                    category_id = categoryId
+                }).Run();
             }
 
             if (!session.GetHabbo().GetBadgeComponent().HasBadge("RADZZ"))

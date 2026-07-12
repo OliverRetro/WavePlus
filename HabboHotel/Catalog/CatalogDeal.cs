@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using Plus.Database.Interfaces;
+using System.Linq;
+using Plus.Database.EF;
 using Plus.HabboHotel.Items;
 
 namespace Plus.HabboHotel.Catalog
@@ -21,24 +21,22 @@ namespace Plus.HabboHotel.Catalog
             ItemDataList = new List<CatalogItem>();
 
             if (roomId != 0) {
-                DataTable data = null;
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+                uint rid = (uint)roomId;
+                // NOTE: original query LEFT JOINed items_groups but only used items.base_item; group_id was never read.
+                List<uint> baseItems;
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    dbClient.SetQuery("SELECT `items`.base_item, COALESCE(`items_groups`.`group_id`, 0) AS `group_id` FROM `items` LEFT OUTER JOIN `items_groups` ON `items`.`id` = `items_groups`.`id` WHERE `items`.`room_id` = @rid;");
-                    dbClient.AddParameter("rid", roomId);
-                    data = dbClient.GetTable();
+                    baseItems = db.items.Where(i => i.room_id == rid).Select(i => i.base_item).ToList();
                 }
 
                 Dictionary<int, int> roomItems = new();
-                if (data != null) {
-                    foreach (DataRow dRow in data.Rows)
-                    {
-                        int itemId = Convert.ToInt32(dRow["base_item"]);
-                        if (roomItems.ContainsKey(itemId))
-                            roomItems[itemId]++;
-                        else
-                            roomItems.Add(itemId, 1);
-                    }
+                foreach (uint baseItem in baseItems)
+                {
+                    int itemId = (int)baseItem;
+                    if (roomItems.ContainsKey(itemId))
+                        roomItems[itemId]++;
+                    else
+                        roomItems.Add(itemId, 1);
                 }
 
                 foreach (var roomItem in roomItems)

@@ -1,5 +1,7 @@
-﻿using Plus.Communication.Packets.Outgoing.Groups;
-using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Communication.Packets.Outgoing.Groups;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
 
@@ -36,14 +38,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
             }
 
             group.Badge = (string.IsNullOrWhiteSpace(badge) ? "b05114s06114" : badge);
-
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("UPDATE `groups` SET `badge` = @badge WHERE `id` = @groupId LIMIT 1");
-                dbClient.AddParameter("badge", group.Badge);
-                dbClient.AddParameter("groupId", group.Id);
-                dbClient.RunQuery();
-            }
+            group.MarkDirty(); // cached; written to DB on the 15-minute group flush
 
             session.SendPacket(new GroupInfoComposer(group, session));
         }

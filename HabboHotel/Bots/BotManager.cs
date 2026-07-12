@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
 using System.Linq;
 using log4net;
 using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.Communication.Packets.Outgoing.Rooms.Session;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
 using Plus.HabboHotel.Rooms;
@@ -47,73 +46,50 @@ namespace Plus.HabboHotel.Bots
             if (_taxiPoints.Count > 0)
                 _taxiPoints.Clear();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+
+            foreach (var row in db.bots_responses.Select(r => new { r.bot_ai, r.chat_keywords, r.response_text, r.response_mode, r.response_beverage }).ToList())
+                _responses.Add(new BotResponse(row.bot_ai, row.chat_keywords, row.response_text, row.response_mode, row.response_beverage));
+
+            string configuredBots = PlusEnvironment.GetSettingsManager().TryGetValue("rp.taxi.bots");
+            Dictionary<int, int> probabilities = ParseTaxiBotProbabilities(configuredBots);
+
+            foreach (var row in db.bots.Select(b => new { b.id, b.ai_type, b.walk_mode, b.name, b.motto, b.look, b.gender, b.rotation, b.automatic_chat, b.speaking_interval, b.mix_sentences, b.chat_bubble, b.effect_id }).ToList())
             {
-                dbClient.SetQuery("SELECT `bot_ai`,`chat_keywords`,`response_text`,`response_mode`,`response_beverage` FROM `bots_responses`");
-                DataTable data = dbClient.GetTable();
+                int botId = (int)row.id;
+                if (!probabilities.ContainsKey(botId))
+                    continue;
 
-                if (data != null) {
-                    foreach (DataRow row in data.Rows)
-                    {
-                        _responses.Add(new BotResponse(Convert.ToString(row["bot_ai"]), Convert.ToString(row["chat_keywords"]), Convert.ToString(row["response_text"]), row["response_mode"].ToString(), Convert.ToString(row["response_beverage"])));
-                    }
+                uint botIdKey = row.id;
+                List<RandomSpeech> speeches = db.bots_speeches.Where(s => s.bot_id == botIdKey).Select(s => s.text).ToList()
+                    .Select(t => new RandomSpeech(t, botId)).ToList();
+
+                _taxiTemplates[botId] = new TaxiBotTemplate(
+                    botId,
+                    row.ai_type,
+                    row.walk_mode,
+                    row.name,
+                    row.motto,
+                    row.look,
+                    row.gender,
+                    row.rotation,
+                    Convert.ToBoolean(row.automatic_chat),
+                    row.speaking_interval,
+                    PlusEnvironment.EnumToBool(row.mix_sentences),
+                    row.chat_bubble,
+                    row.effect_id,
+                    speeches);
+            }
+
+            foreach (var row in db.room_taxi_points.Select(p => new { p.room_id, p.x, p.y, p.z, p.rotation, p.cost, p.delay }).ToList())
+            {
+                int roomId = row.room_id;
+                if (!_taxiPoints.TryGetValue(roomId, out List<TaxiPointData> roomPoints)) {
+                    roomPoints = new List<TaxiPointData>();
+                    _taxiPoints[roomId] = roomPoints;
                 }
 
-                dbClient.SetQuery("SELECT `id`,`ai_type`,`walk_mode`,`name`,`motto`,`look`,`gender`,`rotation`,`automatic_chat`,`speaking_interval`,`mix_sentences`,`chat_bubble`,`effect_id` FROM `bots`");
-                DataTable bots = dbClient.GetTable();
-                if (bots != null) {
-                    string configuredBots = PlusEnvironment.GetSettingsManager().TryGetValue("rp.taxi.bots");
-                    Dictionary<int, int> probabilities = ParseTaxiBotProbabilities(configuredBots);
-
-                    foreach (DataRow row in bots.Rows)
-                    {
-                        int botId = Convert.ToInt32(row["id"]);
-                        if (!probabilities.ContainsKey(botId))
-                            continue;
-
-                        dbClient.SetQuery("SELECT `text` FROM `bots_speech` WHERE `bot_id` = @botId");
-                        dbClient.AddParameter("botId", botId);
-                        DataTable speechTable = dbClient.GetTable();
-                        List<RandomSpeech> speeches = new();
-                        if (speechTable != null) {
-                            foreach (DataRow speechRow in speechTable.Rows)
-                            {
-                                speeches.Add(new RandomSpeech(Convert.ToString(speechRow["text"]), botId));
-                            }
-                        }
-
-                        _taxiTemplates[botId] = new TaxiBotTemplate(
-                            botId,
-                            Convert.ToString(row["ai_type"]),
-                            Convert.ToString(row["walk_mode"]),
-                            Convert.ToString(row["name"]),
-                            Convert.ToString(row["motto"]),
-                            Convert.ToString(row["look"]),
-                            Convert.ToString(row["gender"]),
-                            Convert.ToInt32(row["rotation"]),
-                            Convert.ToBoolean(row["automatic_chat"]),
-                            Convert.ToInt32(row["speaking_interval"]),
-                            PlusEnvironment.EnumToBool(Convert.ToString(row["mix_sentences"])),
-                            Convert.ToInt32(row["chat_bubble"]),
-                            Convert.ToInt32(row["effect_id"]),
-                            speeches);
-                    }
-                }
-
-                dbClient.SetQuery("SELECT `room_id`,`x`,`y`,`z`,`rotation`,`cost`,`delay` FROM `room_taxi_points`");
-                DataTable taxiPoints = dbClient.GetTable();
-                if (taxiPoints != null) {
-                    foreach (DataRow row in taxiPoints.Rows)
-                    {
-                        int roomId = Convert.ToInt32(row["room_id"]);
-                        if (!_taxiPoints.TryGetValue(roomId, out List<TaxiPointData> roomPoints)) {
-                            roomPoints = new List<TaxiPointData>();
-                            _taxiPoints[roomId] = roomPoints;
-                        }
-
-                        roomPoints.Add(new TaxiPointData(roomId, Convert.ToInt32(row["x"]), Convert.ToInt32(row["y"]), Convert.ToDouble(row["z"]), Convert.ToInt32(row["rotation"]), Convert.ToInt32(row["cost"]), Convert.ToInt32(row["delay"])));
-                    }
-                }
+                roomPoints.Add(new TaxiPointData(roomId, row.x, row.y, row.z, row.rotation, row.cost, row.delay));
             }
         }
 
@@ -159,17 +135,19 @@ namespace Plus.HabboHotel.Bots
 
             roomPoints.Add(point);
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("INSERT INTO `room_taxi_points` (`room_id`,`x`,`y`,`z`,`rotation`,`cost`,`delay`) VALUES (@roomId,@x,@y,@z,@rotation,@cost,@delay)");
-                dbClient.AddParameter("x", point.X);
-                dbClient.AddParameter("y", point.Y);
-                dbClient.AddParameter("z", point.Z);
-                dbClient.AddParameter("rotation", point.Rotation);
-                dbClient.AddParameter("cost", point.Cost);
-                dbClient.AddParameter("delay", point.Delay);
-                dbClient.AddParameter("roomId", point.RoomId);
-                dbClient.RunQuery();
+                db.room_taxi_points.Add(new Database.EF.Entities.room_taxi_point
+                {
+                    room_id = point.RoomId,
+                    x = point.X,
+                    y = point.Y,
+                    z = point.Z,
+                    rotation = point.Rotation,
+                    cost = point.Cost,
+                    delay = point.Delay
+                });
+                db.SaveChanges();
             }
         }
 

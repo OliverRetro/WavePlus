@@ -1,5 +1,7 @@
 ﻿using System;
-using Plus.Database.Interfaces;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 
 namespace Plus.Communication.Rcon.Commands.User
@@ -33,13 +35,9 @@ namespace Plus.Communication.Rcon.Commands.User
                 case "coins":
                 case "credits":
                 {
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                    {
-                        dbClient.SetQuery("UPDATE `users` SET `credits` = @credits WHERE `id` = @id LIMIT 1");
-                        dbClient.AddParameter("credits", client.GetHabbo().Credits);
-                        dbClient.AddParameter("id", userId);
-                        dbClient.RunQuery();
-                    }
+                    int credits = client.GetHabbo().Credits;
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                        db.users.Where(u => u.id == userId).ExecuteUpdate(s => s.SetProperty(u => u.credits, credits));
 
                     break;
                 }
@@ -47,39 +45,27 @@ namespace Plus.Communication.Rcon.Commands.User
                 case "pixels":
                 case "duckets":
                 {
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                    {
-                        dbClient.SetQuery("UPDATE `users` SET `activity_points` = @duckets WHERE `id` = @id LIMIT 1");
-                        dbClient.AddParameter("duckets", client.GetHabbo().Duckets);
-                        dbClient.AddParameter("id", userId);
-                        dbClient.RunQuery();
-                    }
+                    int duckets = client.GetHabbo().Duckets;
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                        db.users.Where(u => u.id == userId).ExecuteUpdate(s => s.SetProperty(u => u.activity_points, duckets));
 
                     break;
                 }
 
                 case "diamonds":
                 {
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                    {
-                        dbClient.SetQuery("UPDATE `users` SET `vip_points` = @diamonds WHERE `id` = @id LIMIT 1");
-                        dbClient.AddParameter("diamonds", client.GetHabbo().Diamonds);
-                        dbClient.AddParameter("id", userId);
-                        dbClient.RunQuery();
-                    }
+                    int diamonds = client.GetHabbo().Diamonds;
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                        db.users.Where(u => u.id == userId).ExecuteUpdate(s => s.SetProperty(u => u.vip_points, diamonds));
 
                     break;
                 }
 
                 case "gotw":
                 {
-                    using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                    {
-                        dbClient.SetQuery("UPDATE `users` SET `gotw_points` = @gotw WHERE `id` = @id LIMIT 1");
-                        dbClient.AddParameter("gotw", client.GetHabbo().GotwPoints);
-                        dbClient.AddParameter("id", userId);
-                        dbClient.RunQuery();
-                    }
+                    int gotw = client.GetHabbo().GotwPoints;
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                        db.users.Where(u => u.id == userId).ExecuteUpdate(s => s.SetProperty(u => u.gotw_points, gotw));
 
                     break;
                 }

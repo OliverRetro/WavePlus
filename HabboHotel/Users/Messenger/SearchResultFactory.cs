@@ -1,7 +1,7 @@
-﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using Plus.Database.Interfaces;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 
 namespace Plus.HabboHotel.Users.Messenger
 {
@@ -9,24 +9,16 @@ namespace Plus.HabboHotel.Users.Messenger
     {
         public static List<SearchResult> GetSearchResult(string query)
         {
-            DataTable dTable;
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("SELECT `id`,`username`,`motto`,`look`,`last_online` FROM users WHERE username LIKE @query LIMIT 50");
-                dbClient.AddParameter("query", query + "%");
-                dTable = dbClient.GetTable();
-            }
+            string pattern = query + "%";
 
-            List<SearchResult> results = new();
-
-            if (dTable != null) {
-                foreach (DataRow dRow in dTable.Rows)
-                {
-                    results.Add(new SearchResult(Convert.ToInt32(dRow[0]), Convert.ToString(dRow[1]), Convert.ToString(dRow[2]), Convert.ToString(dRow[3]), dRow[4].ToString()));
-                }
-            }
-
-            return results;
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            return db.users
+                .Where(u => EF.Functions.Like(u.username, pattern))
+                .Select(u => new { u.id, u.username, u.motto, u.look, u.last_online })
+                .Take(50)
+                .AsEnumerable()
+                .Select(u => new SearchResult(u.id, u.username, u.motto, u.look, u.last_online.HasValue ? u.last_online.Value.ToString() : string.Empty))
+                .ToList();
         }
     }
 }

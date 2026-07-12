@@ -1,5 +1,7 @@
-﻿using Plus.Communication.Packets.Outgoing.Navigator;
-using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Communication.Packets.Outgoing.Navigator;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Rooms;
 
@@ -31,9 +33,11 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Action
                     return;
             }
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            int roomId = room.RoomId;
+            int score = room.Score;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.RunQuery("UPDATE rooms SET score = '" + room.Score + "' WHERE id = '" + room.RoomId + "' LIMIT 1");
+                db.rooms.Where(r => r.id == roomId).ExecuteUpdate(s => s.SetProperty(r => r.score, score));
             }
 
             session.GetHabbo().RatedRooms.Add(room.RoomId);

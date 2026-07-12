@@ -1,5 +1,6 @@
-﻿using System;
-using Plus.Database.Interfaces;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
 
 namespace Plus.HabboHotel.Items
 {
@@ -7,28 +8,25 @@ namespace Plus.HabboHotel.Items
     {
         public static int GetAHopper(int curRoom)
         {
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            // NOTE: no EF entity exists for `items_hopper`; scalar read via raw SQL through the context.
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                int roomId = 0;
-                dbClient.SetQuery("SELECT room_id FROM items_hopper WHERE room_id <> @room ORDER BY room_id ASC LIMIT 1");
-                dbClient.AddParameter("room", curRoom);
-                roomId = dbClient.GetInteger();
-                return roomId;
+                return db.Database
+                    .SqlQuery<int>($"SELECT room_id AS Value FROM items_hopper WHERE room_id <> {curRoom} ORDER BY room_id ASC LIMIT 1")
+                    .AsEnumerable()
+                    .FirstOrDefault();
             }
         }
 
         public static int GetHopperId(int nextRoom)
         {
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            // NOTE: no EF entity exists for `items_hopper`; scalar read via raw SQL through the context.
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT hopper_id FROM items_hopper WHERE room_id = @room LIMIT 1");
-                dbClient.AddParameter("room", nextRoom);
-                string row = dbClient.GetString();
-
-                if (row == null)
-                    return 0;
-
-                return Convert.ToInt32(row);
+                return db.Database
+                    .SqlQuery<int>($"SELECT hopper_id AS Value FROM items_hopper WHERE room_id = {nextRoom} LIMIT 1")
+                    .AsEnumerable()
+                    .FirstOrDefault();
             }
         }
     }

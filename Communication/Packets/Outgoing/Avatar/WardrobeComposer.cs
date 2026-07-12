@@ -1,6 +1,5 @@
-﻿using System;
-using System.Data;
-using Plus.Database.Interfaces;
+﻿using System.Linq;
+using Plus.Database.EF;
 
 namespace Plus.Communication.Packets.Outgoing.Avatar
 {
@@ -17,21 +16,20 @@ namespace Plus.Communication.Packets.Outgoing.Avatar
         public override void Compose(ServerPacket packet)
         {
             packet.WriteInteger(1);
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            uint uid = (uint)UserId;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT `slot_id`,`look`,`gender` FROM `user_wardrobe` WHERE `user_id` = '" + UserId + "'");
-                DataTable wardrobeData = dbClient.GetTable();
+                var wardrobeData = db.user_wardrobes
+                    .Where(w => w.user_id == uid)
+                    .Select(w => new { w.slot_id, w.look, w.gender })
+                    .ToList();
 
-                if (wardrobeData == null)
-                    packet.WriteInteger(0);
-                else {
-                    packet.WriteInteger(wardrobeData.Rows.Count);
-                    foreach (DataRow row in wardrobeData.Rows)
-                    {
-                        packet.WriteInteger(Convert.ToInt32(row["slot_id"]));
-                        packet.WriteString(Convert.ToString(row["look"]));
-                        packet.WriteString(row["gender"].ToString().ToUpper());
-                    }
+                packet.WriteInteger(wardrobeData.Count);
+                foreach (var row in wardrobeData)
+                {
+                    packet.WriteInteger((int)row.slot_id);
+                    packet.WriteString(row.look);
+                    packet.WriteString(row.gender.ToUpper());
                 }
             }
         }

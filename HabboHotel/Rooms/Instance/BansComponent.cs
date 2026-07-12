@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Data;
-using Plus.Database.Interfaces;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Plus.Database.EF;
+using Plus.Database.EF.Entities;
 using Plus.Utilities;
 
 namespace Plus.HabboHotel.Rooms.Instance
@@ -31,17 +33,12 @@ namespace Plus.HabboHotel.Rooms.Instance
             _instance = instance;
             _bans = new ConcurrentDictionary<int, double>();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            uint roomId = (uint)_instance.Id;
+            long nowSec = (long)PlusEnvironment.GetUnixTimestamp();
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT `user_id`, `expire` FROM `room_bans` WHERE `room_id` = " + _instance.Id + " AND `expire` > UNIX_TIMESTAMP();");
-                DataTable getBans = dbClient.GetTable();
-
-                if (getBans != null) {
-                    foreach (DataRow row in getBans.Rows)
-                    {
-                        _bans.TryAdd(Convert.ToInt32(row["user_id"]), Convert.ToDouble(row["expire"]));
-                    }
-                }
+                foreach (var row in db.room_bans.Where(b => b.room_id == roomId && b.expire > nowSec).Select(b => new { b.user_id, b.expire }).ToList())
+                    _bans.TryAdd((int)row.user_id, row.expire);
             }
         }
 
@@ -54,14 +51,13 @@ namespace Plus.HabboHotel.Rooms.Instance
             if (!_bans.TryAdd(avatar.UserId, banTime))
                 _bans[avatar.UserId] = banTime;
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-            {
-                dbClient.SetQuery("REPLACE INTO `room_bans` (`user_id`,`room_id`,`expire`) VALUES (@uid, @rid, @expire);");
-                dbClient.AddParameter("rid", _instance.Id);
-                dbClient.AddParameter("uid", avatar.UserId);
-                dbClient.AddParameter("expire", banTime);
-                dbClient.RunQuery();
-            }
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                db.room_bans.Upsert(new room_ban
+                {
+                    user_id = (uint)avatar.UserId,
+                    room_id = (uint)_instance.Id,
+                    expire = (int)banTime
+                }).Run();
 
             _instance.GetRoomUserManager().RemoveUserFromRoom(avatar.GetClient(), true, true);
         }
@@ -75,13 +71,10 @@ namespace Plus.HabboHotel.Rooms.Instance
             if (banTime <= 0) {
                 _bans.TryRemove(userId, out double time);
 
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                {
-                    dbClient.SetQuery("DELETE FROM `room_bans` WHERE `room_id` = @rid AND `user_id` = @uid;");
-                    dbClient.AddParameter("rid", _instance.Id);
-                    dbClient.AddParameter("uid", userId);
-                    dbClient.RunQuery();
-                }
+                uint roomId = (uint)_instance.Id;
+                uint uid = (uint)userId;
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                    db.room_bans.Where(b => b.room_id == roomId && b.user_id == uid).ExecuteDelete();
 
                 return false;
             }
@@ -95,13 +88,10 @@ namespace Plus.HabboHotel.Rooms.Instance
                 return false;
 
             if (_bans.TryRemove(userId, out double time)) {
-                using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
-                {
-                    dbClient.SetQuery("DELETE FROM `room_bans` WHERE `room_id` = @rid AND `user_id` = @uid;");
-                    dbClient.AddParameter("rid", _instance.Id);
-                    dbClient.AddParameter("uid", userId);
-                    dbClient.RunQuery();
-                }
+                uint roomId = (uint)_instance.Id;
+                uint uid = (uint)userId;
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                    db.room_bans.Where(b => b.room_id == roomId && b.user_id == uid).ExecuteDelete();
 
                 return true;
             }
@@ -113,17 +103,14 @@ namespace Plus.HabboHotel.Rooms.Instance
         {
             List<int> bans = new();
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            uint roomId = (uint)_instance.Id;
+            long nowSec = (long)PlusEnvironment.GetUnixTimestamp();
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT `user_id` FROM `room_bans` WHERE `room_id` = '" + _instance.Id + "' AND `expire` > UNIX_TIMESTAMP();");
-                DataTable getBans = dbClient.GetTable();
-
-                if (getBans != null) {
-                    foreach (DataRow row in getBans.Rows)
-                    {
-                        if (!bans.Contains(Convert.ToInt32(row["user_id"])))
-                            bans.Add(Convert.ToInt32(row["user_id"]));
-                    }
+                foreach (int uid in db.room_bans.Where(b => b.room_id == roomId && b.expire > nowSec).Select(b => (int)b.user_id).ToList())
+                {
+                    if (!bans.Contains(uid))
+                        bans.Add(uid);
                 }
             }
 

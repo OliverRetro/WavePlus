@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Data;
+using System.Linq;
 using Plus.Communication.Packets.Outgoing.Inventory.Purse;
-using Plus.Database.Interfaces;
+using Plus.Database.EF;
+using Plus.Database.EF.Entities;
 using Plus.HabboHotel.GameClients;
 
 namespace Plus.HabboHotel.Rewards
@@ -21,31 +22,27 @@ namespace Plus.HabboHotel.Rewards
 
         public void Init()
         {
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("SELECT * FROM `server_rewards` WHERE enabled = '1'");
-                DataTable dTable = dbClient.GetTable();
-                if (dTable != null) {
-                    foreach (DataRow dRow in dTable.Rows)
-                    {
-                        _rewards.TryAdd((int) dRow["id"], new Reward(Convert.ToDouble(dRow["reward_start"]), Convert.ToDouble(dRow["reward_end"]), Convert.ToString(dRow["reward_type"]), Convert.ToString(dRow["reward_data"]), Convert.ToString(dRow["message"])));
-                    }
+                var rewards = db.server_rewards.Where(r => r.enabled == "1")
+                    .Select(r => new { r.id, r.reward_start, r.reward_end, r.reward_type, r.reward_data, r.message })
+                    .ToList();
+                foreach (var r in rewards)
+                {
+                    _rewards.TryAdd(r.id, new Reward(Convert.ToDouble(r.reward_start), Convert.ToDouble(r.reward_end), r.reward_type, r.reward_data, r.message));
                 }
 
-                dbClient.SetQuery("SELECT * FROM `server_reward_logs`");
-                dTable = dbClient.GetTable();
-                if (dTable != null) {
-                    foreach (DataRow dRow in dTable.Rows)
-                    {
-                        int id = (int) dRow["user_id"];
-                        int rewardId = (int) dRow["reward_id"];
+                var logs = db.server_reward_logs.Select(l => new { l.user_id, l.reward_id }).ToList();
+                foreach (var l in logs)
+                {
+                    int id = l.user_id;
+                    int rewardId = l.reward_id;
 
-                        if (!_rewardLogs.ContainsKey(id))
-                            _rewardLogs.TryAdd(id, new List<int>());
+                    if (!_rewardLogs.ContainsKey(id))
+                        _rewardLogs.TryAdd(id, new List<int>());
 
-                        if (!_rewardLogs[id].Contains(rewardId))
-                            _rewardLogs[id].Add(rewardId);
-                    }
+                    if (!_rewardLogs[id].Contains(rewardId))
+                        _rewardLogs[id].Add(rewardId);
                 }
             }
         }
@@ -63,12 +60,10 @@ namespace Plus.HabboHotel.Rewards
             if (!_rewardLogs[id].Contains(rewardId))
                 _rewardLogs[id].Add(rewardId);
 
-            using (IQueryAdapter dbClient = PlusEnvironment.GetDatabaseManager().GetQueryReactor())
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                dbClient.SetQuery("INSERT INTO `server_reward_logs` VALUES ('', @userId, @rewardId)");
-                dbClient.AddParameter("userId", id);
-                dbClient.AddParameter("rewardId", rewardId);
-                dbClient.RunQuery();
+                db.server_reward_logs.Add(new server_reward_log { user_id = id, reward_id = rewardId });
+                db.SaveChanges();
             }
         }
 
