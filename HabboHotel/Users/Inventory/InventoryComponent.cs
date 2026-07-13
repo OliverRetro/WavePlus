@@ -38,13 +38,13 @@ namespace Plus.HabboHotel.Users.Inventory
 
         public void Init()
         {
-            if (_floorItems.Count > 0)
+            if (!_floorItems.IsEmpty)
                 _floorItems.Clear();
-            if (_wallItems.Count > 0)
+            if (!_wallItems.IsEmpty)
                 _wallItems.Clear();
-            if (_petsItems.Count > 0)
+            if (!_petsItems.IsEmpty)
                 _petsItems.Clear();
-            if (_botItems.Count > 0)
+            if (!_botItems.IsEmpty)
                 _botItems.Clear();
 
             List<Item> items = ItemLoader.GetItemsForUser(_userId);
@@ -89,7 +89,7 @@ namespace Plus.HabboHotel.Users.Inventory
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.Items.Where(i => i.RoomId == 0 && i.UserId == _userId).ExecuteDelete();
+                db.Database.ExecuteSqlInterpolated($"DELETE FROM `items` WHERE `room_id` = 0 AND `user_id` = {_userId}");
             }
 
             _floorItems.Clear();
@@ -121,10 +121,10 @@ namespace Plus.HabboHotel.Users.Inventory
 
         public Item GetItem(int id)
         {
-            if (_floorItems.ContainsKey(id))
-                return _floorItems[id];
+            if (_floorItems.TryGetValue(id, out Item value))
+                return value;
 
-            return _wallItems.ContainsKey(id) ? _wallItems[id] : null;
+            return _wallItems.TryGetValue(id, out Item value1) ? value1 : null;
         }
 
         public IEnumerable<Item> GetItems => _floorItems.Values.Concat(_wallItems.Values);
@@ -287,7 +287,7 @@ namespace Plus.HabboHotel.Users.Inventory
 
         public bool TryAddItem(Item item)
         {
-            if (item.Data.Type.ToString().ToLower() == "s") // ItemType.FLOOR)
+            if (item.Data.Type.ToString().Equals("s", StringComparison.CurrentCultureIgnoreCase)) // ItemType.FLOOR)
             {
                 return _floorItems.TryAdd(item.Id, item);
             }

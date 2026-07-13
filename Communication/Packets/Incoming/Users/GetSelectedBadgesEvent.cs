@@ -20,7 +20,7 @@ namespace Plus.Communication.Packets.Incoming.Users
             {
                 Habbo target = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(userId)?.GetHabbo();
                 if (target != null)
-                    TargetLockService.StickyClick(session.GetHabbo(), target);
+                    TargetLockService.HandleAvatarClick(session.GetHabbo(), target);
             }
         }
     }

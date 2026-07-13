@@ -94,6 +94,7 @@ namespace Plus.HabboHotel.Users
         public bool AllowBotSpeech { get; set; }
         public bool AllowPublicRoomStatus { get; set; }
         public bool AllowConsoleMessages { get; set; }
+        public bool ClickThrough { get; set; }
         public bool AllowGifts { get; set; }
         public bool AllowMimic { get; set; }
         public bool ReceiveWhispers { get; set; }
@@ -204,6 +205,7 @@ namespace Plus.HabboHotel.Users
         private UserRpWeaponSkins _rpWeaponSkins;
         private UserRpItems _rpItems;
         private UserRpBankAccount _bankAccount;
+        private Plus.HabboHotel.Roleplay.Settings.UserRpSettings _rpSettings;
         private CancellationTokenSource _aggressionTimerTokenSource;
         private DateTime? _aggressionExpiresAtUtc;
 
@@ -422,6 +424,10 @@ namespace Plus.HabboHotel.Users
 
             _bankAccount = PlusEnvironment.GetBankingManager().LoadAccount(id);
 
+            _rpSettings = Plus.HabboHotel.Roleplay.Settings.UserRpSettings.Load(id);
+            // Keep the legacy runtime flag in sync with the persisted setting.
+            ClickThrough = _rpSettings.ClickThrough;
+
             if (!PlusEnvironment.GetGame().GetGroupManager().TryGetGroup(_habboStats.FavouriteGroupId, out Groups.Group _))
                 _habboStats.FavouriteGroupId = 0;
 
@@ -574,6 +580,11 @@ namespace Plus.HabboHotel.Users
         public UserRpBankAccount GetBankAccount()
         {
             return _bankAccount;
+        }
+
+        public Plus.HabboHotel.Roleplay.Settings.UserRpSettings GetRpSettings()
+        {
+            return _rpSettings;
         }
 
         public int GetAggressionSecondsRemaining()

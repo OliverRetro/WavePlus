@@ -76,8 +76,8 @@ namespace Plus.HabboHotel.Rooms
 
             RoomMuted = false;
 
-            MutedUsers = new Dictionary<int, double>();
-            _tents = new Dictionary<int, List<RoomUser>>();
+            MutedUsers = [];
+            _tents = [];
 
             _gamemap = new Gamemap(this, data.Model);
             _roomItemHandling = new RoomItemHandling(this);
@@ -87,7 +87,7 @@ namespace Plus.HabboHotel.Rooms
             _wiredComponent = new WiredComponent(this);
             _bansComponent = new BansComponent(this);
             _tradingComponent = new TradingComponent(this);
-            ActiveTrades = new ArrayList();
+            ActiveTrades = [];
 
             GetRoomItemHandler().LoadFurniture();
             GetGameMap().GenerateMaps();
@@ -107,8 +107,6 @@ namespace Plus.HabboHotel.Rooms
 
         public int RoomId => Id;
 
-        public bool CanTradeInRoom => true;
-
         public Gamemap GetGameMap()
         {
             return _gamemap;
@@ -116,10 +114,7 @@ namespace Plus.HabboHotel.Rooms
 
         public RoomItemHandling GetRoomItemHandler()
         {
-            if (_roomItemHandling == null)
-            {
-                _roomItemHandling = new RoomItemHandling(this);
-            }
+            _roomItemHandling ??= new RoomItemHandling(this);
 
             return _roomItemHandling;
         }
@@ -131,51 +126,44 @@ namespace Plus.HabboHotel.Rooms
 
         public Soccer GetSoccer()
         {
-            if (_soccer == null)
-                _soccer = new Soccer(this);
+            _soccer ??= new Soccer(this);
 
             return _soccer;
         }
 
         public TeamManager GetTeamManagerForBanzai()
         {
-            if (TeamBanzai == null)
-                TeamBanzai = TeamManager.CreateTeam("banzai");
+            TeamBanzai ??= TeamManager.CreateTeam("banzai");
             return TeamBanzai;
         }
 
         public TeamManager GetTeamManagerForFreeze()
         {
-            if (TeamFreeze == null)
-                TeamFreeze = TeamManager.CreateTeam("freeze");
+            TeamFreeze ??= TeamManager.CreateTeam("freeze");
             return TeamFreeze;
         }
 
         public BattleBanzai GetBanzai()
         {
-            if (_banzai == null)
-                _banzai = new BattleBanzai(this);
+            _banzai ??= new BattleBanzai(this);
             return _banzai;
         }
 
         public Freeze GetFreeze()
         {
-            if (_freeze == null)
-                _freeze = new Freeze(this);
+            _freeze ??= new Freeze(this);
             return _freeze;
         }
 
         public GameManager GetGameManager()
         {
-            if (_gameManager == null)
-                _gameManager = new GameManager(this);
+            _gameManager ??= new GameManager(this);
             return _gameManager;
         }
 
         public GameItemHandler GetGameItemHandler()
         {
-            if (_gameItemHandler == null)
-                _gameItemHandler = new GameItemHandler(this);
+            _gameItemHandler ??= new GameItemHandler(this);
             return _gameItemHandler;
         }
 
@@ -212,9 +200,9 @@ namespace Plus.HabboHotel.Rooms
 
             foreach (var bot in bots)
             {
-                List<RandomSpeech> speeches = db.BotsSpeeches.Where(s => s.BotId == bot.Id)
+                List<RandomSpeech> speeches = [.. db.BotsSpeeches.Where(s => s.BotId == bot.Id)
                     .Select(s => s.Text).ToList()
-                    .Select(t => new RandomSpeech(t, (int)bot.Id)).ToList();
+                    .Select(t => new RandomSpeech(t, (int)bot.Id))];
 
                 _roomUserManager.DeployBot(new RoomBot((int)bot.Id, (int)bot.RoomId, bot.AiType, bot.WalkMode, bot.Name, bot.Motto, bot.Look, bot.X, bot.Y, bot.Z, bot.Rotation, 0, 0, 0, 0, ref speeches, bot.Gender, 0, (int)bot.UserId, Convert.ToBoolean(bot.AutomaticChat), bot.SpeakingInterval, PlusEnvironment.EnumToBool(bot.MixSentences), bot.ChatBubble, bot.EffectId), null);
             }
@@ -267,19 +255,19 @@ namespace Plus.HabboHotel.Rooms
 
         public void LoadRights()
         {
-            UsersWithRights = new List<int>();
+            UsersWithRights = [];
             if (Group != null)
                 return;
 
             uint roomKey = (uint)Id;
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            UsersWithRights = db.RoomRights.Where(r => r.RoomId == roomKey).Select(r => (int)r.UserId).ToList();
+            UsersWithRights = [.. db.RoomRights.Where(r => r.RoomId == roomKey).Select(r => (int)r.UserId)];
         }
 
         private void LoadFilter()
         {
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            WordFilterList = db.RoomFilters.Where(f => f.RoomId == Id).Select(f => f.Word).ToList();
+            WordFilterList = [.. db.RoomFilters.Where(f => f.RoomId == Id).Select(f => f.Word)];
         }
 
         public bool CheckRights(GameClient session)
@@ -340,7 +328,7 @@ namespace Plus.HabboHotel.Rooms
             {
                 if (item.GetBaseItem().ItemName.StartsWith("fball_goal_"))
                 {
-                    key = item.GetBaseItem().ItemName.Split(new[] { '_' })[2];
+                    key = item.GetBaseItem().ItemName.Split(['_'])[2];
                     user.UnIdle();
                     user.DanceId = 0;
 
@@ -353,10 +341,7 @@ namespace Plus.HabboHotel.Rooms
 
             if (key != null)
             {
-                if (predicate == null)
-                {
-                    predicate = p => p.GetBaseItem().ItemName == "fball_score_" + key;
-                }
+                predicate ??= p => p.GetBaseItem().ItemName == "fball_score_" + key;
 
                 foreach (Item item2 in GetRoomItemHandler().GetFloor.Where(predicate).ToList())
                 {
@@ -545,27 +530,24 @@ namespace Plus.HabboHotel.Rooms
                     session.SendPacket(new AvatarEffectComposer(user.VirtualId, user.CurrentEffect));
             }
 
-            session.SendPacket(new UserUpdateComposer(_roomUserManager.GetUserList().ToList()));
-            session.SendPacket(new ObjectsComposer(GetRoomItemHandler().GetFloor.ToArray(), this));
-            session.SendPacket(new ItemsComposer(GetRoomItemHandler().GetWall.ToArray(), this));
+            session.SendPacket(new UserUpdateComposer([.. _roomUserManager.GetUserList()]));
+            session.SendPacket(new ObjectsComposer([.. GetRoomItemHandler().GetFloor], this));
+            session.SendPacket(new ItemsComposer([.. GetRoomItemHandler().GetWall], this));
         }
 
         #region Tents
 
         public void AddTent(int tentId)
         {
-            if (_tents.ContainsKey(tentId))
-                _tents.Remove(tentId);
+            _tents.Remove(tentId);
 
-            _tents.Add(tentId, new List<RoomUser>());
+            _tents.Add(tentId, []);
         }
 
         public void RemoveTent(int tentId)
         {
-            if (!_tents.ContainsKey(tentId))
+            if (!_tents.TryGetValue(tentId, out List<RoomUser> users))
                 return;
-
-            List<RoomUser> users = _tents[tentId];
             foreach (RoomUser user in users.ToList())
             {
                 if (user == null || user.GetClient() == null || user.GetClient().GetHabbo() == null)
@@ -574,8 +556,7 @@ namespace Plus.HabboHotel.Rooms
                 user.GetClient().GetHabbo().TentId = 0;
             }
 
-            if (_tents.ContainsKey(tentId))
-                _tents.Remove(tentId);
+            _tents.Remove(tentId);
         }
 
         public void AddUserToTent(int tentId, RoomUser user)
@@ -583,7 +564,7 @@ namespace Plus.HabboHotel.Rooms
             if (user != null && user.GetClient() != null && user.GetClient().GetHabbo() != null)
             {
                 if (!_tents.ContainsKey(tentId))
-                    _tents.Add(tentId, new List<RoomUser>());
+                    _tents.Add(tentId, []);
 
                 if (!_tents[tentId].Contains(user))
                     _tents[tentId].Add(user);
@@ -596,10 +577,9 @@ namespace Plus.HabboHotel.Rooms
             if (user != null && user.GetClient() != null && user.GetClient().GetHabbo() != null)
             {
                 if (!_tents.ContainsKey(tentId))
-                    _tents.Add(tentId, new List<RoomUser>());
+                    _tents.Add(tentId, []);
 
-                if (_tents[tentId].Contains(user))
-                    _tents[tentId].Remove(user);
+                _tents[tentId].Remove(user);
 
                 user.GetClient().GetHabbo().TentId = 0;
             }
@@ -607,10 +587,10 @@ namespace Plus.HabboHotel.Rooms
 
         public void SendToTent(int id, int tentId, MessageComposer packet)
         {
-            if (!_tents.ContainsKey(tentId))
+            if (!_tents.TryGetValue(tentId, out List<RoomUser> value))
                 return;
 
-            foreach (RoomUser user in _tents[tentId].ToList())
+            foreach (RoomUser user in value.ToList())
             {
                 if (user == null || user.GetClient() == null || user.GetClient().GetHabbo() == null || user.GetClient().GetHabbo().GetIgnores().IgnoredUserIds().Contains(id) || user.GetClient().GetHabbo().TentId != tentId)
                     continue;
@@ -630,7 +610,7 @@ namespace Plus.HabboHotel.Rooms
 
             try
             {
-                List<RoomUser> users = _roomUserManager.GetUserList().ToList();
+                List<RoomUser> users = [.. _roomUserManager.GetUserList()];
 
                 if (_roomUserManager == null)
                     return;
@@ -662,7 +642,7 @@ namespace Plus.HabboHotel.Rooms
 
             try
             {
-                List<RoomUser> users = _roomUserManager.GetUserList().ToList();
+                List<RoomUser> users = [.. _roomUserManager.GetUserList()];
 
                 if (_roomUserManager == null)
                     return;
@@ -750,68 +730,29 @@ namespace Plus.HabboHotel.Rooms
 
                 if (UsersWithRights.Count > 0)
                     UsersWithRights.Clear();
-
-                if (_gameManager != null)
-                {
-                    _gameManager.Dispose();
-                    _gameManager = null;
-                }
-
-                if (_freeze != null)
-                {
-                    _freeze.Dispose();
-                    _freeze = null;
-                }
-
-                if (_soccer != null)
-                {
-                    _soccer.Dispose();
-                    _soccer = null;
-                }
-
-                if (_banzai != null)
-                {
-                    _banzai.Dispose();
-                    _banzai = null;
-                }
-
-                if (_gamemap != null)
-                {
-                    _gamemap.Dispose();
-                    _gamemap = null;
-                }
-
-                if (_gameItemHandler != null)
-                {
-                    _gameItemHandler.Dispose();
-                    _gameItemHandler = null;
-                }
+                _gameManager?.Dispose();
+                _gameManager = null;
+                _freeze?.Dispose();
+                _freeze = null;
+                _soccer?.Dispose();
+                _soccer = null;
+                _banzai?.Dispose();
+                _banzai = null;
+                _gamemap?.Dispose();
+                _gamemap = null;
+                _gameItemHandler?.Dispose();
+                _gameItemHandler = null;
 
                 // Room Data?
 
-                if (TeamBanzai != null)
-                {
-                    TeamBanzai.Dispose();
-                    TeamBanzai = null;
-                }
-
-                if (TeamFreeze != null)
-                {
-                    TeamFreeze.Dispose();
-                    TeamFreeze = null;
-                }
-
-                if (_roomUserManager != null)
-                {
-                    _roomUserManager.Dispose();
-                    _roomUserManager = null;
-                }
-
-                if (_roomItemHandling != null)
-                {
-                    _roomItemHandling.Dispose();
-                    _roomItemHandling = null;
-                }
+                TeamBanzai?.Dispose();
+                TeamBanzai = null;
+                TeamFreeze?.Dispose();
+                TeamFreeze = null;
+                _roomUserManager?.Dispose();
+                _roomUserManager = null;
+                _roomItemHandling?.Dispose();
+                _roomItemHandling = null;
 
                 if (WordFilterList.Count > 0)
                     WordFilterList.Clear();

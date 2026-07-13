@@ -2,14 +2,9 @@
 
 namespace Plus.Communication.Packets.Outgoing
 {
-    public abstract class MessageComposer
+    public abstract class MessageComposer(short id)
     {
-        protected short Id { get; }
-
-        protected MessageComposer(short id)
-        {
-            Id = id;
-        }
+        protected short Id { get; } = id;
 
         public ServerPacket WriteMessage(IByteBuffer buf)
         {
@@ -28,7 +23,7 @@ namespace Plus.Communication.Packets.Outgoing
 
         public abstract void Compose(ServerPacket packet);
 
-        public void Dispose()
+        public static void Dispose()
         {
         }
     }

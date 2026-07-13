@@ -91,5 +91,25 @@ namespace Plus.Communication.Packets.Outgoing.Overlay
         {
             Send(session, "macro_list", new { sets = macros.Select(m => new { id = m.Id, name = m.Name }).ToArray() });
         }
+
+        public static void SendSettings(GameClient session)
+        {
+            Habbo habbo = session?.GetHabbo();
+            Plus.HabboHotel.Roleplay.Settings.UserRpSettings settings = habbo?.GetRpSettings();
+            if (settings == null) return;
+
+            Send(session, "settings_data", new
+            {
+                clickThrough = settings.ClickThrough,
+                autoSalary = settings.AutoSalaryDeposit,
+                furnitureTrading = settings.FurnitureTrading,
+                autoEvent = settings.AutoEventTransfer,
+                voiceChat = settings.VoiceChat,
+                livefeed = settings.Livefeed,
+                alerts = settings.Alerts,
+                // The client greys out / blocks "auto salary" unless the user owns a bank account.
+                hasBankAccount = habbo.GetBankAccount() != null
+            });
+        }
     }
 }

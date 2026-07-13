@@ -90,19 +90,44 @@ namespace Plus.HabboHotel.Roleplay.TargetLock
             LockTarget(requester, target);
         }
 
-        public static void StickyClick(Habbo requester, Habbo target)
+        /// <summary>
+        /// Handles a plain avatar click. A click never locks.
+        /// While unlocked, freely swaps the clicked target and refreshes the RP target
+        /// display (name/outfit/stats). While locked, does nothing at all — the locked
+        /// target stays cached for commands and visibility.
+        /// </summary>
+        public static void HandleAvatarClick(Habbo requester, Habbo target)
         {
             if (requester == null || target == null)
                 return;
 
-            // Preserve an existing lock — never swap the target on a subsequent click.
+            // Locked: ignore the click. The client optimistically shows the just-clicked
+            // avatar in the RP layout, so re-assert the locked target to snap it back
+            // (otherwise the clicked user lingers with empty "-" stats).
             if (IsLocked(requester.Id))
+            {
+                Habbo locked = GetTarget(requester);
+                GameClient lockedClient = requester.GetClient();
+                if (locked != null && lockedClient != null)
+                {
+                    lockedClient.SendPacket(new TargetLockComposer(locked.Username, true));
+                    requester.TrySendUserStatsUpdate(true);
+                }
                 return;
+            }
 
             if (!IsValidTarget(requester, target))
                 return;
 
-            LockTarget(requester, target);
+            // Unlocked swap — store as a clicked (not locked) target.
+            SetState(requester.Id, target.Id, target.Username, false);
+
+            GameClient client = requester.GetClient();
+            if (client == null)
+                return;
+
+            client.SendPacket(new TargetLockComposer(target.Username, false));
+            requester.TrySendUserStatsUpdate(true);
         }
 
         public static bool LockTarget(Habbo requester, Habbo target)

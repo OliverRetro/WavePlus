@@ -67,6 +67,10 @@ namespace Plus.HabboHotel.Roleplay.Utilities
                 if (client == null)
                     continue;
 
+                // Respect the per-user "disable livefeed" setting.
+                if (client.GetHabbo()?.GetRpSettings()?.Livefeed == false)
+                    continue;
+
                 client.SendPacket(bubbleAlertComposer);
             }
 

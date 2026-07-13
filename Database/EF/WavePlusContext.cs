@@ -213,6 +213,8 @@ public partial class WavePlusContext(DbContextOptions<WavePlusContext> options) 
 
     public virtual DbSet<UserRpBankLog> UserRpBankLogs { get; set; }
 
+    public virtual DbSet<UserRpSetting> UserRpSettings { get; set; }
+
     public virtual DbSet<UserRpItem> UserRpItems { get; set; }
 
     public virtual DbSet<UserRpSkill> UserRpSkills { get; set; }
@@ -1167,6 +1169,16 @@ public partial class WavePlusContext(DbContextOptions<WavePlusContext> options) 
             entity.Property(e => e.AccountOpened)
                 .ValueGeneratedOnAddOrUpdate()
                 .HasDefaultValueSql("'''0000-00-00 00:00:00.000000'''");
+        });
+
+        modelBuilder.Entity<UserRpSetting>(entity =>
+        {
+            entity.HasKey(e => e.UserId).HasName("PRIMARY");
+
+            entity.Property(e => e.FurnitureTradingEnabled).HasDefaultValueSql("'1'");
+            entity.Property(e => e.VoiceChatEnabled).HasDefaultValueSql("'1'");
+            entity.Property(e => e.LivefeedEnabled).HasDefaultValueSql("'1'");
+            entity.Property(e => e.AlertsEnabled).HasDefaultValueSql("'1'");
         });
 
         modelBuilder.Entity<UserRpBankLog>(entity =>

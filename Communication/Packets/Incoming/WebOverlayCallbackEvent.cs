@@ -85,9 +85,18 @@ namespace Plus.Communication.Packets.Incoming
                     WebOverlay.SendHealth(session);
                     WebOverlay.SendShield(session);
                     WebOverlay.SendOnline(session, true);
+                    WebOverlay.SendSettings(session);
                     PlusEnvironment.GetGame().GetMacroManager().EnsureDefaultSets(session.GetHabbo().Id);
                     SendMacroList(session);
                     SendMacroSet(session);
+                    break;
+
+                case "request_settings":
+                    WebOverlay.SendSettings(session);
+                    break;
+
+                case "set_setting":
+                    SetSetting(data, session);
                     break;
 
                 case "request_credits":
@@ -202,6 +211,66 @@ namespace Plus.Communication.Packets.Incoming
                     // Unknown header – ignore silently
                     break;
             }
+        }
+
+        // A toggle changed in the gaz-js Settings overlay: {key, value}. We apply it, persist,
+        // run any behaviour hook, then echo the full settings back so the client reflects any
+        // server-side veto (e.g. auto-salary requires a bank account).
+        private static void SetSetting(JsonElement data, GameClient session)
+        {
+            Habbo habbo = session?.GetHabbo();
+            Plus.HabboHotel.Roleplay.Settings.UserRpSettings settings = habbo?.GetRpSettings();
+            if (settings == null)
+                return;
+
+            string key = GetString(data, "key");
+            if (string.IsNullOrWhiteSpace(key))
+                return;
+
+            bool value = GetBool(data, "value");
+
+            switch (key)
+            {
+                case "clickThrough":
+                    settings.ClickThrough = value;
+                    habbo.ClickThrough = value;
+                    // Mirror the state to the client without a whisper (silent from settings).
+                    session.SendPacket(new GuideSessionPartnerIsPlayingComposer(value));
+                    break;
+
+                case "autoSalary":
+                    // Can only be enabled while the user owns a bank account.
+                    settings.AutoSalaryDeposit = value && habbo.GetBankAccount() != null;
+                    break;
+
+                case "furnitureTrading":
+                    settings.FurnitureTrading = value;
+                    break;
+
+                case "autoEvent":
+                    settings.AutoEventTransfer = value;
+                    break;
+
+                case "voiceChat":
+                    settings.VoiceChat = value;
+                    break;
+
+                case "livefeed":
+                    settings.Livefeed = value;
+                    break;
+
+                case "alerts":
+                    settings.Alerts = value;
+                    break;
+
+                default:
+                    return;
+            }
+
+            settings.Save();
+
+            // Echo the authoritative state back (covers vetoed toggles like auto-salary).
+            WebOverlay.SendSettings(session);
         }
 
         private static void SendMacroList(GameClient session)

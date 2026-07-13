@@ -979,8 +979,9 @@ namespace Plus.HabboHotel.Rooms
                 return false;
 
             //Check this last, because ya.
+            //When room blocking is enabled (RoomBlockingEnabled != 0) users may share the exact same tile.
             RoomUser userX = _room.GetRoomUserManager().GetUserForSquare(to.X, to.Y);
-            if (userX != null)
+            if (userX != null && _room.RoomBlockingEnabled == 0)
             {
                 if (!userX.IsWalking && endOfPath)
                     return false;

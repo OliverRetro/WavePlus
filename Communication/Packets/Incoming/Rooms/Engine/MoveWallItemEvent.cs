@@ -25,7 +25,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
 
             try
             {
-                string wallPos = room.GetRoomItemHandler().WallPositionCheck(":" + wallPositionData.Split(':')[1]);
+                string wallPos = RoomItemHandling.WallPositionCheck(":" + wallPositionData.Split(':')[1]);
                 item.WallCoord = wallPos;
             }
             catch

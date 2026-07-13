@@ -1,4 +1,3 @@
-using Plus.Communication.Packets.Outgoing.Roleplay;
 using Plus.Communication.Packets.Outgoing.Users;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Roleplay.TargetLock;
@@ -21,15 +20,8 @@ namespace Plus.Communication.Packets.Incoming.Roleplay
 
             session.SendPacket(new HabboUserBadgesComposer(target));
 
-            Habbo requester = session.GetHabbo();
-            if (!TargetLockService.IsTargetLocked(requester, target))
-            {
-                TargetLockService.SetClickedUser(requester, target.Username);
-                session.SendPacket(new TargetLockComposer(target.Username, false));
-            }
-
-            // Refresh the requester's own RP stats (life/energy/shield).
-            requester.TrySendUserStatsUpdate(true);
+            // A click never locks. Unlocked -> swap freely; locked -> keep the locked target.
+            TargetLockService.HandleAvatarClick(session.GetHabbo(), target);
         }
     }
 }

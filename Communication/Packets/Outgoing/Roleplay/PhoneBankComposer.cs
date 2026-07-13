@@ -5,9 +5,6 @@ using Plus.HabboHotel.Roleplay.Banking;
 
 namespace Plus.Communication.Packets.Outgoing.Roleplay
 {
-    /// <summary>
-    /// Phone bank snapshot incl. recent transactions. Mirrors the plugin's 6007 packet.
-    /// </summary>
     public class PhoneBankComposer : MessageComposer
     {
         private readonly bool _hasAccount;
@@ -30,7 +27,7 @@ namespace Plus.Communication.Packets.Outgoing.Roleplay
             _feePercentage = feePercentage;
             _canDeposit = canDeposit;
             _canWithdraw = canWithdraw;
-            _transactions = transactions ?? new List<UserRpBankLog>();
+            _transactions = transactions ?? [];
             _updatedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         }
 

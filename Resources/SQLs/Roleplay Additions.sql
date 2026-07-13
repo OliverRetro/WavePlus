@@ -581,18 +581,24 @@ ADD UNIQUE KEY `uniq_rp_crime_penalties_star` (`star_level`);
 ALTER TABLE `rp_trash_rewards`
 ADD KEY `idx_rp_trash_rewards_enabled_weight` (`enabled`, `chance_weight`);
 
--- ── Police escort / jail persistence ─────────────────────────────────────
--- Jail sentences persist on `user_rp_statistics` (columns added near the hospital
--- block above) so they survive relog/restart:
---   jail_release_time: unix time the sentence ends (>0 = actively serving).
---   jail_pending:      the user disconnected mid-escort; jail them on next login.
---   jail_stars:        star count captured at :arrest (used to look up the penalty).
---   jail_revert_look:  the look to restore on release (their pre-cuff outfit).
---   jail_room_id:      the room they're confined to while serving.
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.cuff.figure.male', 'ch-3688-1323', 'Figure part applied to a cuffed male suspect (their old look is restored on release).');
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.cuff.figure.female', 'ch-3689-1323', 'Figure part applied to a cuffed female suspect (their old look is restored on release).');
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.jail.rooms', '', 'Semicolon-separated room ids that act as jails. Escorting a suspect into one auto-jails them.');
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.police.escort.jail.bonus', '20', 'Credits paid to the escorting officer when their suspect is jailed.');
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.jail.spawn', '{"roomid":4,"x":8,"y":9,"z":0,"rotation":6}', 'Jail spawn point: room + tile a jailed suspect is teleported to.');
+
+
+DROP TABLE IF EXISTS `user_rp_settings`;
+CREATE TABLE `user_rp_settings`  (
+  `user_id` int NOT NULL,
+  `clickthrough_enabled` tinyint NOT NULL DEFAULT 0,
+  `auto_salary_deposit` tinyint NOT NULL DEFAULT 0,
+  `furniture_trading_enabled` tinyint NOT NULL DEFAULT 1,
+  `auto_event_transfer` tinyint NOT NULL DEFAULT 0,
+  `voice_chat_enabled` tinyint NOT NULL DEFAULT 1,
+  `livefeed_enabled` tinyint NOT NULL DEFAULT 1,
+  `alerts_enabled` tinyint NOT NULL DEFAULT 1,
+  PRIMARY KEY (`user_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
 
 SET FOREIGN_KEY_CHECKS = 1;

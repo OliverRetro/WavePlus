@@ -302,6 +302,21 @@ namespace Plus.HabboHotel.Roleplay.Corporation
 
         private static void GivePay(Habbo habbo, int amount)
         {
+            if (amount <= 0)
+                return;
+
+            // Auto salary deposit: pay straight into the bank account instead of the wallet.
+            // Only when the setting is on AND the user actually owns an account.
+            var settings = habbo.GetRpSettings();
+            var account = habbo.GetBankAccount();
+            if (settings != null && settings.AutoSalaryDeposit && account != null)
+            {
+                account.SetBalance(account.Balance + amount);
+                account.AddLog(new Banking.UserRpBankLog(habbo.Id, amount, "DEPOSIT", "SALARY", 0, DateTime.Now));
+                PlusEnvironment.GetBankingManager().Save(habbo);
+                return;
+            }
+
             habbo.Credits += amount;
             habbo.GetClient()?.SendPacket(new CreditBalanceComposer(habbo.Credits));
         }

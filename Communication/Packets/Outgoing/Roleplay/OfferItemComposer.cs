@@ -1,17 +1,12 @@
 ﻿using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Users;
 
-namespace Plus.Communication.Packets.Outgoing.Quests
+namespace Plus.Communication.Packets.Outgoing.Roleplay
 {
-    public class OfferItemComposer : MessageComposer
+    public class OfferItemComposer(GameClient session, Habbo targetHabbo) : MessageComposer(ServerPacketHeader.OfferItemMessageComposer)
     {
-        public Habbo Habbo { get; }
-
-        public OfferItemComposer(GameClient session, Habbo targetHabbo)
-            : base(ServerPacketHeader.OfferItemMessageComposer)
-        {
-            Habbo = session.GetHabbo();
-        }
+        public Habbo Habbo { get; } = session.GetHabbo();
+        public Habbo TargetHabbo { get; } = targetHabbo;
 
         public override void Compose(ServerPacket packet)
         {

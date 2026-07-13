@@ -79,6 +79,19 @@ namespace Plus.Communication.Packets.Incoming.Inventory.Trading
                 return;
             }
 
+            // Furniture-trading setting: a user who disabled it can neither initiate nor be traded.
+            if (session.GetHabbo().GetRpSettings()?.FurnitureTrading == false)
+            {
+                session.SendWhisper("You have furniture trading disabled in your settings.", 1);
+                return;
+            }
+
+            if (targetUser.GetClient().GetHabbo().GetRpSettings()?.FurnitureTrading == false)
+            {
+                session.SendPacket(new TradingErrorComposer(4, targetUser.GetUsername()));
+                return;
+            }
+
             if (targetUser.GetClient().GetHabbo().TradingLockExpiry > 0)
             {
                 session.SendPacket(new TradingErrorComposer(4, targetUser.GetUsername()));

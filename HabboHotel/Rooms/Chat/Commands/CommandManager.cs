@@ -213,6 +213,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             Register("setmax", new SetMaxCommand());
             Register("setspeed", new SetSpeedCommand());
             Register("disablediagonal", new DisableDiagonalCommand());
+            Register("clickthrough", new ClickThroughCommand());
             Register("flagme", new FlagMeCommand());
 
             Register("stats", new StatsCommand());

@@ -481,7 +481,9 @@ namespace Plus.HabboHotel.Rooms
                 return;
             }
 
-            if ((GetRoom().GetGameMap().SquareHasUsers(pX, pY) && !pOverride) || IsMovementFrozen)
+            // Only refuse an occupied destination when room blocking is active. When the room
+            // allows walk-through (RoomBlockingEnabled != 0) users may target/stand on the same tile.
+            if ((GetRoom().GetGameMap().SquareHasUsers(pX, pY) && !pOverride && GetRoom().RoomBlockingEnabled == 0) || IsMovementFrozen)
                 return;
 
             UnIdle();
