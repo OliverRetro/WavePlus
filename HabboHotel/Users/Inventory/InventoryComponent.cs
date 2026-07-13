@@ -292,7 +292,7 @@ namespace Plus.HabboHotel.Users.Inventory
                 return _floorItems.TryAdd(item.Id, item);
             }
 
-            if (item.Data.Type.ToString().ToLower() == "i") //ItemType.WALL)
+            if (item.Data.Type.ToString().Equals("i", StringComparison.CurrentCultureIgnoreCase)) //ItemType.WALL)
             {
                 return _wallItems.TryAdd(item.Id, item);
             }
