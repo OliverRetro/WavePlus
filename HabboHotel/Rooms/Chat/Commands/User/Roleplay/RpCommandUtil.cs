@@ -1,7 +1,5 @@
 using System;
-using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.HabboHotel.GameClients;
-using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
@@ -12,23 +10,27 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
         {
             targetClient = null;
 
-            if (session?.GetHabbo() == null || room == null || string.IsNullOrWhiteSpace(username)) {
+            if (session?.GetHabbo() == null || room == null || string.IsNullOrWhiteSpace(username))
+            {
                 session?.SendWhisper("Please enter a username.", 1);
                 return false;
             }
 
             targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(username);
-            if (targetClient?.GetHabbo() == null) {
+            if (targetClient?.GetHabbo() == null)
+            {
                 session.SendWhisper("That user could not be found.", 1);
                 return false;
             }
 
-            if (targetClient == session) {
+            if (targetClient == session)
+            {
                 session.SendWhisper("You cannot do that to yourself.", 1);
                 return false;
             }
 
-            if (targetClient.GetHabbo().CurrentRoomId != session.GetHabbo().CurrentRoomId) {
+            if (targetClient.GetHabbo().CurrentRoomId != session.GetHabbo().CurrentRoomId)
+            {
                 session.SendWhisper("That user is not in the same room as you.", 1);
                 return false;
             }

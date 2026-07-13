@@ -6,151 +6,167 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[PrimaryKey("id", "auth_ticket")]
-[Index("activity_points", Name = "activity_points")]
-[Index("auth_ticket", Name = "auth_ticket")]
-[Index("credits", Name = "credits")]
-[Index("home_room", Name = "home_room")]
-[Index("id", Name = "id", IsUnique = true)]
-[Index("ip_last", Name = "ip_last")]
-[Index("ip_reg", Name = "ip_reg")]
-[Index("last_online", Name = "last_online")]
-[Index("machine_id", Name = "machine_id")]
-[Index("mail", Name = "mail")]
-[Index("id", "username", "look", "motto", "last_online", Name = "messenger")]
-[Index("online", Name = "online")]
-[Index("rank", Name = "rank")]
-[Index("rank_vip", Name = "rank_vip")]
-[Index("username", Name = "username", IsUnique = true)]
-public partial class user
+[PrimaryKey("Id", "AuthTicket")]
+[Index("ActivityPoints", Name = "activity_points")]
+[Index("AuthTicket", Name = "auth_ticket")]
+[Index("Credits", Name = "credits")]
+[Index("HomeRoom", Name = "home_room")]
+[Index("Id", Name = "id", IsUnique = true)]
+[Index("IpLast", Name = "ip_last")]
+[Index("IpReg", Name = "ip_reg")]
+[Index("LastOnline", Name = "last_online")]
+[Index("MachineId", Name = "machine_id")]
+[Index("Mail", Name = "mail")]
+[Index("Id", "Username", "Look", "Motto", "LastOnline", Name = "messenger")]
+[Index("Online", Name = "online")]
+[Index("Rank", Name = "rank")]
+[Index("RankVip", Name = "rank_vip")]
+[Index("Username", Name = "username", IsUnique = true)]
+[Table("users")]
+public partial class User
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
     [Required]
     [StringLength(125)]
-    public string username { get; set; }
+    [Column("username")]
+    public string Username { get; set; }
 
     [StringLength(255)]
-    public string password { get; set; }
+    [Column("password")]
+    public string Password { get; set; }
 
-    public string mail { get; set; }
+    [Column("mail")]
+    public string Mail { get; set; }
 
     [Key]
     [StringLength(60)]
-    public string auth_ticket { get; set; }
+    [Column("auth_ticket")]
+    public string AuthTicket { get; set; }
 
-    [Column(TypeName = "int(1) unsigned")]
-    public uint? rank { get; set; }
+    [Column("rank", TypeName = "int(1) unsigned")]
+    public uint? Rank { get; set; }
 
-    [Column(TypeName = "int(1)")]
-    public int? rank_vip { get; set; }
+    [Column("rank_vip", TypeName = "int(1)")]
+    public int? RankVip { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int? credits { get; set; }
+    [Column("credits", TypeName = "int(11)")]
+    public int? Credits { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int? vip_points { get; set; }
+    [Column("vip_points", TypeName = "int(11)")]
+    public int? VipPoints { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int? activity_points { get; set; }
+    [Column("activity_points", TypeName = "int(11)")]
+    public int? ActivityPoints { get; set; }
 
-    public string look { get; set; }
+    [Column("look")]
+    public string Look { get; set; }
 
-    [Column(TypeName = "enum('M','F')")]
-    public string gender { get; set; }
+    [Column("gender", TypeName = "enum('M','F')")]
+    public string Gender { get; set; }
 
     [StringLength(50)]
-    public string motto { get; set; }
+    [Column("motto")]
+    public string Motto { get; set; }
 
     [StringLength(12)]
-    public string account_created { get; set; }
+    [Column("account_created")]
+    public string AccountCreated { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int? last_online { get; set; }
+    [Column("last_online", TypeName = "int(11)")]
+    public int? LastOnline { get; set; }
 
-    [Column(TypeName = "enum('0','1')")]
-    public string online { get; set; }
-
-    [StringLength(45)]
-    public string ip_last { get; set; }
+    [Column("online", TypeName = "enum('0','1')")]
+    public string Online { get; set; }
 
     [StringLength(45)]
-    public string ip_reg { get; set; }
+    [Column("ip_last")]
+    public string IpLast { get; set; }
 
-    [Column(TypeName = "int(10)")]
-    public int? home_room { get; set; }
+    [StringLength(45)]
+    [Column("ip_reg")]
+    public string IpReg { get; set; }
 
-    [Column(TypeName = "enum('0','1')")]
-    public string is_muted { get; set; }
+    [Column("home_room", TypeName = "int(10)")]
+    public int? HomeRoom { get; set; }
 
-    [Column(TypeName = "enum('0','1')")]
-    public string block_newfriends { get; set; }
+    [Column("is_muted", TypeName = "enum('0','1')")]
+    public string IsMuted { get; set; }
 
-    [Column(TypeName = "enum('0','1')")]
-    public string hide_online { get; set; }
+    [Column("block_newfriends", TypeName = "enum('0','1')")]
+    public string BlockNewfriends { get; set; }
 
-    [Column(TypeName = "enum('0','1')")]
-    public string hide_inroom { get; set; }
+    [Column("hide_online", TypeName = "enum('0','1')")]
+    public string HideOnline { get; set; }
 
-    [Column(TypeName = "enum('0','1')")]
-    public string vip { get; set; }
+    [Column("hide_inroom", TypeName = "enum('0','1')")]
+    public string HideInroom { get; set; }
+
+    [Column("vip", TypeName = "enum('0','1')")]
+    public string Vip { get; set; }
 
     [StringLength(15)]
-    public string volume { get; set; }
+    [Column("volume")]
+    public string Volume { get; set; }
 
-    [Column(TypeName = "int(20)")]
-    public int? last_change { get; set; }
+    [Column("last_change", TypeName = "int(20)")]
+    public int? LastChange { get; set; }
 
     [StringLength(125)]
-    public string machine_id { get; set; }
+    [Column("machine_id")]
+    public string MachineId { get; set; }
 
-    [Column(TypeName = "enum('0','1')")]
-    public string focus_preference { get; set; }
+    [Column("focus_preference", TypeName = "enum('0','1')")]
+    public string FocusPreference { get; set; }
 
-    [Column(TypeName = "enum('0','1')")]
-    public string chat_preference { get; set; }
+    [Column("chat_preference", TypeName = "enum('0','1')")]
+    public string ChatPreference { get; set; }
 
-    [Column(TypeName = "enum('0','1')")]
-    public string pets_muted { get; set; }
+    [Column("pets_muted", TypeName = "enum('0','1')")]
+    public string PetsMuted { get; set; }
 
-    [Column(TypeName = "enum('0','1')")]
-    public string bots_muted { get; set; }
+    [Column("bots_muted", TypeName = "enum('0','1')")]
+    public string BotsMuted { get; set; }
 
-    [Column(TypeName = "enum('0','1')")]
-    public string advertising_report_blocked { get; set; }
+    [Column("advertising_report_blocked", TypeName = "enum('0','1')")]
+    public string AdvertisingReportBlocked { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int? gotw_points { get; set; }
+    [Column("gotw_points", TypeName = "int(11)")]
+    public int? GotwPoints { get; set; }
 
-    [Column(TypeName = "enum('0','1')")]
-    public string ignore_invites { get; set; }
+    [Column("ignore_invites", TypeName = "enum('0','1')")]
+    public string IgnoreInvites { get; set; }
 
-    public double? time_muted { get; set; }
+    [Column("time_muted")]
+    public double? TimeMuted { get; set; }
 
-    [Column(TypeName = "enum('0','1')")]
-    public string allow_gifts { get; set; }
+    [Column("allow_gifts", TypeName = "enum('0','1')")]
+    public string AllowGifts { get; set; }
 
-    public double? trading_locked { get; set; }
-
-    [Required]
-    [Column(TypeName = "enum('0','1')")]
-    public string disable_forced_effects { get; set; }
-
-    [Required]
-    [Column(TypeName = "enum('1','0')")]
-    public string allow_mimic { get; set; }
+    [Column("trading_locked")]
+    public double? TradingLocked { get; set; }
 
     [Required]
-    public string home_room_data { get; set; }
+    [Column("disable_forced_effects", TypeName = "enum('0','1')")]
+    public string DisableForcedEffects { get; set; }
 
     [Required]
-    public bool? friend_bar_state { get; set; }
+    [Column("allow_mimic", TypeName = "enum('1','0')")]
+    public string AllowMimic { get; set; }
 
-    [Column(TypeName = "smallint(6)")]
-    public short bubble { get; set; }
+    [Required]
+    [Column("home_room_data")]
+    public string HomeRoomData { get; set; }
 
-    [InverseProperty("user")]
-    public virtual ICollection<user_chat_bubble> user_chat_bubbles { get; set; } = [];
+    [Required]
+    [Column("friend_bar_state")]
+    public bool? FriendBarState { get; set; }
+
+    [Column("bubble", TypeName = "smallint(6)")]
+    public short Bubble { get; set; }
+
+    [InverseProperty("User")]
+    public virtual ICollection<UserChatBubble> UserChatBubbles { get; set; } = [];
 }

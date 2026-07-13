@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using Plus.Communication.Packets.Outgoing.Inventory.Achievements;
+﻿using Plus.Communication.Packets.Outgoing.Inventory.Achievements;
 using Plus.HabboHotel.GameClients;
 
 namespace Plus.Communication.Packets.Incoming.Inventory.Achievements

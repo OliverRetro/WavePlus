@@ -1,29 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class permissions_group
+[Table("permissions_groups")]
+public partial class PermissionsGroup
 {
     [Key]
-    [Column(TypeName = "int(3)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(3)")]
+    public int Id { get; set; }
 
     [Required]
     [StringLength(50)]
-    public string name { get; set; }
+    [Column("name")]
+    public string Name { get; set; }
 
     [Required]
     [StringLength(50)]
-    public string description { get; set; }
+    [Column("description")]
+    public string Description { get; set; }
 
     [Required]
     [StringLength(12)]
-    public string badge_code { get; set; }
+    [Column("badge_code")]
+    public string BadgeCode { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int level { get; set; }
+    [Column("level", TypeName = "int(11)")]
+    public int Level { get; set; }
 }

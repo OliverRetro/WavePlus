@@ -72,7 +72,7 @@ namespace Plus.Core.Cache
                 ForumEnabled = group.ForumEnabled,
                 Members = new Dictionary<int, int>(group.MemberLevelsSnapshot),
                 Requests = group.GetRequests,
-                Roles = group.GetRoles.Select(r => new RoleSnapshot
+                Roles = [.. group.GetRoles.Select(r => new RoleSnapshot
                 {
                     Level = r.Level,
                     Name = r.Name,
@@ -80,8 +80,8 @@ namespace Plus.Core.Cache
                     ShiftCostume = r.ShiftCostume,
                     ShiftDuration = r.ShiftDuration,
                     ShiftMotto = r.ShiftMotto
-                }).ToList(),
-                Permissions = group.GetPermissions.Select(p => p.LevelId + ":" + p.PermissionId).ToList()
+                })],
+                Permissions = [.. group.GetPermissions.Select(p => p.LevelId + ":" + p.PermissionId)]
             };
 
             redis.SetObject(Key(group.Id), snapshot);

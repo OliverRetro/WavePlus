@@ -23,19 +23,19 @@ namespace Plus.Communication.Packets.Incoming.Moderation
             uint uid = (uint)userId;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                var table = db.user_roomvisits.Where(v => v.user_id == uid)
-                    .OrderByDescending(v => v.entry_timestamp)
-                    .Select(v => new { v.room_id, v.entry_timestamp })
+                var table = db.UserRoomvisits.Where(v => v.UserId == uid)
+                    .OrderByDescending(v => v.EntryTimestamp)
+                    .Select(v => new { v.RoomId, v.EntryTimestamp })
                     .Take(50)
                     .ToList();
 
                 foreach (var row in table)
                 {
-                    if (!RoomFactory.TryGetData((int)row.room_id, out RoomData data))
+                    if (!RoomFactory.TryGetData((int)row.RoomId, out RoomData data))
                         continue;
 
-                    if (!visits.ContainsKey(row.entry_timestamp))
-                        visits.Add(row.entry_timestamp, data);
+                    if (!visits.ContainsKey(row.EntryTimestamp))
+                        visits.Add(row.EntryTimestamp, data);
                 }
             }
 

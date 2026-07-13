@@ -32,35 +32,40 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Pets.Horse
             if (petUser.PetData == null || petUser.PetData.OwnerId != session.GetHabbo().Id)
                 return;
 
-            if (item.Data.InteractionType == InteractionType.HorseSaddle1) {
+            if (item.Data.InteractionType == InteractionType.HorseSaddle1)
+            {
                 petUser.PetData.Saddle = 9;
                 using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
                     uint petDataId = (uint)petUser.PetData.PetId;
                     uint itmId = (uint)item.Id;
-                    db.bots_petdata.Where(p => p.id == petDataId).ExecuteUpdate(s => s.SetProperty(p => p.have_saddle, 9));
-                    db.items.Where(i => i.id == itmId).ExecuteDelete();
+                    db.BotsPetdata.Where(p => p.Id == petDataId).ExecuteUpdate(s => s.SetProperty(p => p.HaveSaddle, 9));
+                    db.Items.Where(i => i.Id == itmId).ExecuteDelete();
                 }
 
                 //We only want to use this if we're successful. 
                 room.GetRoomItemHandler().RemoveFurniture(session, item.Id);
-            } else if (item.Data.InteractionType == InteractionType.HorseSaddle2) {
+            }
+            else if (item.Data.InteractionType == InteractionType.HorseSaddle2)
+            {
                 petUser.PetData.Saddle = 10;
                 using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
                     uint petDataId = (uint)petUser.PetData.PetId;
                     uint itmId = (uint)item.Id;
-                    db.bots_petdata.Where(p => p.id == petDataId).ExecuteUpdate(s => s.SetProperty(p => p.have_saddle, 10));
-                    db.items.Where(i => i.id == itmId).ExecuteDelete();
+                    db.BotsPetdata.Where(p => p.Id == petDataId).ExecuteUpdate(s => s.SetProperty(p => p.HaveSaddle, 10));
+                    db.Items.Where(i => i.Id == itmId).ExecuteDelete();
                 }
 
                 //We only want to use this if we're successful. 
                 room.GetRoomItemHandler().RemoveFurniture(session, item.Id);
-            } else if (item.Data.InteractionType == InteractionType.HorseHairstyle) {
+            }
+            else if (item.Data.InteractionType == InteractionType.HorseHairstyle)
+            {
                 int parse = 100;
                 string hairType = item.GetBaseItem().ItemName.Split('_')[2];
 
-                parse = parse + int.Parse(hairType);
+                parse += int.Parse(hairType);
 
                 petUser.PetData.PetHair = parse;
                 using (WavePlusContext db = PlusEnvironment.GetDbContext())
@@ -68,17 +73,19 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Pets.Horse
                     uint petDataId = (uint)petUser.PetData.PetId;
                     uint itmId = (uint)item.Id;
                     int petHair = petUser.PetData.PetHair;
-                    db.bots_petdata.Where(p => p.id == petDataId).ExecuteUpdate(s => s.SetProperty(p => p.pethair, petHair));
-                    db.items.Where(i => i.id == itmId).ExecuteDelete();
+                    db.BotsPetdata.Where(p => p.Id == petDataId).ExecuteUpdate(s => s.SetProperty(p => p.Pethair, petHair));
+                    db.Items.Where(i => i.Id == itmId).ExecuteDelete();
                 }
 
                 //We only want to use this if we're successful. 
                 room.GetRoomItemHandler().RemoveFurniture(session, item.Id);
-            } else if (item.Data.InteractionType == InteractionType.HorseHairDye) {
+            }
+            else if (item.Data.InteractionType == InteractionType.HorseHairDye)
+            {
                 int hairDye = 48;
                 string hairType = item.GetBaseItem().ItemName.Split('_')[2];
 
-                hairDye = hairDye + int.Parse(hairType);
+                hairDye += int.Parse(hairType);
                 petUser.PetData.HairDye = hairDye;
 
                 using (WavePlusContext db = PlusEnvironment.GetDbContext())
@@ -86,13 +93,15 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Pets.Horse
                     uint petDataId = (uint)petUser.PetData.PetId;
                     uint itmId = (uint)item.Id;
                     int dye = petUser.PetData.HairDye;
-                    db.bots_petdata.Where(p => p.id == petDataId).ExecuteUpdate(s => s.SetProperty(p => p.hairdye, dye));
-                    db.items.Where(i => i.id == itmId).ExecuteDelete();
+                    db.BotsPetdata.Where(p => p.Id == petDataId).ExecuteUpdate(s => s.SetProperty(p => p.Hairdye, dye));
+                    db.Items.Where(i => i.Id == itmId).ExecuteDelete();
                 }
 
                 //We only want to use this if we're successful. 
                 room.GetRoomItemHandler().RemoveFurniture(session, item.Id);
-            } else if (item.Data.InteractionType == InteractionType.HorseBodyDye) {
+            }
+            else if (item.Data.InteractionType == InteractionType.HorseBodyDye)
+            {
                 string race = item.GetBaseItem().ItemName.Split('_')[2];
                 int parse = int.Parse(race);
                 int raceLast = 2 + (parse * 4) - 4;
@@ -111,8 +120,8 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Pets.Horse
                     uint petDataId = (uint)petUser.PetData.PetId;
                     uint itmId = (uint)item.Id;
                     string race2 = petUser.PetData.Race;
-                    db.bots_petdata.Where(p => p.id == petDataId).ExecuteUpdate(s => s.SetProperty(p => p.race, race2));
-                    db.items.Where(i => i.id == itmId).ExecuteDelete();
+                    db.BotsPetdata.Where(p => p.Id == petDataId).ExecuteUpdate(s => s.SetProperty(p => p.Race, race2));
+                    db.Items.Where(i => i.Id == itmId).ExecuteDelete();
                 }
 
                 //We only want to use this if we're successful. 

@@ -25,7 +25,8 @@ namespace Plus.Communication.Rcon.Commands.User
 
             string badge = Convert.ToString(parameters[1]);
 
-            if (!client.GetHabbo().GetBadgeComponent().HasBadge(badge)) {
+            if (!client.GetHabbo().GetBadgeComponent().HasBadge(badge))
+            {
                 client.GetHabbo().GetBadgeComponent().GiveBadge(badge, true, client);
                 client.SendPacket(new BroadcastMessageAlertComposer("You have been given a new badge!"));
             }

@@ -1,42 +1,46 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[Index("bantype", Name = "bantype")]
-[Index("value", Name = "value")]
-public partial class ban
+[Index("Bantype", Name = "bantype")]
+[Index("Value", Name = "value")]
+[Table("bans")]
+public partial class Ban
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
     [Required]
-    [Column(TypeName = "enum('user','ip','machine')")]
-    public string bantype { get; set; }
-
-    [Required]
-    [StringLength(50)]
-    public string value { get; set; }
-
-    [Required]
-    [Column(TypeName = "text")]
-    public string reason { get; set; }
-
-    public double expire { get; set; }
+    [Column("bantype", TypeName = "enum('user','ip','machine')")]
+    public string Bantype { get; set; }
 
     [Required]
     [StringLength(50)]
-    public string added_by { get; set; }
+    [Column("value")]
+    public string Value { get; set; }
+
+    [Required]
+    [Column("reason", TypeName = "text")]
+    public string Reason { get; set; }
+
+    [Column("expire")]
+    public double Expire { get; set; }
 
     [Required]
     [StringLength(50)]
-    public string added_date { get; set; }
+    [Column("added_by")]
+    public string AddedBy { get; set; }
 
     [Required]
-    [Column(TypeName = "enum('0','1','2')")]
-    public string appeal_state { get; set; }
+    [StringLength(50)]
+    [Column("added_date")]
+    public string AddedDate { get; set; }
+
+    [Required]
+    [Column("appeal_state", TypeName = "enum('0','1','2')")]
+    public string AppealState { get; set; }
 }

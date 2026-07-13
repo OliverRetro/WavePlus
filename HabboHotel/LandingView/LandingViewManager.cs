@@ -25,12 +25,12 @@ namespace Plus.HabboHotel.LandingView
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                var rows = db.server_landings.OrderByDescending(s => s.id)
-                    .Select(s => new { s.id, s.title, s.text, s.button_text, s.button_type, s.button_link, s.image_link })
+                var rows = db.ServerLandings.OrderByDescending(s => s.Id)
+                    .Select(s => new { s.Id, s.Title, s.Text, s.ButtonText, s.ButtonType, s.ButtonLink, s.ImageLink })
                     .ToList();
                 foreach (var row in rows)
                 {
-                    _promotionItems.Add(row.id, new Promotion(row.id, row.title, row.text, row.button_text, Convert.ToInt32(row.button_type), row.button_link, row.image_link));
+                    _promotionItems.Add(row.Id, new Promotion(row.Id, row.Title, row.Text, row.ButtonText, Convert.ToInt32(row.ButtonType), row.ButtonLink, row.ImageLink));
                 }
             }
 

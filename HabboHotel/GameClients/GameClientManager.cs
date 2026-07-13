@@ -84,7 +84,7 @@ namespace Plus.HabboHotel.GameClients
             string username;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                username = db.users.Where(u => u.id == id).Select(u => u.username).FirstOrDefault();
+                username = db.Users.Where(u => u.Id == id).Select(u => u.Username).FirstOrDefault();
             }
 
             return username;
@@ -150,7 +150,7 @@ namespace Plus.HabboHotel.GameClients
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
                 int number = 11;
-                foreach (string message in db.chatlogs.Where(c => c.user_id == targetId).OrderByDescending(c => c.id).Take(10).Select(c => c.message).ToList())
+                foreach (string message in db.Chatlogs.Where(c => c.UserId == targetId).OrderByDescending(c => c.Id).Take(10).Select(c => c.Message).ToList())
                 {
                     number -= 1;
                     builder.Append(number + ": " + message + "\r");
@@ -176,7 +176,8 @@ namespace Plus.HabboHotel.GameClients
                 if (client == null || client.GetHabbo() == null)
                     continue;
 
-                if (!string.IsNullOrEmpty(fuse)) {
+                if (!string.IsNullOrEmpty(fuse))
+                {
                     if (!client.GetHabbo().GetPermissions().HasRight(fuse))
                         continue;
                 }
@@ -188,9 +189,11 @@ namespace Plus.HabboHotel.GameClients
         public void CreateAndStartClient(IChannelHandlerContext connection)
         {
             GameClient client = new(connection);
-            if (_clients.TryAdd(connection.Channel.Id, client)) {
+            if (_clients.TryAdd(connection.Channel.Id, client))
+            {
                 //Hmmmmm?
-            } else
+            }
+            else
                 connection.CloseAsync();
         }
 
@@ -283,18 +286,22 @@ namespace Plus.HabboHotel.GameClients
 
         private void TestClientConnections()
         {
-            if (_clientPingStopwatch.ElapsedMilliseconds >= 30000) {
+            if (_clientPingStopwatch.ElapsedMilliseconds >= 30000)
+            {
                 _clientPingStopwatch.Restart();
 
                 List<GameClient> toPing = new();
 
                 foreach (GameClient client in _clients.Values)
                 {
-                    if (client.PingCount < 6) {
+                    if (client.PingCount < 6)
+                    {
                         client.PingCount++;
 
                         toPing.Add(client);
-                    } else {
+                    }
+                    else
+                    {
                         lock (_timedOutConnections.SyncRoot)
                         {
                             _timedOutConnections.Enqueue(client);
@@ -323,7 +330,8 @@ namespace Plus.HabboHotel.GameClients
 
         private void HandleTimeouts()
         {
-            if (_timedOutConnections.Count > 0) {
+            if (_timedOutConnections.Count > 0)
+            {
                 lock (_timedOutConnections.SyncRoot)
                 {
                     while (_timedOutConnections.Count > 0)
@@ -331,7 +339,7 @@ namespace Plus.HabboHotel.GameClients
                         GameClient client = null;
 
                         if (_timedOutConnections.Count > 0)
-                            client = (GameClient) _timedOutConnections.Dequeue();
+                            client = (GameClient)_timedOutConnections.Dequeue();
 
                         client?.Disconnect();
                     }

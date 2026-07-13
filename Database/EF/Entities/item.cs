@@ -1,51 +1,53 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[Index("base_item", Name = "base_item")]
-[Index("id", Name = "id", IsUnique = true)]
-[Index("room_id", Name = "roomid")]
-[Index("user_id", Name = "userid")]
-public partial class item
+[Index("BaseItem", Name = "base_item")]
+[Index("Id", Name = "id", IsUnique = true)]
+[Index("RoomId", Name = "roomid")]
+[Index("UserId", Name = "userid")]
+[Table("items")]
+public partial class Item
 {
     [Key]
-    [Column(TypeName = "int(10) unsigned")]
-    public uint id { get; set; }
+    [Column("id", TypeName = "int(10) unsigned")]
+    public uint Id { get; set; }
 
-    [Column(TypeName = "int(10)")]
-    public int user_id { get; set; }
+    [Column("user_id", TypeName = "int(10)")]
+    public int UserId { get; set; }
 
-    [Column(TypeName = "int(10) unsigned")]
-    public uint room_id { get; set; }
+    [Column("room_id", TypeName = "int(10) unsigned")]
+    public uint RoomId { get; set; }
 
-    [Column(TypeName = "int(10) unsigned")]
-    public uint base_item { get; set; }
+    [Column("base_item", TypeName = "int(10) unsigned")]
+    public uint BaseItem { get; set; }
 
     [Required]
-    [Column(TypeName = "text")]
-    public string extra_data { get; set; }
+    [Column("extra_data", TypeName = "text")]
+    public string ExtraData { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int x { get; set; }
+    [Column("x", TypeName = "int(11)")]
+    public int X { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int y { get; set; }
+    [Column("y", TypeName = "int(11)")]
+    public int Y { get; set; }
 
-    public double z { get; set; }
+    [Column("z")]
+    public double Z { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int rot { get; set; }
+    [Column("rot", TypeName = "int(11)")]
+    public int Rot { get; set; }
 
     [StringLength(100)]
-    public string wall_pos { get; set; }
+    [Column("wall_pos")]
+    public string WallPos { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int? limited_number { get; set; }
+    [Column("limited_number", TypeName = "int(11)")]
+    public int? LimitedNumber { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int? limited_stack { get; set; }
+    [Column("limited_stack", TypeName = "int(11)")]
+    public int? LimitedStack { get; set; }
 }

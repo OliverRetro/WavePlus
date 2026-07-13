@@ -1,16 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class users_macro_setting
+[Table("users_macro_settings")]
+public partial class UsersMacroSetting
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int user_id { get; set; }
+    [Column("user_id", TypeName = "int(11)")]
+    public int UserId { get; set; }
 
-    public bool enabled { get; set; }
+    [Column("enabled")]
+    public bool Enabled { get; set; }
 }

@@ -1,69 +1,73 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class rp_weapon
+[Table("rp_weapons")]
+public partial class RpWeapon
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
     [Required]
     [StringLength(55)]
-    public string name { get; set; }
+    [Column("name")]
+    public string Name { get; set; }
 
     [Required]
     [StringLength(255)]
-    public string description { get; set; }
+    [Column("description")]
+    public string Description { get; set; }
 
     /// <summary>
     /// Variables available username and damage
     /// </summary>
     [Required]
     [StringLength(110)]
-    public string hit_message { get; set; }
+    [Column("hit_message")]
+    public string HitMessage { get; set; }
 
     [Required]
     [StringLength(110)]
-    public string critical_hit_message { get; set; }
+    [Column("critical_hit_message")]
+    public string CriticalHitMessage { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int minimum_damage { get; set; }
+    [Column("minimum_damage", TypeName = "int(11)")]
+    public int MinimumDamage { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int maximum_damage { get; set; }
+    [Column("maximum_damage", TypeName = "int(11)")]
+    public int MaximumDamage { get; set; }
 
     /// <summary>
     /// As %. For instance 50% is 50-50 on hitting it, without Skill boosts.
     /// </summary>
-    [Column(TypeName = "smallint(6)")]
-    public short critical_chance { get; set; }
+    [Column("critical_chance", TypeName = "smallint(6)")]
+    public short CriticalChance { get; set; }
 
-    public double critical_multiplier { get; set; }
+    [Column("critical_multiplier")]
+    public double CriticalMultiplier { get; set; }
 
-    [Column(TypeName = "smallint(6)")]
-    public short effect_id { get; set; }
+    [Column("effect_id", TypeName = "smallint(6)")]
+    public short EffectId { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int range { get; set; }
+    [Column("range", TypeName = "int(11)")]
+    public int Range { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int durability { get; set; }
+    [Column("durability", TypeName = "int(11)")]
+    public int Durability { get; set; }
 
     [Required]
     [StringLength(255)]
-    public string image { get; set; }
+    [Column("image")]
+    public string Image { get; set; }
 
     /// <summary>
     /// 0-100
     /// </summary>
-    [Column(TypeName = "int(11)")]
-    public int stun_chance { get; set; }
+    [Column("stun_chance", TypeName = "int(11)")]
+    public int StunChance { get; set; }
 
-    [Column(TypeName = "smallint(6)")]
-    public short rarity { get; set; }
+    [Column("rarity", TypeName = "smallint(6)")]
+    public short Rarity { get; set; }
 }

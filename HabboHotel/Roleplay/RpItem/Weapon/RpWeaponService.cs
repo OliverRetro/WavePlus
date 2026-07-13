@@ -16,7 +16,8 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
             error = null;
             Users.Habbo habbo = session?.GetHabbo();
             Room room = habbo?.CurrentRoom;
-            if (habbo == null || room == null) {
+            if (habbo == null || room == null)
+            {
                 error = "You need to be in a room to do that.";
                 return false;
             }
@@ -26,24 +27,28 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
                 return false;
 
             // Staff on shift can never carry a weapon (unequipping to hands is still allowed).
-            if (weaponId != 0 && RpEffectService.IsWorkingStaff(habbo)) {
+            if (weaponId != 0 && RpEffectService.IsWorkingStaff(habbo))
+            {
                 error = "Staff can't equip weapons while on duty.";
                 return false;
             }
 
             // A cuffed suspect can't arm themselves.
-            if (weaponId != 0 && PlusEnvironment.GetPoliceManager().IsCuffed(habbo.Id)) {
+            if (weaponId != 0 && PlusEnvironment.GetPoliceManager().IsCuffed(habbo.Id))
+            {
                 error = "You can't equip weapons while cuffed.";
                 return false;
             }
 
             UserRpWeapons weapons = habbo.GetRpWeapons();
-            if (weapons == null || !weapons.SetActiveWeaponId(weaponId)) {
+            if (weapons == null || !weapons.SetActiveWeaponId(weaponId))
+            {
                 error = "You don't have that weapon.";
                 return false;
             }
 
-            if (habbo.GetRpStats()?.PassiveMode == true) {
+            if (habbo.GetRpStats()?.PassiveMode == true)
+            {
                 error = "A pacifist does not fight. Try disabling passive mode, before combat!";
                 return false;
             }

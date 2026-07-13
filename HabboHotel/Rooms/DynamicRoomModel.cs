@@ -46,9 +46,12 @@ namespace Plus.HabboHotel.Rooms
             {
                 for (int x = 0; x < MapSizeX; x++)
                 {
-                    if (x > (_staticModel.MapSizeX - 1) || y > (_staticModel.MapSizeY - 1)) {
+                    if (x > (_staticModel.MapSizeX - 1) || y > (_staticModel.MapSizeY - 1))
+                    {
                         SqState[x, y] = SquareState.Blocked;
-                    } else {
+                    }
+                    else
+                    {
                         SqState[x, y] = _staticModel.SqState[x, y];
                         SqFloorHeight[x, y] = _staticModel.SqFloorHeight[x, y];
                         SqSeatRot[x, y] = _staticModel.SqSeatRot[x, y];
@@ -62,18 +65,20 @@ namespace Plus.HabboHotel.Rooms
             {
                 for (int x = 0; x < MapSizeX; x++)
                 {
-                    if (x == DoorX && y == DoorY) {
-                        floorMap.Append(DoorZ > 9 ? ((char) (87 + DoorZ)).ToString() : DoorZ.ToString());
+                    if (x == DoorX && y == DoorY)
+                    {
+                        floorMap.Append(DoorZ > 9 ? ((char)(87 + DoorZ)).ToString() : DoorZ.ToString());
                         continue;
                     }
 
-                    if (SqState[x, y] == SquareState.Blocked) {
+                    if (SqState[x, y] == SquareState.Blocked)
+                    {
                         floorMap.Append('x');
                         continue;
                     }
 
                     double height = SqFloorHeight[x, y];
-                    string val = height > 9 ? ((char) (87 + height)).ToString() : height.ToString();
+                    string val = height > 9 ? ((char)(87 + height)).ToString() : height.ToString();
                     floorMap.Append(val);
                 }
 
@@ -93,9 +98,12 @@ namespace Plus.HabboHotel.Rooms
             {
                 for (int x = 0; x < MapSizeX; x++)
                 {
-                    if (x > (_staticModel.MapSizeX - 1) || y > (_staticModel.MapSizeY - 1)) {
+                    if (x > (_staticModel.MapSizeX - 1) || y > (_staticModel.MapSizeY - 1))
+                    {
                         newSqState[x, y] = SquareState.Blocked;
-                    } else {
+                    }
+                    else
+                    {
                         newSqState[x, y] = SqState[x, y];
                         newSqFloorHeight[x, y] = SqFloorHeight[x, y];
                         newSqSeatRot[x, y] = SqSeatRot[x, y];
@@ -125,7 +133,7 @@ namespace Plus.HabboHotel.Rooms
                 z = 9;
             if (z < 0)
                 z = 0;
-            SqFloorHeight[x, y] = (short) z;
+            SqFloorHeight[x, y] = (short)z;
             SqState[x, y] = SquareState.Open;
         }
 

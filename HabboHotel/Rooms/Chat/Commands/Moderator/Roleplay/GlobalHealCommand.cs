@@ -23,7 +23,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Fun
                 if (client == null)
                     continue;
 
-                if (client.GetHabbo().GetRpStats().Health < UserRpStats.GetMaxHealth(client.GetHabbo())) {
+                if (client.GetHabbo().GetRpStats().Health < UserRpStats.GetMaxHealth(client.GetHabbo()))
+                {
                     if (client.GetHabbo().GetRpStats().IsDead)
                         PlusEnvironment.GetHospitalManager().CancelDeath(client.GetHabbo());
 

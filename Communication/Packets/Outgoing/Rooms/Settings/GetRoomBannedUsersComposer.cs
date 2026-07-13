@@ -24,10 +24,13 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Settings
             {
                 UserCache data = PlusEnvironment.GetGame().GetCacheManager().GenerateUser(id);
 
-                if (data == null) {
+                if (data == null)
+                {
                     packet.WriteInteger(0);
                     packet.WriteString("Unknown Error");
-                } else {
+                }
+                else
+                {
                     packet.WriteInteger(data.Id);
                     packet.WriteString(data.Username);
                 }

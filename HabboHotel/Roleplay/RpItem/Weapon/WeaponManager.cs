@@ -22,39 +22,39 @@ namespace Plus.HabboHotel.Permissions
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
                 // Load weapons
-                foreach (var row in db.rp_weapons.AsNoTracking().ToList())
+                foreach (var row in db.RpWeapons.AsNoTracking().ToList())
                 {
                     var weapon = new Weapon(
-                        row.id,
-                        row.name,
-                        row.description,
-                        row.hit_message,
-                        row.critical_hit_message,
-                        row.minimum_damage,
-                        row.maximum_damage,
-                        row.critical_chance,
-                        row.critical_multiplier,
-                        row.effect_id,
-                        row.range,
-                        row.durability,
-                        row.stun_chance,
-                        row.image
+                        row.Id,
+                        row.Name,
+                        row.Description,
+                        row.HitMessage,
+                        row.CriticalHitMessage,
+                        row.MinimumDamage,
+                        row.MaximumDamage,
+                        row.CriticalChance,
+                        row.CriticalMultiplier,
+                        row.EffectId,
+                        row.Range,
+                        row.Durability,
+                        row.StunChance,
+                        row.Image
                     );
 
                     _weapons.Add(weapon.Id, weapon);
                 }
 
-                foreach (var row in db.rp_weapon_skins.AsNoTracking().ToList())
+                foreach (var row in db.RpWeaponSkins.AsNoTracking().ToList())
                 {
                     WeaponSkin skin = new(
-                        row.id,
-                        row.weapon_id,
-                        row.name,
-                        row.hit_message,
-                        row.critical_hit_message,
-                        row.base_price,
-                        row.rarity,
-                        row.effect_id
+                        row.Id,
+                        row.WeaponId,
+                        row.Name,
+                        row.HitMessage,
+                        row.CriticalHitMessage,
+                        row.BasePrice,
+                        row.Rarity,
+                        row.EffectId
                     );
 
                     _skins[skin.Id] = skin;

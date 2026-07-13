@@ -42,12 +42,14 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
 
         public bool SetActiveWeaponId(int userWeaponId)
         {
-            if (userWeaponId == 0) {
+            if (userWeaponId == 0)
+            {
                 ActiveWeaponId = 0;
                 return true;
             }
 
-            if (!_weapons.ContainsKey(userWeaponId)) {
+            if (!_weapons.ContainsKey(userWeaponId))
+            {
                 return false;
             }
 

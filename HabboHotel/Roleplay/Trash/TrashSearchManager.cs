@@ -3,13 +3,10 @@ using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
-using Plus.HabboHotel.Roleplay.RpItem;
 using Plus.HabboHotel.Roleplay.RpItem.Item;
 using Plus.HabboHotel.Rooms;
-using Plus.HabboHotel.Rooms.PathFinding;
 using Plus.HabboHotel.Users;
 using Microsoft.EntityFrameworkCore;
-using StackExchange.Redis;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -38,19 +35,19 @@ namespace Plus.HabboHotel.Roleplay.Trash
             try
             {
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
-                var rows = db.rp_trash_rewards
+                var rows = db.RpTrashRewards
                     .AsNoTracking()
-                    .Where(x => x.enabled == true)
-                    .Select(x => new { x.item_id, x.chance_weight, x.min_amount, x.max_amount })
+                    .Where(x => x.Enabled == true)
+                    .Select(x => new { x.ItemId, x.ChanceWeight, x.MinAmount, x.MaxAmount })
                     .ToList();
 
                 foreach (var row in rows)
                 {
                     _rewards.Add(new TrashReward(
-                        row.item_id,
-                        row.chance_weight,
-                        row.min_amount,
-                        row.max_amount));
+                        row.ItemId,
+                        row.ChanceWeight,
+                        row.MinAmount,
+                        row.MaxAmount));
                 }
             }
             catch
@@ -76,33 +73,39 @@ namespace Plus.HabboHotel.Roleplay.Trash
                 return false;
 
             Habbo habbo = session.GetHabbo();
-            if (!IsTrashBin(item)) {
+            if (!IsTrashBin(item))
+            {
                 session.SendWhisper("That isn't searchable trash.", 1);
                 return false;
             }
 
-            if (habbo.GetRpStats()?.IsDead == true) {
+            if (habbo.GetRpStats()?.IsDead == true)
+            {
                 session.SendWhisper("You can't search trash while dead.", 1);
                 return false;
             }
 
-            if (habbo.GetRpStats()?.Energy < GetEnergyCost()) {
+            if (habbo.GetRpStats()?.Energy < GetEnergyCost())
+            {
                 session.SendWhisper("You don't have enough energy to search that.", 1);
                 return false;
             }
 
-            if (_activeSearches.ContainsKey(habbo.Id)) {
+            if (_activeSearches.ContainsKey(habbo.Id))
+            {
                 session.SendWhisper("You're already searching something.", 1);
                 return false;
             }
 
             double now = PlusEnvironment.GetUnixTimestamp();
-            if (_userCooldowns.TryGetValue(habbo.Id, out double userReady) && userReady > now) {
+            if (_userCooldowns.TryGetValue(habbo.Id, out double userReady) && userReady > now)
+            {
                 session.SendWhisper("You can search again in " + (int)Math.Ceiling(userReady - now) + " second(s).", 1);
                 return false;
             }
 
-            if (_binCooldowns.TryGetValue(item.Id, out BinCooldown binCooldown) && binCooldown.ReadyUnix > now) {
+            if (_binCooldowns.TryGetValue(item.Id, out BinCooldown binCooldown) && binCooldown.ReadyUnix > now)
+            {
                 session.SendWhisper("This trashbin has already been searched. Try another one.", 1);
                 return false;
             }
@@ -112,7 +115,8 @@ namespace Plus.HabboHotel.Roleplay.Trash
             if (roomUser == null)
                 return false;
 
-            if (!IsInSearchRange(roomUser, item)) {
+            if (!IsInSearchRange(roomUser, item))
+            {
                 roomUser.MoveTo(item.SquareInFront);
                 session.SendWhisper("Move closer to the trashbin to search it.", 1);
                 return false;
@@ -127,7 +131,8 @@ namespace Plus.HabboHotel.Roleplay.Trash
                 FinishUnix = now + duration
             };
 
-            if (!_activeSearches.TryAdd(habbo.Id, activeSearch)) {
+            if (!_activeSearches.TryAdd(habbo.Id, activeSearch))
+            {
                 session.SendWhisper("You're already searching something.", 1);
                 return false;
             }
@@ -136,7 +141,8 @@ namespace Plus.HabboHotel.Roleplay.Trash
             roomUser.ClearMovement(true);
 
             UserRpStats stats = habbo.GetRpStats();
-            if (stats != null) {
+            if (stats != null)
+            {
                 stats.Energy = Math.Max(0, stats.Energy - GetEnergyCost());
                 habbo.TrySendUserStatsUpdate(true);
             }
@@ -163,7 +169,8 @@ namespace Plus.HabboHotel.Roleplay.Trash
                     CompleteSearch(completed);
             }
 
-            if (now >= _nextCooldownPurgeUnix) {
+            if (now >= _nextCooldownPurgeUnix)
+            {
                 _nextCooldownPurgeUnix = now + 60;
 
                 foreach (var kv in _userCooldowns)
@@ -191,13 +198,15 @@ namespace Plus.HabboHotel.Roleplay.Trash
 
             Room room = habbo.CurrentRoom;
             RoomUser roomUser = room.GetRoomUserManager().GetRoomUserByHabbo(habbo.Id);
-            if (room == null || room.RoomId != search.RoomId || roomUser == null) {
+            if (room == null || room.RoomId != search.RoomId || roomUser == null)
+            {
                 ResetItemState(search);
                 return;
             }
 
             Item item = room.GetRoomItemHandler().GetItem(search.ItemId);
-            if (item != null) {
+            if (item != null)
+            {
                 item.ExtraData = "1";
                 item.UpdateState(false, true);
                 _binCooldowns[item.Id] = new BinCooldown(room.RoomId, item.Id, PlusEnvironment.GetUnixTimestamp() + GetBinCooldownSeconds());
@@ -209,13 +218,15 @@ namespace Plus.HabboHotel.Roleplay.Trash
             PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(client, "ACH_Trashbin", 1);
 
             int chance = GetFindChance(habbo);
-            if (_random.Next(1, 101) <= chance && TryGiveReward(habbo, out string rewardText)) {
+            if (_random.Next(1, 101) <= chance && TryGiveReward(habbo, out string rewardText))
+            {
                 room.SendPacket(new ShoutComposer(roomUser.VirtualId, "*" + habbo.Username + " finds " + rewardText + " inside of the bin*", 0, 4));
                 ProgressScavenge(habbo, 1);
                 return;
             }
 
-            if (_random.Next(1, 101) <= chance) {
+            if (_random.Next(1, 101) <= chance)
+            {
                 int credits = _random.Next(1, Math.Max(2, GetMaxCreditReward() + 1));
                 habbo.Credits += credits;
                 client.SendPacket(new CreditBalanceComposer(habbo.Credits));
@@ -236,12 +247,14 @@ namespace Plus.HabboHotel.Roleplay.Trash
             int amount = 1;
 
             TrashReward reward = RollConfiguredReward();
-            if (reward != null) {
+            if (reward != null)
+            {
                 itemData = PlusEnvironment.GetRpItemManager().GetItemById(reward.ItemId);
                 amount = _random.Next(Math.Max(1, reward.MinAmount), Math.Max(reward.MinAmount, reward.MaxAmount) + 1);
             }
 
-            if (itemData == null) {
+            if (itemData == null)
+            {
                 List<RpItemData> allItems = PlusEnvironment.GetRpItemManager().GetItems().ToList();
                 if (allItems.Count == 0)
                     return false;

@@ -1,28 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
 [Table("logs_client_staff")]
-public partial class logs_client_staff
+public partial class LogsClientStaff
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int user_id { get; set; }
+    [Column("user_id", TypeName = "int(11)")]
+    public int UserId { get; set; }
 
     [Required]
-    [Column(TypeName = "text")]
-    public string data_string { get; set; }
+    [Column("data_string", TypeName = "text")]
+    public string DataString { get; set; }
 
     [Required]
     [StringLength(75)]
-    public string machine_id { get; set; }
+    [Column("machine_id")]
+    public string MachineId { get; set; }
 
-    public double timestamp { get; set; }
+    [Column("timestamp")]
+    public double Timestamp { get; set; }
 }

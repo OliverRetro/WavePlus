@@ -1,28 +1,29 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[Index("room_id", Name = "room_id")]
-[Index("user_id", Name = "user_id")]
-public partial class chatlog
+[Index("RoomId", Name = "room_id")]
+[Index("UserId", Name = "user_id")]
+[Table("chatlogs")]
+public partial class Chatlog
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
-    [Column(TypeName = "int(10) unsigned")]
-    public uint user_id { get; set; }
+    [Column("user_id", TypeName = "int(10) unsigned")]
+    public uint UserId { get; set; }
 
-    [Column(TypeName = "int(10) unsigned")]
-    public uint room_id { get; set; }
+    [Column("room_id", TypeName = "int(10) unsigned")]
+    public uint RoomId { get; set; }
 
     [Required]
-    [Column(TypeName = "text")]
-    public string message { get; set; }
+    [Column("message", TypeName = "text")]
+    public string Message { get; set; }
 
-    public double timestamp { get; set; }
+    [Column("timestamp")]
+    public double Timestamp { get; set; }
 }

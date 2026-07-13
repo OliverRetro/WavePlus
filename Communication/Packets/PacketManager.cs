@@ -140,19 +140,20 @@ namespace Plus.Communication.Packets
             if (session == null)
                 return;
 
-            if (!_incomingPackets.TryGetValue(packet.Id, out IPacketEvent pak)) {
+            if (!_incomingPackets.TryGetValue(packet.Id, out IPacketEvent pak))
+            {
                 if (Debugger.IsAttached)
                     Log.Debug("Unhandled Packet: " + packet.Id);
                 return;
             }
 
-//            if (System.Diagnostics.Debugger.IsAttached)
-//            {
+            //            if (System.Diagnostics.Debugger.IsAttached)
+            //            {
             if (_packetNames.ContainsKey(packet.Id))
                 Log.Debug("Handled Packet: [" + packet.Id + "] " + _packetNames[packet.Id]);
             else
                 Log.Debug("Handled Packet: [" + packet.Id + "] UnnamedPacketEvent");
-//            }
+            //            }
             if (!IgnoreTasks)
 #pragma warning disable CS0162
                 ExecutePacketAsync(session, packet, pak);
@@ -174,7 +175,8 @@ namespace Plus.Communication.Packets
 
             try
             {
-                if (!t.Wait(MaximumRunTimeInSec * 1000, token)) {
+                if (!t.Wait(MaximumRunTimeInSec * 1000, token))
+                {
                     cancelSource.Cancel();
                 }
             }
@@ -182,7 +184,8 @@ namespace Plus.Communication.Packets
             {
                 foreach (Exception e in ex.Flatten().InnerExceptions)
                 {
-                    if (ThrowUserErrors) {
+                    if (ThrowUserErrors)
+                    {
                         throw e;
                     }
 

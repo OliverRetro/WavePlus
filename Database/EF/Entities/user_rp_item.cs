@@ -1,33 +1,34 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[Index("user_id", "equipped", Name = "idx_user_rp_items_equipped")]
-[Index("user_id", "item_id", Name = "idx_user_rp_items_user_item")]
-public partial class user_rp_item
+[Index("UserId", "Equipped", Name = "idx_user_rp_items_equipped")]
+[Index("UserId", "ItemId", Name = "idx_user_rp_items_user_item")]
+[Table("user_rp_items")]
+public partial class UserRpItem
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int item_id { get; set; }
+    [Column("item_id", TypeName = "int(11)")]
+    public int ItemId { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int user_id { get; set; }
+    [Column("user_id", TypeName = "int(11)")]
+    public int UserId { get; set; }
 
-    [Column(TypeName = "smallint(6)")]
-    public short uses { get; set; }
+    [Column("uses", TypeName = "smallint(6)")]
+    public short Uses { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int slot { get; set; }
+    [Column("slot", TypeName = "int(11)")]
+    public int Slot { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int durability_left { get; set; }
+    [Column("durability_left", TypeName = "int(11)")]
+    public int DurabilityLeft { get; set; }
 
-    public bool equipped { get; set; }
+    [Column("equipped")]
+    public bool Equipped { get; set; }
 }

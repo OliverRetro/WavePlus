@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data;
 using Plus.Database.EF;
 using System.Linq;
@@ -183,12 +182,12 @@ namespace Plus.HabboHotel.Rooms
         public void LoadPromotions()
         {
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            var promo = db.room_promotions.Where(p => p.room_id == Id)
-                .Select(p => new { p.title, p.description, p.timestamp_start, p.timestamp_expire, p.category_id })
+            var promo = db.RoomPromotions.Where(p => p.RoomId == Id)
+                .Select(p => new { p.Title, p.Description, p.TimestampStart, p.TimestampExpire, p.CategoryId })
                 .FirstOrDefault();
 
-            if (promo != null && promo.timestamp_expire > UnixTimestamp.GetNow())
-                Promotion = new RoomPromotion(promo.title, promo.description, promo.timestamp_start, promo.timestamp_expire, promo.category_id);
+            if (promo != null && promo.TimestampExpire > UnixTimestamp.GetNow())
+                Promotion = new RoomPromotion(promo.Title, promo.Description, promo.TimestampStart, promo.TimestampExpire, promo.CategoryId);
         }
 
         public bool HasActivePromotion => Promotion != null;

@@ -23,33 +23,33 @@ namespace Plus.Core
 
                     case "stop":
                     case "shutdown":
-                    {
-                        Log.Warn("The server is saving users furniture, rooms, etc. WAIT FOR THE SERVER TO CLOSE, DO NOT EXIT THE PROCESS IN TASK MANAGER!!");
-                        PlusEnvironment.PerformShutDown();
-                        break;
-                    }
+                        {
+                            Log.Warn("The server is saving users furniture, rooms, etc. WAIT FOR THE SERVER TO CLOSE, DO NOT EXIT THE PROCESS IN TASK MANAGER!!");
+                            PlusEnvironment.PerformShutDown();
+                            break;
+                        }
 
                     #endregion
 
                     #region alert
 
                     case "alert":
-                    {
-                        string notice = inputData.Substring(6);
+                        {
+                            string notice = inputData.Substring(6);
 
-                        PlusEnvironment.GetGame().GetClientManager().SendPacket(new BroadcastMessageAlertComposer(PlusEnvironment.GetLanguageManager().TryGetValue("server.console.alert") + "\n\n" + notice));
+                            PlusEnvironment.GetGame().GetClientManager().SendPacket(new BroadcastMessageAlertComposer(PlusEnvironment.GetLanguageManager().TryGetValue("server.console.alert") + "\n\n" + notice));
 
-                        Log.Info("Alert successfully sent.");
-                        break;
-                    }
+                            Log.Info("Alert successfully sent.");
+                            break;
+                        }
 
                     #endregion
 
                     default:
-                    {
-                        Log.Error(parameters[0].ToLower() + " is an unknown or unsupported command. Type help for more information");
-                        break;
-                    }
+                        {
+                            Log.Error(parameters[0].ToLower() + " is an unknown or unsupported command. Type help for more information");
+                            break;
+                        }
                 }
             }
             catch (Exception e)

@@ -20,11 +20,13 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Settings
             if (tradeSettings < 0 || tradeSettings > 2)
                 tradeSettings = 0;
 
-            if (!PlusEnvironment.GetGame().GetNavigator().TryGetSearchResultList(categoryId, out SearchResultList searchResultList)) {
+            if (!PlusEnvironment.GetGame().GetNavigator().TryGetSearchResultList(categoryId, out SearchResultList searchResultList))
+            {
                 categoryId = 36;
             }
 
-            if (searchResultList.CategoryType != NavigatorCategoryType.Category || searchResultList.RequiredRank > session.GetHabbo().Rank) {
+            if (searchResultList.CategoryType != NavigatorCategoryType.Category || searchResultList.RequiredRank > session.GetHabbo().Rank)
+            {
                 categoryId = 36;
             }
         }

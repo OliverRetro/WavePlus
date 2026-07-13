@@ -27,34 +27,34 @@ namespace Plus.HabboHotel.Items
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                foreach (var row in db.furnitures.AsNoTracking().ToList())
+                foreach (var row in db.Furnitures.AsNoTracking().ToList())
                 {
                     try
                     {
-                        int id = (int) row.id;
-                        int spriteId = row.sprite_id.GetValueOrDefault();
-                        string itemName = row.item_name;
-                        string publicName = row.public_name;
-                        string type = row.type;
-                        int width = row.width;
-                        int length = row.length;
-                        double height = row.stack_height;
-                        bool allowStack = PlusEnvironment.EnumToBool(row.can_stack.ToString());
-                        bool allowWalk = PlusEnvironment.EnumToBool(row.is_walkable.ToString());
-                        bool allowSit = PlusEnvironment.EnumToBool(row.can_sit.ToString());
-                        bool allowRecycle = PlusEnvironment.EnumToBool(row.allow_recycle);
-                        bool allowTrade = PlusEnvironment.EnumToBool(row.allow_trade);
-                        bool allowMarketplace = Convert.ToInt32(row.allow_marketplace_sell) == 1;
-                        bool allowGift = Convert.ToInt32(row.allow_gift) == 1;
-                        bool allowInventoryStack = PlusEnvironment.EnumToBool(row.allow_inventory_stack);
-                        InteractionType interactionType = InteractionTypes.GetTypeFromString(row.interaction_type);
-                        int behaviourData = row.behaviour_data;
-                        int cycleCount = row.interaction_modes_count;
-                        string vendingIds = row.vending_ids;
-                        string heightAdjustable = row.height_adjustable;
-                        int effectId = row.effect_id;
-                        bool isRare = PlusEnvironment.EnumToBool(row.is_rare);
-                        bool extraRot = PlusEnvironment.EnumToBool(row.extra_rot);
+                        int id = (int)row.Id;
+                        int spriteId = row.SpriteId.GetValueOrDefault();
+                        string itemName = row.ItemName;
+                        string publicName = row.PublicName;
+                        string type = row.Type;
+                        int width = row.Width;
+                        int length = row.Length;
+                        double height = row.StackHeight;
+                        bool allowStack = PlusEnvironment.EnumToBool(row.CanStack.ToString());
+                        bool allowWalk = PlusEnvironment.EnumToBool(row.IsWalkable.ToString());
+                        bool allowSit = PlusEnvironment.EnumToBool(row.CanSit.ToString());
+                        bool allowRecycle = PlusEnvironment.EnumToBool(row.AllowRecycle);
+                        bool allowTrade = PlusEnvironment.EnumToBool(row.AllowTrade);
+                        bool allowMarketplace = Convert.ToInt32(row.AllowMarketplaceSell) == 1;
+                        bool allowGift = Convert.ToInt32(row.AllowGift) == 1;
+                        bool allowInventoryStack = PlusEnvironment.EnumToBool(row.AllowInventoryStack);
+                        InteractionType interactionType = InteractionTypes.GetTypeFromString(row.InteractionType);
+                        int behaviourData = row.BehaviourData;
+                        int cycleCount = row.InteractionModesCount;
+                        string vendingIds = row.VendingIds;
+                        string heightAdjustable = row.HeightAdjustable;
+                        int effectId = row.EffectId;
+                        bool isRare = PlusEnvironment.EnumToBool(row.IsRare);
+                        bool extraRot = PlusEnvironment.EnumToBool(row.ExtraRot);
 
                         if (!Gifts.ContainsKey(spriteId))
                             Gifts.Add(spriteId, new ItemData(id, spriteId, itemName, publicName, type, width, length, height, allowStack, allowWalk, allowSit, allowRecycle, allowTrade, allowMarketplace, allowGift, allowInventoryStack, interactionType, behaviourData, cycleCount, vendingIds, heightAdjustable, effectId, isRare, extraRot));
@@ -64,7 +64,7 @@ namespace Plus.HabboHotel.Items
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine($"Error loading furniture ID {row.id}");
+                        Console.WriteLine($"Error loading furniture ID {row.Id}");
                         Console.WriteLine(e);
                         Console.ReadKey();
                     }

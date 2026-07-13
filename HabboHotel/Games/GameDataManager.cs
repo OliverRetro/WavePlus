@@ -23,12 +23,12 @@ namespace Plus.HabboHotel.Games
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                var rows = db.games_configs
-                    .Select(g => new { g.id, g.name, g.colour_one, g.colour_two, g.resource_path, g.string_three, g.game_swf, g.game_assets, g.game_server_host, g.game_server_port, g.socket_policy_port, g.game_enabled })
+                var rows = db.GamesConfigs
+                    .Select(g => new { g.Id, g.Name, g.ColourOne, g.ColourTwo, g.ResourcePath, g.StringThree, g.GameSwf, g.GameAssets, g.GameServerHost, g.GameServerPort, g.SocketPolicyPort, g.GameEnabled })
                     .ToList();
                 foreach (var row in rows)
                 {
-                    _games.Add(row.id, new GameData(row.id, row.name, row.colour_one, row.colour_two, row.resource_path, row.string_three, row.game_swf, row.game_assets, row.game_server_host, row.game_server_port, row.socket_policy_port, PlusEnvironment.EnumToBool(row.game_enabled)));
+                    _games.Add(row.Id, new GameData(row.Id, row.Name, row.ColourOne, row.ColourTwo, row.ResourcePath, row.StringThree, row.GameSwf, row.GameAssets, row.GameServerHost, row.GameServerPort, row.SocketPolicyPort, PlusEnvironment.EnumToBool(row.GameEnabled)));
                 }
             }
 

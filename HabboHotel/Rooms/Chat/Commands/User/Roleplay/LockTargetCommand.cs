@@ -17,16 +17,20 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 
             Habbo target = null;
 
-            if (@params.Length >= 2) {
+            if (@params.Length >= 2)
+            {
                 if (!RpCommandUtil.TryGetTarget(session, room, @params[1], out GameClient targetClient))
                     return;
 
                 target = targetClient.GetHabbo();
-            } else {
+            }
+            else
+            {
                 target = TargetLockService.GetTarget(session.GetHabbo());
             }
 
-            if (target == null) {
+            if (target == null)
+            {
                 session.SendWhisper("Click a player or use :locktarget <username>.", 1);
                 return;
             }

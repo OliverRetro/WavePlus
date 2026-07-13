@@ -1,19 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[Index("code", Name = "code", IsUnique = true)]
-public partial class badge_definition
+[Index("Code", Name = "code", IsUnique = true)]
+[Table("badge_definitions")]
+public partial class BadgeDefinition
 {
     [Key]
     [StringLength(35)]
-    public string code { get; set; }
+    [Column("code")]
+    public string Code { get; set; }
 
     [Required]
     [StringLength(25)]
-    public string required_right { get; set; }
+    [Column("required_right")]
+    public string RequiredRight { get; set; }
 }

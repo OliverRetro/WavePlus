@@ -1,17 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class bots_pet_response
+[Table("bots_pet_responses")]
+public partial class BotsPetResponse
 {
     [Key]
-    public string pet_id { get; set; }
+    [Column("pet_id")]
+    public string PetId { get; set; }
 
     [Required]
-    [Column(TypeName = "text")]
-    public string responses { get; set; }
+    [Column("responses", TypeName = "text")]
+    public string Responses { get; set; }
 }

@@ -31,10 +31,11 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Settings
                 if (item == null)
                     continue;
 
-                if (item.GetBaseItem().InteractionType == InteractionType.Moodlight) {
+                if (item.GetBaseItem().InteractionType == InteractionType.Moodlight)
+                {
                     uint moodItemId = (uint)item.Id;
                     using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                        db.room_items_moodlights.Where(m => m.item_id == moodItemId).ExecuteDelete();
+                        db.RoomItemsMoodlights.Where(m => m.ItemId == moodItemId).ExecuteDelete();
                 }
 
                 itemsToRemove.Add(item);
@@ -54,7 +55,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Settings
                     room.GetRoomItemHandler().RemoveFurniture(null, item.Id);
                     uint moveItemId = (uint)item.Id;
                     using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                        db.items.Where(i => i.id == moveItemId).ExecuteUpdate(s => s.SetProperty(i => i.room_id, 0u));
+                        db.Items.Where(i => i.Id == moveItemId).ExecuteUpdate(s => s.SetProperty(i => i.RoomId, 0u));
                 }
             }
 
@@ -63,12 +64,12 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Settings
             uint roomIdU = (uint)roomId;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.user_roomvisits.Where(v => v.room_id == roomIdU).ExecuteDelete();
-                db.rooms.Where(r => r.id == roomId).ExecuteDelete();
-                db.user_favorites.Where(f => f.room_id == roomIdU).ExecuteDelete();
-                db.items.Where(i => i.room_id == roomIdU).ExecuteDelete();
-                db.room_rights.Where(r => r.room_id == roomIdU).ExecuteDelete();
-                db.users.Where(u => u.home_room == roomId).ExecuteUpdate(s => s.SetProperty(u => u.home_room, 0));
+                db.UserRoomvisits.Where(v => v.RoomId == roomIdU).ExecuteDelete();
+                db.Rooms.Where(r => r.Id == roomId).ExecuteDelete();
+                db.UserFavorites.Where(f => f.RoomId == roomIdU).ExecuteDelete();
+                db.Items.Where(i => i.RoomId == roomIdU).ExecuteDelete();
+                db.RoomRights.Where(r => r.RoomId == roomIdU).ExecuteDelete();
+                db.Users.Where(u => u.HomeRoom == roomId).ExecuteUpdate(s => s.SetProperty(u => u.HomeRoom, 0));
             }
 
             PlusEnvironment.GetGame().GetRoomManager().UnloadRoom(room.Id);

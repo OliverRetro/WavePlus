@@ -2,10 +2,11 @@
 using Plus.Communication.Packets.Outgoing.Rooms.Engine;
 using Microsoft.EntityFrameworkCore;
 using Plus.Database.EF;
-using Plus.Database.EF.Entities;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users.Messenger;
+// Bare RoomPromotion = the gameplay type; the EF entity is fully-qualified at its DB upsert site.
+using RoomPromotion = Plus.HabboHotel.Rooms.RoomPromotion;
 
 namespace Plus.Communication.Packets.Incoming.Catalog
 {
@@ -32,7 +33,8 @@ namespace Plus.Communication.Packets.Incoming.Catalog
 
             if (data.Promotion == null)
                 data.Promotion = new RoomPromotion(name, desc, categoryId);
-            else {
+            else
+            {
                 data.Promotion.Name = name;
                 data.Promotion.Description = desc;
                 data.Promotion.TimestampExpires += 7200;
@@ -40,14 +42,14 @@ namespace Plus.Communication.Packets.Incoming.Catalog
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.room_promotions.Upsert(new room_promotion
+                db.RoomPromotions.Upsert(new Plus.Database.EF.Entities.RoomPromotion
                 {
-                    room_id = roomId,
-                    title = name,
-                    description = desc,
-                    timestamp_start = data.Promotion.TimestampStarted,
-                    timestamp_expire = data.Promotion.TimestampExpires,
-                    category_id = categoryId
+                    RoomId = roomId,
+                    Title = name,
+                    Description = desc,
+                    TimestampStart = data.Promotion.TimestampStarted,
+                    TimestampExpire = data.Promotion.TimestampExpires,
+                    CategoryId = categoryId
                 }).Run();
             }
 

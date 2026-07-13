@@ -1,25 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class moderation_preset
+[Table("moderation_presets")]
+public partial class ModerationPreset
 {
     [Key]
-    [Column(TypeName = "int(10) unsigned")]
-    public uint id { get; set; }
+    [Column("id", TypeName = "int(10) unsigned")]
+    public uint Id { get; set; }
 
     [Required]
-    [Column(TypeName = "enum('user','room')")]
-    public string type { get; set; }
+    [Column("type", TypeName = "enum('user','room')")]
+    public string Type { get; set; }
 
     [Required]
-    [Column(TypeName = "text")]
-    public string message { get; set; }
+    [Column("message", TypeName = "text")]
+    public string Message { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int? enabled { get; set; }
+    [Column("enabled", TypeName = "int(11)")]
+    public int? Enabled { get; set; }
 }

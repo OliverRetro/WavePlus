@@ -14,7 +14,8 @@ namespace Plus.Communication.Packets.Incoming.Navigator
                 return;
 
             List<RoomData> rooms = RoomFactory.GetRoomsDataByOwnerSortByName(session.GetHabbo().Id);
-            if (rooms.Count >= 500) {
+            if (rooms.Count >= 500)
+            {
                 session.SendPacket(new CanCreateRoomComposer(true, 500));
                 return;
             }
@@ -49,7 +50,8 @@ namespace Plus.Communication.Packets.Incoming.Navigator
                 tradeSettings = 0;
 
             RoomData newRoom = PlusEnvironment.GetGame().GetRoomManager().CreateRoom(session, name, description, category, maxVisitors, tradeSettings, model);
-            if (newRoom != null) {
+            if (newRoom != null)
+            {
                 session.SendPacket(new FlatCreatedComposer(newRoom.Id, name));
             }
 

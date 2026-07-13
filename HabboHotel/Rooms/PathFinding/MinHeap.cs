@@ -35,7 +35,8 @@ namespace Plus.HabboHotel.Rooms.PathFinding
         public void Add(T item)
         {
             Count++;
-            if (Count > _capacity) {
+            if (Count > _capacity)
+            {
                 DoubleArray();
             }
 
@@ -73,7 +74,8 @@ namespace Plus.HabboHotel.Rooms.PathFinding
 
         public T ExtractFirst()
         {
-            if (Count == 0) {
+            if (Count == 0)
+            {
                 throw new InvalidOperationException("Heap is empty");
             }
 
@@ -92,22 +94,29 @@ namespace Plus.HabboHotel.Rooms.PathFinding
                 int right = left + 1;
                 int minPosition;
 
-                if (left < Count && _array[left].CompareTo(_array[position]) < 0) {
+                if (left < Count && _array[left].CompareTo(_array[position]) < 0)
+                {
                     minPosition = left;
-                } else {
+                }
+                else
+                {
                     minPosition = position;
                 }
 
-                if (right < Count && _array[right].CompareTo(_array[minPosition]) < 0) {
+                if (right < Count && _array[right].CompareTo(_array[minPosition]) < 0)
+                {
                     minPosition = right;
                 }
 
-                if (minPosition != position) {
+                if (minPosition != position)
+                {
                     _mHeap = _array[position];
                     _array[position] = _array[minPosition];
                     _array[minPosition] = _mHeap;
                     position = minPosition;
-                } else {
+                }
+                else
+                {
                     return;
                 }
             } while (true);

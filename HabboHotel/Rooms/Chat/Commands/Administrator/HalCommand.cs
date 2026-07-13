@@ -13,7 +13,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length == 2) {
+            if (@params.Length == 2)
+            {
                 session.SendWhisper("Please enter a message and a URL to send..");
                 return;
             }

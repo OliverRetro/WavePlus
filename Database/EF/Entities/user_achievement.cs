@@ -1,25 +1,26 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[PrimaryKey("userid", "group")]
-[Index("userid", Name = "id")]
-public partial class user_achievement
+[PrimaryKey("Userid", "Group")]
+[Index("Userid", Name = "id")]
+[Table("user_achievements")]
+public partial class UserAchievement
 {
     [Key]
-    [Column(TypeName = "int(11) unsigned")]
-    public uint userid { get; set; }
+    [Column("userid", TypeName = "int(11) unsigned")]
+    public uint Userid { get; set; }
 
     [Key]
-    public string group { get; set; }
+    [Column("group")]
+    public string Group { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int level { get; set; }
+    [Column("level", TypeName = "int(11)")]
+    public int Level { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int progress { get; set; }
+    [Column("progress", TypeName = "int(11)")]
+    public int Progress { get; set; }
 }

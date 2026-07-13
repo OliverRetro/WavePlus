@@ -20,11 +20,11 @@ namespace Plus.HabboHotel.Rooms.Chat.Pets.Locale
             _values = new Dictionary<string, string[]>();
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                var pets = db.bots_pet_responses.Select(p => new { p.pet_id, p.responses }).ToList();
+                var pets = db.BotsPetResponses.Select(p => new { p.PetId, p.Responses }).ToList();
 
                 foreach (var row in pets)
                 {
-                    _values.Add(row.pet_id, row.responses.Split(';'));
+                    _values.Add(row.PetId, row.Responses.Split(';'));
                 }
             }
         }
@@ -33,7 +33,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Pets.Locale
         {
             if (_values.TryGetValue(key, out string[] value))
                 return value;
-            return new[] {"Unknown pet speach:" + key};
+            return new[] { "Unknown pet speach:" + key };
         }
     }
 }

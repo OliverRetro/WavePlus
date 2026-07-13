@@ -1,65 +1,67 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class group_role
+[Table("group_roles")]
+public partial class GroupRole
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
     /// <summary>
     /// Group&apos;s ID.
     /// </summary>
-    [Column(TypeName = "int(11)")]
-    public int group_id { get; set; }
+    [Column("group_id", TypeName = "int(11)")]
+    public int GroupId { get; set; }
 
     /// <summary>
     /// Levels go in order of Slave -&gt; CEO. 1 = Slave, 100 = CEO.
     /// </summary>
-    [Column(TypeName = "int(11)")]
-    public int level { get; set; }
+    [Column("level", TypeName = "int(11)")]
+    public int Level { get; set; }
 
     /// <summary>
     /// Literal name displayed; ex. general manager
     /// </summary>
     [Required]
     [StringLength(55)]
-    public string name { get; set; }
+    [Column("name")]
+    public string Name { get; set; }
 
     /// <summary>
     /// Credits paid via intervals.
     /// </summary>
-    [Column(TypeName = "int(11)")]
-    public int shift_pay { get; set; }
+    [Column("shift_pay", TypeName = "int(11)")]
+    public int ShiftPay { get; set; }
 
     /// <summary>
     /// Shift-Costume (full) to replace users own clothes. Blank for no swap.
     /// </summary>
     [Required]
     [StringLength(255)]
-    public string shift_costume { get; set; }
+    [Column("shift_costume")]
+    public string ShiftCostume { get; set; }
 
     /// <summary>
     /// The duration at which worker will be auto-rewarded. In minutes.
     /// </summary>
-    [Column(TypeName = "smallint(6)")]
-    public short? shift_duration { get; set; }
+    [Column("shift_duration", TypeName = "smallint(6)")]
+    public short? ShiftDuration { get; set; }
 
     /// <summary>
     /// Replace users motto for the duration of shift? Blank for no swap.
     /// </summary>
     [Required]
     [StringLength(40)]
-    public string shift_motto { get; set; }
+    [Column("shift_motto")]
+    public string ShiftMotto { get; set; }
 
-    [Column(TypeName = "datetime")]
-    public DateTime created_at { get; set; }
+    [Column("created_at", TypeName = "datetime")]
+    public DateTime CreatedAt { get; set; }
 
-    [Column(TypeName = "datetime")]
-    public DateTime? updated_at { get; set; }
+    [Column("updated_at", TypeName = "datetime")]
+    public DateTime? UpdatedAt { get; set; }
 }

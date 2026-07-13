@@ -1,20 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class server_reward_log
+[Table("server_reward_logs")]
+public partial class ServerRewardLog
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int user_id { get; set; }
+    [Column("user_id", TypeName = "int(11)")]
+    public int UserId { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int reward_id { get; set; }
+    [Column("reward_id", TypeName = "int(11)")]
+    public int RewardId { get; set; }
 }

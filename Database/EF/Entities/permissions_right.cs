@@ -1,20 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class permissions_right
+[Table("permissions_rights")]
+public partial class PermissionsRight
 {
     [Key]
-    [Column(TypeName = "int(10)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(10)")]
+    public int Id { get; set; }
 
-    [Column(TypeName = "int(10)")]
-    public int group_id { get; set; }
+    [Column("group_id", TypeName = "int(10)")]
+    public int GroupId { get; set; }
 
-    [Column(TypeName = "int(10)")]
-    public int permission_id { get; set; }
+    [Column("permission_id", TypeName = "int(10)")]
+    public int PermissionId { get; set; }
 }

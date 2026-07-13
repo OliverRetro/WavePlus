@@ -1,9 +1,5 @@
 using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.HabboHotel.GameClients;
-using Plus.HabboHotel.Roleplay.Police;
-using Plus.HabboHotel.Rooms;
-using Plus.HabboHotel.Rooms.Chat.Commands;
-using Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Police
 {
@@ -16,7 +12,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Police
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length < 2) {
+            if (@params.Length < 2)
+            {
                 session.SendWhisper("Usage: :pardon <username>", 1);
                 return;
             }

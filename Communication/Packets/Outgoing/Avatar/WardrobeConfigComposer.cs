@@ -1,5 +1,3 @@
-using System;
-
 namespace Plus.Communication.Packets.Outgoing.Avatar
 {
     internal class WardrobeConfigComposer : MessageComposer

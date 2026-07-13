@@ -14,7 +14,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (!CanChangeName(session.GetHabbo())) {
+            if (!CanChangeName(session.GetHabbo()))
+            {
                 session.SendWhisper("Sorry, it seems you currently do not have the option to change your username!");
                 return;
             }

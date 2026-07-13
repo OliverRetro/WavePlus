@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using Plus.Communication.Packets.Incoming;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
@@ -43,7 +42,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
             if (string.IsNullOrEmpty(StringData))
                 return false;
 
-            Habbo player = (Habbo) @params[0];
+            Habbo player = (Habbo)@params[0];
 
             if (player == null)
                 return false;
@@ -58,7 +57,8 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
             if (user == null)
                 return false;
 
-            if (user.BotData.TargetUser == 0) {
+            if (user.BotData.TargetUser == 0)
+            {
                 if (!Instance.GetGameMap().CanWalk(actor.SquareBehind.X, actor.SquareBehind.Y, false))
                     return false;
 

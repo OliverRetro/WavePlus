@@ -1,20 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class permissions_command
+[Table("permissions_commands")]
+public partial class PermissionsCommand
 {
     [Key]
     [StringLength(45)]
-    public string command { get; set; }
+    [Column("command")]
+    public string Command { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int group_id { get; set; }
+    [Column("group_id", TypeName = "int(11)")]
+    public int GroupId { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int subscription_id { get; set; }
+    [Column("subscription_id", TypeName = "int(11)")]
+    public int SubscriptionId { get; set; }
 }

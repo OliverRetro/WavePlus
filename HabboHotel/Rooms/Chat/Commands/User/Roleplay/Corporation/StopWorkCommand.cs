@@ -18,7 +18,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
 
             // 5s cooldown shared with :startwork so the shift can't be toggle-spammed.
             double now = PlusEnvironment.GetUnixTimestamp();
-            if (session.GetHabbo().LastWorkActionTime > now) {
+            if (session.GetHabbo().LastWorkActionTime > now)
+            {
                 session.SendWhisper("You must wait " + (int)Math.Ceiling(session.GetHabbo().LastWorkActionTime - now) + " seconds before changing your work status again.", 1);
                 return;
             }

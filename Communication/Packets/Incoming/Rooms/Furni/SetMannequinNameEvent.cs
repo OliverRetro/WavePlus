@@ -23,17 +23,19 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
             if (item == null)
                 return;
 
-            if (item.ExtraData.Contains(Convert.ToChar(5))) {
+            if (item.ExtraData.Contains(Convert.ToChar(5)))
+            {
                 string[] flags = item.ExtraData.Split(Convert.ToChar(5));
                 item.ExtraData = flags[0] + Convert.ToChar(5) + flags[1] + Convert.ToChar(5) + name;
-            } else
+            }
+            else
                 item.ExtraData = "m" + Convert.ToChar(5) + ".ch-210-1321.lg-285-92" + Convert.ToChar(5) + "Default Mannequin";
 
             uint itemDbId = (uint)item.Id;
             string extraData = item.ExtraData;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.items.Where(i => i.id == itemDbId).ExecuteUpdate(s => s.SetProperty(i => i.extra_data, extraData));
+                db.Items.Where(i => i.Id == itemDbId).ExecuteUpdate(s => s.SetProperty(i => i.ExtraData, extraData));
             }
 
             item.UpdateState(true, true);

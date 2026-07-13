@@ -20,10 +20,10 @@ namespace Plus.HabboHotel.Catalog.Clothing
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                var rows = db.catalog_clothings.Select(c => new { c.id, c.clothing_name, c.clothing_parts }).ToList();
+                var rows = db.CatalogClothings.Select(c => new { c.Id, c.ClothingName, c.ClothingParts }).ToList();
                 foreach (var row in rows)
                 {
-                    _clothing.Add(row.id, new ClothingItem(row.id, row.clothing_name, row.clothing_parts));
+                    _clothing.Add(row.Id, new ClothingItem(row.Id, row.ClothingName, row.ClothingParts));
                 }
             }
         }

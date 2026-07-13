@@ -140,7 +140,8 @@ namespace Plus.HabboHotel.Roleplay.Skill
             if (!HasUnlockedSkill(skillId))
                 return false;
 
-            if (IsEquipped(skillId)) {
+            if (IsEquipped(skillId))
+            {
                 SetEquipped(skillId, false);
                 return true;
             }

@@ -42,7 +42,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
             if (@params == null || @params.Length == 0)
                 return false;
 
-            Habbo player = (Habbo) @params[0];
+            Habbo player = (Habbo)@params[0];
             if (player == null || player.GetClient() == null || string.IsNullOrWhiteSpace(StringData))
                 return false;
 

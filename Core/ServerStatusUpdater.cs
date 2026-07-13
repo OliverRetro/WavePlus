@@ -40,9 +40,9 @@ namespace Plus.Core
             // NOTE: original query used LIMIT 1; ExecuteUpdate cannot express LIMIT, so this updates all rows (server_status is a single-row table).
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.server_statuses.ExecuteUpdate(s => s
-                    .SetProperty(x => x.users_online, usersOnline)
-                    .SetProperty(x => x.loaded_rooms, roomCount));
+                db.ServerStatuses.ExecuteUpdate(s => s
+                    .SetProperty(x => x.UsersOnline, usersOnline)
+                    .SetProperty(x => x.LoadedRooms, roomCount));
             }
         }
 
@@ -50,9 +50,9 @@ namespace Plus.Core
         {
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.server_statuses.ExecuteUpdate(s => s
-                    .SetProperty(x => x.users_online, 0)
-                    .SetProperty(x => x.loaded_rooms, 0));
+                db.ServerStatuses.ExecuteUpdate(s => s
+                    .SetProperty(x => x.UsersOnline, 0)
+                    .SetProperty(x => x.LoadedRooms, 0));
             }
 
             _timer.Dispose();

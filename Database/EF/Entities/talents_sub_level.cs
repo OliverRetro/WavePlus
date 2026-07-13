@@ -1,27 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class talents_sub_level
+[Table("talents_sub_levels")]
+public partial class TalentsSubLevel
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int talent_level { get; set; }
+    [Column("talent_level", TypeName = "int(11)")]
+    public int TalentLevel { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int sub_level { get; set; }
+    [Column("sub_level", TypeName = "int(11)")]
+    public int SubLevel { get; set; }
 
     [Required]
     [StringLength(45)]
-    public string badge_code { get; set; }
+    [Column("badge_code")]
+    public string BadgeCode { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int required_progress { get; set; }
+    [Column("required_progress", TypeName = "int(11)")]
+    public int RequiredProgress { get; set; }
 }

@@ -23,18 +23,20 @@ namespace Plus.Communication.Packets.Incoming.Messenger
                 {
                     int id = packet.PopInt();
 
-                    if (session.GetHabbo().Relationships.Count(x => x.Value.UserId == id) > 0) {
+                    if (session.GetHabbo().Relationships.Count(x => x.Value.UserId == id) > 0)
+                    {
                         int selfId = session.GetHabbo().Id;
                         int targetId = id;
                         // NOTE: preserves legacy precedence: (user_id=self AND target=id) OR (target=self AND user_id=id)
-                        db.user_relationships.Where(r => (r.user_id == selfId && r.target == targetId) || (r.target == selfId && r.user_id == targetId)).ExecuteDelete();
+                        db.UserRelationships.Where(r => (r.UserId == selfId && r.Target == targetId) || (r.Target == selfId && r.UserId == targetId)).ExecuteDelete();
                     }
 
                     if (session.GetHabbo().Relationships.ContainsKey(id))
                         session.GetHabbo().Relationships.Remove(id);
 
                     GameClient target = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(id);
-                    if (target != null) {
+                    if (target != null)
+                    {
                         if (target.GetHabbo().Relationships.ContainsKey(session.GetHabbo().Id))
                             target.GetHabbo().Relationships.Remove(session.GetHabbo().Id);
                     }

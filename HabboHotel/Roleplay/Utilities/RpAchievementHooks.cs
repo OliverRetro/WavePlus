@@ -25,19 +25,22 @@ namespace Plus.HabboHotel.Roleplay.Utilities
             Users.Habbo habbo = session.GetHabbo();
 
             // ACH_RegistrationDuration — whole days elapsed since the account was created.
-            if (habbo.AccountCreated > 0) {
+            if (habbo.AccountCreated > 0)
+            {
                 int daysRegistered = (int)Math.Floor((PlusEnvironment.GetUnixTimestamp() - habbo.AccountCreated) / 86400.0);
                 achievements.SetAbsoluteProgress(session, "ACH_RegistrationDuration", daysRegistered);
             }
 
             // ACH_Profile_Pantheon_ — your current RP level (derived from experience).
-            if (habbo.GetRpStats() != null) {
+            if (habbo.GetRpStats() != null)
+            {
                 int level = LevelManager.GetXPInfo(habbo.GetRpStats().Experience).Level;
                 achievements.SetAbsoluteProgress(session, "ACH_Profile_Pantheon_", level);
             }
 
             // ACH_ChatStyleOwner — number of unique chat bubbles owned (the default bubble 0 excluded).
-            if (habbo.OwnedChatBubbleIds != null) {
+            if (habbo.OwnedChatBubbleIds != null)
+            {
                 int uniqueBubbles = habbo.OwnedChatBubbleIds.Where(id => id != 0).Distinct().Count();
                 achievements.SetAbsoluteProgress(session, "ACH_ChatStyleOwner", uniqueBubbles);
             }
@@ -62,13 +65,15 @@ namespace Plus.HabboHotel.Roleplay.Utilities
             double now = PlusEnvironment.GetUnixTimestamp();
             double lastOnline = habbo.LastOnline; // previous session's disconnect time (0 = first login ever)
 
-            if (lastOnline <= 0) {
+            if (lastOnline <= 0)
+            {
                 // First recorded login: begin the streak.
                 achievements.ProgressAchievement(session, "ACH_Login", 1);
                 return;
             }
 
-            if (now - lastOnline > breakWindowSeconds) {
+            if (now - lastOnline > breakWindowSeconds)
+            {
                 // Offline for over 48 hours — streak broken. Wipe it (removes the badge) and restart.
                 achievements.ResetAchievement(session, "ACH_Login");
                 achievements.ProgressAchievement(session, "ACH_Login", 1);

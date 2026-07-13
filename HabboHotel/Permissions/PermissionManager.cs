@@ -30,31 +30,36 @@ namespace Plus.HabboHotel.Permissions
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-            foreach (var row in db.permissions.Select(p => new { p.id, p.permission1, p.description }).ToList())
-                _permissions.Add(row.id, new Permission(row.id, row.permission1, row.description));
+            foreach (var row in db.Permissions.Select(p => new { p.Id, p.Permission1, p.Description }).ToList())
+                _permissions.Add(row.Id, new Permission(row.Id, row.Permission1, row.Description));
 
-            foreach (var row in db.permissions_commands.Select(c => new { c.command, c.group_id, c.subscription_id }).ToList())
-                _commands.Add(row.command, new PermissionCommand(row.command, row.group_id, row.subscription_id));
+            foreach (var row in db.PermissionsCommands.Select(c => new { c.Command, c.GroupId, c.SubscriptionId }).ToList())
+                _commands.Add(row.Command, new PermissionCommand(row.Command, row.GroupId, row.SubscriptionId));
 
-            foreach (var row in db.permissions_groups.Select(g => new { g.id }).ToList())
-                _permissionGroups.Add(row.id, new PermissionGroup(Convert.ToString("name"), Convert.ToString("description"), Convert.ToString("badge")));
+            foreach (var row in db.PermissionsGroups.Select(g => new { g.Id }).ToList())
+                _permissionGroups.Add(row.Id, new PermissionGroup(Convert.ToString("name"), Convert.ToString("description"), Convert.ToString("badge")));
 
-            foreach (var row in db.permissions_rights.Select(r => new { r.group_id, r.permission_id }).ToList())
+            foreach (var row in db.PermissionsRights.Select(r => new { r.GroupId, r.PermissionId }).ToList())
             {
-                int groupId = row.group_id;
-                int permissionId = row.permission_id;
+                int groupId = row.GroupId;
+                int permissionId = row.PermissionId;
 
-                if (!_permissionGroups.ContainsKey(groupId)) {
+                if (!_permissionGroups.ContainsKey(groupId))
+                {
                     continue; // permission group does not exist
                 }
 
-                if (!_permissions.TryGetValue(permissionId, out Permission permission)) {
+                if (!_permissions.TryGetValue(permissionId, out Permission permission))
+                {
                     continue; // permission does not exist
                 }
 
-                if (_permissionGroupRights.ContainsKey(groupId)) {
+                if (_permissionGroupRights.ContainsKey(groupId))
+                {
                     _permissionGroupRights[groupId].Add(permission.PermissionName);
-                } else {
+                }
+                else
+                {
                     List<string> rightsSet = new()
                     {
                         permission.PermissionName
@@ -64,17 +69,20 @@ namespace Plus.HabboHotel.Permissions
                 }
             }
 
-            foreach (var row in db.permissions_subscriptions.Select(sub => new { sub.permission_id, sub.subscription_id }).ToList())
+            foreach (var row in db.PermissionsSubscriptions.Select(sub => new { sub.PermissionId, sub.SubscriptionId }).ToList())
             {
-                int permissionId = row.permission_id;
-                int subscriptionId = row.subscription_id;
+                int permissionId = row.PermissionId;
+                int subscriptionId = row.SubscriptionId;
 
                 if (!_permissions.TryGetValue(permissionId, out Permission permission))
                     continue; // permission does not exist
 
-                if (_permissionSubscriptionRights.ContainsKey(subscriptionId)) {
+                if (_permissionSubscriptionRights.ContainsKey(subscriptionId))
+                {
                     _permissionSubscriptionRights[subscriptionId].Add(permission.PermissionName);
-                } else {
+                }
+                else
+                {
                     List<string> rightsSet = new()
                     {
                         permission.PermissionName
@@ -99,11 +107,13 @@ namespace Plus.HabboHotel.Permissions
         {
             List<string> permissionSet = new();
 
-            if (_permissionGroupRights.TryGetValue(player.Rank, out List<string> permRights)) {
+            if (_permissionGroupRights.TryGetValue(player.Rank, out List<string> permRights))
+            {
                 permissionSet.AddRange(permRights);
             }
 
-            if (_permissionSubscriptionRights.TryGetValue(player.VipRank, out List<string> subscriptionRights)) {
+            if (_permissionSubscriptionRights.TryGetValue(player.VipRank, out List<string> subscriptionRights))
+            {
                 permissionSet.AddRange(subscriptionRights);
             }
 

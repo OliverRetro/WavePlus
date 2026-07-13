@@ -35,9 +35,11 @@ namespace Plus.Communication.Rcon.Commands
 
             string cmd = data.Split(Convert.ToChar(1))[0];
 
-            if (_commands.TryGetValue(cmd.ToLower(), out IRconCommand command)) {
+            if (_commands.TryGetValue(cmd.ToLower(), out IRconCommand command))
+            {
                 string[] parameters = null;
-                if (data.Split(Convert.ToChar(1))[1] != null) {
+                if (data.Split(Convert.ToChar(1))[1] != null)
+                {
                     var param = data.Split(Convert.ToChar(1))[1];
                     parameters = param.Split(':');
                 }

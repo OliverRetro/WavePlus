@@ -18,12 +18,14 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (!room.CheckRights(session, true)) {
+            if (!room.CheckRights(session, true))
+            {
                 session.SendWhisper("Oops, only the room owner can run this command!");
                 return;
             }
 
-            if (room.GetRoomUserManager().GetPets().Count == 0) {
+            if (room.GetRoomUserManager().GetPets().Count == 0)
+            {
                 session.SendWhisper("Oops, there isn't any pets in here!?");
             }
 
@@ -32,18 +34,22 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                 if (bot == null)
                     continue;
 
-                if (bot.RidingHorse) {
+                if (bot.RidingHorse)
+                {
                     RoomUser rider = room.GetRoomUserManager().GetRoomUserByVirtualId(bot.HorseId);
-                    if (rider != null) {
+                    if (rider != null)
+                    {
                         rider.RidingHorse = false;
                         rider.ApplyEffect(-1);
                         rider.MoveTo(new Point(rider.X + 1, rider.Y + 1));
-                    } else
+                    }
+                    else
                         bot.RidingHorse = false;
                 }
 
                 Pet pet = bot.PetData;
-                if (pet != null) {
+                if (pet != null)
+                {
                     return;
                 }
 
@@ -52,16 +58,20 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
 
                 room.GetRoomUserManager().RemoveBot(bot.VirtualId, false);
 
-                if (pet.OwnerId != session.GetHabbo().Id) {
+                if (pet.OwnerId != session.GetHabbo().Id)
+                {
                     GameClient targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(pet.OwnerId);
-                    if (targetClient != null) {
-                        if (targetClient.GetHabbo().GetInventoryComponent().TryAddPet(pet)) {
+                    if (targetClient != null)
+                    {
+                        if (targetClient.GetHabbo().GetInventoryComponent().TryAddPet(pet))
+                        {
                             targetClient.SendPacket(new PetInventoryComposer(targetClient.GetHabbo().GetInventoryComponent().GetPets()));
                         }
                     }
                 }
 
-                if (session.GetHabbo().GetInventoryComponent().TryAddPet(pet)) {
+                if (session.GetHabbo().GetInventoryComponent().TryAddPet(pet))
+                {
                     session.SendPacket(new PetInventoryComposer(session.GetHabbo().GetInventoryComponent().GetPets()));
                 }
 
@@ -72,8 +82,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                 int petRespect = pet.Respect;
                 using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    db.bots.Where(b => b.id == petId).ExecuteUpdate(s => s.SetProperty(b => b.room_id, 0u).SetProperty(b => b.x, 0).SetProperty(b => b.y, 0).SetProperty(b => b.z, 0));
-                    db.bots_petdata.Where(p => p.id == petId).ExecuteUpdate(s => s.SetProperty(p => p.experience, petExperience).SetProperty(p => p.energy, petEnergy).SetProperty(p => p.nutrition, petNutrition).SetProperty(p => p.respect, petRespect));
+                    db.Bots.Where(b => b.Id == petId).ExecuteUpdate(s => s.SetProperty(b => b.RoomId, 0u).SetProperty(b => b.X, 0).SetProperty(b => b.Y, 0).SetProperty(b => b.Z, 0));
+                    db.BotsPetdata.Where(p => p.Id == petId).ExecuteUpdate(s => s.SetProperty(p => p.Experience, petExperience).SetProperty(p => p.Energy, petEnergy).SetProperty(p => p.Nutrition, petNutrition).SetProperty(p => p.Respect, petRespect));
                 }
             }
 

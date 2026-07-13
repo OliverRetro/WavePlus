@@ -27,11 +27,12 @@ namespace Plus.Communication.Packets.Incoming.Moderation
             GameClient client = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(ticket.Sender.Id);
             client?.SendPacket(new ModeratorSupportTicketResponseComposer(result));
 
-            if (result == 2) {
+            if (result == 2)
+            {
                 int senderId = ticket.Sender.Id;
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
-                db.user_infos.Where(u => u.user_id == senderId)
-                    .ExecuteUpdate(s => s.SetProperty(u => u.cfhs_abusive, u => u.cfhs_abusive + 1));
+                db.UserInfos.Where(u => u.UserId == senderId)
+                    .ExecuteUpdate(s => s.SetProperty(u => u.CfhsAbusive, u => u.CfhsAbusive + 1));
             }
 
             ticket.Answered = true;

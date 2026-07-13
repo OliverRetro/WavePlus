@@ -19,7 +19,8 @@ namespace Plus.Utilities
             str = str.Replace(Convert.ToChar(3), ' ');
             str = str.Replace(Convert.ToChar(9), ' ');
 
-            if (!allowBreaks) {
+            if (!allowBreaks)
+            {
                 str = str.Replace(Convert.ToChar(10), ' ');
                 str = str.Replace(Convert.ToChar(13), ' ');
             }

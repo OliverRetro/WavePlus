@@ -2,7 +2,8 @@
 using Plus.Database.EF;
 using Plus.Database.EF.Entities;
 using Plus.HabboHotel.GameClients;
-using Plus.HabboHotel.Rooms;
+// Disambiguates the bare name from the scaffolded EF entity Plus.Database.EF.Entities.Room.
+using Room = Plus.HabboHotel.Rooms.Room;
 using Plus.HabboHotel.Users;
 
 namespace Plus.Communication.Packets.Incoming.Rooms.Action
@@ -27,10 +28,11 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Action
             if (session.GetHabbo().GetIgnores().TryGet(player.Id))
                 return;
 
-            if (session.GetHabbo().GetIgnores().TryAdd(player.Id)) {
+            if (session.GetHabbo().GetIgnores().TryAdd(player.Id))
+            {
                 using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    db.user_ignores.Add(new user_ignore { user_id = (uint)session.GetHabbo().Id, ignore_id = (uint)player.Id });
+                    db.UserIgnores.Add(new UserIgnore { UserId = (uint)session.GetHabbo().Id, IgnoreId = (uint)player.Id });
                     db.SaveChanges();
                 }
 

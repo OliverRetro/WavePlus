@@ -2,8 +2,6 @@
 using System.Linq;
 using Plus.Communication.Packets.Outgoing.Groups;
 using Plus.Communication.Packets.Outgoing.Rooms.Engine;
-using Microsoft.EntityFrameworkCore;
-using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
 using Plus.HabboHotel.Items;
@@ -29,7 +27,8 @@ namespace Plus.Communication.Packets.Incoming.Groups
             group.MarkDirty(); // cached; written to DB on the 15-minute group flush
 
             session.SendPacket(new GroupInfoComposer(group, session));
-            if (session.GetHabbo().CurrentRoom != null) {
+            if (session.GetHabbo().CurrentRoom != null)
+            {
                 foreach (Item item in session.GetHabbo().CurrentRoom.GetRoomItemHandler().GetFloor.ToList())
                 {
                     if (item == null || item.GetBaseItem() == null)

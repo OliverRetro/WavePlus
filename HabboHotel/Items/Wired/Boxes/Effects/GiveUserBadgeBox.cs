@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using Plus.Communication.Packets.Incoming;
 using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.HabboHotel.Rooms;
@@ -47,7 +46,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
             if (owner == null || !owner.GetPermissions().HasRight("room_item_wired_rewards"))
                 return false;
 
-            Habbo player = (Habbo) @params[0];
+            Habbo player = (Habbo)@params[0];
             if (player == null || player.GetClient() == null)
                 return false;
 
@@ -60,7 +59,8 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
 
             if (player.GetBadgeComponent().HasBadge(StringData))
                 player.GetClient().SendPacket(new WhisperComposer(user.VirtualId, "Oops, it appears you have already recieved this badge!", 0, user.LastBubble));
-            else {
+            else
+            {
                 player.GetBadgeComponent().GiveBadge(StringData, true, player.GetClient());
                 player.GetClient().SendNotification("You have recieved a badge!");
             }

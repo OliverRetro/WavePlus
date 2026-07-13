@@ -1,24 +1,24 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[PrimaryKey("user_id", "room_id")]
-[Index("room_id", Name = "room_id")]
-[Index("user_id", Name = "user_id")]
-public partial class room_ban
+[PrimaryKey("UserId", "RoomId")]
+[Index("RoomId", Name = "room_id")]
+[Index("UserId", Name = "user_id")]
+[Table("room_bans")]
+public partial class RoomBan
 {
     [Key]
-    [Column(TypeName = "int(11) unsigned")]
-    public uint user_id { get; set; }
+    [Column("user_id", TypeName = "int(11) unsigned")]
+    public uint UserId { get; set; }
 
     [Key]
-    [Column(TypeName = "int(11) unsigned")]
-    public uint room_id { get; set; }
+    [Column("room_id", TypeName = "int(11) unsigned")]
+    public uint RoomId { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int expire { get; set; }
+    [Column("expire", TypeName = "int(11)")]
+    public int Expire { get; set; }
 }

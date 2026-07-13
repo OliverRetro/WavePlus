@@ -1,32 +1,33 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[Index("user_id", Name = "user_id")]
-public partial class user_effect
+[Index("UserId", Name = "user_id")]
+[Table("user_effects")]
+public partial class UserEffect
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
-    [Column(TypeName = "int(10) unsigned")]
-    public uint? user_id { get; set; }
+    [Column("user_id", TypeName = "int(10) unsigned")]
+    public uint? UserId { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int? effect_id { get; set; }
+    [Column("effect_id", TypeName = "int(11)")]
+    public int? EffectId { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int? total_duration { get; set; }
+    [Column("total_duration", TypeName = "int(11)")]
+    public int? TotalDuration { get; set; }
 
-    [Column(TypeName = "enum('0','1')")]
-    public string is_activated { get; set; }
+    [Column("is_activated", TypeName = "enum('0','1')")]
+    public string IsActivated { get; set; }
 
-    public double? activated_stamp { get; set; }
+    [Column("activated_stamp")]
+    public double? ActivatedStamp { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int? quantity { get; set; }
+    [Column("quantity", TypeName = "int(11)")]
+    public int? Quantity { get; set; }
 }

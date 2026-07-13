@@ -29,7 +29,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                 using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
                     // NOTE: legacy query also matched room_id = '' which cannot occur for a uint column; kept room_id == 0 only.
-                    itemIds = db.items.Where(i => i.user_id == userId && i.room_id == 0).Select(i => i.id).ToList();
+                    itemIds = db.Items.Where(i => i.UserId == userId && i.RoomId == 0).Select(i => i.Id).ToList();
                 }
 
                 using (WavePlusContext db = PlusEnvironment.GetDbContext())
@@ -43,13 +43,14 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                         int value = item.Data.BehaviourData;
 
                         uint itemId = (uint)item.Id;
-                        db.items.Where(i => i.id == itemId).ExecuteDelete();
+                        db.Items.Where(i => i.Id == itemId).ExecuteDelete();
 
                         session.GetHabbo().GetInventoryComponent().RemoveItem(item.Id);
 
                         totalValue += value;
 
-                        if (value > 0) {
+                        if (value > 0)
+                        {
                             session.GetHabbo().Credits += value;
                             session.SendPacket(new CreditBalanceComposer(session.GetHabbo().Credits));
                         }

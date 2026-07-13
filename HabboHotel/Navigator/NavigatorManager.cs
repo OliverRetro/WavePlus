@@ -39,19 +39,21 @@ namespace Plus.HabboHotel.Navigator
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                foreach (var row in db.navigator_categories.OrderBy(c => c.id).ToList())
+                foreach (var row in db.NavigatorCategories.OrderBy(c => c.Id).ToList())
                 {
-                    if (Convert.ToInt32(row.enabled) == 1) {
-                        if (!_searchResultLists.ContainsKey(row.id))
-                            _searchResultLists.Add(row.id, new SearchResultList(row.id, row.category, row.category_identifier, row.public_name, true, -1, row.required_rank, NavigatorViewModeUtility.GetViewModeByString(row.view_mode), row.category_type, row.search_allowance, row.order_id));
+                    if (Convert.ToInt32(row.Enabled) == 1)
+                    {
+                        if (!_searchResultLists.ContainsKey(row.Id))
+                            _searchResultLists.Add(row.Id, new SearchResultList(row.Id, row.Category, row.CategoryIdentifier, row.PublicName, true, -1, row.RequiredRank, NavigatorViewModeUtility.GetViewModeByString(row.ViewMode), row.CategoryType, row.SearchAllowance, row.OrderId));
                     }
                 }
 
-                foreach (var row in db.navigator_publics.OrderBy(p => p.order_num).Select(p => new { p.room_id, p.caption, p.description, p.image_url, p.enabled }).ToList())
+                foreach (var row in db.NavigatorPublics.OrderBy(p => p.OrderNum).Select(p => new { p.RoomId, p.Caption, p.Description, p.ImageUrl, p.Enabled }).ToList())
                 {
-                    if (Convert.ToInt32(row.enabled) == 1) {
-                        if (!_featuredRooms.ContainsKey(row.room_id))
-                            _featuredRooms.Add(row.room_id, new FeaturedRoom(row.room_id, row.caption, row.description, row.image_url));
+                    if (Convert.ToInt32(row.Enabled) == 1)
+                    {
+                        if (!_featuredRooms.ContainsKey(row.RoomId))
+                            _featuredRooms.Add(row.RoomId, new FeaturedRoom(row.RoomId, row.Caption, row.Description, row.ImageUrl));
                     }
                 }
             }
@@ -63,9 +65,9 @@ namespace Plus.HabboHotel.Navigator
         {
             IEnumerable<SearchResultList> categories =
                 (from cat in _searchResultLists
-                    where cat.Value.Category == category
-                    orderby cat.Value.OrderId
-                    select cat.Value);
+                 where cat.Value.Category == category
+                 orderby cat.Value.OrderId
+                 select cat.Value);
             return categories.ToList();
         }
 
@@ -73,9 +75,9 @@ namespace Plus.HabboHotel.Navigator
         {
             IEnumerable<SearchResultList> categories =
                 (from cat in _searchResultLists
-                    where cat.Value.CategoryIdentifier == category
-                    orderby cat.Value.OrderId
-                    select cat.Value);
+                 where cat.Value.CategoryIdentifier == category
+                 orderby cat.Value.OrderId
+                 select cat.Value);
             return categories.ToList();
         }
 
@@ -83,9 +85,9 @@ namespace Plus.HabboHotel.Navigator
         {
             IEnumerable<SearchResultList> categories =
                 (from cat in _searchResultLists
-                    where cat.Value.CategoryType == NavigatorCategoryType.Category
-                    orderby cat.Value.OrderId
-                    select cat.Value);
+                 where cat.Value.CategoryType == NavigatorCategoryType.Category
+                 orderby cat.Value.OrderId
+                 select cat.Value);
             return categories.ToList();
         }
 
@@ -93,9 +95,9 @@ namespace Plus.HabboHotel.Navigator
         {
             IEnumerable<SearchResultList> categories =
                 (from cat in _searchResultLists
-                    where cat.Value.CategoryType == NavigatorCategoryType.PromotionCategory
-                    orderby cat.Value.OrderId
-                    select cat.Value);
+                 where cat.Value.CategoryType == NavigatorCategoryType.PromotionCategory
+                 orderby cat.Value.OrderId
+                 select cat.Value);
             return categories.ToList();
         }
 

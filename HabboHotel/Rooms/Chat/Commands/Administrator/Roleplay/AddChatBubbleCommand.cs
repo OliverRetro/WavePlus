@@ -18,49 +18,56 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length < 3) {
+            if (@params.Length < 3)
+            {
                 session.SendWhisper("Please enter a username and a chat bubble ID. Example usage is :chatbubble Oliver 5.");
                 return;
             }
 
-            if (!int.TryParse(@params[2], out int bubbleId)) {
+            if (!int.TryParse(@params[2], out int bubbleId))
+            {
                 session.SendWhisper("Please enter a valid chat bubble ID.");
                 return;
             }
 
-            if (!PlusEnvironment.GetGame().GetChatManager().GetChatStyles().TryGetStyle(bubbleId, out ChatStyle style)) {
+            if (!PlusEnvironment.GetGame().GetChatManager().GetChatStyles().TryGetStyle(bubbleId, out ChatStyle style))
+            {
                 session.SendWhisper("That chat bubble does not exist.");
                 return;
             }
 
             GameClient targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(@params[1]);
-            if (targetClient == null) {
+            if (targetClient == null)
+            {
                 session.SendWhisper("An error occurred whilst finding that user, maybe they're not online.");
                 return;
             }
 
-            if (targetClient.GetHabbo() == null) {
+            if (targetClient.GetHabbo() == null)
+            {
                 session.SendWhisper("An error occurred whilst finding that user, maybe they're not online.");
                 return;
             }
 
-            if (style.RequiredRight.Length > 0 && !targetClient.GetHabbo().GetPermissions().HasRight(style.RequiredRight)) {
+            if (style.RequiredRight.Length > 0 && !targetClient.GetHabbo().GetPermissions().HasRight(style.RequiredRight))
+            {
                 session.SendWhisper(targetClient.GetHabbo().Username + " does not have the required right for that bubble.");
                 return;
             }
 
-            if (targetClient.GetHabbo().HasChatBubble(bubbleId)) {
+            if (targetClient.GetHabbo().HasChatBubble(bubbleId))
+            {
                 session.SendWhisper(targetClient.GetHabbo().Username + " already owns that chat bubble.");
                 return;
             }
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.user_chat_bubbles.Add(new user_chat_bubble
+                db.UserChatBubbles.Add(new UserChatBubble
                 {
-                    chat_bubble_id = bubbleId,
-                    user_id = targetClient.GetHabbo().Id,
-                    created_at = DateTime.Now
+                    ChatBubbleId = bubbleId,
+                    UserId = targetClient.GetHabbo().Id,
+                    CreatedAt = DateTime.Now
                 });
                 db.SaveChanges();
             }

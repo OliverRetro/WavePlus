@@ -18,7 +18,8 @@ namespace Plus.Communication.Packets.Incoming.Inventory.Trading
             if (roomUser == null)
                 return;
 
-            if (!room.GetTrading().TryGetTrade(roomUser.TradeId, out Trade trade)) {
+            if (!room.GetTrading().TryGetTrade(roomUser.TradeId, out Trade trade))
+            {
                 session.SendPacket(new TradingClosedComposer(session.GetHabbo().Id));
                 return;
             }
@@ -30,7 +31,8 @@ namespace Plus.Communication.Packets.Incoming.Inventory.Trading
             tradeUser.HasAccepted = true;
             trade.SendPacket(new TradingAcceptComposer(session.GetHabbo().Id, true));
 
-            if (trade.AllAccepted) {
+            if (trade.AllAccepted)
+            {
                 trade.SendPacket(new TradingCompleteComposer());
                 trade.CanChange = false;
                 trade.RemoveAccepted();

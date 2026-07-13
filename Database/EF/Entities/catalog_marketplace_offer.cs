@@ -1,56 +1,55 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class catalog_marketplace_offer
+[Table("catalog_marketplace_offers")]
+public partial class CatalogMarketplaceOffer
 {
     [Key]
-    [Column(TypeName = "int(10) unsigned")]
-    public uint offer_id { get; set; }
+    [Column("offer_id", TypeName = "int(10) unsigned")]
+    public uint OfferId { get; set; }
 
-    [Column(TypeName = "int(10) unsigned")]
-    public uint item_id { get; set; }
+    [Column("item_id", TypeName = "int(10) unsigned")]
+    public uint ItemId { get; set; }
 
-    [Column(TypeName = "int(10) unsigned")]
-    public uint user_id { get; set; }
+    [Column("user_id", TypeName = "int(10) unsigned")]
+    public uint UserId { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int asking_price { get; set; }
+    [Column("asking_price", TypeName = "int(11)")]
+    public int AskingPrice { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int total_price { get; set; }
-
-    [Required]
-    [Column(TypeName = "text")]
-    public string public_name { get; set; }
-
-    [Column(TypeName = "int(11)")]
-    public int sprite_id { get; set; }
+    [Column("total_price", TypeName = "int(11)")]
+    public int TotalPrice { get; set; }
 
     [Required]
-    [Column(TypeName = "enum('1','2')")]
-    public string item_type { get; set; }
+    [Column("public_name", TypeName = "text")]
+    public string PublicName { get; set; }
 
-    public double timestamp { get; set; }
-
-    [Required]
-    [Column(TypeName = "enum('1','2')")]
-    public string state { get; set; }
+    [Column("sprite_id", TypeName = "int(11)")]
+    public int SpriteId { get; set; }
 
     [Required]
-    [Column(TypeName = "text")]
-    public string extra_data { get; set; }
+    [Column("item_type", TypeName = "enum('1','2')")]
+    public string ItemType { get; set; }
 
-    [Column(TypeName = "int(10) unsigned")]
-    public uint furni_id { get; set; }
+    [Column("timestamp")]
+    public double Timestamp { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int limited_number { get; set; }
+    [Required]
+    [Column("state", TypeName = "enum('1','2')")]
+    public string State { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int limited_stack { get; set; }
+    [Required]
+    [Column("extra_data", TypeName = "text")]
+    public string ExtraData { get; set; }
+
+    [Column("furni_id", TypeName = "int(10) unsigned")]
+    public uint FurniId { get; set; }
+
+    [Column("limited_number", TypeName = "int(11)")]
+    public int LimitedNumber { get; set; }
+
+    [Column("limited_stack", TypeName = "int(11)")]
+    public int LimitedStack { get; set; }
 }

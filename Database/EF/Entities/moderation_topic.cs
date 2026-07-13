@@ -1,18 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class moderation_topic
+[Table("moderation_topics")]
+public partial class ModerationTopic
 {
     [Key]
-    [Column(TypeName = "int(11) unsigned")]
-    public uint id { get; set; }
+    [Column("id", TypeName = "int(11) unsigned")]
+    public uint Id { get; set; }
 
     [Required]
     [StringLength(225)]
-    public string caption { get; set; }
+    [Column("caption")]
+    public string Caption { get; set; }
 }

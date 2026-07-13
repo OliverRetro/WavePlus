@@ -1,22 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[PrimaryKey("user_id", "quest_id")]
-public partial class user_quest
+[PrimaryKey("UserId", "QuestId")]
+[Table("user_quests")]
+public partial class UserQuest
 {
     [Key]
-    [Column(TypeName = "int(10) unsigned")]
-    public uint user_id { get; set; }
+    [Column("user_id", TypeName = "int(10) unsigned")]
+    public uint UserId { get; set; }
 
     [Key]
-    [Column(TypeName = "int(10) unsigned")]
-    public uint quest_id { get; set; }
+    [Column("quest_id", TypeName = "int(10) unsigned")]
+    public uint QuestId { get; set; }
 
-    [Column(TypeName = "int(10)")]
-    public int? progress { get; set; }
+    [Column("progress", TypeName = "int(10)")]
+    public int? Progress { get; set; }
 }

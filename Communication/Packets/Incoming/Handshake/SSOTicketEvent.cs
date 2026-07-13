@@ -14,12 +14,13 @@ namespace Plus.Communication.Packets.Incoming.Handshake
 
             string sso = packet.PopString();
 
-            if (string.IsNullOrEmpty(sso) || sso.Length < 15) {
+            if (string.IsNullOrEmpty(sso) || sso.Length < 15)
+            {
                 Log.Debug("Invalid SSO Ticket, disconnecting client");
                 session.Disconnect();
                 return;
             }
-            
+
             session.TryAuthenticate(sso);
         }
     }

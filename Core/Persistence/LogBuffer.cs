@@ -12,52 +12,52 @@ namespace Plus.Core.Persistence
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(LogBuffer));
 
-        private static readonly ConcurrentQueue<logs_client_staff> CommandLogs = new();
-        private static readonly ConcurrentQueue<logs_client_namechange> NameChangeLogs = new();
-        private static readonly ConcurrentQueue<logs_client_trade> TradeLogs = new();
-        private static readonly ConcurrentQueue<chatlogs_console_invitation> ConsoleInvitations = new();
+        private static readonly ConcurrentQueue<LogsClientStaff> CommandLogs = new();
+        private static readonly ConcurrentQueue<LogsClientNamechange> NameChangeLogs = new();
+        private static readonly ConcurrentQueue<LogsClientTrade> TradeLogs = new();
+        private static readonly ConcurrentQueue<ChatlogsConsoleInvitation> ConsoleInvitations = new();
 
         public static void LogCommand(int userId, string data, string machineId)
         {
-            CommandLogs.Enqueue(new logs_client_staff
+            CommandLogs.Enqueue(new LogsClientStaff
             {
-                user_id = userId,
-                data_string = data,
-                machine_id = machineId,
-                timestamp = PlusEnvironment.GetUnixTimestamp()
+                UserId = userId,
+                DataString = data,
+                MachineId = machineId,
+                Timestamp = PlusEnvironment.GetUnixTimestamp()
             });
         }
 
         public static void LogNameChange(int userId, string newName, string oldName)
         {
-            NameChangeLogs.Enqueue(new logs_client_namechange
+            NameChangeLogs.Enqueue(new LogsClientNamechange
             {
-                user_id = userId,
-                new_name = newName,
-                old_name = oldName,
-                timestamp = (int)PlusEnvironment.GetUnixTimestamp()
+                UserId = userId,
+                NewName = newName,
+                OldName = oldName,
+                Timestamp = (int)PlusEnvironment.GetUnixTimestamp()
             });
         }
 
         public static void LogTrade(int userOneId, int userTwoId, string userOneItems, string userTwoItems)
         {
-            TradeLogs.Enqueue(new logs_client_trade
+            TradeLogs.Enqueue(new LogsClientTrade
             {
                 _1id = userOneId,
                 _2id = userTwoId,
                 _1items = userOneItems,
                 _2items = userTwoItems,
-                timestamp = ((long)PlusEnvironment.GetUnixTimestamp()).ToString()
+                Timestamp = ((long)PlusEnvironment.GetUnixTimestamp()).ToString()
             });
         }
 
         public static void LogConsoleInvitation(int userId, string message)
         {
-            ConsoleInvitations.Enqueue(new chatlogs_console_invitation
+            ConsoleInvitations.Enqueue(new ChatlogsConsoleInvitation
             {
-                user_id = userId,
-                message = message,
-                timestamp = PlusEnvironment.GetUnixTimestamp()
+                UserId = userId,
+                Message = message,
+                Timestamp = PlusEnvironment.GetUnixTimestamp()
             });
         }
 
@@ -68,10 +68,10 @@ namespace Plus.Core.Persistence
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
                 bool dirty = false;
 
-                dirty |= Drain(CommandLogs, rows => db.logs_client_staffs.AddRange(rows));
-                dirty |= Drain(NameChangeLogs, rows => db.logs_client_namechanges.AddRange(rows));
-                dirty |= Drain(TradeLogs, rows => db.logs_client_trades.AddRange(rows));
-                dirty |= Drain(ConsoleInvitations, rows => db.chatlogs_console_invitations.AddRange(rows));
+                dirty |= Drain(CommandLogs, rows => db.LogsClientStaffs.AddRange(rows));
+                dirty |= Drain(NameChangeLogs, rows => db.LogsClientNamechanges.AddRange(rows));
+                dirty |= Drain(TradeLogs, rows => db.LogsClientTrades.AddRange(rows));
+                dirty |= Drain(ConsoleInvitations, rows => db.ChatlogsConsoleInvitations.AddRange(rows));
 
                 if (dirty)
                     db.SaveChanges();
@@ -87,7 +87,7 @@ namespace Plus.Core.Persistence
             if (queue.IsEmpty)
                 return false;
 
-            List<T> rows = new();
+            List<T> rows = [];
             while (queue.TryDequeue(out T row))
                 rows.Add(row);
 

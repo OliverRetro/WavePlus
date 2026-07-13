@@ -1,9 +1,6 @@
-﻿using Plus.Communication.Packets.Outgoing.Rooms.Chat;
-using Plus.HabboHotel.GameClients;
+﻿using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Roleplay.Skill;
 using System;
-using System.Data;
-using System.Text;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
 {
@@ -17,18 +14,22 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length == 1) {
+            if (@params.Length == 1)
+            {
                 session.SendWhisper("Enter a Skill ID to toggle it.");
                 return;
             }
 
             int skillId = Convert.ToInt32(@params[1]);
 
-            if (session.GetHabbo().ToggleSkill(skillId)) {
+            if (session.GetHabbo().ToggleSkill(skillId))
+            {
                 Skill skill = PlusEnvironment.GetSkillManager().GetSkillById(skillId);
 
                 session.SendWhisper($"{skill.Name} is now {(session.GetHabbo().GetRpSkills().IsEquipped(skillId) ? "equipped" : "unequipped")}.", 1);
-            } else {
+            }
+            else
+            {
                 session.SendWhisper("Skill couldn't be toggled. Please note you need to have the skill unlocked and the limit is 4.", 1);
             }
         }

@@ -1,29 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class catalog_promotion
+[Table("catalog_promotions")]
+public partial class CatalogPromotion
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
     [StringLength(35)]
-    public string title { get; set; }
+    [Column("title")]
+    public string Title { get; set; }
 
     [StringLength(75)]
-    public string image { get; set; }
+    [Column("image")]
+    public string Image { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int? unknown { get; set; }
+    [Column("unknown", TypeName = "int(11)")]
+    public int? Unknown { get; set; }
 
     [StringLength(35)]
-    public string page_link { get; set; }
+    [Column("page_link")]
+    public string PageLink { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int? parent_id { get; set; }
+    [Column("parent_id", TypeName = "int(11)")]
+    public int? ParentId { get; set; }
 }

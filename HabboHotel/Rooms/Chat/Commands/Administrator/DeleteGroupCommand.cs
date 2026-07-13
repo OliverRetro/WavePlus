@@ -19,7 +19,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator
             if (room == null)
                 return;
 
-            if (room.Group == null) {
+            if (room.Group == null)
+            {
                 session.SendWhisper("Oops, there is no group here?");
                 return;
             }
@@ -28,13 +29,13 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator
             uint groupIdUint = (uint)room.Group.Id;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.groups.Where(x => x.id == groupIdUint).ExecuteDelete();
-                db.group_memberships.Where(x => x.group_id == groupIdUint).ExecuteDelete();
-                db.group_roles.Where(x => x.group_id == groupIdInt).ExecuteDelete();
-                db.group_requests.Where(x => x.group_id == groupIdUint).ExecuteDelete();
-                db.rooms.Where(x => x.group_id == groupIdUint).ExecuteUpdate(s => s.SetProperty(x => x.group_id, 0u));
-                db.user_stats.Where(x => x.groupid == groupIdInt).ExecuteUpdate(s => s.SetProperty(x => x.groupid, 0));
-                db.items_groups.Where(x => x.group_id == groupIdInt).ExecuteDelete();
+                db.Groups.Where(x => x.Id == groupIdUint).ExecuteDelete();
+                db.GroupMemberships.Where(x => x.GroupId == groupIdUint).ExecuteDelete();
+                db.GroupRoles.Where(x => x.GroupId == groupIdInt).ExecuteDelete();
+                db.GroupRequests.Where(x => x.GroupId == groupIdUint).ExecuteDelete();
+                db.Rooms.Where(x => x.GroupId == groupIdUint).ExecuteUpdate(s => s.SetProperty(x => x.GroupId, 0u));
+                db.UserStats.Where(x => x.Groupid == groupIdInt).ExecuteUpdate(s => s.SetProperty(x => x.Groupid, 0));
+                db.ItemsGroups.Where(x => x.GroupId == groupIdInt).ExecuteDelete();
             }
 
             PlusEnvironment.GetGame().GetGroupManager().DeleteGroup(room.Group.Id);

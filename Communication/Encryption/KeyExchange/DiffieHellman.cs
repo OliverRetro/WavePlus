@@ -39,7 +39,8 @@ namespace Plus.Communication.Encryption.KeyExchange
             Random rand = new();
             while (PublicKey == 0)
             {
-                if (!ignoreBaseKeys) {
+                if (!ignoreBaseKeys)
+                {
                     Prime = BigInteger.genPseudoPrime(BitLength, 10, rand);
                     Generator = BigInteger.genPseudoPrime(BitLength, 10, rand);
                 }
@@ -48,13 +49,15 @@ namespace Plus.Communication.Encryption.KeyExchange
                 Randomizer.NextBytes(bytes);
                 PrivateKey = new BigInteger(bytes);
 
-                if (Generator > Prime) {
+                if (Generator > Prime)
+                {
                     (Prime, Generator) = (Generator, Prime);
                 }
 
                 PublicKey = Generator.modPow(PrivateKey, Prime);
 
-                if (!ignoreBaseKeys) {
+                if (!ignoreBaseKeys)
+                {
                     break;
                 }
             }

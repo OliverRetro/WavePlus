@@ -1,27 +1,29 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[Index("user_id", Name = "user_id")]
-[Index("search_code", Name = "value")]
-public partial class user_saved_search
+[Index("UserId", Name = "user_id")]
+[Index("SearchCode", Name = "value")]
+[Table("user_saved_searches")]
+public partial class UserSavedSearch
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int user_id { get; set; }
-
-    [Required]
-    [StringLength(65)]
-    public string filter { get; set; }
+    [Column("user_id", TypeName = "int(11)")]
+    public int UserId { get; set; }
 
     [Required]
     [StringLength(65)]
-    public string search_code { get; set; }
+    [Column("filter")]
+    public string Filter { get; set; }
+
+    [Required]
+    [StringLength(65)]
+    [Column("search_code")]
+    public string SearchCode { get; set; }
 }

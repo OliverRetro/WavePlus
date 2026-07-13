@@ -37,53 +37,53 @@ namespace Plus.Communication.Rcon.Commands.User
 
                 case "coins":
                 case "credits":
-                {
-                    client.GetHabbo().Credits += amount;
+                    {
+                        client.GetHabbo().Credits += amount;
 
-                    int credits = client.GetHabbo().Credits;
-                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                        db.users.Where(u => u.id == userId).ExecuteUpdate(s => s.SetProperty(u => u.credits, credits));
+                        int credits = client.GetHabbo().Credits;
+                        using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                            db.Users.Where(u => u.Id == userId).ExecuteUpdate(s => s.SetProperty(u => u.Credits, credits));
 
-                    client.SendPacket(new CreditBalanceComposer(client.GetHabbo().Credits));
-                    break;
-                }
+                        client.SendPacket(new CreditBalanceComposer(client.GetHabbo().Credits));
+                        break;
+                    }
 
                 case "pixels":
                 case "duckets":
-                {
-                    client.GetHabbo().Duckets += amount;
+                    {
+                        client.GetHabbo().Duckets += amount;
 
-                    int duckets = client.GetHabbo().Duckets;
-                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                        db.users.Where(u => u.id == userId).ExecuteUpdate(s => s.SetProperty(u => u.activity_points, duckets));
+                        int duckets = client.GetHabbo().Duckets;
+                        using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                            db.Users.Where(u => u.Id == userId).ExecuteUpdate(s => s.SetProperty(u => u.ActivityPoints, duckets));
 
-                    client.SendPacket(new HabboActivityPointNotificationComposer(client.GetHabbo().Duckets, amount));
-                    break;
-                }
+                        client.SendPacket(new HabboActivityPointNotificationComposer(client.GetHabbo().Duckets, amount));
+                        break;
+                    }
 
                 case "diamonds":
-                {
-                    client.GetHabbo().Diamonds += amount;
+                    {
+                        client.GetHabbo().Diamonds += amount;
 
-                    int diamonds = client.GetHabbo().Diamonds;
-                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                        db.users.Where(u => u.id == userId).ExecuteUpdate(s => s.SetProperty(u => u.vip_points, diamonds));
+                        int diamonds = client.GetHabbo().Diamonds;
+                        using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                            db.Users.Where(u => u.Id == userId).ExecuteUpdate(s => s.SetProperty(u => u.VipPoints, diamonds));
 
-                    client.SendPacket(new HabboActivityPointNotificationComposer(client.GetHabbo().Diamonds, 0, 5));
-                    break;
-                }
+                        client.SendPacket(new HabboActivityPointNotificationComposer(client.GetHabbo().Diamonds, 0, 5));
+                        break;
+                    }
 
                 case "gotw":
-                {
-                    client.GetHabbo().GotwPoints += amount;
+                    {
+                        client.GetHabbo().GotwPoints += amount;
 
-                    int gotw = client.GetHabbo().GotwPoints;
-                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                        db.users.Where(u => u.id == userId).ExecuteUpdate(s => s.SetProperty(u => u.gotw_points, gotw));
+                        int gotw = client.GetHabbo().GotwPoints;
+                        using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                            db.Users.Where(u => u.Id == userId).ExecuteUpdate(s => s.SetProperty(u => u.GotwPoints, gotw));
 
-                    client.SendPacket(new HabboActivityPointNotificationComposer(client.GetHabbo().GotwPoints, 0, 103));
-                    break;
-                }
+                        client.SendPacket(new HabboActivityPointNotificationComposer(client.GetHabbo().GotwPoints, 0, 103));
+                        break;
+                    }
             }
 
             return true;

@@ -1,10 +1,7 @@
-﻿using Plus.Communication.Packets.Outgoing.Handshake;
-using Plus.Communication.Packets.Outgoing.Quests;
+﻿using Plus.Communication.Packets.Outgoing.Quests;
 using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Roleplay.Skill;
-using Plus.HabboHotel.Users;
-using System;
 using System.Linq;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
@@ -22,7 +19,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
         public void Execute(GameClient session, Room room, string[] @params)
         {
             session.SendPacket(new AnotherStatsComposer(session));
-            if (@params.Length == 1) {
+            if (@params.Length == 1)
+            {
                 session.SendWhisper("Please enter the username of the user you wish to view.");
                 return;
             }
@@ -31,46 +29,49 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-            var userData = db.users
-                .Where(u => u.username == username)
-                .Select(u => new { u.id, u.username })
+            var userData = db.Users
+                .Where(u => u.Username == username)
+                .Select(u => new { u.Id, u.Username })
                 .FirstOrDefault();
 
-            if (userData == null) {
+            if (userData == null)
+            {
                 session.SendNotification("Oops, there is no user in the database with that username (" + username + ")!");
                 return;
             }
 
-            int userId = userData.id;
+            int userId = userData.Id;
 
-            var userRpInfo = db.user_rp_statistics
-                .Where(s => s.user_id == userId)
-                .Select(s => new { s.health, s.shield, s.energy, s.hunger, s.experience, s.knockouts, s.deaths })
+            var userRpInfo = db.UserRpStatistics
+                .Where(s => s.UserId == userId)
+                .Select(s => new { s.Health, s.Shield, s.Energy, s.Hunger, s.Experience, s.Knockouts, s.Deaths })
                 .FirstOrDefault();
 
-            if (userRpInfo == null) {
+            if (userRpInfo == null)
+            {
                 db.Database.ExecuteSqlInterpolated($"INSERT INTO `user_rp_statistics` (`user_id`) VALUES ({userId})");
 
-                userRpInfo = db.user_rp_statistics
-                    .Where(s => s.user_id == userId)
-                    .Select(s => new { s.health, s.shield, s.energy, s.hunger, s.experience, s.knockouts, s.deaths })
+                userRpInfo = db.UserRpStatistics
+                    .Where(s => s.UserId == userId)
+                    .Select(s => new { s.Health, s.Shield, s.Energy, s.Hunger, s.Experience, s.Knockouts, s.Deaths })
                     .FirstOrDefault();
             }
 
-            var userSkills = db.user_rp_skills
-                .Where(s => s.user_id == userId)
-                .Select(s => new { s.skill_id, s.progress, s.equipped })
+            var userSkills = db.UserRpSkills
+                .Where(s => s.UserId == userId)
+                .Select(s => new { s.SkillId, s.Progress, s.Equipped })
                 .ToList();
 
             GameClient targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(username);
 
             StringBuilder habboInfo = new();
             habboInfo.Append("<b>Generic Info:</b>\r");
-            if (targetClient != null) {
+            if (targetClient != null)
+            {
                 habboInfo.Append("Health: " + targetClient.GetHabbo().GetRpStats().Health + "\r");
                 habboInfo.Append("Shield: " + targetClient.GetHabbo().GetRpStats().Shield + "\r");
                 habboInfo.Append("Energy: " + targetClient.GetHabbo().GetRpStats().Energy + "\r");
-                habboInfo.Append("Hunger: " + targetClient.GetHabbo().GetRpStats().Hunger + "\r"); 
+                habboInfo.Append("Hunger: " + targetClient.GetHabbo().GetRpStats().Hunger + "\r");
                 var (Level, NextLevelXP, XPRemaining) = LevelManager.GetXPInfo(targetClient.GetHabbo().GetRpStats().Experience);
                 habboInfo.Append("Experience: " + targetClient.GetHabbo().GetRpStats().Experience + " [LVL: <b>" + Level + "</b>]\r");
                 habboInfo.Append("Kills: " + targetClient.GetHabbo().GetRpStats().Knockouts + "\r");
@@ -93,24 +94,27 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
 
                     habboInfo.Append($"{skill.Name}: Level {level} {(equipped ? "[Equipped]" : "")}\r");
                 }
-            } else {
-                habboInfo.Append("Username: " + userData.username + "" + " (ID: <b>" + userData.id + "</b>\r\r");
+            }
+            else
+            {
+                habboInfo.Append("Username: " + userData.Username + "" + " (ID: <b>" + userData.Id + "</b>\r\r");
                 habboInfo.Append("Online Status: " + (targetClient != null ? "True" : "False") + "\r\r");
-                habboInfo.Append("Health: " + userRpInfo.health + "\r");
-                habboInfo.Append("Shield: " + userRpInfo.shield + "\r");
-                habboInfo.Append("Energy: " + userRpInfo.energy + "\r");
-                habboInfo.Append("Hunger: " + userRpInfo.hunger + "\r");
-                habboInfo.Append("Experience: " + userRpInfo.experience + "\r");
-                habboInfo.Append("Kills: " + userRpInfo.knockouts + "\r");
-                habboInfo.Append("Deaths: " + userRpInfo.deaths + "\r\r");
+                habboInfo.Append("Health: " + userRpInfo.Health + "\r");
+                habboInfo.Append("Shield: " + userRpInfo.Shield + "\r");
+                habboInfo.Append("Energy: " + userRpInfo.Energy + "\r");
+                habboInfo.Append("Hunger: " + userRpInfo.Hunger + "\r");
+                habboInfo.Append("Experience: " + userRpInfo.Experience + "\r");
+                habboInfo.Append("Kills: " + userRpInfo.Knockouts + "\r");
+                habboInfo.Append("Deaths: " + userRpInfo.Deaths + "\r\r");
                 habboInfo.Append("<b>Skills:</b>\r");
 
-                if (userSkills != null) {
+                if (userSkills != null)
+                {
                     foreach (var row in userSkills)
                     {
-                        int skillId = row.skill_id;
-                        int progress = row.progress;
-                        bool equipped = row.equipped;
+                        int skillId = row.SkillId;
+                        int progress = row.Progress;
+                        bool equipped = row.Equipped;
 
                         Skill skill = PlusEnvironment.GetSkillManager().GetSkillById(skillId);
 

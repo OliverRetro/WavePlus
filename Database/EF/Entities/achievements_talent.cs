@@ -1,41 +1,41 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class achievements_talent
+[Table("achievements_talents")]
+public partial class AchievementsTalent
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
     [Required]
-    [Column(TypeName = "enum('citizenship','status')")]
-    public string type { get; set; }
+    [Column("type", TypeName = "enum('citizenship','status')")]
+    public string Type { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int parent_category { get; set; }
+    [Column("parent_category", TypeName = "int(11)")]
+    public int ParentCategory { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int level { get; set; }
+    [Column("level", TypeName = "int(11)")]
+    public int Level { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int order_num { get; set; }
-
-    [Required]
-    [StringLength(255)]
-    public string achievement_group { get; set; }
-
-    [Column(TypeName = "int(11)")]
-    public int achievement_level { get; set; }
+    [Column("order_num", TypeName = "int(11)")]
+    public int OrderNum { get; set; }
 
     [Required]
     [StringLength(255)]
-    public string prize { get; set; }
+    [Column("achievement_group")]
+    public string AchievementGroup { get; set; }
 
-    [Column(TypeName = "int(11) unsigned")]
-    public uint prize_baseitem { get; set; }
+    [Column("achievement_level", TypeName = "int(11)")]
+    public int AchievementLevel { get; set; }
+
+    [Required]
+    [StringLength(255)]
+    [Column("prize")]
+    public string Prize { get; set; }
+
+    [Column("prize_baseitem", TypeName = "int(11) unsigned")]
+    public uint PrizeBaseitem { get; set; }
 }

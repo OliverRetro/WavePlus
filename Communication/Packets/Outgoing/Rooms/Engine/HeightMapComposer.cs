@@ -1,5 +1,4 @@
 ﻿using Plus.HabboHotel.Rooms;
-using System;
 
 namespace Plus.Communication.Packets.Outgoing.Rooms.Engine
 {

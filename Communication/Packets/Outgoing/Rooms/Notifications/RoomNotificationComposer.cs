@@ -38,7 +38,8 @@
 
         public override void Compose(ServerPacket packet)
         {
-            if (!string.IsNullOrEmpty(Message)) {
+            if (!string.IsNullOrEmpty(Message))
+            {
                 packet.WriteString(Image);
                 packet.WriteInteger(string.IsNullOrEmpty(HotelName) ? 2 : 4);
                 packet.WriteString("title");
@@ -46,20 +47,25 @@
                 packet.WriteString("message");
                 packet.WriteString(Message);
 
-                if (!string.IsNullOrEmpty(HotelName)) {
+                if (!string.IsNullOrEmpty(HotelName))
+                {
                     packet.WriteString("linkUrl");
                     packet.WriteString(HotelUrl);
                     packet.WriteString("linkTitle");
                     packet.WriteString(HotelName);
                 }
-            } else if (!string.IsNullOrEmpty(Key)) {
+            }
+            else if (!string.IsNullOrEmpty(Key))
+            {
                 packet.WriteString(Type);
                 packet.WriteInteger(1); //Count
                 {
                     packet.WriteString(Key); //Type of message
                     packet.WriteString(Value);
                 }
-            } else {
+            }
+            else
+            {
                 packet.WriteString(Type);
                 packet.WriteInteger(0); //Count
             }

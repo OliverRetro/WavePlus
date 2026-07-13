@@ -34,41 +34,41 @@ namespace Plus.Communication.Rcon.Commands.User
 
                 case "coins":
                 case "credits":
-                {
-                    int credits = client.GetHabbo().Credits;
-                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                        db.users.Where(u => u.id == userId).ExecuteUpdate(s => s.SetProperty(u => u.credits, credits));
+                    {
+                        int credits = client.GetHabbo().Credits;
+                        using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                            db.Users.Where(u => u.Id == userId).ExecuteUpdate(s => s.SetProperty(u => u.Credits, credits));
 
-                    break;
-                }
+                        break;
+                    }
 
                 case "pixels":
                 case "duckets":
-                {
-                    int duckets = client.GetHabbo().Duckets;
-                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                        db.users.Where(u => u.id == userId).ExecuteUpdate(s => s.SetProperty(u => u.activity_points, duckets));
+                    {
+                        int duckets = client.GetHabbo().Duckets;
+                        using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                            db.Users.Where(u => u.Id == userId).ExecuteUpdate(s => s.SetProperty(u => u.ActivityPoints, duckets));
 
-                    break;
-                }
+                        break;
+                    }
 
                 case "diamonds":
-                {
-                    int diamonds = client.GetHabbo().Diamonds;
-                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                        db.users.Where(u => u.id == userId).ExecuteUpdate(s => s.SetProperty(u => u.vip_points, diamonds));
+                    {
+                        int diamonds = client.GetHabbo().Diamonds;
+                        using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                            db.Users.Where(u => u.Id == userId).ExecuteUpdate(s => s.SetProperty(u => u.VipPoints, diamonds));
 
-                    break;
-                }
+                        break;
+                    }
 
                 case "gotw":
-                {
-                    int gotw = client.GetHabbo().GotwPoints;
-                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                        db.users.Where(u => u.id == userId).ExecuteUpdate(s => s.SetProperty(u => u.gotw_points, gotw));
+                    {
+                        int gotw = client.GetHabbo().GotwPoints;
+                        using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                            db.Users.Where(u => u.Id == userId).ExecuteUpdate(s => s.SetProperty(u => u.GotwPoints, gotw));
 
-                    break;
-                }
+                        break;
+                    }
             }
 
             return true;

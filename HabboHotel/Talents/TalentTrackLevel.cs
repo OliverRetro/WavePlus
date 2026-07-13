@@ -18,7 +18,8 @@ namespace Plus.HabboHotel.Talents
 
             foreach (string str in dataActions.Split('|'))
             {
-                if (Actions == null) {
+                if (Actions == null)
+                {
                     Actions = new List<string>();
                 }
 
@@ -27,7 +28,8 @@ namespace Plus.HabboHotel.Talents
 
             foreach (string str in dataGifts.Split('|'))
             {
-                if (Gifts == null) {
+                if (Gifts == null)
+                {
                     Gifts = new List<string>();
                 }
 
@@ -48,12 +50,12 @@ namespace Plus.HabboHotel.Talents
             int level = Level;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                var rows = db.talents_sub_levels.Where(t => t.talent_level == level)
-                    .Select(t => new { t.sub_level, t.badge_code, t.required_progress })
+                var rows = db.TalentsSubLevels.Where(t => t.TalentLevel == level)
+                    .Select(t => new { t.SubLevel, t.BadgeCode, t.RequiredProgress })
                     .ToList();
                 foreach (var row in rows)
                 {
-                    _subLevels.Add(row.sub_level, new TalentTrackSubLevel(row.sub_level, row.badge_code, row.required_progress));
+                    _subLevels.Add(row.SubLevel, new TalentTrackSubLevel(row.SubLevel, row.BadgeCode, row.RequiredProgress));
                 }
             }
         }

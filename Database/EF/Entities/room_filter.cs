@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
@@ -7,18 +6,19 @@ using Microsoft.EntityFrameworkCore;
 namespace Plus.Database.EF.Entities;
 
 [Table("room_filter")]
-[Index("room_id", Name = "room_id")]
-[Index("word", Name = "word")]
-public partial class room_filter
+[Index("RoomId", Name = "room_id")]
+[Index("Word", Name = "word")]
+public partial class RoomFilter
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
     [Required]
     [StringLength(15)]
-    public string word { get; set; }
+    [Column("word")]
+    public string Word { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int room_id { get; set; }
+    [Column("room_id", TypeName = "int(11)")]
+    public int RoomId { get; set; }
 }

@@ -1,44 +1,45 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class achievement
+[Table("achievements")]
+public partial class Achievement
 {
     [Key]
-    [Column(TypeName = "int(10) unsigned")]
-    public uint id { get; set; }
+    [Column("id", TypeName = "int(10) unsigned")]
+    public uint Id { get; set; }
 
     [Required]
     [StringLength(64)]
-    public string group_name { get; set; }
+    [Column("group_name")]
+    public string GroupName { get; set; }
 
     [Required]
     [StringLength(25)]
-    public string category { get; set; }
+    [Column("category")]
+    public string Category { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int level { get; set; }
+    [Column("level", TypeName = "int(11)")]
+    public int Level { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int reward_amount { get; set; }
+    [Column("reward_amount", TypeName = "int(11)")]
+    public int RewardAmount { get; set; }
 
     // Currency the reward_amount is paid in: -1 = credits, 5 = diamonds, 0 = duckets (default).
-    [Column(TypeName = "int(11)")]
-    public int points_type { get; set; }
+    [Column("points_type", TypeName = "int(11)")]
+    public int PointsType { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int reward_points { get; set; }
+    [Column("reward_points", TypeName = "int(11)")]
+    public int RewardPoints { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int progress_needed { get; set; }
+    [Column("progress_needed", TypeName = "int(11)")]
+    public int ProgressNeeded { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int game_id { get; set; }
+    [Column("game_id", TypeName = "int(11)")]
+    public int GameId { get; set; }
 
     //1 = achievement is active and can be loaded/progressed, 0 = disabled
-    public sbyte enabled { get; set; }
+    [Column("enabled")]
+    public sbyte Enabled { get; set; }
 }

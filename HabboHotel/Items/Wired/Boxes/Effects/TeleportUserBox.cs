@@ -65,7 +65,8 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
 
         public bool OnCycle()
         {
-            if (_queue.Count == 0 || SetItems.Count == 0) {
+            if (_queue.Count == 0 || SetItems.Count == 0)
+            {
                 _queue.Clear();
                 TickCount = Delay;
                 return true;
@@ -73,7 +74,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
 
             while (_queue.Count > 0)
             {
-                Habbo player = (Habbo) _queue.Dequeue();
+                Habbo player = (Habbo)_queue.Dequeue();
                 if (player == null || player.CurrentRoom != Instance)
                     continue;
 
@@ -89,7 +90,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
             if (@params == null || @params.Length == 0)
                 return false;
 
-            Habbo player = (Habbo) @params[0];
+            Habbo player = (Habbo)@params[0];
 
             if (player == null)
                 return false;
@@ -125,7 +126,8 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
             if (item == null)
                 return;
 
-            if (!Instance.GetRoomItemHandler().GetFloor.Contains(item)) {
+            if (!Instance.GetRoomItemHandler().GetFloor.Contains(item))
+            {
                 SetItems.TryRemove(item.Id, out item);
 
                 if (items.Contains(item))

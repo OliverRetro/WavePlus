@@ -78,7 +78,8 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
             if (_next == 0 || _next < PlusEnvironment.Now())
                 _next = PlusEnvironment.Now() + Delay;
 
-            if (!_requested) {
+            if (!_requested)
+            {
                 TickCount = Delay;
                 _requested = true;
             }
@@ -92,7 +93,8 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
                 return false;
 
             long now = PlusEnvironment.Now();
-            if (_next < now) {
+            if (_next < now)
+            {
                 foreach (Item item in SetItems.Values.ToList())
                 {
                     if (item == null)
@@ -113,7 +115,8 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
                     if (!Instance.GetGameMap().ItemCanMove(item, Point))
                         continue;
 
-                    if (Instance.GetGameMap().CanRollItemHere(Point.X, Point.Y) && !Instance.GetGameMap().SquareHasUsers(Point.X, Point.Y)) {
+                    if (Instance.GetGameMap().CanRollItemHere(Point.X, Point.Y) && !Instance.GetGameMap().SquareHasUsers(Point.X, Point.Y))
+                    {
                         double newZ = Instance.GetGameMap().GetHeightForSquareFromData(Point);
                         bool canBePlaced = true;
 
@@ -123,7 +126,8 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
                             if (IItem == null || IItem.Id == item.Id)
                                 continue;
 
-                            if (!IItem.GetBaseItem().Walkable) {
+                            if (!IItem.GetBaseItem().Walkable)
+                            {
                                 _next = 0;
                                 canBePlaced = false;
                                 break;
@@ -136,12 +140,14 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
                                 canBePlaced = false;
                         }
 
-                        if (newRot != item.Rotation) {
+                        if (newRot != item.Rotation)
+                        {
                             item.Rotation = newRot;
                             item.UpdateState(false, true);
                         }
 
-                        if (canBePlaced && Point != item.Coordinate) {
+                        if (canBePlaced && Point != item.Coordinate)
+                        {
                             Instance.SendPacket(new SlideObjectBundleComposer(item.GetX, item.GetY, item.GetZ, Point.X,
                                 Point.Y, newZ, 0, 0, item.Id));
                             Instance.GetRoomItemHandler().SetFloorItem(item, Point.X, Point.Y, newZ);
@@ -161,41 +167,48 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
             switch (mode)
             {
                 case 1:
-                {
-                    rotation += 2;
-                    if (rotation > 6) {
-                        rotation = 0;
-                    }
-
-                    break;
-                }
-
-                case 2:
-                {
-                    rotation -= 2;
-                    if (rotation < 0) {
-                        rotation = 6;
-                    }
-
-                    break;
-                }
-
-                case 3:
-                {
-                    if (RandomNumber.GenerateRandom(0, 2) == 0) {
+                    {
                         rotation += 2;
-                        if (rotation > 6) {
+                        if (rotation > 6)
+                        {
                             rotation = 0;
                         }
-                    } else {
-                        rotation -= 2;
-                        if (rotation < 0) {
-                            rotation = 6;
-                        }
+
+                        break;
                     }
 
-                    break;
-                }
+                case 2:
+                    {
+                        rotation -= 2;
+                        if (rotation < 0)
+                        {
+                            rotation = 6;
+                        }
+
+                        break;
+                    }
+
+                case 3:
+                    {
+                        if (RandomNumber.GenerateRandom(0, 2) == 0)
+                        {
+                            rotation += 2;
+                            if (rotation > 6)
+                            {
+                                rotation = 0;
+                            }
+                        }
+                        else
+                        {
+                            rotation -= 2;
+                            if (rotation < 0)
+                            {
+                                rotation = 6;
+                            }
+                        }
+
+                        break;
+                    }
             }
 
             return rotation;
@@ -207,70 +220,76 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
             switch (mode)
             {
                 case 0:
-                {
-                    newPos = position;
-                    break;
-                }
-                case 1:
-                {
-                    switch (RandomNumber.GenerateRandom(1, 4))
                     {
-                        case 1:
-                            newPos = new Point(position.X + 1, position.Y);
-                            break;
-                        case 2:
-                            newPos = new Point(position.X - 1, position.Y);
-                            break;
-                        case 3:
-                            newPos = new Point(position.X, position.Y + 1);
-                            break;
-                        case 4:
-                            newPos = new Point(position.X, position.Y - 1);
-                            break;
+                        newPos = position;
+                        break;
                     }
+                case 1:
+                    {
+                        switch (RandomNumber.GenerateRandom(1, 4))
+                        {
+                            case 1:
+                                newPos = new Point(position.X + 1, position.Y);
+                                break;
+                            case 2:
+                                newPos = new Point(position.X - 1, position.Y);
+                                break;
+                            case 3:
+                                newPos = new Point(position.X, position.Y + 1);
+                                break;
+                            case 4:
+                                newPos = new Point(position.X, position.Y - 1);
+                                break;
+                        }
 
-                    break;
-                }
+                        break;
+                    }
                 case 2:
-                {
-                    if (RandomNumber.GenerateRandom(0, 2) == 1) {
-                        newPos = new Point(position.X - 1, position.Y);
-                    } else {
-                        newPos = new Point(position.X + 1, position.Y);
-                    }
+                    {
+                        if (RandomNumber.GenerateRandom(0, 2) == 1)
+                        {
+                            newPos = new Point(position.X - 1, position.Y);
+                        }
+                        else
+                        {
+                            newPos = new Point(position.X + 1, position.Y);
+                        }
 
-                    break;
-                }
+                        break;
+                    }
                 case 3:
-                {
-                    if (RandomNumber.GenerateRandom(0, 2) == 1) {
-                        newPos = new Point(position.X, position.Y - 1);
-                    } else {
-                        newPos = new Point(position.X, position.Y + 1);
-                    }
+                    {
+                        if (RandomNumber.GenerateRandom(0, 2) == 1)
+                        {
+                            newPos = new Point(position.X, position.Y - 1);
+                        }
+                        else
+                        {
+                            newPos = new Point(position.X, position.Y + 1);
+                        }
 
-                    break;
-                }
+                        break;
+                    }
                 case 4:
-                {
-                    newPos = new Point(position.X, position.Y - 1);
-                    break;
-                }
+                    {
+                        newPos = new Point(position.X, position.Y - 1);
+                        break;
+                    }
                 case 5:
-                {
-                    newPos = new Point(position.X + 1, position.Y);
-                    break;
-                }
+                    {
+                        newPos = new Point(position.X + 1, position.Y);
+                        break;
+                    }
                 case 6:
-                {
-                    newPos = new Point(position.X, position.Y + 1);
-                    break;
-                }
+                    {
+                        newPos = new Point(position.X, position.Y + 1);
+                        break;
+                    }
                 case 7:
-                {
-                    newPos = new Point(position.X - 1, position.Y);
-                    break;
-                }
+                    {
+                        newPos = new Point(position.X - 1, position.Y);
+                        break;
+                    }
             }
 
             return newPos;

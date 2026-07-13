@@ -1,23 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
 [Table("catalog_clothing")]
-public partial class catalog_clothing
+public partial class CatalogClothing
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
     [Required]
     [StringLength(55)]
-    public string clothing_name { get; set; }
+    [Column("clothing_name")]
+    public string ClothingName { get; set; }
 
     [Required]
     [StringLength(85)]
-    public string clothing_parts { get; set; }
+    [Column("clothing_parts")]
+    public string ClothingParts { get; set; }
 }

@@ -1,12 +1,9 @@
 ﻿using Plus.HabboHotel.GameClients;
-using Plus.HabboHotel.Roleplay.RpItem.Weapon;
-using Plus.HabboHotel.Roleplay.Skill;
 using Plus.HabboHotel.Roleplay.Utilities;
 using Plus.HabboHotel.Users;
 using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
-using static System.Collections.Specialized.BitVector32;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 {
@@ -31,12 +28,14 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
             if (_rpstats == null || roomUser == null)
                 return;
 
-            if (session.GetHabbo().GetRpStats().Aggression > 0) {
+            if (session.GetHabbo().GetRpStats().Aggression > 0)
+            {
                 session.SendWhisper("You cannot toggle passive mode while you have aggression.", 1);
                 return;
             }
 
-            if (roomUser.IsWalking || roomUser.GoalX != roomUser.X || roomUser.GoalY != roomUser.Y) {
+            if (roomUser.IsWalking || roomUser.GoalX != roomUser.X || roomUser.GoalY != roomUser.Y)
+            {
                 session.SendWhisper("You need to stand still to toggle passive mode.", 1);
                 return;
             }
@@ -76,7 +75,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
             // Resolve the effect (passive shows 1057, disabling clears it — unless staff/weapon).
             RpEffectService.Refresh(habbo);
 
-            session.SendWhisper($"Passive mode is now {(stats.PassiveMode ? "enabled" : "disabled") }.", 1);
+            session.SendWhisper($"Passive mode is now {(stats.PassiveMode ? "enabled" : "disabled")}.", 1);
         }
 
         public static void CancelPendingToggle(GameClient client)

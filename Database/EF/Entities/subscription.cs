@@ -1,37 +1,37 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class subscription
+[Table("subscriptions")]
+public partial class Subscription
 {
     [Key]
-    [Column(TypeName = "int(10)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(10)")]
+    public int Id { get; set; }
 
     [Required]
     [StringLength(50)]
-    public string name { get; set; }
+    [Column("name")]
+    public string Name { get; set; }
 
     [Required]
     [StringLength(10)]
-    public string badge_code { get; set; }
+    [Column("badge_code")]
+    public string BadgeCode { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int credits { get; set; }
+    [Column("credits", TypeName = "int(11)")]
+    public int Credits { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int duckets { get; set; }
+    [Column("duckets", TypeName = "int(11)")]
+    public int Duckets { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int respects { get; set; }
+    [Column("respects", TypeName = "int(11)")]
+    public int Respects { get; set; }
 
-    [Column(TypeName = "smallint(6)")]
-    public short static_aggression { get; set; }
+    [Column("static_aggression", TypeName = "smallint(6)")]
+    public short StaticAggression { get; set; }
 
-    [Column(TypeName = "smallint(6)")]
-    public short trash_search_cooldown { get; set; }
+    [Column("trash_search_cooldown", TypeName = "smallint(6)")]
+    public short TrashSearchCooldown { get; set; }
 }

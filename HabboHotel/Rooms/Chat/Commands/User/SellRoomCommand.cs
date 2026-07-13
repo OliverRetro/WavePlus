@@ -18,29 +18,33 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
             if (!room.CheckRights(session, true))
                 return;
 
-            if (@params.Length == 1) {
+            if (@params.Length == 1)
+            {
                 session.SendWhisper("Oops, you forgot to choose a price to sell the room for.");
                 return;
             }
 
-            if (room.Group != null) {
+            if (room.Group != null)
+            {
                 session.SendWhisper("Oops, this room has a group. You must delete the group before you can sell the room.");
                 return;
             }
 
-            if (!int.TryParse(@params[1], out int price)) {
+            if (!int.TryParse(@params[1], out int price))
+            {
                 session.SendWhisper("Oops, you've entered an invalid integer.");
                 return;
             }
 
-            if (price == 0) {
+            if (price == 0)
+            {
                 session.SendWhisper("Oops, you cannot sell a room for 0 credits.");
                 return;
             }
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.rooms.Where(r => r.id == room.Id).ExecuteUpdate(s => s.SetProperty(r => r.sale_price, price));
+                db.Rooms.Where(r => r.Id == room.Id).ExecuteUpdate(s => s.SetProperty(r => r.SalePrice, price));
             }
 
             session.SendNotification("Your room is now up for sale. The the current room visitors have been alerted, any item that belongs to you in this room will be transferred to the new owner once purchased. Other items shall be ejected.");

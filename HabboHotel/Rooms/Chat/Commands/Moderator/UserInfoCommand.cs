@@ -17,7 +17,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length == 1) {
+            if (@params.Length == 1)
+            {
                 session.SendWhisper("Please enter the username of the user you wish to view.");
                 return;
             }
@@ -26,61 +27,65 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-            var userData = db.users
-                .Where(u => u.username == username)
-                .Select(u => new { u.id, u.username, u.rank, u.rank_vip, u.credits, u.activity_points, u.vip_points, u.gotw_points })
+            var userData = db.Users
+                .Where(u => u.Username == username)
+                .Select(u => new { u.Id, u.Username, u.Rank, u.RankVip, u.Credits, u.ActivityPoints, u.VipPoints, u.GotwPoints })
                 .FirstOrDefault();
 
-            if (userData == null) {
+            if (userData == null)
+            {
                 session.SendNotification("Oops, there is no user in the database with that username (" + username + ")!");
                 return;
             }
 
-            int userId = userData.id;
+            int userId = userData.Id;
 
-            var userInfo = db.user_infos
-                .Where(ui => ui.user_id == userId)
-                .Select(ui => new { ui.bans, ui.cfhs, ui.cfhs_abusive, ui.trading_locked, ui.trading_locks_count })
+            var userInfo = db.UserInfos
+                .Where(ui => ui.UserId == userId)
+                .Select(ui => new { ui.Bans, ui.Cfhs, ui.CfhsAbusive, ui.TradingLocked, ui.TradingLocksCount })
                 .FirstOrDefault();
 
-            if (userInfo == null) {
+            if (userInfo == null)
+            {
                 db.Database.ExecuteSqlInterpolated($"INSERT INTO `user_info` (`user_id`) VALUES ({userId})");
 
-                userInfo = db.user_infos
-                    .Where(ui => ui.user_id == userId)
-                    .Select(ui => new { ui.bans, ui.cfhs, ui.cfhs_abusive, ui.trading_locked, ui.trading_locks_count })
+                userInfo = db.UserInfos
+                    .Where(ui => ui.UserId == userId)
+                    .Select(ui => new { ui.Bans, ui.Cfhs, ui.CfhsAbusive, ui.TradingLocked, ui.TradingLocksCount })
                     .FirstOrDefault();
             }
 
             GameClient targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(username);
 
-            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(userInfo.trading_locked);
+            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(userInfo.TradingLocked);
 
             StringBuilder habboInfo = new();
             habboInfo.Append("<b>Generic Info:</b>\r");
-            habboInfo.Append("Username: " + userData.username + "" + " (ID: <b>" + userData.id + ")</b>\r\r");
-            habboInfo.Append("Rank: " + (userData.rank ?? 0) + "\r");
-            habboInfo.Append("VIP Rank: " + (userData.rank_vip ?? 0) + "\r");
+            habboInfo.Append("Username: " + userData.Username + "" + " (ID: <b>" + userData.Id + ")</b>\r\r");
+            habboInfo.Append("Rank: " + (userData.Rank ?? 0) + "\r");
+            habboInfo.Append("VIP Rank: " + (userData.RankVip ?? 0) + "\r");
             habboInfo.Append("Online Status: " + (targetClient != null ? "True" : "False") + "\r\r");
 
             habboInfo.Append("<b>Currency Info:</b>\r");
-            habboInfo.Append("Credits: " + (userData.credits ?? 0) + "\r");
-            habboInfo.Append("Duckets: " + (userData.activity_points ?? 0) + "\r");
-            habboInfo.Append("Diamonds: " + (userData.vip_points ?? 0) + "\r");
-            habboInfo.Append("GOTW Points: " + (userData.gotw_points ?? 0) + "\r\r");
+            habboInfo.Append("Credits: " + (userData.Credits ?? 0) + "\r");
+            habboInfo.Append("Duckets: " + (userData.ActivityPoints ?? 0) + "\r");
+            habboInfo.Append("Diamonds: " + (userData.VipPoints ?? 0) + "\r");
+            habboInfo.Append("GOTW Points: " + (userData.GotwPoints ?? 0) + "\r\r");
 
             habboInfo.Append("<b>Moderation Info:</b>\r");
-            habboInfo.Append("Bans: " + userInfo.bans + "\r");
-            habboInfo.Append("CFHs Sent: " + userInfo.cfhs + "\r");
-            habboInfo.Append("Abusive CFHs: " + userInfo.cfhs_abusive + "\r");
-            habboInfo.Append("Trading Locked: " + (Convert.ToInt32(userInfo.trading_locked) == 0 ? "No outstanding lock" : "Expiry: " + (origin.ToString("dd/MM/yyyy")) + "") + "\r");
-            habboInfo.Append("Amount of trading locks: " + userInfo.trading_locks_count + "\r\r");
+            habboInfo.Append("Bans: " + userInfo.Bans + "\r");
+            habboInfo.Append("CFHs Sent: " + userInfo.Cfhs + "\r");
+            habboInfo.Append("Abusive CFHs: " + userInfo.CfhsAbusive + "\r");
+            habboInfo.Append("Trading Locked: " + (Convert.ToInt32(userInfo.TradingLocked) == 0 ? "No outstanding lock" : "Expiry: " + (origin.ToString("dd/MM/yyyy")) + "") + "\r");
+            habboInfo.Append("Amount of trading locks: " + userInfo.TradingLocksCount + "\r\r");
 
-            if (targetClient != null) {
+            if (targetClient != null)
+            {
                 habboInfo.Append("<b>Current Session:</b>\r");
                 if (!targetClient.GetHabbo().InRoom)
                     habboInfo.Append("Currently not in a room.\r");
-                else {
+                else
+                {
                     habboInfo.Append("Room: " + targetClient.GetHabbo().CurrentRoom.Name + " (" + targetClient.GetHabbo().CurrentRoom.RoomId + ")\r");
                     habboInfo.Append("Room Owner: " + targetClient.GetHabbo().CurrentRoom.OwnerName + "\r");
                     habboInfo.Append("Current Visitors: " + targetClient.GetHabbo().CurrentRoom.UsersNow + "/" + targetClient.GetHabbo().CurrentRoom.UsersMax);

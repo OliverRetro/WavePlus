@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
+﻿namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
 {
     public class Weapon
     {

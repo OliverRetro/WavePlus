@@ -31,9 +31,11 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Avatar
             user.SetRot(rot, false);
             user.UpdateNeeded = true;
 
-            if (user.RidingHorse) {
+            if (user.RidingHorse)
+            {
                 RoomUser horse = session.GetHabbo().CurrentRoom.GetRoomUserManager().GetRoomUserByVirtualId(user.HorseId);
-                if (horse != null) {
+                if (horse != null)
+                {
                     horse.SetRot(rot, false);
                     horse.UpdateNeeded = true;
                 }

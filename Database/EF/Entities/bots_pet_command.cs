@@ -1,21 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class bots_pet_command
+[Table("bots_pet_commands")]
+public partial class BotsPetCommand
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
     [Required]
     [StringLength(255)]
-    public string input_title { get; set; }
+    [Column("input_title")]
+    public string InputTitle { get; set; }
 
-    [Column(TypeName = "text")]
-    public string input { get; set; }
+    [Column("input", TypeName = "text")]
+    public string Input { get; set; }
 }

@@ -1,5 +1,4 @@
 using Plus.HabboHotel.GameClients;
-using Plus.HabboHotel.Roleplay.Trash;
 
 namespace Plus.HabboHotel.Items.Interactor
 {

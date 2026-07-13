@@ -28,7 +28,7 @@ namespace Plus.Communication.Encryption.Crypto.Prng
 
             for (i = 0; i < PoolSize; ++i)
             {
-                bytes[i] = (byte) i;
+                bytes[i] = (byte)i;
             }
 
             for (i = 0; i < PoolSize; ++i)
@@ -66,13 +66,13 @@ namespace Plus.Communication.Encryption.Crypto.Prng
         {
             Encrypt(ref src);
         }
-        
+
         public IByteBuffer Decipher(IByteBuffer buffer)
         {
             IByteBuffer result = Unpooled.Buffer();
 
             while (buffer.IsReadable())
-                result.WriteByte((byte) (buffer.ReadByte() ^ Next()));
+                result.WriteByte((byte)(buffer.ReadByte() ^ Next()));
 
             return result;
         }

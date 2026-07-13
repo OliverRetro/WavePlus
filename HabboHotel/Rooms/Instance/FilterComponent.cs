@@ -25,7 +25,7 @@ namespace Plus.HabboHotel.Rooms.Instance
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.room_filters.Add(new room_filter { room_id = _instance.Id, word = word });
+                db.RoomFilters.Add(new RoomFilter { RoomId = _instance.Id, Word = word });
                 db.SaveChanges();
             }
 
@@ -41,7 +41,7 @@ namespace Plus.HabboHotel.Rooms.Instance
             int rid = _instance.Id;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.room_filters.Where(f => f.room_id == rid && f.word == word).ExecuteDelete();
+                db.RoomFilters.Where(f => f.RoomId == rid && f.Word == word).ExecuteDelete();
             }
 
             _instance.WordFilterList.Remove(word);

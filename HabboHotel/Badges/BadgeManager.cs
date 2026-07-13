@@ -20,13 +20,13 @@ namespace Plus.HabboHotel.Badges
         {
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                var rows = db.badge_definitions.Select(b => new { b.code, b.required_right }).ToList();
+                var rows = db.BadgeDefinitions.Select(b => new { b.Code, b.RequiredRight }).ToList();
                 foreach (var row in rows)
                 {
-                    string code = row.code.ToUpper();
+                    string code = row.Code.ToUpper();
 
                     if (!_badges.ContainsKey(code))
-                        _badges.Add(code, new BadgeDefinition(code, row.required_right));
+                        _badges.Add(code, new BadgeDefinition(code, row.RequiredRight));
                 }
             }
 

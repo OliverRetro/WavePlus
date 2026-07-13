@@ -13,7 +13,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length == 1) {
+            if (@params.Length == 1)
+            {
                 session.SendWhisper("Please provide a reason for muting the room to show to the users.");
                 return;
             }
@@ -24,7 +25,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
             string msg = CommandManager.MergeParams(@params, 1);
 
             List<RoomUser> roomUsers = room.GetRoomUserManager().GetRoomUsers();
-            if (roomUsers.Count > 0) {
+            if (roomUsers.Count > 0)
+            {
                 foreach (RoomUser user in roomUsers)
                 {
                     if (user == null || user.GetClient() == null || user.GetClient().GetHabbo() == null || user.GetClient().GetHabbo().Username == session.GetHabbo().Username)

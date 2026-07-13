@@ -5,11 +5,12 @@ using Plus.Database.EF;
 using Plus.Database.EF.Entities;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
+// Disambiguates the bare names from the scaffolded EF entities Plus.Database.EF.Entities.Group/GroupRole.
+using Group = Plus.HabboHotel.Groups.Group;
+using GroupRole = Plus.HabboHotel.Groups.GroupRole;
 using Plus.HabboHotel.Roleplay.Utilities;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
-using Microsoft.EntityFrameworkCore;
-using StackExchange.Redis;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -44,7 +45,7 @@ namespace Plus.HabboHotel.Roleplay.Corporation
                     yield return kv.Key;
         }
 
-        public void TryStartWork(GameClient session, Room room)
+        public void TryStartWork(GameClient session, Rooms.Room room)
         {
             if (session?.GetHabbo() == null || room?.Group == null)
                 return;
@@ -52,27 +53,32 @@ namespace Plus.HabboHotel.Roleplay.Corporation
             Habbo habbo = session.GetHabbo();
             Group group = room.Group;
 
-            if (habbo.GetRpStats().Energy < 1) {
+            if (habbo.GetRpStats().Energy < 1)
+            {
                 session.SendWhisper("You don't have enough energy!", 1);
                 return;
             }
 
-            if (!GroupManager.IsWorkableKind(group.Kind)) {
+            if (!GroupManager.IsWorkableKind(group.Kind))
+            {
                 session.SendWhisper("This command can only be used in corporation room!", 1);
                 return;
             }
 
-            if (!group.IsMember(habbo.Id)) {
+            if (!group.IsMember(habbo.Id))
+            {
                 session.SendWhisper("You don't work here! Feel free to apply to join the corporation.", 1);
                 return;
             }
 
-            if (!group.TryGetRoleData(habbo.Id, out GroupRole role)) {
+            if (!group.TryGetRoleData(habbo.Id, out GroupRole role))
+            {
                 session.SendWhisper("You don't have a role in this corporation! Contact your superior to get assigned a role.", 1);
                 return;
             }
 
-            if (IsWorking(habbo.Id)) {
+            if (IsWorking(habbo.Id))
+            {
                 session.SendWhisper("You are already working!", 1);
                 return;
             }
@@ -97,7 +103,7 @@ namespace Plus.HabboHotel.Roleplay.Corporation
                 room.SendPacket(new UserChangeComposer(user, false));
         }
 
-        public void TryStopWork(GameClient session, Room room)
+        public void TryStopWork(GameClient session, Rooms.Room room)
         {
             if (session?.GetHabbo() == null || room?.Group == null)
                 return;
@@ -105,17 +111,20 @@ namespace Plus.HabboHotel.Roleplay.Corporation
             Habbo habbo = session.GetHabbo();
             Group group = room.Group;
 
-            if (!GroupManager.IsWorkableKind(group.Kind)) {
+            if (!GroupManager.IsWorkableKind(group.Kind))
+            {
                 session.SendWhisper("This command can only be used in corporation room!", 1);
                 return;
             }
 
-            if (!group.IsMember(habbo.Id)) {
+            if (!group.IsMember(habbo.Id))
+            {
                 session.SendWhisper("You don't work here! Feel free to apply to join the corporation.", 1);
                 return;
             }
 
-            if (!group.TryGetRoleData(habbo.Id, out GroupRole _)) {
+            if (!group.TryGetRoleData(habbo.Id, out GroupRole _))
+            {
                 session.SendWhisper("You don't have a role in this corporation! Contact your superior to get assigned a role.", 1);
                 return;
             }
@@ -142,8 +151,9 @@ namespace Plus.HabboHotel.Roleplay.Corporation
             string figureString = role.ShiftCostume;
             string selectedFigure = null;
 
-            if (figureString.Contains('|')) {
-                Dictionary<string, string> figures = new();
+            if (figureString.Contains('|'))
+            {
+                Dictionary<string, string> figures = [];
                 foreach (string part in figureString.Split(';'))
                 {
                     if (string.IsNullOrWhiteSpace(part))
@@ -160,14 +170,16 @@ namespace Plus.HabboHotel.Roleplay.Corporation
                     selectedFigure = fig;
                 else if (figures.TryGetValue("m", out fig))
                     selectedFigure = fig;
-            } else {
+            }
+            else
+            {
                 selectedFigure = figureString;
             }
 
             if (string.IsNullOrWhiteSpace(selectedFigure))
                 return;
 
-            Dictionary<string, string> lookParts = new();
+            Dictionary<string, string> lookParts = [];
 
             foreach (string part in habbo.Look.Split('.'))
             {
@@ -219,12 +231,13 @@ namespace Plus.HabboHotel.Roleplay.Corporation
             _activeShifts[habbo.Id] = new ActiveShift(habbo.Id, shift.GroupId, shift.ShiftPay, shift.ShiftDurationMinutes);
         }
 
-        public void InterruptShift(Habbo habbo, Room room)
+        public void InterruptShift(Habbo habbo, Rooms.Room room)
         {
             if (!_activeShifts.TryRemove(habbo.Id, out ActiveShift shift))
                 return;
 
-            if (shift.BonusCredits > 0) {
+            if (shift.BonusCredits > 0)
+            {
                 GivePay(habbo, shift.BonusCredits);
                 AddPendingLog(habbo.Id, shift.GroupId, shift.BonusCredits);
                 IncrementCountCache(shift.GroupId, habbo.Id);
@@ -241,7 +254,7 @@ namespace Plus.HabboHotel.Roleplay.Corporation
         /// or simply walking out). The shift ends unless the user's corporation role carries
         /// the `room_swap` permission, which lets that role roam between rooms while on shift.
         /// </summary>
-        public void HandleRoomExit(Habbo habbo, Room room)
+        public void HandleRoomExit(Habbo habbo, Rooms.Room room)
         {
             if (habbo == null || !_activeShifts.TryGetValue(habbo.Id, out ActiveShift shift))
                 return;
@@ -256,8 +269,10 @@ namespace Plus.HabboHotel.Roleplay.Corporation
 
         public void OnDisconnect(Habbo habbo)
         {
-            if (_activeShifts.TryRemove(habbo.Id, out ActiveShift shift)) {
-                if (shift.BonusCredits > 0) {
+            if (_activeShifts.TryRemove(habbo.Id, out ActiveShift shift))
+            {
+                if (shift.BonusCredits > 0)
+                {
                     habbo.Credits += shift.BonusCredits;
                     AddPendingLog(habbo.Id, shift.GroupId, shift.BonusCredits);
                     IncrementCountCache(shift.GroupId, habbo.Id);
@@ -291,7 +306,7 @@ namespace Plus.HabboHotel.Roleplay.Corporation
             habbo.GetClient()?.SendPacket(new CreditBalanceComposer(habbo.Credits));
         }
 
-        private static void RestoreAppearance(Habbo habbo, Room room)
+        private static void RestoreAppearance(Habbo habbo, Rooms.Room room)
         {
             if (habbo.OldMotto != null)
                 habbo.Motto = habbo.OldMotto;
@@ -306,7 +321,7 @@ namespace Plus.HabboHotel.Roleplay.Corporation
 
         private void AddPendingLog(int userId, int groupId, int credits)
         {
-            var logs = _pendingLogs.GetOrAdd(userId, _ => new List<(int, int, DateTime)>());
+            var logs = _pendingLogs.GetOrAdd(userId, _ => []);
             lock (logs)
                 logs.Add((groupId, credits, DateTime.Now));
         }
@@ -329,14 +344,14 @@ namespace Plus.HabboHotel.Roleplay.Corporation
             try
             {
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
-                total = db.rp_shift_logs.Count(x => x.group_id == groupId && x.user_id == userId);
+                total = db.RpShiftLogs.Count(x => x.GroupId == groupId && x.UserId == userId);
 
                 // YEARWEEK(..,1)=YEARWEEK(NOW(),1) is the ISO current-week test; EF can't
                 // translate YEARWEEK, so pull this user's shift-finish times and count the
                 // ones in the current ISO week in memory (IsCurrentWeek uses ISOWeek).
-                weekly = db.rp_shift_logs
-                    .Where(x => x.group_id == groupId && x.user_id == userId)
-                    .Select(x => x.shift_finished)
+                weekly = db.RpShiftLogs
+                    .Where(x => x.GroupId == groupId && x.UserId == userId)
+                    .Select(x => x.ShiftFinished)
                     .ToList()
                     .Count(IsCurrentWeek);
             }
@@ -352,7 +367,7 @@ namespace Plus.HabboHotel.Roleplay.Corporation
 
             List<(int groupId, int credits, DateTime finished)> snapshot;
             lock (logs)
-                snapshot = new List<(int, int, DateTime)>(logs);
+                snapshot = [.. logs];
 
             if (snapshot.Count == 0)
                 return;
@@ -362,12 +377,12 @@ namespace Plus.HabboHotel.Roleplay.Corporation
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
                 foreach (var (groupId, credits, finished) in snapshot)
                 {
-                    db.rp_shift_logs.Add(new rp_shift_log
+                    db.RpShiftLogs.Add(new RpShiftLog
                     {
-                        group_id = groupId,
-                        user_id = userId,
-                        credits_paid = credits,
-                        shift_finished = finished
+                        GroupId = groupId,
+                        UserId = userId,
+                        CreditsPaid = credits,
+                        ShiftFinished = finished
                     });
                 }
                 db.SaveChanges();

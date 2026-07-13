@@ -22,7 +22,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length < 2 || !int.TryParse(Convert.ToString(@params[1]), out int slot) || slot < 1 || slot > SlotCount) {
+            if (@params.Length < 2 || !int.TryParse(Convert.ToString(@params[1]), out int slot) || slot < 1 || slot > SlotCount)
+            {
                 session.SendWhisper("Usage: :inv <1-" + SlotCount + ">", 1);
                 return;
             }
@@ -34,27 +35,31 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 
             // The slot view mixes (stacked) items and weapons — resolve what's actually there.
             RpInventoryEntry entry = RpInventory.BuildSlotView(habbo, SlotCount)[slot - 1];
-            if (entry == null) {
+            if (entry == null)
+            {
                 session.SendWhisper("There's no item in slot " + slot + ".", 1);
                 return;
             }
 
             // A weapon slot swaps the active weapon instead of being consumed.
-            if (entry.Kind == "weapon") {
+            if (entry.Kind == "weapon")
+            {
                 if (!RpWeaponService.Equip(session, entry.Weapon.Id, out string error) && error != null)
                     session.SendWhisper(error, 1);
                 return;
             }
 
             // A secondary (shield) item equips to the secondary slot.
-            if (entry.Kind == "secondary") {
+            if (entry.Kind == "secondary")
+            {
                 if (!items.EquipShield(entry.Representative.Id, habbo))
                     session.SendWhisper("You couldn't equip that shield.", 1);
                 return;
             }
 
             // A primary item equips to the primary slot (replacing the weapon).
-            if (entry.Kind == "primary") {
+            if (entry.Kind == "primary")
+            {
                 if (!items.EquipPrimaryItem(entry.Representative.Id, habbo))
                     session.SendWhisper("You couldn't equip that item.", 1);
                 return;

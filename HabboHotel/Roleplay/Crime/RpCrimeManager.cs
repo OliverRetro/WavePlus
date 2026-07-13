@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using Plus.Database.EF;
 using Plus.Database.EF.Entities;
 using Plus.HabboHotel.GameClients;
-using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
 
 namespace Plus.HabboHotel.Roleplay.Crime
@@ -39,29 +38,29 @@ namespace Plus.HabboHotel.Roleplay.Crime
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-            foreach (var row in db.rp_crimes.AsNoTracking().ToList())
+            foreach (var row in db.RpCrimes.AsNoTracking().ToList())
             {
                 RpCrime crime = new(
-                    row.id,
-                    row.crime_tag,
-                    row.crime_name,
-                    row.severity,
-                    row.time_active,
-                    row.automatic_report == 1,
-                    row.police_alert == 1,
-                    row.note);
+                    row.Id,
+                    row.CrimeTag,
+                    row.CrimeName,
+                    row.Severity,
+                    row.TimeActive,
+                    row.AutomaticReport == 1,
+                    row.PoliceAlert == 1,
+                    row.Note);
 
                 _byId[crime.Id] = crime;
                 _byTag[crime.Tag] = crime;
             }
 
-            foreach (var row in db.rp_crime_penalties.AsNoTracking().OrderBy(x => x.star_level).ToList())
+            foreach (var row in db.RpCrimePenalties.AsNoTracking().OrderBy(x => x.StarLevel).ToList())
             {
                 _penalties.Add(new RpCrimePenalty(
-                    row.id,
-                    row.star_level,
-                    row.fine_amount,
-                    row.jail_time));
+                    row.Id,
+                    row.StarLevel,
+                    row.FineAmount,
+                    row.JailTime));
             }
 
             Log.Info($"[RP] Loaded {_byId.Count} crimes and {_penalties.Count} crime penalties.");
@@ -82,7 +81,7 @@ namespace Plus.HabboHotel.Roleplay.Crime
         }
 
         /// <summary>Records a crime committed by the offender, alerting police if configured.</summary>
-        public void Commit(Habbo offender, string crimeTag, Room room)
+        public void Commit(Habbo offender, string crimeTag, Rooms.Room room)
         {
             if (offender == null)
                 return;
@@ -120,7 +119,7 @@ namespace Plus.HabboHotel.Roleplay.Crime
                 AlertPolice(offender, crime, room);
         }
 
-        private static void AlertPolice(Habbo offender, RpCrime crime, Room room)
+        private static void AlertPolice(Habbo offender, RpCrime crime, Rooms.Room room)
         {
             if (!int.TryParse(PlusEnvironment.GetSettingsManager().TryGetValue("rp.police.corporation.id"), out int policeCorp) || policeCorp <= 0)
                 return;
@@ -247,7 +246,8 @@ namespace Plus.HabboHotel.Roleplay.Crime
             {
                 for (int i = rec.Crimes.Count - 1; i >= 0; i--)
                 {
-                    if (rec.Crimes[i].ExpiresAt <= now) {
+                    if (rec.Crimes[i].ExpiresAt <= now)
+                    {
                         if (rec.Crimes[i].Log != null)
                             rec.Crimes[i].Log.Expired = true;
                         rec.Crimes.RemoveAt(i);
@@ -267,12 +267,12 @@ namespace Plus.HabboHotel.Roleplay.Crime
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
                 foreach (PendingCrimeLog log in logs)
                 {
-                    db.rp_crime_logs.Add(new rp_crime_log
+                    db.RpCrimeLogs.Add(new RpCrimeLog
                     {
-                        crime_id = log.CrimeId,
-                        user_id = userId,
-                        timestamp = log.Timestamp,
-                        expired = (sbyte)(log.Expired ? 1 : 0)
+                        CrimeId = log.CrimeId,
+                        UserId = userId,
+                        Timestamp = log.Timestamp,
+                        Expired = (sbyte)(log.Expired ? 1 : 0)
                     });
                 }
                 db.SaveChanges();

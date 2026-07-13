@@ -17,7 +17,7 @@ namespace Plus.HabboHotel.Rooms.PathFinding
 
         public override bool Equals(object obj)
         {
-            return (obj is PathFinderNode) && ((PathFinderNode) obj).Position.Equals(Position);
+            return (obj is PathFinderNode) && ((PathFinderNode)obj).Position.Equals(Position);
         }
 
         public bool Equals(PathFinderNode breadcrumb)

@@ -1,27 +1,27 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[Index("target", Name = "target")]
-[Index("type", Name = "type")]
-[Index("user_id", Name = "user_id")]
-public partial class user_relationship
+[Index("Target", Name = "target")]
+[Index("Type", Name = "type")]
+[Index("UserId", Name = "user_id")]
+[Table("user_relationships")]
+public partial class UserRelationship
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int user_id { get; set; }
+    [Column("user_id", TypeName = "int(11)")]
+    public int UserId { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int target { get; set; }
+    [Column("target", TypeName = "int(11)")]
+    public int Target { get; set; }
 
     [Required]
-    [Column(TypeName = "enum('1','2','3')")]
-    public string type { get; set; }
+    [Column("type", TypeName = "enum('1','2','3')")]
+    public string Type { get; set; }
 }

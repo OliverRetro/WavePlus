@@ -1,51 +1,53 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[Index("id", Name = "id", IsUnique = true)]
-[Index("moderator_id", Name = "moderator_id")]
-[Index("reported_id", Name = "reported_id")]
-[Index("sender_id", Name = "sender_id")]
-[Index("status", Name = "status")]
-public partial class moderation_ticket
+[Index("Id", Name = "id", IsUnique = true)]
+[Index("ModeratorId", Name = "moderator_id")]
+[Index("ReportedId", Name = "reported_id")]
+[Index("SenderId", Name = "sender_id")]
+[Index("Status", Name = "status")]
+[Table("moderation_tickets")]
+public partial class ModerationTicket
 {
     [Key]
-    [Column(TypeName = "int(10) unsigned")]
-    public uint id { get; set; }
+    [Column("id", TypeName = "int(10) unsigned")]
+    public uint Id { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int score { get; set; }
+    [Column("score", TypeName = "int(11)")]
+    public int Score { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int type { get; set; }
-
-    [Required]
-    [Column(TypeName = "enum('open','picked','resolved','abusive','invalid','deleted')")]
-    public string status { get; set; }
-
-    [Column(TypeName = "int(10) unsigned")]
-    public uint sender_id { get; set; }
-
-    [Column(TypeName = "int(10) unsigned")]
-    public uint reported_id { get; set; }
-
-    [Column(TypeName = "int(10) unsigned")]
-    public uint moderator_id { get; set; }
+    [Column("type", TypeName = "int(11)")]
+    public int Type { get; set; }
 
     [Required]
-    [Column(TypeName = "text")]
-    public string message { get; set; }
+    [Column("status", TypeName = "enum('open','picked','resolved','abusive','invalid','deleted')")]
+    public string Status { get; set; }
 
-    [Column(TypeName = "int(10) unsigned")]
-    public uint room_id { get; set; }
+    [Column("sender_id", TypeName = "int(10) unsigned")]
+    public uint SenderId { get; set; }
+
+    [Column("reported_id", TypeName = "int(10) unsigned")]
+    public uint ReportedId { get; set; }
+
+    [Column("moderator_id", TypeName = "int(10) unsigned")]
+    public uint ModeratorId { get; set; }
+
+    [Required]
+    [Column("message", TypeName = "text")]
+    public string Message { get; set; }
+
+    [Column("room_id", TypeName = "int(10) unsigned")]
+    public uint RoomId { get; set; }
 
     [Required]
     [StringLength(100)]
-    public string room_name { get; set; }
+    [Column("room_name")]
+    public string RoomName { get; set; }
 
-    public double timestamp { get; set; }
+    [Column("timestamp")]
+    public double Timestamp { get; set; }
 }

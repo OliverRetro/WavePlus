@@ -1,29 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class talent
+[Table("talents")]
+public partial class Talent
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
     [Required]
-    [Column(TypeName = "enum('citizenship','helper')")]
-    public string type { get; set; }
+    [Column("type", TypeName = "enum('citizenship','helper')")]
+    public string Type { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int? level { get; set; }
-
-    [Required]
-    [Column(TypeName = "text")]
-    public string data_actions { get; set; }
+    [Column("level", TypeName = "int(11)")]
+    public int? Level { get; set; }
 
     [Required]
-    [Column(TypeName = "text")]
-    public string data_gifts { get; set; }
+    [Column("data_actions", TypeName = "text")]
+    public string DataActions { get; set; }
+
+    [Required]
+    [Column("data_gifts", TypeName = "text")]
+    public string DataGifts { get; set; }
 }

@@ -20,11 +20,11 @@ namespace Plus.HabboHotel.Talents
         {
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                var rows = db.talents.Select(t => new { t.type, t.level, t.data_actions, t.data_gifts }).ToList();
+                var rows = db.Talents.Select(t => new { t.Type, t.Level, t.DataActions, t.DataGifts }).ToList();
                 foreach (var row in rows)
                 {
-                    int level = row.level ?? 0;
-                    _citizenshipLevels.Add(level, new TalentTrackLevel(row.type, level, row.data_actions, row.data_gifts));
+                    int level = row.Level ?? 0;
+                    _citizenshipLevels.Add(level, new TalentTrackLevel(row.Type, level, row.DataActions, row.DataGifts));
                 }
             }
 

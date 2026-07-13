@@ -1,26 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
 [Keyless]
-public partial class catalog_pet_race
+[Table("catalog_pet_races")]
+public partial class CatalogPetRace
 {
-    [Column(TypeName = "int(255)")]
-    public int? raceid { get; set; }
+    [Column("raceid", TypeName = "int(255)")]
+    public int? Raceid { get; set; }
 
-    [Column(TypeName = "int(255)")]
-    public int? color1 { get; set; }
+    [Column("color1", TypeName = "int(255)")]
+    public int? Color1 { get; set; }
 
-    [Column(TypeName = "int(255)")]
-    public int? color2 { get; set; }
+    [Column("color2", TypeName = "int(255)")]
+    public int? Color2 { get; set; }
 
-    [Column(TypeName = "enum('1','0')")]
-    public string has1color { get; set; }
+    [Column("has1color", TypeName = "enum('1','0')")]
+    public string Has1color { get; set; }
 
-    [Column(TypeName = "enum('1','0')")]
-    public string has2color { get; set; }
+    [Column("has2color", TypeName = "enum('1','0')")]
+    public string Has2color { get; set; }
 }

@@ -18,10 +18,12 @@ namespace Plus.HabboHotel.Items.Interactor
                 db.Database.ExecuteSqlInterpolated($"INSERT INTO items_hopper (hopper_id, room_id) VALUES ({hopperId}, {hopperRoomId});");
             }
 
-            if (item.InteractingUser != 0) {
+            if (item.InteractingUser != 0)
+            {
                 RoomUser user = item.GetRoom().GetRoomUserManager().GetRoomUserByHabbo(item.InteractingUser);
 
-                if (user != null) {
+                if (user != null)
+                {
                     user.ClearMovement(true);
                     user.AllowOverride = false;
                     user.CanWalk = true;
@@ -43,7 +45,8 @@ namespace Plus.HabboHotel.Items.Interactor
                 db.Database.ExecuteSqlInterpolated($"DELETE FROM items_hopper WHERE item_id={hid} OR room_id={hopperRoomId} LIMIT 1");
             }
 
-            if (item.InteractingUser != 0) {
+            if (item.InteractingUser != 0)
+            {
                 RoomUser user = item.GetRoom().GetRoomUserManager().GetRoomUserByHabbo(item.InteractingUser);
 
                 user?.UnlockWalking();
@@ -58,20 +61,25 @@ namespace Plus.HabboHotel.Items.Interactor
                 return;
             RoomUser user = item.GetRoom().GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id);
 
-            if (user == null) {
+            if (user == null)
+            {
                 return;
             }
 
             // Alright. But is this user in the right position?
-            if (user.Coordinate == item.Coordinate || user.Coordinate == item.SquareInFront) {
+            if (user.Coordinate == item.Coordinate || user.Coordinate == item.SquareInFront)
+            {
                 // Fine. But is this tele even free?
-                if (item.InteractingUser != 0) {
+                if (item.InteractingUser != 0)
+                {
                     return;
                 }
 
                 user.TeleDelay = 2;
                 item.InteractingUser = user.GetClient().GetHabbo().Id;
-            } else if (user.CanWalk) {
+            }
+            else if (user.CanWalk)
+            {
                 user.MoveTo(item.SquareInFront);
             }
         }

@@ -4,7 +4,8 @@ using Plus.Communication.Packets.Outgoing.Quests;
 using Plus.Database.EF;
 using Plus.Database.EF.Entities;
 using Plus.HabboHotel.GameClients;
-using Plus.HabboHotel.Quests;
+// Disambiguates the bare name from the scaffolded EF entity Plus.Database.EF.Entities.Quest.
+using Quest = Plus.HabboHotel.Quests.Quest;
 
 namespace Plus.Communication.Packets.Incoming.Quests
 {
@@ -20,13 +21,13 @@ namespace Plus.Communication.Packets.Incoming.Quests
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.user_quests.Upsert(new user_quest
+                db.UserQuests.Upsert(new UserQuest
                 {
-                    user_id = (uint)session.GetHabbo().Id,
-                    quest_id = (uint)quest.Id
+                    UserId = (uint)session.GetHabbo().Id,
+                    QuestId = (uint)quest.Id
                 }).Run();
-                db.user_stats.Where(s => s.id == session.GetHabbo().Id)
-                    .ExecuteUpdate(s => s.SetProperty(x => x.quest_id, (uint)quest.Id));
+                db.UserStats.Where(s => s.Id == session.GetHabbo().Id)
+                    .ExecuteUpdate(s => s.SetProperty(x => x.QuestId, (uint)quest.Id));
             }
 
             session.GetHabbo().GetStats().QuestId = quest.Id;

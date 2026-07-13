@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using Plus.HabboHotel.Items;
 using Plus.HabboHotel.Items.Wired;
 
@@ -30,7 +29,8 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Furni.Wired
             packet.WriteInteger(Box.Item.Id);
             packet.WriteString(Box.StringData);
 
-            if (Box.Type == WiredBoxType.ConditionMatchStateAndPosition || Box.Type == WiredBoxType.ConditionDontMatchStateAndPosition) {
+            if (Box.Type == WiredBoxType.ConditionMatchStateAndPosition || Box.Type == WiredBoxType.ConditionDontMatchStateAndPosition)
+            {
                 if (string.IsNullOrEmpty(Box.StringData))
                     Box.StringData = "0;0;0";
 
@@ -38,7 +38,9 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Furni.Wired
                 packet.WriteInteger(Box.StringData != null ? int.Parse(Box.StringData.Split(';')[0]) : 0);
                 packet.WriteInteger(Box.StringData != null ? int.Parse(Box.StringData.Split(';')[1]) : 0);
                 packet.WriteInteger(Box.StringData != null ? int.Parse(Box.StringData.Split(';')[2]) : 0);
-            } else if (Box.Type == WiredBoxType.ConditionUserCountInRoom || Box.Type == WiredBoxType.ConditionUserCountDoesntInRoom) {
+            }
+            else if (Box.Type == WiredBoxType.ConditionUserCountInRoom || Box.Type == WiredBoxType.ConditionUserCountDoesntInRoom)
+            {
                 if (string.IsNullOrEmpty(Box.StringData))
                     Box.StringData = "0;0";
 
@@ -52,7 +54,8 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Furni.Wired
 
             if (Box.Type != WiredBoxType.ConditionUserCountInRoom && Box.Type != WiredBoxType.ConditionUserCountDoesntInRoom && Box.Type != WiredBoxType.ConditionFurniHasNoFurni)
                 packet.WriteInteger(0);
-            else if (Box.Type == WiredBoxType.ConditionFurniHasNoFurni) {
+            else if (Box.Type == WiredBoxType.ConditionFurniHasNoFurni)
+            {
                 if (string.IsNullOrEmpty(Box.StringData))
                     Box.StringData = "0";
                 packet.WriteInteger(Box.StringData != null ? int.Parse(Box.StringData.Split(';')[0]) : 50);

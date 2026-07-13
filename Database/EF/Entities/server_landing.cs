@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
@@ -7,28 +6,32 @@ using Microsoft.EntityFrameworkCore;
 namespace Plus.Database.EF.Entities;
 
 [Table("server_landing")]
-[Index("id", Name = "id", IsUnique = true)]
-public partial class server_landing
+[Index("Id", Name = "id", IsUnique = true)]
+public partial class ServerLanding
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
     [StringLength(35)]
-    public string title { get; set; }
+    [Column("title")]
+    public string Title { get; set; }
 
-    [Column(TypeName = "text")]
-    public string text { get; set; }
+    [Column("text", TypeName = "text")]
+    public string Text { get; set; }
 
     [StringLength(25)]
-    public string button_text { get; set; }
+    [Column("button_text")]
+    public string ButtonText { get; set; }
 
-    [Column(TypeName = "enum('0','1','2','3')")]
-    public string button_type { get; set; }
+    [Column("button_type", TypeName = "enum('0','1','2','3')")]
+    public string ButtonType { get; set; }
 
     [StringLength(90)]
-    public string button_link { get; set; }
+    [Column("button_link")]
+    public string ButtonLink { get; set; }
 
     [StringLength(120)]
-    public string image_link { get; set; }
+    [Column("image_link")]
+    public string ImageLink { get; set; }
 }

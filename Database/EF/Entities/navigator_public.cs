@@ -1,34 +1,36 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[Index("order_num", Name = "ordernum")]
-public partial class navigator_public
+[Index("OrderNum", Name = "ordernum")]
+[Table("navigator_publics")]
+public partial class NavigatorPublic
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int room_id { get; set; }
+    [Column("room_id", TypeName = "int(11)")]
+    public int RoomId { get; set; }
 
     [Required]
     [StringLength(64)]
-    public string caption { get; set; }
+    [Column("caption")]
+    public string Caption { get; set; }
 
     [Required]
     [StringLength(150)]
-    public string description { get; set; }
+    [Column("description")]
+    public string Description { get; set; }
 
     [Required]
-    [Column(TypeName = "text")]
-    public string image_url { get; set; }
+    [Column("image_url", TypeName = "text")]
+    public string ImageUrl { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int order_num { get; set; }
+    [Column("order_num", TypeName = "int(11)")]
+    public int OrderNum { get; set; }
 
     [Required]
-    [Column(TypeName = "enum('0','1')")]
-    public string enabled { get; set; }
+    [Column("enabled", TypeName = "enum('0','1')")]
+    public string Enabled { get; set; }
 }

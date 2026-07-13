@@ -2,7 +2,6 @@ using Plus.HabboHotel.Roleplay.RpItem.Weapon;
 using Plus.HabboHotel.Roleplay.Utilities;
 using Plus.HabboHotel.Rooms;
 using System;
-using static System.Collections.Specialized.BitVector32;
 
 namespace Plus.HabboHotel.Users
 {
@@ -82,8 +81,10 @@ namespace Plus.HabboHotel.Users
             NextHungerTick = DateTime.UtcNow.AddMinutes(10);
         }
 
-        public static int GetMaxHealth(Habbo habbo) {
-            if (habbo?.GetRpSkills() == null) {
+        public static int GetMaxHealth(Habbo habbo)
+        {
+            if (habbo?.GetRpSkills() == null)
+            {
                 return 100;
             }
 
@@ -96,8 +97,10 @@ namespace Plus.HabboHotel.Users
             };
         }
 
-        public static int GetMaxHunger(Habbo habbo) {
-            if (habbo?.GetRpSkills() == null) {
+        public static int GetMaxHunger(Habbo habbo)
+        {
+            if (habbo?.GetRpSkills() == null)
+            {
                 return 25;
             }
 
@@ -110,8 +113,10 @@ namespace Plus.HabboHotel.Users
             };
         }
 
-        public static int GetMaxEnergy(Habbo habbo) {
-            if (habbo?.GetRpSkills() == null) {
+        public static int GetMaxEnergy(Habbo habbo)
+        {
+            if (habbo?.GetRpSkills() == null)
+            {
                 return 100;
             }
 
@@ -124,30 +129,37 @@ namespace Plus.HabboHotel.Users
             };
         }
 
-        public void Heal(Habbo habbo, int health) {
+        public void Heal(Habbo habbo, int health)
+        {
             Health = Math.Min(Health + health, GetMaxHealth(habbo));
         }
 
-        public static void Kill(Habbo victim, RoomUser victimUser, UserRpStats attacker = null) {
+        public static void Kill(Habbo victim, RoomUser victimUser, UserRpStats attacker = null)
+        {
             if (victim == null || victimUser == null) { return; }
 
             PlusEnvironment.GetHospitalManager().HandleDeath(victim, victimUser, attacker);
         }
 
-        public void TickHunger(Habbo habbo) {
+        public void TickHunger(Habbo habbo)
+        {
             if (DateTime.UtcNow < NextHungerTick)
                 return;
 
-            if (Hunger > 0) {
+            if (Hunger > 0)
+            {
                 int loss = Random.Shared.Next(1, 6);
                 Hunger = Math.Max(0, Hunger - loss);
                 NextHungerTick = DateTime.UtcNow.AddMinutes(10);
-            } else {
+            }
+            else
+            {
                 int damage = Random.Shared.Next(5, 51);
                 Health = Math.Max(0, Health - damage);
                 NextHungerTick = DateTime.UtcNow.AddMinutes(1);
 
-                if (Health <= 0 && !IsDead) {
+                if (Health <= 0 && !IsDead)
+                {
                     Room room = habbo.CurrentRoom;
                     RoomUser roomUser = room?.GetRoomUserManager().GetRoomUserByHabbo(habbo.Id);
                     if (roomUser != null)
@@ -159,13 +171,16 @@ namespace Plus.HabboHotel.Users
             habbo.TrySendUserStatsUpdate(true);
         }
 
-        public void InteractionEnergy() {
+        public void InteractionEnergy()
+        {
             int energyLoss = Random.Shared.Next(1, 6); // 1-5 dmg
             Energy = Math.Max(0, Energy - energyLoss);
         }
 
-        public static int GetRobberyChance(Habbo habbo) {
-            if (habbo?.GetRpSkills() == null) {
+        public static int GetRobberyChance(Habbo habbo)
+        {
+            if (habbo?.GetRpSkills() == null)
+            {
                 return 50;
             }
 
@@ -178,11 +193,13 @@ namespace Plus.HabboHotel.Users
             };
         }
 
-        public UserWeapon ActiveWeapon() {
+        public UserWeapon ActiveWeapon()
+        {
             return Weapons?.GetActiveWeapon();
         }
 
-        public static int GetScavengerBoost(Habbo habbo) {
+        public static int GetScavengerBoost(Habbo habbo)
+        {
             if (habbo?.GetRpSkills() == null)
             {
                 return 1;

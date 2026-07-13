@@ -28,19 +28,19 @@ namespace Plus.Utilities
 
         public static byte NextByte()
         {
-            return (byte) Next(0, 255);
+            return (byte)Next(0, 255);
         }
 
         public static byte NextByte(int max)
         {
             max = Math.Min(max, 255);
-            return (byte) Next(0, max);
+            return (byte)Next(0, max);
         }
 
         public static byte NextByte(int min, int max)
         {
             max = Math.Min(max, 255);
-            return (byte) Next(Math.Min(min, max), max);
+            return (byte)Next(Math.Min(min, max), max);
         }
 
         public static void NextBytes(byte[] toparse)

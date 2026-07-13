@@ -1,49 +1,53 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[Index("id", Name = "id", IsUnique = true)]
-public partial class room_model
+[Index("Id", Name = "id", IsUnique = true)]
+[Table("room_models")]
+public partial class RoomModel
 {
     [Key]
     [StringLength(100)]
-    public string id { get; set; }
+    [Column("id")]
+    public string Id { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int door_x { get; set; }
+    [Column("door_x", TypeName = "int(11)")]
+    public int DoorX { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int door_y { get; set; }
+    [Column("door_y", TypeName = "int(11)")]
+    public int DoorY { get; set; }
 
-    public double door_z { get; set; }
+    [Column("door_z")]
+    public double DoorZ { get; set; }
 
-    [Column(TypeName = "int(4)")]
-    public int door_dir { get; set; }
+    [Column("door_dir", TypeName = "int(4)")]
+    public int DoorDir { get; set; }
 
     [Required]
-    [Column(TypeName = "text")]
-    public string heightmap { get; set; }
+    [Column("heightmap", TypeName = "text")]
+    public string Heightmap { get; set; }
 
     [Required]
     [StringLength(556)]
-    public string public_items { get; set; }
+    [Column("public_items")]
+    public string PublicItems { get; set; }
 
     [Required]
-    [Column(TypeName = "enum('0','1')")]
-    public string club_only { get; set; }
+    [Column("club_only", TypeName = "enum('0','1')")]
+    public string ClubOnly { get; set; }
 
     [Required]
     [StringLength(100)]
-    public string poolmap { get; set; }
+    [Column("poolmap")]
+    public string Poolmap { get; set; }
 
     [Required]
-    [Column(TypeName = "enum('0','1')")]
-    public string custom { get; set; }
+    [Column("custom", TypeName = "enum('0','1')")]
+    public string Custom { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int wall_height { get; set; }
+    [Column("wall_height", TypeName = "int(11)")]
+    public int WallHeight { get; set; }
 }

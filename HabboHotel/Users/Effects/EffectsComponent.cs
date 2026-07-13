@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Plus.Communication.Packets.Outgoing.Rooms.Avatar;
@@ -28,14 +27,15 @@ namespace Plus.HabboHotel.Users.Effects
             uint uid = (uint)habbo.Id;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                var effects = db.user_effects
-                    .Where(e => e.user_id == uid)
-                    .Select(e => new { e.id, e.user_id, e.effect_id, e.total_duration, e.is_activated, e.activated_stamp, e.quantity })
+                var effects = db.UserEffects
+                    .Where(e => e.UserId == uid)
+                    .Select(e => new { e.Id, e.UserId, e.EffectId, e.TotalDuration, e.IsActivated, e.ActivatedStamp, e.Quantity })
                     .ToList();
 
                 foreach (var row in effects)
                 {
-                    if (_effects.TryAdd(row.id, new AvatarEffect(row.id, (int)(row.user_id ?? 0), row.effect_id ?? 0, row.total_duration ?? 0, PlusEnvironment.EnumToBool(row.is_activated), row.activated_stamp ?? 0, row.quantity ?? 0))) {
+                    if (_effects.TryAdd(row.Id, new AvatarEffect(row.Id, (int)(row.UserId ?? 0), row.EffectId ?? 0, row.TotalDuration ?? 0, PlusEnvironment.EnumToBool(row.IsActivated), row.ActivatedStamp ?? 0, row.Quantity ?? 0)))
+                    {
                         //umm?
                     }
                 }
@@ -74,7 +74,8 @@ namespace Plus.HabboHotel.Users.Effects
         {
             foreach (AvatarEffect effect in _effects.Values.ToList())
             {
-                if (!effect.HasExpired && effect.SpriteId == spriteId && (!activatedOnly || effect.Activated) && (!unactivatedOnly || !effect.Activated)) {
+                if (!effect.HasExpired && effect.SpriteId == spriteId && (!activatedOnly || effect.Activated) && (!unactivatedOnly || !effect.Activated))
+                {
                     return effect;
                 }
             }
@@ -90,7 +91,8 @@ namespace Plus.HabboHotel.Users.Effects
         {
             foreach (AvatarEffect effect in _effects.Values.ToList())
             {
-                if (effect.HasExpired) {
+                if (effect.HasExpired)
+                {
                     effect.HandleExpiration(habbo);
                 }
             }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -75,7 +74,8 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
             if (_next == 0 || _next < PlusEnvironment.Now())
                 _next = PlusEnvironment.Now() + Delay;
 
-            if (!_requested) {
+            if (!_requested)
+            {
                 TickCount = Delay;
                 _requested = true;
             }
@@ -89,7 +89,8 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
                 return false;
 
             long now = PlusEnvironment.Now();
-            if (_next < now) {
+            if (_next < now)
+            {
                 foreach (Item Item in SetItems.Values.ToList())
                 {
                     if (Item == null)
@@ -108,7 +109,8 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
                     if (!Instance.GetGameMap().ItemCanMove(Item, point))
                         continue;
 
-                    if (Instance.GetGameMap().CanRollItemHere(point.X, point.Y) && !Instance.GetGameMap().SquareHasUsers(point.X, point.Y)) {
+                    if (Instance.GetGameMap().CanRollItemHere(point.X, point.Y) && !Instance.GetGameMap().SquareHasUsers(point.X, point.Y))
+                    {
                         double newZ = Item.GetZ;
                         bool canBePlaced = true;
 
@@ -118,7 +120,8 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
                             if (IItem == null || IItem.Id == Item.Id)
                                 continue;
 
-                            if (!IItem.GetBaseItem().Walkable) {
+                            if (!IItem.GetBaseItem().Walkable)
+                            {
                                 _next = 0;
                                 canBePlaced = false;
                                 break;
@@ -131,7 +134,8 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
                                 canBePlaced = false;
                         }
 
-                        if (canBePlaced && point != Item.Coordinate) {
+                        if (canBePlaced && point != Item.Coordinate)
+                        {
                             Instance.SendPacket(new SlideObjectBundleComposer(Item.GetX, Item.GetY, Item.GetZ, point.X,
                                 point.Y, newZ, 0, 0, Item.Id));
                             Instance.GetRoomItemHandler().SetFloorItem(Item, point.X, point.Y, newZ);

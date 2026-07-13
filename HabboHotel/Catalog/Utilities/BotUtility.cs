@@ -1,35 +1,33 @@
 ﻿using Plus.Database.EF;
-using Plus.Database.EF.Entities;
 using Plus.HabboHotel.Items;
 using Plus.HabboHotel.Rooms.AI;
-using Plus.HabboHotel.Users.Inventory.Bots;
 
 namespace Plus.HabboHotel.Catalog.Utilities
 {
     public static class BotUtility
     {
-        public static Bot CreateBot(ItemData itemData, int ownerId)
+        public static Users.Inventory.Bots.Bot CreateBot(ItemData itemData, int ownerId)
         {
             if (!PlusEnvironment.GetGame().GetCatalog().TryGetBot(itemData.Id, out CatalogBot cataBot))
                 return null;
 
-            bot botEntity = new()
+            Database.EF.Entities.Bot botEntity = new()
             {
-                user_id = (uint)ownerId,
-                name = cataBot.Name,
-                motto = cataBot.Motto,
-                look = cataBot.Figure,
-                gender = cataBot.Gender,
-                ai_type = cataBot.AIType
+                UserId = (uint)ownerId,
+                Name = cataBot.Name,
+                Motto = cataBot.Motto,
+                Look = cataBot.Figure,
+                Gender = cataBot.Gender,
+                AiType = cataBot.AIType
             };
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.bots.Add(botEntity);
+                db.Bots.Add(botEntity);
                 db.SaveChanges();
             }
 
-            return new Bot((int)botEntity.id, (int)botEntity.user_id, botEntity.name, botEntity.motto, botEntity.look, botEntity.gender);
+            return new Users.Inventory.Bots.Bot((int)botEntity.Id, (int)botEntity.UserId, botEntity.Name, botEntity.Motto, botEntity.Look, botEntity.Gender);
         }
 
 

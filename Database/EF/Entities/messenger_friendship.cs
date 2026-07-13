@@ -1,22 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[Index("user_one_id", Name = "user_one_id")]
-[Index("user_two_id", Name = "user_two_id")]
-public partial class messenger_friendship
+[Index("UserOneId", Name = "user_one_id")]
+[Index("UserTwoId", Name = "user_two_id")]
+[Table("messenger_friendships")]
+public partial class MessengerFriendship
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
-    [Column(TypeName = "int(10) unsigned")]
-    public uint user_one_id { get; set; }
+    [Column("user_one_id", TypeName = "int(10) unsigned")]
+    public uint UserOneId { get; set; }
 
-    [Column(TypeName = "int(10) unsigned")]
-    public uint user_two_id { get; set; }
+    [Column("user_two_id", TypeName = "int(10) unsigned")]
+    public uint UserTwoId { get; set; }
 }

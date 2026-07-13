@@ -18,7 +18,8 @@ namespace Plus.Communication.Packets.Incoming.Navigator
             if (!RoomFactory.TryGetData(roomId, out RoomData data))
                 return;
 
-            if (data == null || session.GetHabbo().FavoriteRooms.Count >= 30 || session.GetHabbo().FavoriteRooms.Contains(roomId)) {
+            if (data == null || session.GetHabbo().FavoriteRooms.Count >= 30 || session.GetHabbo().FavoriteRooms.Contains(roomId))
+            {
                 // send packet that favourites is full.
                 return;
             }
@@ -28,10 +29,10 @@ namespace Plus.Communication.Packets.Incoming.Navigator
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.user_favorites.Add(new user_favorite
+                db.UserFavorites.Add(new UserFavorite
                 {
-                    user_id = (uint)session.GetHabbo().Id,
-                    room_id = (uint)roomId
+                    UserId = (uint)session.GetHabbo().Id,
+                    RoomId = (uint)roomId
                 });
                 db.SaveChanges();
             }

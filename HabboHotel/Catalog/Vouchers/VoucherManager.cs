@@ -20,11 +20,11 @@ namespace Plus.HabboHotel.Catalog.Vouchers
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                var rows = db.catalog_vouchers.Where(v => v.enabled == "1")
-                    .Select(v => new { v.voucher, v.type, v.value, v.current_uses, v.max_uses }).ToList();
+                var rows = db.CatalogVouchers.Where(v => v.Enabled == "1")
+                    .Select(v => new { v.Voucher, v.Type, v.Value, v.CurrentUses, v.MaxUses }).ToList();
                 foreach (var row in rows)
                 {
-                    _vouchers.Add(row.voucher, new Voucher(row.voucher, row.type, row.value, row.current_uses, row.max_uses));
+                    _vouchers.Add(row.Voucher, new Voucher(row.Voucher, row.Type, row.Value, row.CurrentUses, row.MaxUses));
                 }
             }
         }

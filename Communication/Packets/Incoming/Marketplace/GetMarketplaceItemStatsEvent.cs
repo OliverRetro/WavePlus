@@ -14,7 +14,7 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
 
             int avgPrice;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                avgPrice = db.catalog_marketplace_data.Where(d => d.sprite == spriteId).Select(d => d.avgprice).FirstOrDefault();
+                avgPrice = db.CatalogMarketplaceData.Where(d => d.Sprite == spriteId).Select(d => d.Avgprice).FirstOrDefault();
 
             session.SendPacket(new MarketplaceItemStatsComposer(itemId, spriteId, avgPrice));
         }

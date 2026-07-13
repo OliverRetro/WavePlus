@@ -22,14 +22,14 @@ namespace Plus.HabboHotel.Users.Navigator.SavedSearches
             int userId = habbo.Id;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                var searches = db.user_saved_searches
-                    .Where(s => s.user_id == userId)
-                    .Select(s => new { s.id, s.filter, s.search_code })
+                var searches = db.UserSavedSearches
+                    .Where(s => s.UserId == userId)
+                    .Select(s => new { s.Id, s.Filter, s.SearchCode })
                     .ToList();
 
                 foreach (var row in searches)
                 {
-                    _savedSearches.TryAdd(row.id, new SavedSearch(row.id, row.filter, row.search_code));
+                    _savedSearches.TryAdd(row.Id, new SavedSearch(row.Id, row.Filter, row.SearchCode));
                 }
             }
 

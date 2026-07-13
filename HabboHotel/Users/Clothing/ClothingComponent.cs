@@ -28,8 +28,8 @@ namespace Plus.HabboHotel.Users.Clothing
             int uid = habbo.Id;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                foreach (var row in db.user_clothings.Where(c => c.user_id == uid).Select(c => new { c.id, c.part_id, c.part }).ToList())
-                    _allClothing.TryAdd(Convert.ToInt32(row.part_id), new ClothingParts(row.id, Convert.ToInt32(row.part_id), row.part));
+                foreach (var row in db.UserClothings.Where(c => c.UserId == uid).Select(c => new { c.Id, c.PartId, c.Part }).ToList())
+                    _allClothing.TryAdd(Convert.ToInt32(row.PartId), new ClothingParts(row.Id, Convert.ToInt32(row.PartId), row.Part));
             }
 
             _habbo = habbo;
@@ -40,14 +40,15 @@ namespace Plus.HabboHotel.Users.Clothing
         {
             foreach (int partId in partIds.ToList())
             {
-                if (!_allClothing.ContainsKey(partId)) {
+                if (!_allClothing.ContainsKey(partId))
+                {
                     int newId;
                     using (WavePlusContext db = PlusEnvironment.GetDbContext())
                     {
-                        var entity = new Database.EF.Entities.user_clothing { user_id = _habbo.Id, part_id = partId.ToString(), part = clothingName };
-                        db.user_clothings.Add(entity);
+                        var entity = new Database.EF.Entities.UserClothing { UserId = _habbo.Id, PartId = partId.ToString(), Part = clothingName };
+                        db.UserClothings.Add(entity);
                         db.SaveChanges();
-                        newId = entity.id;
+                        newId = entity.Id;
                     }
 
                     _allClothing.TryAdd(partId, new ClothingParts(newId, partId, clothingName));

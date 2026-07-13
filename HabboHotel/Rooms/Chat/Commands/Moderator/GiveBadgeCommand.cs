@@ -12,20 +12,24 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length != 3) {
+            if (@params.Length != 3)
+            {
                 session.SendWhisper("Please enter a username and the code of the badge you'd like to give!");
                 return;
             }
 
             GameClient targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(@params[1]);
-            if (targetClient != null) {
-                if (!targetClient.GetHabbo().GetBadgeComponent().HasBadge(@params[2])) {
+            if (targetClient != null)
+            {
+                if (!targetClient.GetHabbo().GetBadgeComponent().HasBadge(@params[2]))
+                {
                     targetClient.GetHabbo().GetBadgeComponent().GiveBadge(@params[2], true, targetClient);
                     if (targetClient.GetHabbo().Id != session.GetHabbo().Id)
                         targetClient.SendNotification("You have just been given a badge!");
                     else
                         session.SendWhisper("You have successfully given yourself the badge " + @params[2] + "!");
-                } else
+                }
+                else
                     session.SendWhisper("Oops, that user already has this badge (" + @params[2] + ") !");
 
                 return;

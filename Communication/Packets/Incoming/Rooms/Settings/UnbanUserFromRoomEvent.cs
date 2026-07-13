@@ -18,7 +18,8 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Settings
             int userId = packet.PopInt();
             int roomId = packet.PopInt();
 
-            if (instance.GetBans().IsBanned(userId)) {
+            if (instance.GetBans().IsBanned(userId))
+            {
                 instance.GetBans().Unban(userId);
 
                 session.SendPacket(new UnbanUserFromRoomComposer(roomId, userId));

@@ -52,7 +52,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
             if (@params.Length != 1)
                 return false;
 
-            Habbo player = (Habbo) @params[0];
+            Habbo player = (Habbo)@params[0];
             if (player == null)
                 return false;
 
@@ -61,11 +61,13 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
                 if (item == null || !Instance.GetRoomItemHandler().GetFloor.Contains(item) || !item.IsWired)
                     continue;
 
-                if (Instance.GetWired().TryGet(item.Id, out IWiredItem wiredItem)) {
+                if (Instance.GetWired().TryGet(item.Id, out IWiredItem wiredItem))
+                {
                     if (wiredItem.Type == WiredBoxType.EffectExecuteWiredStacks)
                         continue;
                     ICollection<IWiredItem> effects = Instance.GetWired().GetEffects(wiredItem);
-                    if (effects.Count > 0) {
+                    if (effects.Count > 0)
+                    {
                         foreach (IWiredItem effectItem in effects.ToList())
                         {
                             if (SetItems.ContainsKey(effectItem.Item.Id) && effectItem.Item.Id != item.Id)

@@ -70,8 +70,8 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
             string gender = user.BotData.Gender;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.bots.Where(b => b.id == botId)
-                    .ExecuteUpdate(s => s.SetProperty(b => b.look, look).SetProperty(b => b.gender, gender));
+                db.Bots.Where(b => b.Id == botId)
+                    .ExecuteUpdate(s => s.SetProperty(b => b.Look, look).SetProperty(b => b.Gender, gender));
             }
 
             return true;

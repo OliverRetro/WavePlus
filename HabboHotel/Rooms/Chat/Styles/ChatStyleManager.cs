@@ -24,18 +24,18 @@ namespace Plus.HabboHotel.Rooms.Chat.Styles
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                var rows = db.room_chat_styles.Select(s => new { s.id, s.name, s.required_right }).ToList();
+                var rows = db.RoomChatStyles.Select(s => new { s.Id, s.Name, s.RequiredRight }).ToList();
 
                 foreach (var row in rows)
                 {
                     try
                     {
-                        if (!_styles.ContainsKey(row.id))
-                            _styles.Add(row.id, new ChatStyle(row.id, row.name, row.required_right));
+                        if (!_styles.ContainsKey(row.Id))
+                            _styles.Add(row.Id, new ChatStyle(row.Id, row.Name, row.RequiredRight));
                     }
                     catch (Exception ex)
                     {
-                        Log.Error("Unable to load ChatBubble for ID [" + row.id + "]", ex);
+                        Log.Error("Unable to load ChatBubble for ID [" + row.Id + "]", ex);
                     }
                 }
             }

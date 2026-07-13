@@ -22,12 +22,13 @@ namespace Plus.Communication.Rcon.Commands.User
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                client.GetHabbo().Rank = (int)(db.users.Where(u => u.id == userId).Select(u => u.rank).FirstOrDefault() ?? 0);
+                client.GetHabbo().Rank = (int)(db.Users.Where(u => u.Id == userId).Select(u => u.Rank).FirstOrDefault() ?? 0);
             }
 
             client.GetHabbo().GetPermissions().Init(client.GetHabbo());
 
-            if (client.GetHabbo().GetPermissions().HasRight("mod_tickets")) {
+            if (client.GetHabbo().GetPermissions().HasRight("mod_tickets"))
+            {
                 client.SendPacket(new ModeratorInitComposer(
                     PlusEnvironment.GetGame().GetModerationManager().UserMessagePresets,
                     PlusEnvironment.GetGame().GetModerationManager().RoomMessagePresets,

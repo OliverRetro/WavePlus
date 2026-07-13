@@ -64,7 +64,8 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
             if (item == null)
                 return false;
 
-            if (!Instance.GetRoomItemHandler().GetFloor.Contains(item)) {
+            if (!Instance.GetRoomItemHandler().GetFloor.Contains(item))
+            {
                 SetItems.TryRemove(item.Id, out item);
 
                 if (items.Contains(item))
@@ -81,7 +82,8 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
             if (Instance.GetGameMap() == null)
                 return false;
 
-            if (user.IsWalking) {
+            if (user.IsWalking)
+            {
                 user.ClearMovement(true);
             }
 

@@ -18,19 +18,22 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
             if (session == null || session.GetHabbo() == null || room == null || session?.GetHabbo().GetRpStats() == null)
                 return;
 
-            if(session.GetHabbo().GetRpStats().Energy < 1) {
+            if (session.GetHabbo().GetRpStats().Energy < 1)
+            {
                 session.SendWhisper("You don't have enough energy!", 1);
                 return;
             }
 
-            if (PlusEnvironment.GetPoliceManager().IsCuffed(session.GetHabbo().Id)) {
+            if (PlusEnvironment.GetPoliceManager().IsCuffed(session.GetHabbo().Id))
+            {
                 session.SendWhisper("You can't fight while cuffed.", 1);
                 return;
             }
 
             double now = PlusEnvironment.GetUnixTimestamp();
 
-            if (session.GetHabbo().LastHitTime > now) {
+            if (session.GetHabbo().LastHitTime > now)
+            {
                 double secondsLeft = session.GetHabbo().LastHitTime - now;
 
                 session.SendWhisper("You must wait " + (int)Math.Ceiling(secondsLeft) + " seconds to swing again.", 1);
@@ -40,46 +43,58 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
             GameClient targetClient;
 
             Habbo lockedTarget = TargetLockService.GetLockedTarget(session.GetHabbo());
-            if (lockedTarget != null) {
-                if (@params.Length >= 2 && !string.Equals(@params[1], lockedTarget.Username, StringComparison.OrdinalIgnoreCase)) {
+            if (lockedTarget != null)
+            {
+                if (@params.Length >= 2 && !string.Equals(@params[1], lockedTarget.Username, StringComparison.OrdinalIgnoreCase))
+                {
                     session.SendWhisper("Target lock is active on " + lockedTarget.Username + ". Use :unlocktarget before attacking someone else.", 1);
                     return;
                 }
 
                 targetClient = lockedTarget.GetClient();
-            } else if (@params.Length < 2) {
+            }
+            else if (@params.Length < 2)
+            {
                 Habbo clickedTarget = TargetLockService.GetTarget(session.GetHabbo());
                 targetClient = clickedTarget?.GetClient();
 
-                if (targetClient == null) {
+                if (targetClient == null)
+                {
                     session.SendWhisper("Enter a username, click a player, or use :locktarget <username>.", 1);
                     return;
                 }
-            } else {
+            }
+            else
+            {
                 targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(@params[1]);
             }
 
-            if (targetClient?.GetHabbo() == null) {
+            if (targetClient?.GetHabbo() == null)
+            {
                 session.SendWhisper("The user could not be found.", 1);
                 return;
             }
 
-            if (targetClient == session) {
+            if (targetClient == session)
+            {
                 session.SendWhisper("You cannot hit yourself!", 1);
                 return;
             }
-            
-            if (targetClient.GetHabbo().CurrentRoomId != session.GetHabbo().CurrentRoomId) {
+
+            if (targetClient.GetHabbo().CurrentRoomId != session.GetHabbo().CurrentRoomId)
+            {
                 session.SendWhisper("The user is not in the same room as you.", 1);
                 return;
             }
 
-            if (room.Safezone && !(targetClient.GetHabbo().GetRpStats().Aggression > 0 && session.GetHabbo().GetRpStats().Aggression > 0)) {
+            if (room.Safezone && !(targetClient.GetHabbo().GetRpStats().Aggression > 0 && session.GetHabbo().GetRpStats().Aggression > 0))
+            {
                 session.SendWhisper("You cannot attack a user in a safezone, unless both of you have aggression.", 1);
                 return;
             }
 
-            if (session.GetHabbo().GetRpStats().PassiveMode || targetClient.GetHabbo().GetRpStats().PassiveMode) {
+            if (session.GetHabbo().GetRpStats().PassiveMode || targetClient.GetHabbo().GetRpStats().PassiveMode)
+            {
                 session.SendWhisper("You cannot attack other users whilst either user is in passive mode.");
                 return;
             }

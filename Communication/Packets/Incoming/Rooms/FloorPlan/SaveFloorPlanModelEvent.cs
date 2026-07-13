@@ -34,7 +34,8 @@ namespace Plus.Communication.Packets.Incoming.Rooms.FloorPlan
                 return;
             }
 
-            if (map.Any(letter => !validLetters.Contains(letter)) || string.IsNullOrEmpty(map)) {
+            if (map.Any(letter => !validLetters.Contains(letter)) || string.IsNullOrEmpty(map))
+            {
                 session.SendPacket(new RoomNotificationComposer("floorplan_editor.error", "errors", "Oops, it appears that you have entered an invalid floor map!"));
                 return;
             }
@@ -44,7 +45,8 @@ namespace Plus.Communication.Packets.Incoming.Rooms.FloorPlan
             int sizeY = modelData.Length;
             int sizeX = modelData[0].Length;
 
-            if (sizeY > 64 || sizeX > 64) {
+            if (sizeY > 64 || sizeX > 64)
+            {
                 session.SendPacket(new RoomNotificationComposer("floorplan_editor.error", "errors", "The maximum height and width of a model is 64x64!"));
                 return;
             }
@@ -54,17 +56,20 @@ namespace Plus.Communication.Packets.Incoming.Rooms.FloorPlan
 
             foreach (var data in modelData)
             {
-                if (lastLineLength == 0) {
+                if (lastLineLength == 0)
+                {
                     lastLineLength = data.Length;
                     continue;
                 }
 
-                if (lastLineLength != data.Length) {
+                if (lastLineLength != data.Length)
+                {
                     isValid = false;
                 }
             }
 
-            if (!isValid) {
+            if (!isValid)
+            {
                 session.SendPacket(new RoomNotificationComposer("floorplan_editor.error", "errors", "Oops, it appears that you have entered an invalid floor map!"));
                 return;
             }
@@ -112,27 +117,29 @@ namespace Plus.Communication.Packets.Incoming.Rooms.FloorPlan
             int rid = room.Id;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                bool exists = db.room_models.Any(m => m.id == modelName && m.custom == "1");
+                bool exists = db.RoomModels.Any(m => m.Id == modelName && m.Custom == "1");
 
                 if (!exists) //The row is still null, let's insert instead.
                 {
                     // Partial insert (relies on DB defaults for public_items/club_only/poolmap), so raw insert is used.
                     db.Database.ExecuteSqlInterpolated($"INSERT INTO `room_models` (`id`,`door_x`,`door_y`, `door_z`, `door_dir`,`heightmap`,`custom`,`wall_height`) VALUES ({modelName}, {doorX}, {doorY}, {doorZ}, {doorDirection}, {map}, '1', {wallHeight})");
-                } else {
+                }
+                else
+                {
                     double doorZd = doorZ;
-                    db.room_models.Where(m => m.id == modelName).ExecuteUpdate(s => s
-                        .SetProperty(m => m.heightmap, map)
-                        .SetProperty(m => m.door_x, doorX)
-                        .SetProperty(m => m.door_y, doorY)
-                        .SetProperty(m => m.door_z, doorZd)
-                        .SetProperty(m => m.door_dir, doorDirection)
-                        .SetProperty(m => m.wall_height, wallHeight));
+                    db.RoomModels.Where(m => m.Id == modelName).ExecuteUpdate(s => s
+                        .SetProperty(m => m.Heightmap, map)
+                        .SetProperty(m => m.DoorX, doorX)
+                        .SetProperty(m => m.DoorY, doorY)
+                        .SetProperty(m => m.DoorZ, doorZd)
+                        .SetProperty(m => m.DoorDir, doorDirection)
+                        .SetProperty(m => m.WallHeight, wallHeight));
                 }
 
-                db.rooms.Where(r => r.id == rid).ExecuteUpdate(s => s
-                    .SetProperty(r => r.model_name, modelName)
-                    .SetProperty(r => r.wallthick, wallThick)
-                    .SetProperty(r => r.floorthick, floorThick));
+                db.Rooms.Where(r => r.Id == rid).ExecuteUpdate(s => s
+                    .SetProperty(r => r.ModelName, modelName)
+                    .SetProperty(r => r.Wallthick, wallThick)
+                    .SetProperty(r => r.Floorthick, floorThick));
             }
 
             room.ModelName = modelName;

@@ -1,30 +1,31 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[Index("enabled", "chance_weight", Name = "idx_rp_trash_rewards_enabled_weight")]
-public partial class rp_trash_reward
+[Index("Enabled", "ChanceWeight", Name = "idx_rp_trash_rewards_enabled_weight")]
+[Table("rp_trash_rewards")]
+public partial class RpTrashReward
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int item_id { get; set; }
+    [Column("item_id", TypeName = "int(11)")]
+    public int ItemId { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int chance_weight { get; set; }
+    [Column("chance_weight", TypeName = "int(11)")]
+    public int ChanceWeight { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int min_amount { get; set; }
+    [Column("min_amount", TypeName = "int(11)")]
+    public int MinAmount { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int max_amount { get; set; }
+    [Column("max_amount", TypeName = "int(11)")]
+    public int MaxAmount { get; set; }
 
     [Required]
-    public bool? enabled { get; set; }
+    [Column("enabled")]
+    public bool? Enabled { get; set; }
 }

@@ -12,7 +12,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if(session.GetHabbo().GetRpStats().IsDead) {
+            if (session.GetHabbo().GetRpStats().IsDead)
+            {
                 session.SendWhisper("You are actively bleeding out. Please don't move.", 1);
                 return;
             }
@@ -24,8 +25,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
             if (user.Statusses.ContainsKey("lie") || user.IsLying || user.RidingHorse || user.IsWalking)
                 return;
 
-            if (!user.Statusses.ContainsKey("sit")) {
-                if ((user.RotBody % 2) == 0) {
+            if (!user.Statusses.ContainsKey("sit"))
+            {
+                if ((user.RotBody % 2) == 0)
+                {
                     try
                     {
                         user.Statusses.Add("sit", "1.0");
@@ -36,14 +39,18 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                     catch
                     {
                     }
-                } else {
+                }
+                else
+                {
                     user.RotBody--;
                     user.Statusses.Add("sit", "1.0");
                     user.Z -= 0.35;
                     user.IsSitting = true;
                     user.UpdateNeeded = true;
                 }
-            } else if (user.IsSitting) {
+            }
+            else if (user.IsSitting)
+            {
                 user.Z += 0.35;
                 user.Statusses.Remove("sit");
                 user.Statusses.Remove("1.0");

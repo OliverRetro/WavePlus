@@ -1,23 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class catalog_marketplace_datum
+[Table("catalog_marketplace_data")]
+public partial class CatalogMarketplaceDatum
 {
     [Key]
-    [Column(TypeName = "int(12)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(12)")]
+    public int Id { get; set; }
 
-    [Column(TypeName = "int(7)")]
-    public int sprite { get; set; }
+    [Column("sprite", TypeName = "int(7)")]
+    public int Sprite { get; set; }
 
-    [Column(TypeName = "int(7)")]
-    public int sold { get; set; }
+    [Column("sold", TypeName = "int(7)")]
+    public int Sold { get; set; }
 
-    [Column(TypeName = "int(9)")]
-    public int avgprice { get; set; }
+    [Column("avgprice", TypeName = "int(9)")]
+    public int Avgprice { get; set; }
 }

@@ -22,7 +22,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
             string allowGifts = PlusEnvironment.BoolToEnum(session.GetHabbo().AllowGifts);
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            db.users.Where(u => u.id == userId).ExecuteUpdate(s => s.SetProperty(u => u.allow_gifts, allowGifts));
+            db.Users.Where(u => u.Id == userId).ExecuteUpdate(s => s.SetProperty(u => u.AllowGifts, allowGifts));
         }
     }
 }

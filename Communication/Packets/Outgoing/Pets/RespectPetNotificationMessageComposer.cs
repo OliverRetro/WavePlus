@@ -22,7 +22,8 @@ namespace Plus.Communication.Packets.Outgoing.Pets
 
         public override void Compose(ServerPacket packet)
         {
-            if (Pet != null) {
+            if (Pet != null)
+            {
                 //TODO: Structure
                 packet.WriteInteger(Pet.VirtualId);
                 packet.WriteInteger(Pet.VirtualId);
@@ -34,7 +35,9 @@ namespace Plus.Communication.Packets.Outgoing.Pets
                 packet.WriteInteger(0);
                 packet.WriteInteger(0); //Count - 3 ints.
                 packet.WriteInteger(1);
-            } else if (RoomUser != null) {
+            }
+            else if (RoomUser != null)
+            {
                 //TODO: Structure
                 packet.WriteInteger(RoomUser.VirtualId);
                 packet.WriteInteger(RoomUser.VirtualId);

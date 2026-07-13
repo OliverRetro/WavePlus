@@ -41,7 +41,8 @@ namespace Plus.HabboHotel.Users.Effects
             {
                 double tl = (Activated ? Duration - TimeUsed : Duration);
 
-                if (tl < 0) {
+                if (tl < 0)
+                {
                     tl = 0;
                 }
 
@@ -60,7 +61,7 @@ namespace Plus.HabboHotel.Users.Effects
             int id = Id;
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                db.user_effects.Where(e => e.id == id).ExecuteUpdate(s => s.SetProperty(e => e.is_activated, "1").SetProperty(e => e.activated_stamp, tsNow));
+                db.UserEffects.Where(e => e.Id == id).ExecuteUpdate(s => s.SetProperty(e => e.IsActivated, "1").SetProperty(e => e.ActivatedStamp, tsNow));
 
             Activated = true;
             TimestampActivated = tsNow;
@@ -77,14 +78,17 @@ namespace Plus.HabboHotel.Users.Effects
             int id = Id;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                if (Quantity < 1) {
-                    db.user_effects.Where(e => e.id == id).ExecuteDelete();
-                } else {
+                if (Quantity < 1)
+                {
+                    db.UserEffects.Where(e => e.Id == id).ExecuteDelete();
+                }
+                else
+                {
                     int qt = Quantity;
-                    db.user_effects.Where(e => e.id == id).ExecuteUpdate(s => s
-                        .SetProperty(e => e.quantity, qt)
-                        .SetProperty(e => e.is_activated, "0")
-                        .SetProperty(e => e.activated_stamp, (double?)0));
+                    db.UserEffects.Where(e => e.Id == id).ExecuteUpdate(s => s
+                        .SetProperty(e => e.Quantity, qt)
+                        .SetProperty(e => e.IsActivated, "0")
+                        .SetProperty(e => e.ActivatedStamp, (double?)0));
                 }
             }
 
@@ -99,7 +103,7 @@ namespace Plus.HabboHotel.Users.Effects
             int id = Id;
             int qt = Quantity;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                db.user_effects.Where(e => e.id == id).ExecuteUpdate(s => s.SetProperty(e => e.quantity, qt));
+                db.UserEffects.Where(e => e.Id == id).ExecuteUpdate(s => s.SetProperty(e => e.Quantity, qt));
         }
     }
 }

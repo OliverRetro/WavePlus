@@ -19,17 +19,18 @@ namespace Plus.HabboHotel.Items.Data.Toner
             uint idKey = (uint)ItemId;
             using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-            var row = db.room_items_toners.Where(t => t.id == idKey).Select(t => new { t.enabled, t.data1, t.data2, t.data3 }).FirstOrDefault();
+            var row = db.RoomItemsToners.Where(t => t.Id == idKey).Select(t => new { t.Enabled, t.Data1, t.Data2, t.Data3 }).FirstOrDefault();
 
-            if (row == null) {
+            if (row == null)
+            {
                 db.Database.ExecuteSqlInterpolated($"INSERT INTO `room_items_toner` VALUES ({ItemId}, '0', 0, 0, 0)");
-                row = db.room_items_toners.Where(t => t.id == idKey).Select(t => new { t.enabled, t.data1, t.data2, t.data3 }).FirstOrDefault();
+                row = db.RoomItemsToners.Where(t => t.Id == idKey).Select(t => new { t.Enabled, t.Data1, t.Data2, t.Data3 }).FirstOrDefault();
             }
 
-            Enabled = int.Parse(row.enabled);
-            Hue = row.data1;
-            Saturation = row.data2;
-            Lightness = row.data3;
+            Enabled = int.Parse(row.Enabled);
+            Hue = row.Data1;
+            Saturation = row.Data2;
+            Lightness = row.Data3;
         }
     }
 }

@@ -14,19 +14,20 @@ namespace Plus.HabboHotel.Users.Inventory.Pets
             uint uid = (uint)userId;
             using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-            var petRows = db.bots.Where(b => b.user_id == uid && b.room_id == 0 && b.ai_type == "pet")
-                .Select(b => new { b.id, b.user_id, b.room_id, b.name, b.x, b.y, b.z }).ToList();
+            var petRows = db.Bots.Where(b => b.UserId == uid && b.RoomId == 0 && b.AiType == "pet")
+                .Select(b => new { b.Id, b.UserId, b.RoomId, b.Name, b.X, b.Y, b.Z }).ToList();
 
             foreach (var row in petRows)
             {
-                var mRow = db.bots_petdata.Where(p => p.id == row.id)
-                    .Select(p => new { p.type, p.race, p.color, p.experience, p.energy, p.nutrition, p.respect, p.createstamp, p.have_saddle, p.anyone_ride, p.hairdye, p.pethair, p.gnome_clothing })
+                var mRow = db.BotsPetdata.Where(p => p.Id == row.Id)
+                    .Select(p => new { p.Type, p.Race, p.Color, p.Experience, p.Energy, p.Nutrition, p.Respect, p.Createstamp, p.HaveSaddle, p.AnyoneRide, p.Hairdye, p.Pethair, p.GnomeClothing })
                     .FirstOrDefault();
 
-                if (mRow != null) {
-                    pets.Add(new Pet((int)row.id, (int)row.user_id, (int)row.room_id, row.name, (int)(mRow.type ?? 0), mRow.race, mRow.color,
-                        mRow.experience ?? 0, mRow.energy ?? 0, mRow.nutrition ?? 0, mRow.respect ?? 0, (double)(mRow.createstamp ?? 0), row.x, row.y,
-                        (double)row.z, mRow.have_saddle ?? 0, mRow.anyone_ride ?? 0, mRow.hairdye ?? 0, mRow.pethair ?? 0, mRow.gnome_clothing));
+                if (mRow != null)
+                {
+                    pets.Add(new Pet((int)row.Id, (int)row.UserId, (int)row.RoomId, row.Name, (int)(mRow.Type ?? 0), mRow.Race, mRow.Color,
+                        mRow.Experience ?? 0, mRow.Energy ?? 0, mRow.Nutrition ?? 0, mRow.Respect ?? 0, (double)(mRow.Createstamp ?? 0), row.X, row.Y,
+                        (double)row.Z, mRow.HaveSaddle ?? 0, mRow.AnyoneRide ?? 0, mRow.Hairdye ?? 0, mRow.Pethair ?? 0, mRow.GnomeClothing));
                 }
             }
 

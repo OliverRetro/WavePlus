@@ -13,12 +13,16 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length == 1) {
-                if(session.GetHabbo().CustomBuildHeight != -1) {
+            if (@params.Length == 1)
+            {
+                if (session.GetHabbo().CustomBuildHeight != -1)
+                {
                     session.GetHabbo().CustomBuildHeight = -1;
                     session.SendWhisper("Custom Build Height has been disabled.");
                     return;
-                } else {
+                }
+                else
+                {
                     session.SendWhisper("Please enter the height. Example usage :bh 2.5!");
                     return;
                 }
@@ -26,7 +30,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
 
             double newHeight = Convert.ToDouble(@params[1]);
 
-            if (newHeight < 0 || newHeight > 40) {
+            if (newHeight < 0 || newHeight > 40)
+            {
                 session.SendWhisper("The build height must be within 0-40.", 1);
                 return;
             }

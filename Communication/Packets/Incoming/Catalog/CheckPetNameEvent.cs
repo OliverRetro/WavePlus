@@ -9,22 +9,26 @@ namespace Plus.Communication.Packets.Incoming.Catalog
         {
             string petName = packet.PopString();
 
-            if (petName.Length < 2) {
+            if (petName.Length < 2)
+            {
                 session.SendPacket(new CheckPetNameComposer(2, "2"));
                 return;
             }
 
-            if (petName.Length > 15) {
+            if (petName.Length > 15)
+            {
                 session.SendPacket(new CheckPetNameComposer(1, "15"));
                 return;
             }
 
-            if (!PlusEnvironment.IsValidAlphaNumeric(petName)) {
+            if (!PlusEnvironment.IsValidAlphaNumeric(petName))
+            {
                 session.SendPacket(new CheckPetNameComposer(3, string.Empty));
                 return;
             }
 
-            if (PlusEnvironment.GetGame().GetChatManager().GetFilter().IsFiltered(petName)) {
+            if (PlusEnvironment.GetGame().GetChatManager().GetFilter().IsFiltered(petName))
+            {
                 session.SendPacket(new CheckPetNameComposer(4, string.Empty));
                 return;
             }

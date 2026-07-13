@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
@@ -7,26 +6,29 @@ using Microsoft.EntityFrameworkCore;
 namespace Plus.Database.EF.Entities;
 
 [Table("items_youtube")]
-[Index("id", Name = "id", IsUnique = true)]
-public partial class items_youtube
+[Index("Id", Name = "id", IsUnique = true)]
+public partial class ItemsYoutube
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
     [Required]
     [StringLength(35)]
-    public string youtube_id { get; set; }
+    [Column("youtube_id")]
+    public string YoutubeId { get; set; }
 
     [Required]
     [StringLength(50)]
-    public string title { get; set; }
+    [Column("title")]
+    public string Title { get; set; }
 
     [Required]
     [StringLength(150)]
-    public string description { get; set; }
+    [Column("description")]
+    public string Description { get; set; }
 
     [Required]
-    [Column(TypeName = "enum('0','1')")]
-    public string enabled { get; set; }
+    [Column("enabled", TypeName = "enum('0','1')")]
+    public string Enabled { get; set; }
 }

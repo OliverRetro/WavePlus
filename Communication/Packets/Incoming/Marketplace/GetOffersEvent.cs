@@ -23,22 +23,22 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
             List<MarketOffer> offers;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                var query = db.catalog_marketplace_offers.Where(o => o.state == "1" && o.timestamp >= minTimestamp);
+                var query = db.CatalogMarketplaceOffers.Where(o => o.State == "1" && o.Timestamp >= minTimestamp);
                 if (minCost >= 0)
-                    query = query.Where(o => o.total_price > minCost);
+                    query = query.Where(o => o.TotalPrice > minCost);
                 if (maxCost >= 0)
-                    query = query.Where(o => o.total_price < maxCost);
+                    query = query.Where(o => o.TotalPrice < maxCost);
                 if (searchQuery.Length >= 1)
-                    query = query.Where(o => EF.Functions.Like(o.public_name, "%" + searchQuery + "%"));
+                    query = query.Where(o => EF.Functions.Like(o.PublicName, "%" + searchQuery + "%"));
 
                 query = filterMode == 1
-                    ? query.OrderByDescending(o => o.asking_price)
-                    : query.OrderBy(o => o.asking_price);
+                    ? query.OrderByDescending(o => o.AskingPrice)
+                    : query.OrderBy(o => o.AskingPrice);
 
                 offers = query.Take(500)
-                    .Select(o => new { o.offer_id, o.item_type, o.sprite_id, o.total_price, o.limited_number, o.limited_stack })
+                    .Select(o => new { o.OfferId, o.ItemType, o.SpriteId, o.TotalPrice, o.LimitedNumber, o.LimitedStack })
                     .AsEnumerable()
-                    .Select(o => new MarketOffer((int)o.offer_id, o.sprite_id, o.total_price, int.Parse(o.item_type), o.limited_number, o.limited_stack))
+                    .Select(o => new MarketOffer((int)o.OfferId, o.SpriteId, o.TotalPrice, int.Parse(o.ItemType), o.LimitedNumber, o.LimitedStack))
                     .ToList();
             }
 
@@ -46,7 +46,8 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
             PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItemKeys.Clear();
             foreach (MarketOffer offer in offers)
             {
-                if (!PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItemKeys.Contains(offer.OfferId)) {
+                if (!PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItemKeys.Contains(offer.OfferId))
+                {
                     PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItemKeys.Add(offer.OfferId);
                     PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItems.Add(offer);
                 }
@@ -57,14 +58,19 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
 
             foreach (MarketOffer item in PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItems)
             {
-                if (dictionary.ContainsKey(item.SpriteId)) {
-                    if (item.LimitedNumber > 0) {
+                if (dictionary.ContainsKey(item.SpriteId))
+                {
+                    if (item.LimitedNumber > 0)
+                    {
                         if (!dictionary.ContainsKey(item.OfferId))
                             dictionary.Add(item.OfferId, item);
                         if (!dictionary2.ContainsKey(item.OfferId))
                             dictionary2.Add(item.OfferId, 1);
-                    } else {
-                        if (dictionary[item.SpriteId].TotalPrice > item.TotalPrice) {
+                    }
+                    else
+                    {
+                        if (dictionary[item.SpriteId].TotalPrice > item.TotalPrice)
+                        {
                             dictionary.Remove(item.SpriteId);
                             dictionary.Add(item.SpriteId, item);
                         }
@@ -73,7 +79,9 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
                         dictionary2.Remove(item.SpriteId);
                         dictionary2.Add(item.SpriteId, num + 1);
                     }
-                } else {
+                }
+                else
+                {
                     if (!dictionary.ContainsKey(item.SpriteId))
                         dictionary.Add(item.SpriteId, item);
                     if (!dictionary2.ContainsKey(item.SpriteId))

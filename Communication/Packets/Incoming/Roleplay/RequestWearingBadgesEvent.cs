@@ -22,7 +22,8 @@ namespace Plus.Communication.Packets.Incoming.Roleplay
             session.SendPacket(new HabboUserBadgesComposer(target));
 
             Habbo requester = session.GetHabbo();
-            if (!TargetLockService.IsTargetLocked(requester, target)) {
+            if (!TargetLockService.IsTargetLocked(requester, target))
+            {
                 TargetLockService.SetClickedUser(requester, target.Username);
                 session.SendPacket(new TargetLockComposer(target.Username, false));
             }

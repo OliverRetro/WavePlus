@@ -16,8 +16,10 @@ namespace Plus.HabboHotel.Catalog.Marketplace
         {
             int num = 0;
             int num2 = 0;
-            if (MarketAverages.ContainsKey(spriteId) && MarketCounts.ContainsKey(spriteId)) {
-                if (MarketCounts[spriteId] > 0) {
+            if (MarketAverages.ContainsKey(spriteId) && MarketCounts.ContainsKey(spriteId))
+            {
+                if (MarketCounts[spriteId] > 0)
+                {
                     return (MarketAverages[spriteId] / MarketCounts[spriteId]);
                 }
 
@@ -26,10 +28,11 @@ namespace Plus.HabboHotel.Catalog.Marketplace
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                var data = db.catalog_marketplace_data.Where(d => d.sprite == spriteId).Select(d => new { d.avgprice, d.sold }).FirstOrDefault();
-                if (data != null) {
-                    num = data.avgprice;
-                    num2 = data.sold;
+                var data = db.CatalogMarketplaceData.Where(d => d.Sprite == spriteId).Select(d => new { d.Avgprice, d.Sold }).FirstOrDefault();
+                if (data != null)
+                {
+                    num = data.Avgprice;
+                    num2 = data.Sold;
                 }
             }
 
@@ -37,14 +40,14 @@ namespace Plus.HabboHotel.Catalog.Marketplace
             MarketCounts.Add(spriteId, num2);
 
             if (num2 > 0)
-                return Convert.ToInt32(Math.Ceiling((double) (num / num2)));
+                return Convert.ToInt32(Math.Ceiling((double)(num / num2)));
 
             return 0;
         }
 
         public string FormatTimestampString()
         {
-            return FormatTimestamp().ToString().Split(new[] {','})[0];
+            return FormatTimestamp().ToString().Split(new[] { ',' })[0];
         }
 
         public double FormatTimestamp()
@@ -58,8 +61,10 @@ namespace Plus.HabboHotel.Catalog.Marketplace
             Dictionary<int, int> dictionary2 = new();
             foreach (MarketOffer item in MarketItems)
             {
-                if (dictionary.ContainsKey(item.SpriteId)) {
-                    if (dictionary[item.SpriteId].TotalPrice > item.TotalPrice) {
+                if (dictionary.ContainsKey(item.SpriteId))
+                {
+                    if (dictionary[item.SpriteId].TotalPrice > item.TotalPrice)
+                    {
                         dictionary.Remove(item.SpriteId);
                         dictionary.Add(item.SpriteId, item);
                     }
@@ -67,13 +72,16 @@ namespace Plus.HabboHotel.Catalog.Marketplace
                     int num = dictionary2[item.SpriteId];
                     dictionary2.Remove(item.SpriteId);
                     dictionary2.Add(item.SpriteId, num + 1);
-                } else {
+                }
+                else
+                {
                     dictionary.Add(item.SpriteId, item);
                     dictionary2.Add(item.SpriteId, 1);
                 }
             }
 
-            if (dictionary2.ContainsKey(spriteId)) {
+            if (dictionary2.ContainsKey(spriteId))
+            {
                 return dictionary2[spriteId];
             }
 

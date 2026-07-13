@@ -1,41 +1,40 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class moderation_preset_action_message
+[Table("moderation_preset_action_messages")]
+public partial class ModerationPresetActionMessage
 {
     [Key]
-    [Column(TypeName = "int(10) unsigned")]
-    public uint id { get; set; }
+    [Column("id", TypeName = "int(10) unsigned")]
+    public uint Id { get; set; }
 
-    [Column(TypeName = "int(10) unsigned")]
-    public uint parent_id { get; set; }
+    [Column("parent_id", TypeName = "int(10) unsigned")]
+    public uint ParentId { get; set; }
 
     [Required]
     [StringLength(32)]
-    public string caption { get; set; }
+    [Column("caption")]
+    public string Caption { get; set; }
 
     [Required]
-    [Column(TypeName = "text")]
-    public string message_text { get; set; }
+    [Column("message_text", TypeName = "text")]
+    public string MessageText { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int mute_hours { get; set; }
+    [Column("mute_hours", TypeName = "int(11)")]
+    public int MuteHours { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int ban_hours { get; set; }
+    [Column("ban_hours", TypeName = "int(11)")]
+    public int BanHours { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int ip_ban_hours { get; set; }
+    [Column("ip_ban_hours", TypeName = "int(11)")]
+    public int IpBanHours { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int trade_lock_days { get; set; }
+    [Column("trade_lock_days", TypeName = "int(11)")]
+    public int TradeLockDays { get; set; }
 
     [Required]
-    [Column(TypeName = "text")]
-    public string notice { get; set; }
+    [Column("notice", TypeName = "text")]
+    public string Notice { get; set; }
 }

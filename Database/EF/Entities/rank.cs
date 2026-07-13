@@ -1,31 +1,34 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[Index("id", Name = "id", IsUnique = true)]
-public partial class rank
+[Index("Id", Name = "id", IsUnique = true)]
+[Table("ranks")]
+public partial class Rank
 {
     [Key]
-    [Column(TypeName = "int(11) unsigned")]
-    public uint id { get; set; }
+    [Column("id", TypeName = "int(11) unsigned")]
+    public uint Id { get; set; }
 
     [Required]
     [StringLength(50)]
-    public string name { get; set; }
+    [Column("name")]
+    public string Name { get; set; }
 
     [Required]
     [StringLength(5)]
-    public string badgeid { get; set; }
+    [Column("badgeid")]
+    public string Badgeid { get; set; }
 
     [Required]
     [StringLength(50)]
-    public string title { get; set; }
+    [Column("title")]
+    public string Title { get; set; }
 
     [Required]
-    [Column(TypeName = "enum('red','green','pixeldarkblue','orange','blue','settings','pixellightblue')")]
-    public string tab_colour { get; set; }
+    [Column("tab_colour", TypeName = "enum('red','green','pixeldarkblue','orange','blue','settings','pixellightblue')")]
+    public string TabColour { get; set; }
 }

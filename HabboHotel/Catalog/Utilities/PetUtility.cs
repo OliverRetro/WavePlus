@@ -22,17 +22,17 @@ namespace Plus.HabboHotel.Catalog.Utilities
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
                 // motto/look are NOT NULL without a scaffolded model default; set empty to match the legacy partial insert.
-                bot botEntity = new()
+                Bot botEntity = new()
                 {
-                    user_id = (uint)pet.OwnerId,
-                    name = pet.Name,
-                    ai_type = "pet",
-                    motto = "",
-                    look = ""
+                    UserId = (uint)pet.OwnerId,
+                    Name = pet.Name,
+                    AiType = "pet",
+                    Motto = "",
+                    Look = ""
                 };
-                db.bots.Add(botEntity);
+                db.Bots.Add(botEntity);
                 db.SaveChanges();
-                pet.PetId = (int)botEntity.id;
+                pet.PetId = (int)botEntity.Id;
 
                 // Explicit PK (mirrors bots.id) → raw insert; UNIX_TIMESTAMP() kept as literal SQL.
                 db.Database.ExecuteSqlInterpolated($"INSERT INTO bots_petdata (id,type,race,color,experience,energy,createstamp) VALUES ({pet.PetId}, {pet.Type}, {pet.Race}, {pet.Color}, 0, 100, UNIX_TIMESTAMP())");

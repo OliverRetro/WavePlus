@@ -34,7 +34,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
             if (@params.Length == 0 || Instance == null)
                 return false;
 
-            Habbo player = (Habbo) @params[0];
+            Habbo player = (Habbo)@params[0];
             if (player == null)
                 return false;
 
@@ -42,9 +42,11 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
             if (user == null)
                 return false;
 
-            if (user.Team != Team.None) {
+            if (user.Team != Team.None)
+            {
                 TeamManager team = Instance.GetTeamManagerForFreeze();
-                if (team != null) {
+                if (team != null)
+                {
                     team.OnUserLeave(user);
 
                     user.Team = Team.None;

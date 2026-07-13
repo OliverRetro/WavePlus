@@ -1,38 +1,39 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class rp_weapon_skin
+[Table("rp_weapon_skins")]
+public partial class RpWeaponSkin
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int weapon_id { get; set; }
+    [Column("weapon_id", TypeName = "int(11)")]
+    public int WeaponId { get; set; }
 
     [Required]
     [StringLength(255)]
-    public string name { get; set; }
+    [Column("name")]
+    public string Name { get; set; }
 
     [Required]
     [StringLength(110)]
-    public string hit_message { get; set; }
+    [Column("hit_message")]
+    public string HitMessage { get; set; }
 
     [Required]
     [StringLength(110)]
-    public string critical_hit_message { get; set; }
+    [Column("critical_hit_message")]
+    public string CriticalHitMessage { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int base_price { get; set; }
+    [Column("base_price", TypeName = "int(11)")]
+    public int BasePrice { get; set; }
 
-    [Column(TypeName = "smallint(6)")]
-    public short rarity { get; set; }
+    [Column("rarity", TypeName = "smallint(6)")]
+    public short Rarity { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int effect_id { get; set; }
+    [Column("effect_id", TypeName = "int(11)")]
+    public int EffectId { get; set; }
 }

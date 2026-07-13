@@ -1,13 +1,10 @@
 ﻿using log4net;
 using Plus.Communication.Packets.Outgoing.Handshake;
-using Plus.Communication.Packets.Outgoing.Quests;
 using Plus.Database.EF;
-using Plus.HabboHotel.Quests;
 using System;
 using System.Linq;
 using System.Threading;
 using Microsoft.EntityFrameworkCore;
-using static System.Collections.Specialized.BitVector32;
 
 namespace Plus.HabboHotel.Users.Process
 {
@@ -78,7 +75,8 @@ namespace Plus.HabboHotel.Users.Process
                 if (_disabled)
                     return;
 
-                if (_timerRunning) {
+                if (_timerRunning)
+                {
                     _timerLagging = true;
                     Log.Warn("<Player " + _player.Id + "> Server can't keep up, Player timer is lagging behind.");
                     return;
@@ -108,21 +106,23 @@ namespace Plus.HabboHotel.Users.Process
 
                 #region Respect checking
 
-                if (_player.GetStats().RespectsTimestamp != DateTime.Today.ToString("MM/dd")) {
+                if (_player.GetStats().RespectsTimestamp != DateTime.Today.ToString("MM/dd"))
+                {
                     _player.GetStats().RespectsTimestamp = DateTime.Today.ToString("MM/dd");
                     int dailyPoints = (_player.Rank == 1 && _player.VipRank == 0 ? 10 : _player.VipRank == 1 ? 15 : 20);
                     string respectsTimestamp = DateTime.Today.ToString("MM/dd");
                     int playerId = _player.Id;
                     using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                        db.user_stats.Where(s => s.id == playerId).ExecuteUpdate(s => s
+                        db.UserStats.Where(s => s.Id == playerId).ExecuteUpdate(s => s
                             .SetProperty(x => x.DailyRespectPoints, dailyPoints)
                             .SetProperty(x => x.DailyPetRespectPoints, dailyPoints)
-                            .SetProperty(x => x.respectsTimestamp, respectsTimestamp));
+                            .SetProperty(x => x.RespectsTimestamp, respectsTimestamp));
 
                     _player.GetStats().DailyRespectPoints = (_player.Rank == 1 && _player.VipRank == 0 ? 10 : _player.VipRank == 1 ? 15 : 20);
                     _player.GetStats().DailyPetRespectPoints = (_player.Rank == 1 && _player.VipRank == 0 ? 10 : _player.VipRank == 1 ? 15 : 20);
 
-                    if (_player.GetClient() != null) {
+                    if (_player.GetClient() != null)
+                    {
                         _player.GetClient().SendPacket(new UserObjectComposer(_player));
                     }
                 }

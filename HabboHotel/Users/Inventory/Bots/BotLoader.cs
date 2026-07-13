@@ -11,11 +11,11 @@ namespace Plus.HabboHotel.Users.Inventory.Bots
             uint uid = (uint)userId;
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            return db.bots
-                .Where(b => b.user_id == uid && b.room_id == 0 && b.ai_type != "pet")
-                .Select(b => new { b.id, b.user_id, b.name, b.motto, b.look, b.gender })
+            return db.Bots
+                .Where(b => b.UserId == uid && b.RoomId == 0 && b.AiType != "pet")
+                .Select(b => new { b.Id, b.UserId, b.Name, b.Motto, b.Look, b.Gender })
                 .AsEnumerable()
-                .Select(b => new Bot((int)b.id, (int)b.user_id, b.name, b.motto, b.look, b.gender))
+                .Select(b => new Bot((int)b.Id, (int)b.UserId, b.Name, b.Motto, b.Look, b.Gender))
                 .ToList();
         }
     }

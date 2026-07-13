@@ -21,7 +21,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
             string botsMuted = session.GetHabbo().AllowBotSpeech ? "1" : "0";
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.users.Where(u => u.id == userId).ExecuteUpdate(s => s.SetProperty(u => u.bots_muted, botsMuted));
+                db.Users.Where(u => u.Id == userId).ExecuteUpdate(s => s.SetProperty(u => u.BotsMuted, botsMuted));
             }
 
             if (session.GetHabbo().AllowBotSpeech)

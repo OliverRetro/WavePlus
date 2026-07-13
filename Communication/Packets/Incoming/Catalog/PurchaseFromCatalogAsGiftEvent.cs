@@ -8,13 +8,14 @@ using Plus.Communication.Packets.Outgoing.Moderation;
 using Microsoft.EntityFrameworkCore;
 using Plus.Database.EF;
 using Plus.Database.EF.Entities;
-using Plus.HabboHotel.Catalog;
 using Plus.HabboHotel.Catalog.Utilities;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
 using Plus.HabboHotel.Quests;
 using Plus.HabboHotel.Users;
 using Plus.Utilities;
+using CatalogItem = Plus.HabboHotel.Catalog.CatalogItem;
+using CatalogPage = Plus.HabboHotel.Catalog.CatalogPage;
 
 namespace Plus.Communication.Packets.Incoming.Catalog
 {
@@ -32,7 +33,8 @@ namespace Plus.Communication.Packets.Incoming.Catalog
             int colour = packet.PopInt();
             packet.PopBoolean();
 
-            if (PlusEnvironment.GetSettingsManager().TryGetValue("room.item.gifts.enabled") != "1") {
+            if (PlusEnvironment.GetSettingsManager().TryGetValue("room.item.gifts.enabled") != "1")
+            {
                 session.SendNotification("The hotel managers have disabled gifting");
                 return;
             }
@@ -43,12 +45,15 @@ namespace Plus.Communication.Packets.Incoming.Catalog
             if (!page.Enabled || !page.Visible || page.MinimumRank > session.GetHabbo().Rank || page.MinimumVip > session.GetHabbo().VipRank && session.GetHabbo().Rank == 1)
                 return;
 
-            if (!page.Items.TryGetValue(itemId, out CatalogItem item)) {
-                if (page.ItemOffers.ContainsKey(itemId)) {
+            if (!page.Items.TryGetValue(itemId, out CatalogItem item))
+            {
+                if (page.ItemOffers.ContainsKey(itemId))
+                {
                     item = page.ItemOffers[itemId];
                     if (item == null)
                         return;
-                } else
+                }
+                else
                     return;
             }
 
@@ -58,28 +63,33 @@ namespace Plus.Communication.Packets.Incoming.Catalog
             if (!PlusEnvironment.GetGame().GetItemManager().GetGift(spriteId, out ItemData presentData) || presentData.InteractionType != InteractionType.Gift)
                 return;
 
-            if (session.GetHabbo().Credits < item.CostCredits) {
+            if (session.GetHabbo().Credits < item.CostCredits)
+            {
                 session.SendPacket(new PresentDeliverErrorMessageComposer(true, false));
                 return;
             }
 
-            if (session.GetHabbo().Duckets < item.CostPixels) {
+            if (session.GetHabbo().Duckets < item.CostPixels)
+            {
                 session.SendPacket(new PresentDeliverErrorMessageComposer(false, true));
                 return;
             }
 
             Habbo habbo = PlusEnvironment.GetHabboByUsername(giftUser);
-            if (habbo == null) {
+            if (habbo == null)
+            {
                 session.SendPacket(new GiftWrappingErrorComposer());
                 return;
             }
 
-            if (!habbo.AllowGifts) {
+            if (!habbo.AllowGifts)
+            {
                 session.SendNotification("Oops, this user doesn't allow gifts to be sent to them!");
                 return;
             }
 
-            if ((DateTime.Now - session.GetHabbo().LastGiftPurchaseTime).TotalSeconds <= 15.0) {
+            if ((DateTime.Now - session.GetHabbo().LastGiftPurchaseTime).TotalSeconds <= 15.0)
+            {
                 session.SendNotification("You're purchasing gifts too fast! Please wait 15 seconds!");
 
                 session.GetHabbo().GiftPurchasingWarnings += 1;
@@ -98,15 +108,15 @@ namespace Plus.Communication.Packets.Incoming.Catalog
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
                 //Insert the dummy item.
-                Plus.Database.EF.Entities.item dummyItem = new()
+                Plus.Database.EF.Entities.Item dummyItem = new()
                 {
-                    base_item = (uint)presentData.Id,
-                    user_id = habbo.Id,
-                    extra_data = ed
+                    BaseItem = (uint)presentData.Id,
+                    UserId = habbo.Id,
+                    ExtraData = ed
                 };
-                db.items.Add(dummyItem);
+                db.Items.Add(dummyItem);
                 db.SaveChanges();
-                newItemId = (int)dummyItem.id;
+                newItemId = (int)dummyItem.Id;
 
                 string itemExtraData = null;
                 switch (item.Data.InteractionType)
@@ -180,7 +190,8 @@ namespace Plus.Communication.Packets.Incoming.Catalog
                         break;
 
                     case InteractionType.BadgeDisplay:
-                        if (!session.GetHabbo().GetBadgeComponent().HasBadge(data)) {
+                        if (!session.GetHabbo().GetBadgeComponent().HasBadge(data))
+                        {
                             session.SendPacket(new BroadcastMessageAlertComposer("Oops, it appears that you do not own this badge."));
                             return;
                         }
@@ -194,24 +205,26 @@ namespace Plus.Communication.Packets.Incoming.Catalog
                 }
 
                 //Insert the present, forever.
-                db.user_presents.Add(new user_present
+                db.UserPresents.Add(new UserPresent
                 {
-                    item_id = (uint)newItemId,
-                    base_id = (uint)item.Data.Id,
-                    extra_data = string.IsNullOrEmpty(itemExtraData) ? "" : itemExtraData
+                    ItemId = (uint)newItemId,
+                    BaseId = (uint)item.Data.Id,
+                    ExtraData = string.IsNullOrEmpty(itemExtraData) ? "" : itemExtraData
                 });
                 db.SaveChanges();
 
                 //Here we're clearing up a record, this is dumb, but okay.
                 uint deleteId = (uint)newItemId;
-                db.items.Where(i => i.id == deleteId).ExecuteDelete();
+                db.Items.Where(i => i.Id == deleteId).ExecuteDelete();
             }
 
 
-            Item giveItem = ItemFactory.CreateGiftItem(presentData, habbo, ed, ed, newItemId);
-            if (giveItem != null) {
+            HabboHotel.Items.Item giveItem = ItemFactory.CreateGiftItem(presentData, habbo, ed, ed, newItemId);
+            if (giveItem != null)
+            {
                 GameClient receiver = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(habbo.Id);
-                if (receiver != null) {
+                if (receiver != null)
+                {
                     receiver.GetHabbo().GetInventoryComponent().TryAddItem(giveItem);
                     receiver.SendPacket(new FurniListNotificationComposer(giveItem.Id, 1));
                     receiver.SendPacket(new PurchaseOkComposer());
@@ -219,7 +232,8 @@ namespace Plus.Communication.Packets.Incoming.Catalog
                     receiver.SendPacket(new FurniListUpdateComposer());
                 }
 
-                if (habbo.Id != session.GetHabbo().Id && !string.IsNullOrWhiteSpace(giftMessage)) {
+                if (habbo.Id != session.GetHabbo().Id && !string.IsNullOrWhiteSpace(giftMessage))
+                {
                     PlusEnvironment.GetGame().GetAchievementManager().ProgressAchievement(session, "ACH_GiftGiver", 1);
                     if (receiver != null)
                         PlusEnvironment.GetGame().GetAchievementManager().ProgressAchievement(receiver, "ACH_GiftReceiver", 1);
@@ -229,12 +243,14 @@ namespace Plus.Communication.Packets.Incoming.Catalog
 
             session.SendPacket(new PurchaseOkComposer(item, presentData));
 
-            if (item.CostCredits > 0) {
+            if (item.CostCredits > 0)
+            {
                 session.GetHabbo().Credits -= item.CostCredits;
                 session.SendPacket(new CreditBalanceComposer(session.GetHabbo().Credits));
             }
 
-            if (item.CostPixels > 0) {
+            if (item.CostPixels > 0)
+            {
                 session.GetHabbo().Duckets -= item.CostPixels;
                 session.SendPacket(new HabboActivityPointNotificationComposer(session.GetHabbo().Duckets, session.GetHabbo().Duckets));
             }

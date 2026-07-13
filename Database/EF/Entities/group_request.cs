@@ -1,19 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
 [Keyless]
-[Index("group_id", Name = "groupid")]
-[Index("user_id", Name = "userid")]
-public partial class group_request
+[Index("GroupId", Name = "groupid")]
+[Index("UserId", Name = "userid")]
+[Table("group_requests")]
+public partial class GroupRequest
 {
-    [Column(TypeName = "int(11) unsigned")]
-    public uint group_id { get; set; }
+    [Column("group_id", TypeName = "int(11) unsigned")]
+    public uint GroupId { get; set; }
 
-    [Column(TypeName = "int(11) unsigned")]
-    public uint user_id { get; set; }
+    [Column("user_id", TypeName = "int(11) unsigned")]
+    public uint UserId { get; set; }
 }

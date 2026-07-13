@@ -15,19 +15,19 @@ namespace Plus.HabboHotel.Users.Effects
         public static AvatarEffect CreateNullable(Habbo habbo, int spriteId, double duration)
         {
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            user_effect row = new()
+            UserEffect row = new()
             {
-                user_id = (uint)habbo.Id,
-                effect_id = spriteId,
-                total_duration = (int)duration,
-                is_activated = "0",
-                activated_stamp = 0,
-                quantity = 1
+                UserId = (uint)habbo.Id,
+                EffectId = spriteId,
+                TotalDuration = (int)duration,
+                IsActivated = "0",
+                ActivatedStamp = 0,
+                Quantity = 1
             };
-            db.user_effects.Add(row);
+            db.UserEffects.Add(row);
             db.SaveChanges();
 
-            return new AvatarEffect(row.id, habbo.Id, spriteId, duration, false, 0, 1);
+            return new AvatarEffect(row.Id, habbo.Id, spriteId, duration, false, 0, 1);
         }
     }
 }

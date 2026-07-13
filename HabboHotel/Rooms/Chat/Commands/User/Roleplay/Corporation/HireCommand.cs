@@ -25,42 +25,49 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
             if (session?.GetHabbo() == null || room?.Group == null)
                 return;
 
-            if (@params.Length < 2) {
+            if (@params.Length < 2)
+            {
                 session.SendWhisper("Please enter the username of the person you want to hire.", 1);
                 return;
             }
 
             Group group = room.Group;
-            if (!session.GetHabbo().GetPermissions().HasCommand(PermissionRequired) && !group.IsOwnerOrHasPermission(session.GetHabbo().Id, GroupPermissionRequired)) {
+            if (!session.GetHabbo().GetPermissions().HasCommand(PermissionRequired) && !group.IsOwnerOrHasPermission(session.GetHabbo().Id, GroupPermissionRequired))
+            {
                 session.SendWhisper("Oops, you do not have permission to hire users for this group.", 1);
                 return;
             }
 
             GameClient targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(@params[1]);
             Habbo targetHabbo = targetClient?.GetHabbo() ?? PlusEnvironment.GetHabboByUsername(@params[1]);
-            if (targetHabbo == null) {
+            if (targetHabbo == null)
+            {
                 session.SendWhisper("Oops, couldn't find that user.", 1);
                 return;
             }
 
-            if (!group.HasRequest(targetHabbo.Id)) {
+            if (!group.HasRequest(targetHabbo.Id))
+            {
                 session.SendWhisper("That user does not have a pending request for this group.", 1);
                 return;
             }
 
-            if (GroupManager.IsWorkableKind(group.Kind) && targetHabbo.CorporationId != 0) {
+            if (GroupManager.IsWorkableKind(group.Kind) && targetHabbo.CorporationId != 0)
+            {
                 session.SendWhisper("That user already works for another corporation.", 1);
                 return;
             }
 
-            if (targetHabbo.GetStats().FavouriteGroupId == 0 && (group.Kind == GroupKind.Gang || group.Kind == GroupKind.Cartel || group.Kind == GroupKind.Mafia)) {
+            if (targetHabbo.GetStats().FavouriteGroupId == 0 && (group.Kind == GroupKind.Gang || group.Kind == GroupKind.Cartel || group.Kind == GroupKind.Mafia))
+            {
                 targetHabbo.GetStats().FavouriteGroupId = group.Id;
                 int gid = targetHabbo.GetStats().FavouriteGroupId;
                 int uid = targetHabbo.Id;
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
-                db.user_stats.Where(x => x.id == uid).ExecuteUpdate(s => s.SetProperty(x => x.groupid, gid));
+                db.UserStats.Where(x => x.Id == uid).ExecuteUpdate(s => s.SetProperty(x => x.Groupid, gid));
 
-                if (targetHabbo.InRoom && targetHabbo.CurrentRoom != null) {
+                if (targetHabbo.InRoom && targetHabbo.CurrentRoom != null)
+                {
                     targetHabbo.CurrentRoom.SendPacket(new RefreshFavouriteGroupComposer(targetHabbo.Id));
                     targetHabbo.CurrentRoom.SendPacket(new HabboGroupBadgesComposer(group));
 
@@ -68,13 +75,15 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
                         .GetRoomUserByHabbo(targetHabbo.Id);
                     if (user != null)
                         targetHabbo.CurrentRoom.SendPacket(new UpdateFavouriteGroupComposer(group, user.VirtualId));
-                } else
+                }
+                else
                     session.SendPacket(new RefreshFavouriteGroupComposer(targetHabbo.Id));
             }
 
             group.HandleRequest(targetHabbo.Id, true);
 
-            if (GroupManager.IsWorkableKind(group.Kind)) {
+            if (GroupManager.IsWorkableKind(group.Kind))
+            {
                 targetHabbo.CorporationId = group.Id;
                 // Achievement: got hired into a corporation/business.
                 PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(targetClient, "ACH_Hired", 1);

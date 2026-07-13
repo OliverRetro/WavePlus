@@ -13,7 +13,7 @@ namespace Plus.Core.Settings
 
         public SettingsManager()
         {
-            _settings = new Dictionary<string, string>();
+            _settings = [];
         }
 
         public void Init()
@@ -23,10 +23,10 @@ namespace Plus.Core.Settings
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                var rows = db.server_settings.Select(s => new { s.key, s.value }).ToList();
+                var rows = db.ServerSettings.Select(s => new { s.Key, s.Value }).ToList();
                 foreach (var row in rows)
                 {
-                    _settings.Add(row.key.ToLower(), row.value.ToLower());
+                    _settings.Add(row.Key.ToLower(), row.Value.ToLower());
                 }
             }
 

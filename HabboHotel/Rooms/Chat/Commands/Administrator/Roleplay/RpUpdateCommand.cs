@@ -14,7 +14,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length < 2) {
+            if (@params.Length < 2)
+            {
                 session.SendWhisper("Usage: :rpupdate <" + RpReloadService.Switches + ">", 1);
                 return;
             }

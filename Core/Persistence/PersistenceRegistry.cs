@@ -76,10 +76,10 @@ namespace Plus.Core.Persistence
 
                     uint botId = (uint)bot.BotData.Id;
                     int x = bot.X, y = bot.Y, rot = bot.RotBody;
-                    db.bots.Where(b => b.id == botId).ExecuteUpdate(s => s
-                        .SetProperty(b => b.x, x)
-                        .SetProperty(b => b.y, y)
-                        .SetProperty(b => b.rotation, rot));
+                    db.Bots.Where(b => b.Id == botId).ExecuteUpdate(s => s
+                        .SetProperty(b => b.X, x)
+                        .SetProperty(b => b.Y, y)
+                        .SetProperty(b => b.Rotation, rot));
                 }
             }
         }

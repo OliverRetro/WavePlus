@@ -1,33 +1,35 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[Index("entry_timestamp", Name = "entry_timestamp")]
-[Index("exit_timestamp", Name = "exit_timestamp")]
-[Index("user_id", Name = "user_id")]
-public partial class user_roomvisit
+[Index("EntryTimestamp", Name = "entry_timestamp")]
+[Index("ExitTimestamp", Name = "exit_timestamp")]
+[Index("UserId", Name = "user_id")]
+[Table("user_roomvisits")]
+public partial class UserRoomvisit
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
-    [Column(TypeName = "int(10) unsigned")]
-    public uint user_id { get; set; }
+    [Column("user_id", TypeName = "int(10) unsigned")]
+    public uint UserId { get; set; }
 
-    [Column(TypeName = "int(10) unsigned")]
-    public uint room_id { get; set; }
+    [Column("room_id", TypeName = "int(10) unsigned")]
+    public uint RoomId { get; set; }
 
-    public double entry_timestamp { get; set; }
+    [Column("entry_timestamp")]
+    public double EntryTimestamp { get; set; }
 
-    public double exit_timestamp { get; set; }
+    [Column("exit_timestamp")]
+    public double ExitTimestamp { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int hour { get; set; }
+    [Column("hour", TypeName = "int(11)")]
+    public int Hour { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int minute { get; set; }
+    [Column("minute", TypeName = "int(11)")]
+    public int Minute { get; set; }
 }

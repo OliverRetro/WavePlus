@@ -2,14 +2,14 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.EntityFrameworkCore;
 using Plus.Database.EF;
 using Plus.Database.EF.Entities;
-using Plus.HabboHotel.Achievements;
 using Plus.HabboHotel.Users.Authenticator;
 using Plus.HabboHotel.Users.Badges;
 using Plus.HabboHotel.Users.Messenger;
 using Plus.HabboHotel.Users.Relationships;
+using MessengerRequest = Plus.HabboHotel.Users.Messenger.MessengerRequest;
+using UserAchievement = Plus.HabboHotel.Achievements.UserAchievement;
 
 namespace Plus.HabboHotel.Users.UserData
 {
@@ -19,94 +19,100 @@ namespace Plus.HabboHotel.Users.UserData
         {
             using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-            user dUserInfo = db.users.FirstOrDefault(u => u.auth_ticket == sessionTicket);
-            if (dUserInfo == null) {
+            User dUserInfo = db.Users.FirstOrDefault(u => u.AuthTicket == sessionTicket);
+            if (dUserInfo == null)
+            {
                 errorCode = 1;
                 return null;
             }
 
-            int userId = dUserInfo.id;
+            int userId = dUserInfo.Id;
             uint uid = (uint)userId;
 
             GameClients.GameClient existing = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(userId);
-            if (existing != null) {
+            if (existing != null)
+            {
                 errorCode = 2;
                 existing.Disconnect();
                 return null;
             }
 
             ConcurrentDictionary<string, UserAchievement> achievements = new();
-            foreach (var a in db.user_achievements.Where(a => a.userid == uid)
-                         .Select(a => new { a.group, a.level, a.progress }).ToList())
+            foreach (var a in db.UserAchievements.Where(a => a.Userid == uid)
+                         .Select(a => new { a.Group, a.Level, a.Progress }).ToList())
             {
-                achievements.TryAdd(a.group, new UserAchievement(a.group, a.level, a.progress));
+                achievements.TryAdd(a.Group, new UserAchievement(a.Group, a.Level, a.Progress));
             }
 
-            List<int> favouritedRooms = db.user_favorites.Where(f => f.user_id == uid)
-                .Select(f => (int)f.room_id).ToList();
+            List<int> favouritedRooms = db.UserFavorites.Where(f => f.UserId == uid)
+                .Select(f => (int)f.RoomId).ToList();
 
-            List<Badge> badges = db.user_badges.Where(b => b.user_id == uid)
-                .Select(b => new { b.badge_id, b.badge_slot }).ToList()
-                .Select(b => new Badge(b.badge_id, b.badge_slot)).ToList();
+            List<Badge> badges = db.UserBadges.Where(b => b.UserId == uid)
+                .Select(b => new { b.BadgeId, b.BadgeSlot }).ToList()
+                .Select(b => new Badge(b.BadgeId, b.BadgeSlot)).ToList();
 
             // Friends: users linked from either side of a friendship row.
-            List<int> friendIds = db.messenger_friendships.Where(f => f.user_two_id == uid).Select(f => (int)f.user_one_id)
-                .Concat(db.messenger_friendships.Where(f => f.user_one_id == uid).Select(f => (int)f.user_two_id))
+            List<int> friendIds = db.MessengerFriendships.Where(f => f.UserTwoId == uid).Select(f => (int)f.UserOneId)
+                .Concat(db.MessengerFriendships.Where(f => f.UserOneId == uid).Select(f => (int)f.UserTwoId))
                 .Distinct().ToList();
 
             Dictionary<int, MessengerBuddy> friends = new();
-            foreach (var fr in db.users.Where(u => friendIds.Contains(u.id))
-                         .Select(u => new { u.id, u.username, u.look, u.motto, u.last_online, u.hide_online, u.hide_inroom }).ToList())
+            foreach (var fr in db.Users.Where(u => friendIds.Contains(u.Id))
+                         .Select(u => new { u.Id, u.Username, u.Look, u.Motto, u.LastOnline, u.HideOnline, u.HideInroom }).ToList())
             {
-                if (fr.id == userId)
+                if (fr.Id == userId)
                     continue;
 
-                if (!friends.ContainsKey(fr.id))
-                    friends.Add(fr.id, new MessengerBuddy(fr.id, fr.username, fr.look, fr.motto, fr.last_online ?? 0,
-                        PlusEnvironment.EnumToBool(fr.hide_online), PlusEnvironment.EnumToBool(fr.hide_inroom)));
+                if (!friends.ContainsKey(fr.Id))
+                    friends.Add(fr.Id, new MessengerBuddy(fr.Id, fr.Username, fr.Look, fr.Motto, fr.LastOnline ?? 0,
+                        PlusEnvironment.EnumToBool(fr.HideOnline), PlusEnvironment.EnumToBool(fr.HideInroom)));
             }
 
             Dictionary<int, MessengerRequest> requests = new();
-            foreach (var rr in (from r in db.messenger_requests
-                                where r.to_id == uid
-                                join u in db.users on (int)r.from_id equals u.id
-                                select new { from_id = (int)r.from_id, to_id = (int)r.to_id, u.username }).ToList())
+            foreach (var rr in (from r in db.MessengerRequests
+                                where r.ToId == uid
+                                join u in db.Users on (int)r.FromId equals u.Id
+                                select new { from_id = (int)r.FromId, to_id = (int)r.ToId, u.Username }).ToList())
             {
                 int receiverId = rr.from_id;
                 int senderId = rr.to_id;
 
-                if (receiverId != userId) {
+                if (receiverId != userId)
+                {
                     if (!requests.ContainsKey(receiverId))
-                        requests.Add(receiverId, new MessengerRequest(userId, receiverId, rr.username));
-                } else {
+                        requests.Add(receiverId, new MessengerRequest(userId, receiverId, rr.Username));
+                }
+                else
+                {
                     if (!requests.ContainsKey(senderId))
-                        requests.Add(senderId, new MessengerRequest(userId, senderId, rr.username));
+                        requests.Add(senderId, new MessengerRequest(userId, senderId, rr.Username));
                 }
             }
 
             Dictionary<int, int> quests = new();
-            foreach (var q in db.user_quests.Where(q => q.user_id == uid)
-                         .Select(q => new { q.quest_id, q.progress }).ToList())
+            foreach (var q in db.UserQuests.Where(q => q.UserId == uid)
+                         .Select(q => new { q.QuestId, q.Progress }).ToList())
             {
-                quests[(int)q.quest_id] = q.progress ?? 0;
+                quests[(int)q.QuestId] = q.Progress ?? 0;
             }
 
-            user_info userInfo = db.user_infos.FirstOrDefault(i => i.user_id == userId);
-            if (userInfo == null) {
-                userInfo = new user_info { user_id = userId };
-                db.user_infos.Add(userInfo);
+            UserInfo userInfo = db.UserInfos.FirstOrDefault(i => i.UserId == userId);
+            if (userInfo == null)
+            {
+                userInfo = new UserInfo { UserId = userId };
+                db.UserInfos.Add(userInfo);
                 db.SaveChanges();
             }
 
             Dictionary<int, Relationship> relationships = new();
-            foreach (var rel in db.user_relationships.Where(r => r.user_id == userId)
-                         .Select(r => new { r.id, r.target, r.type }).ToList())
+            foreach (var rel in db.UserRelationships.Where(r => r.UserId == userId)
+                         .Select(r => new { r.Id, r.Target, r.Type }).ToList())
             {
-                if (friends.ContainsKey(rel.target))
-                    relationships.Add(rel.target, new Relationship(rel.id, rel.target, Convert.ToInt32(rel.type)));
+                if (friends.ContainsKey(rel.Target))
+                    relationships.Add(rel.Target, new Relationship(rel.Id, rel.Target, Convert.ToInt32(rel.Type)));
             }
 
-            dUserInfo.online = "1";
+            dUserInfo.Online = "1";
             db.SaveChanges();
 
             Habbo habbo = HabboFactory.GenerateHabbo(dUserInfo, userInfo);
@@ -123,14 +129,15 @@ namespace Plus.HabboHotel.Users.UserData
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-            user dUserInfo = db.users.FirstOrDefault(u => u.id == userId);
+            User dUserInfo = db.Users.FirstOrDefault(u => u.Id == userId);
             if (dUserInfo == null)
                 return null;
 
-            user_info userInfo = db.user_infos.FirstOrDefault(i => i.user_id == userId);
-            if (userInfo == null) {
-                userInfo = new user_info { user_id = userId };
-                db.user_infos.Add(userInfo);
+            UserInfo userInfo = db.UserInfos.FirstOrDefault(i => i.UserId == userId);
+            if (userInfo == null)
+            {
+                userInfo = new UserInfo { UserId = userId };
+                db.UserInfos.Add(userInfo);
                 db.SaveChanges();
             }
 
@@ -142,11 +149,11 @@ namespace Plus.HabboHotel.Users.UserData
             Dictionary<int, int> quests = new();
 
             Dictionary<int, Relationship> relationships = new();
-            foreach (var rel in db.user_relationships.Where(r => r.user_id == userId)
-                         .Select(r => new { r.id, r.target, r.type }).ToList())
+            foreach (var rel in db.UserRelationships.Where(r => r.UserId == userId)
+                         .Select(r => new { r.Id, r.Target, r.Type }).ToList())
             {
-                if (!relationships.ContainsKey(rel.id))
-                    relationships.Add(rel.target, new Relationship(rel.id, rel.target, Convert.ToInt32(rel.type)));
+                if (!relationships.ContainsKey(rel.Id))
+                    relationships.Add(rel.Target, new Relationship(rel.Id, rel.Target, Convert.ToInt32(rel.Type)));
             }
 
             Habbo habbo = HabboFactory.GenerateHabbo(dUserInfo, userInfo);

@@ -28,7 +28,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Pets.Horse
             int anyoneRide = pet.PetData.AnyoneCanRide;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.bots_petdata.Where(p => p.id == petDbId).ExecuteUpdate(s => s.SetProperty(p => p.anyone_ride, anyoneRide));
+                db.BotsPetdata.Where(p => p.Id == petDbId).ExecuteUpdate(s => s.SetProperty(p => p.AnyoneRide, anyoneRide));
             }
 
             room.SendPacket(new PetInformationComposer(pet.PetData));

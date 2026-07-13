@@ -2,7 +2,6 @@ using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Rooms;
 using System;
 using System.Collections.Concurrent;
-using System.Drawing;
 using System.Threading.Tasks;
 
 namespace Plus.HabboHotel.Items.Interactor
@@ -25,10 +24,12 @@ namespace Plus.HabboHotel.Items.Interactor
         {
             item.ExtraData = "0";
 
-            if (item.InteractingUser != 0) {
+            if (item.InteractingUser != 0)
+            {
                 RoomUser user = item.GetRoom().GetRoomUserManager().GetRoomUserByHabbo(item.InteractingUser);
 
-                if (user != null) {
+                if (user != null)
+                {
                     user.ClearMovement(true);
                     user.AllowOverride = false;
                     user.CanWalk = true;
@@ -37,10 +38,12 @@ namespace Plus.HabboHotel.Items.Interactor
                 item.InteractingUser = 0;
             }
 
-            if (item.InteractingUser2 != 0) {
+            if (item.InteractingUser2 != 0)
+            {
                 RoomUser user = item.GetRoom().GetRoomUserManager().GetRoomUserByHabbo(item.InteractingUser2);
 
-                if (user != null) {
+                if (user != null)
+                {
                     user.ClearMovement(true);
                     user.AllowOverride = false;
                     user.CanWalk = true;
@@ -54,7 +57,8 @@ namespace Plus.HabboHotel.Items.Interactor
         {
             item.ExtraData = "0";
 
-            if (item.InteractingUser != 0) {
+            if (item.InteractingUser != 0)
+            {
                 RoomUser user = item.GetRoom().GetRoomUserManager().GetRoomUserByHabbo(item.InteractingUser);
 
                 user?.UnlockWalking();
@@ -62,7 +66,8 @@ namespace Plus.HabboHotel.Items.Interactor
                 item.InteractingUser = 0;
             }
 
-            if (item.InteractingUser2 != 0) {
+            if (item.InteractingUser2 != 0)
+            {
                 RoomUser user = item.GetRoom().GetRoomUserManager().GetRoomUserByHabbo(item.InteractingUser2);
 
                 user?.UnlockWalking();
@@ -87,19 +92,22 @@ namespace Plus.HabboHotel.Items.Interactor
             Room room = item.GetRoom();
             var userHabbo = user.GetClient().GetHabbo();
 
-            if (!ItemTeleporterFinder.IsTeleLinked(item.Id, room)) {
+            if (!ItemTeleporterFinder.IsTeleLinked(item.Id, room))
+            {
                 user.GetClient().Disconnect();
                 return;
             }
 
             int linkedTele = ItemTeleporterFinder.GetLinkedTele(item.Id);
-            if (linkedTele == 0) {
+            if (linkedTele == 0)
+            {
                 user.GetClient().Disconnect();
                 return;
             }
 
             int teleRoomId = ItemTeleporterFinder.GetTeleRoomId(linkedTele, room);
-            if (teleRoomId == 0) {
+            if (teleRoomId == 0)
+            {
                 user.GetClient().Disconnect();
                 return;
             }
@@ -113,16 +121,19 @@ namespace Plus.HabboHotel.Items.Interactor
                 TargetRoomId = teleRoomId
             };
 
-            if (teleRoomId == room.RoomId) {
+            if (teleRoomId == room.RoomId)
+            {
                 Item targetItem = room.GetRoomItemHandler().GetItem(linkedTele);
-                if (targetItem == null) {
+                if (targetItem == null)
+                {
                     user.GetClient().Disconnect();
                     return;
                 }
 
                 room.GetGameMap().TeleportToItem(user, targetItem);
                 user.SetRot(user.RotBody, false);
-                if (PendingArrivals.TryRemove(userHabbo.Id, out ArrowTeleportArrivalData arrivalData)) {
+                if (PendingArrivals.TryRemove(userHabbo.Id, out ArrowTeleportArrivalData arrivalData))
+                {
                     user.SetRot(arrivalData.Rotation, false);
                     user.RotHead = arrivalData.HeadRotation;
                 }

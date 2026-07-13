@@ -3,1279 +3,1274 @@ using Plus.Database.EF.Entities;
 
 namespace Plus.Database.EF;
 
-public partial class WavePlusContext : DbContext
+public partial class WavePlusContext(DbContextOptions<WavePlusContext> options) : DbContext(options)
 {
-    public WavePlusContext(DbContextOptions<WavePlusContext> options)
-        : base(options)
-    {
-    }
+    public virtual DbSet<Achievement> Achievements { get; set; }
 
-    public virtual DbSet<achievement> achievements { get; set; }
+    public virtual DbSet<AchievementsTalent> AchievementsTalents { get; set; }
 
-    public virtual DbSet<achievements_talent> achievements_talents { get; set; }
+    public virtual DbSet<BadgeDefinition> BadgeDefinitions { get; set; }
 
-    public virtual DbSet<badge_definition> badge_definitions { get; set; }
+    public virtual DbSet<Ban> Bans { get; set; }
 
-    public virtual DbSet<ban> bans { get; set; }
+    public virtual DbSet<Bot> Bots { get; set; }
 
-    public virtual DbSet<bot> bots { get; set; }
+    public virtual DbSet<BotsPetCommand> BotsPetCommands { get; set; }
 
-    public virtual DbSet<bots_pet_command> bots_pet_commands { get; set; }
+    public virtual DbSet<BotsPetResponse> BotsPetResponses { get; set; }
 
-    public virtual DbSet<bots_pet_response> bots_pet_responses { get; set; }
+    public virtual DbSet<BotsPetdatum> BotsPetdata { get; set; }
 
-    public virtual DbSet<bots_petdatum> bots_petdata { get; set; }
+    public virtual DbSet<BotsResponse> BotsResponses { get; set; }
 
-    public virtual DbSet<bots_response> bots_responses { get; set; }
+    public virtual DbSet<BotsSpeech> BotsSpeeches { get; set; }
 
-    public virtual DbSet<bots_speech> bots_speeches { get; set; }
+    public virtual DbSet<CatalogBotPreset> CatalogBotPresets { get; set; }
 
-    public virtual DbSet<catalog_bot_preset> catalog_bot_presets { get; set; }
+    public virtual DbSet<CatalogClothing> CatalogClothings { get; set; }
 
-    public virtual DbSet<catalog_clothing> catalog_clothings { get; set; }
+    public virtual DbSet<CatalogDeal> CatalogDeals { get; set; }
 
-    public virtual DbSet<catalog_deal> catalog_deals { get; set; }
+    public virtual DbSet<CatalogItem> CatalogItems { get; set; }
 
-    public virtual DbSet<catalog_item> catalog_items { get; set; }
+    public virtual DbSet<CatalogMarketplaceDatum> CatalogMarketplaceData { get; set; }
 
-    public virtual DbSet<catalog_marketplace_datum> catalog_marketplace_data { get; set; }
+    public virtual DbSet<CatalogMarketplaceOffer> CatalogMarketplaceOffers { get; set; }
 
-    public virtual DbSet<catalog_marketplace_offer> catalog_marketplace_offers { get; set; }
+    public virtual DbSet<CatalogPage> CatalogPages { get; set; }
 
-    public virtual DbSet<catalog_page> catalog_pages { get; set; }
+    public virtual DbSet<CatalogPetRace> CatalogPetRaces { get; set; }
 
-    public virtual DbSet<catalog_pet_race> catalog_pet_races { get; set; }
+    public virtual DbSet<CatalogPromotion> CatalogPromotions { get; set; }
 
-    public virtual DbSet<catalog_promotion> catalog_promotions { get; set; }
+    public virtual DbSet<CatalogVoucher> CatalogVouchers { get; set; }
 
-    public virtual DbSet<catalog_voucher> catalog_vouchers { get; set; }
+    public virtual DbSet<Chatlog> Chatlogs { get; set; }
 
-    public virtual DbSet<chatlog> chatlogs { get; set; }
+    public virtual DbSet<ChatlogsConsole> ChatlogsConsoles { get; set; }
 
-    public virtual DbSet<chatlogs_console> chatlogs_consoles { get; set; }
+    public virtual DbSet<ChatlogsConsoleInvitation> ChatlogsConsoleInvitations { get; set; }
 
-    public virtual DbSet<chatlogs_console_invitation> chatlogs_console_invitations { get; set; }
+    public virtual DbSet<ClientExternalBadgeText> ClientExternalBadgeTexts { get; set; }
 
-    public virtual DbSet<client_external_badge_text> client_external_badge_texts { get; set; }
+    public virtual DbSet<ClientExternalText> ClientExternalTexts { get; set; }
 
-    public virtual DbSet<client_external_text> client_external_texts { get; set; }
+    public virtual DbSet<Furniture> Furnitures { get; set; }
 
-    public virtual DbSet<furniture> furnitures { get; set; }
+    public virtual DbSet<FurnitureCopy1> FurnitureCopy1s { get; set; }
 
-    public virtual DbSet<furniture_copy1> furniture_copy1s { get; set; }
+    public virtual DbSet<GamesConfig> GamesConfigs { get; set; }
 
-    public virtual DbSet<games_config> games_configs { get; set; }
+    public virtual DbSet<Group> Groups { get; set; }
 
-    public virtual DbSet<group> groups { get; set; }
+    public virtual DbSet<GroupMembership> GroupMemberships { get; set; }
 
-    public virtual DbSet<group_membership> group_memberships { get; set; }
+    public virtual DbSet<GroupPermission> GroupPermissions { get; set; }
 
-    public virtual DbSet<group_permission> group_permissions { get; set; }
+    public virtual DbSet<GroupPermissionKey> GroupPermissionKeys { get; set; }
 
-    public virtual DbSet<group_permission_key> group_permission_keys { get; set; }
+    public virtual DbSet<GroupRequest> GroupRequests { get; set; }
 
-    public virtual DbSet<group_request> group_requests { get; set; }
+    public virtual DbSet<GroupRole> GroupRoles { get; set; }
 
-    public virtual DbSet<group_role> group_roles { get; set; }
+    public virtual DbSet<GroupsItem> GroupsItems { get; set; }
 
-    public virtual DbSet<groups_item> groups_items { get; set; }
+    public virtual DbSet<Item> Items { get; set; }
 
-    public virtual DbSet<item> items { get; set; }
+    public virtual DbSet<ItemsGroup> ItemsGroups { get; set; }
 
-    public virtual DbSet<items_group> items_groups { get; set; }
+    public virtual DbSet<ItemsYoutube> ItemsYoutubes { get; set; }
 
-    public virtual DbSet<items_youtube> items_youtubes { get; set; }
+    public virtual DbSet<LogsClientNamechange> LogsClientNamechanges { get; set; }
 
-    public virtual DbSet<logs_client_namechange> logs_client_namechanges { get; set; }
+    public virtual DbSet<LogsClientStaff> LogsClientStaffs { get; set; }
 
-    public virtual DbSet<logs_client_staff> logs_client_staffs { get; set; }
+    public virtual DbSet<LogsClientTrade> LogsClientTrades { get; set; }
 
-    public virtual DbSet<logs_client_trade> logs_client_trades { get; set; }
+    public virtual DbSet<MessengerFriendship> MessengerFriendships { get; set; }
 
-    public virtual DbSet<messenger_friendship> messenger_friendships { get; set; }
+    public virtual DbSet<MessengerOfflineMessage> MessengerOfflineMessages { get; set; }
 
-    public virtual DbSet<messenger_offline_message> messenger_offline_messages { get; set; }
+    public virtual DbSet<MessengerRequest> MessengerRequests { get; set; }
 
-    public virtual DbSet<messenger_request> messenger_requests { get; set; }
+    public virtual DbSet<ModerationPreset> ModerationPresets { get; set; }
 
-    public virtual DbSet<moderation_preset> moderation_presets { get; set; }
+    public virtual DbSet<ModerationPresetActionCategory> ModerationPresetActionCategories { get; set; }
 
-    public virtual DbSet<moderation_preset_action_category> moderation_preset_action_categories { get; set; }
+    public virtual DbSet<ModerationPresetActionMessage> ModerationPresetActionMessages { get; set; }
 
-    public virtual DbSet<moderation_preset_action_message> moderation_preset_action_messages { get; set; }
+    public virtual DbSet<ModerationTicket> ModerationTickets { get; set; }
 
-    public virtual DbSet<moderation_ticket> moderation_tickets { get; set; }
+    public virtual DbSet<ModerationTopic> ModerationTopics { get; set; }
 
-    public virtual DbSet<moderation_topic> moderation_topics { get; set; }
+    public virtual DbSet<ModerationTopicAction> ModerationTopicActions { get; set; }
 
-    public virtual DbSet<moderation_topic_action> moderation_topic_actions { get; set; }
+    public virtual DbSet<NavigatorCategory> NavigatorCategories { get; set; }
 
-    public virtual DbSet<navigator_category> navigator_categories { get; set; }
+    public virtual DbSet<NavigatorPublic> NavigatorPublics { get; set; }
 
-    public virtual DbSet<navigator_public> navigator_publics { get; set; }
+    public virtual DbSet<Permission> Permissions { get; set; }
 
-    public virtual DbSet<permission> permissions { get; set; }
+    public virtual DbSet<PermissionsCommand> PermissionsCommands { get; set; }
 
-    public virtual DbSet<permissions_command> permissions_commands { get; set; }
+    public virtual DbSet<PermissionsGroup> PermissionsGroups { get; set; }
 
-    public virtual DbSet<permissions_group> permissions_groups { get; set; }
+    public virtual DbSet<PermissionsRight> PermissionsRights { get; set; }
 
-    public virtual DbSet<permissions_right> permissions_rights { get; set; }
+    public virtual DbSet<PermissionsSubscription> PermissionsSubscriptions { get; set; }
 
-    public virtual DbSet<permissions_subscription> permissions_subscriptions { get; set; }
+    public virtual DbSet<Quest> Quests { get; set; }
 
-    public virtual DbSet<quest> quests { get; set; }
+    public virtual DbSet<Rank> Ranks { get; set; }
 
-    public virtual DbSet<rank> ranks { get; set; }
+    public virtual DbSet<Room> Rooms { get; set; }
 
-    public virtual DbSet<room> rooms { get; set; }
+    public virtual DbSet<RoomBan> RoomBans { get; set; }
 
-    public virtual DbSet<room_ban> room_bans { get; set; }
+    public virtual DbSet<RoomChatStyle> RoomChatStyles { get; set; }
 
-    public virtual DbSet<room_chat_style> room_chat_styles { get; set; }
+    public virtual DbSet<RoomFilter> RoomFilters { get; set; }
 
-    public virtual DbSet<room_filter> room_filters { get; set; }
+    public virtual DbSet<RoomItemsMoodlight> RoomItemsMoodlights { get; set; }
 
-    public virtual DbSet<room_items_moodlight> room_items_moodlights { get; set; }
+    public virtual DbSet<RoomItemsTeleLink> RoomItemsTeleLinks { get; set; }
 
-    public virtual DbSet<room_items_tele_link> room_items_tele_links { get; set; }
+    public virtual DbSet<RoomItemsToner> RoomItemsToners { get; set; }
 
-    public virtual DbSet<room_items_toner> room_items_toners { get; set; }
+    public virtual DbSet<RoomModel> RoomModels { get; set; }
 
-    public virtual DbSet<room_model> room_models { get; set; }
+    public virtual DbSet<RoomPromotion> RoomPromotions { get; set; }
 
-    public virtual DbSet<room_promotion> room_promotions { get; set; }
+    public virtual DbSet<RoomRight> RoomRights { get; set; }
 
-    public virtual DbSet<room_right> room_rights { get; set; }
+    public virtual DbSet<RoomTaxiPoint> RoomTaxiPoints { get; set; }
 
-    public virtual DbSet<room_taxi_point> room_taxi_points { get; set; }
+    public virtual DbSet<RpCrime> RpCrimes { get; set; }
 
-    public virtual DbSet<rp_crime> rp_crimes { get; set; }
+    public virtual DbSet<RpCrimeLog> RpCrimeLogs { get; set; }
 
-    public virtual DbSet<rp_crime_log> rp_crime_logs { get; set; }
+    public virtual DbSet<RpCrimePenalty> RpCrimePenalties { get; set; }
 
-    public virtual DbSet<rp_crime_penalty> rp_crime_penalties { get; set; }
+    public virtual DbSet<RpItem> RpItems { get; set; }
 
-    public virtual DbSet<rp_item> rp_items { get; set; }
+    public virtual DbSet<RpShiftLog> RpShiftLogs { get; set; }
 
-    public virtual DbSet<rp_shift_log> rp_shift_logs { get; set; }
+    public virtual DbSet<RpSkill> RpSkills { get; set; }
 
-    public virtual DbSet<rp_skill> rp_skills { get; set; }
+    public virtual DbSet<RpSkillsLevel> RpSkillsLevels { get; set; }
 
-    public virtual DbSet<rp_skills_level> rp_skills_levels { get; set; }
+    public virtual DbSet<RpTrashReward> RpTrashRewards { get; set; }
 
-    public virtual DbSet<rp_trash_reward> rp_trash_rewards { get; set; }
+    public virtual DbSet<RpWeapon> RpWeapons { get; set; }
 
-    public virtual DbSet<rp_weapon> rp_weapons { get; set; }
+    public virtual DbSet<RpWeaponSkin> RpWeaponSkins { get; set; }
 
-    public virtual DbSet<rp_weapon_skin> rp_weapon_skins { get; set; }
+    public virtual DbSet<ServerLanding> ServerLandings { get; set; }
 
-    public virtual DbSet<server_landing> server_landings { get; set; }
+    public virtual DbSet<ServerLocale> ServerLocales { get; set; }
 
-    public virtual DbSet<server_locale> server_locales { get; set; }
+    public virtual DbSet<ServerReward> ServerRewards { get; set; }
 
-    public virtual DbSet<server_reward> server_rewards { get; set; }
+    public virtual DbSet<ServerRewardLog> ServerRewardLogs { get; set; }
 
-    public virtual DbSet<server_reward_log> server_reward_logs { get; set; }
+    public virtual DbSet<ServerSetting> ServerSettings { get; set; }
 
-    public virtual DbSet<server_setting> server_settings { get; set; }
+    public virtual DbSet<ServerStatus> ServerStatuses { get; set; }
 
-    public virtual DbSet<server_status> server_statuses { get; set; }
+    public virtual DbSet<Subscription> Subscriptions { get; set; }
 
-    public virtual DbSet<subscription> subscriptions { get; set; }
+    public virtual DbSet<Talent> Talents { get; set; }
 
-    public virtual DbSet<talent> talents { get; set; }
+    public virtual DbSet<TalentsSubLevel> TalentsSubLevels { get; set; }
 
-    public virtual DbSet<talents_sub_level> talents_sub_levels { get; set; }
+    public virtual DbSet<User> Users { get; set; }
 
-    public virtual DbSet<user> users { get; set; }
+    public virtual DbSet<UserAchievement> UserAchievements { get; set; }
 
-    public virtual DbSet<user_achievement> user_achievements { get; set; }
+    public virtual DbSet<UserBadge> UserBadges { get; set; }
 
-    public virtual DbSet<user_badge> user_badges { get; set; }
+    public virtual DbSet<UserChatBubble> UserChatBubbles { get; set; }
 
-    public virtual DbSet<user_chat_bubble> user_chat_bubbles { get; set; }
+    public virtual DbSet<UserClothing> UserClothings { get; set; }
 
-    public virtual DbSet<user_clothing> user_clothings { get; set; }
+    public virtual DbSet<UserEffect> UserEffects { get; set; }
 
-    public virtual DbSet<user_effect> user_effects { get; set; }
+    public virtual DbSet<UserFavorite> UserFavorites { get; set; }
 
-    public virtual DbSet<user_favorite> user_favorites { get; set; }
+    public virtual DbSet<UserIgnore> UserIgnores { get; set; }
 
-    public virtual DbSet<user_ignore> user_ignores { get; set; }
+    public virtual DbSet<UserInfo> UserInfos { get; set; }
 
-    public virtual DbSet<user_info> user_infos { get; set; }
+    public virtual DbSet<UserPresent> UserPresents { get; set; }
 
-    public virtual DbSet<user_present> user_presents { get; set; }
+    public virtual DbSet<UserQuest> UserQuests { get; set; }
 
-    public virtual DbSet<user_quest> user_quests { get; set; }
+    public virtual DbSet<UserRelationship> UserRelationships { get; set; }
 
-    public virtual DbSet<user_relationship> user_relationships { get; set; }
+    public virtual DbSet<UserRoomvisit> UserRoomvisits { get; set; }
 
-    public virtual DbSet<user_roomvisit> user_roomvisits { get; set; }
+    public virtual DbSet<UserRpBank> UserRpBanks { get; set; }
 
-    public virtual DbSet<user_rp_bank> user_rp_banks { get; set; }
+    public virtual DbSet<UserRpBankLog> UserRpBankLogs { get; set; }
 
-    public virtual DbSet<user_rp_bank_log> user_rp_bank_logs { get; set; }
+    public virtual DbSet<UserRpItem> UserRpItems { get; set; }
 
-    public virtual DbSet<user_rp_item> user_rp_items { get; set; }
+    public virtual DbSet<UserRpSkill> UserRpSkills { get; set; }
 
-    public virtual DbSet<user_rp_skill> user_rp_skills { get; set; }
+    public virtual DbSet<UserRpStatistic> UserRpStatistics { get; set; }
 
-    public virtual DbSet<user_rp_statistic> user_rp_statistics { get; set; }
+    public virtual DbSet<UserRpWeapon> UserRpWeapons { get; set; }
 
-    public virtual DbSet<user_rp_weapon> user_rp_weapons { get; set; }
+    public virtual DbSet<UserRpWeaponSkin> UserRpWeaponSkins { get; set; }
 
-    public virtual DbSet<user_rp_weapon_skin> user_rp_weapon_skins { get; set; }
+    public virtual DbSet<UserSavedSearch> UserSavedSearches { get; set; }
 
-    public virtual DbSet<user_saved_search> user_saved_searches { get; set; }
+    public virtual DbSet<UserStat> UserStats { get; set; }
 
-    public virtual DbSet<user_stat> user_stats { get; set; }
+    public virtual DbSet<UserVoucher> UserVouchers { get; set; }
 
-    public virtual DbSet<user_voucher> user_vouchers { get; set; }
+    public virtual DbSet<UserWardrobe> UserWardrobes { get; set; }
 
-    public virtual DbSet<user_wardrobe> user_wardrobes { get; set; }
+    public virtual DbSet<UsersMacro> UsersMacros { get; set; }
 
-    public virtual DbSet<users_macro> users_macros { get; set; }
+    public virtual DbSet<UsersMacroSetting> UsersMacroSettings { get; set; }
 
-    public virtual DbSet<users_macro_setting> users_macro_settings { get; set; }
+    public virtual DbSet<WiredItem> WiredItems { get; set; }
 
-    public virtual DbSet<wired_item> wired_items { get; set; }
-
-    public virtual DbSet<wordfilter> wordfilters { get; set; }
+    public virtual DbSet<Wordfilter> Wordfilters { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<achievement>(entity =>
+        modelBuilder.Entity<Achievement>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.category).HasDefaultValueSql("'''identity'''");
-            entity.Property(e => e.group_name).HasDefaultValueSql("'''ACH_'''");
-            entity.Property(e => e.level).HasDefaultValueSql("'1'");
-            entity.Property(e => e.progress_needed).HasDefaultValueSql("'1'");
-            entity.Property(e => e.reward_amount).HasDefaultValueSql("'5'");
-            entity.Property(e => e.points_type).HasDefaultValueSql("'0'");
-            entity.Property(e => e.reward_points).HasDefaultValueSql("'5'");
+            entity.Property(e => e.Category).HasDefaultValueSql("'''identity'''");
+            entity.Property(e => e.GroupName).HasDefaultValueSql("'''ACH_'''");
+            entity.Property(e => e.Level).HasDefaultValueSql("'1'");
+            entity.Property(e => e.ProgressNeeded).HasDefaultValueSql("'1'");
+            entity.Property(e => e.RewardAmount).HasDefaultValueSql("'5'");
+            entity.Property(e => e.PointsType).HasDefaultValueSql("'0'");
+            entity.Property(e => e.RewardPoints).HasDefaultValueSql("'5'");
         });
 
-        modelBuilder.Entity<achievements_talent>(entity =>
+        modelBuilder.Entity<AchievementsTalent>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.achievement_group).HasDefaultValueSql("'''ACH_'''");
-            entity.Property(e => e.achievement_level).HasDefaultValueSql("'1'");
-            entity.Property(e => e.parent_category).HasDefaultValueSql("'-1'");
-            entity.Property(e => e.prize).HasDefaultValueSql("'''A1 KUMIANKKA'''");
-            entity.Property(e => e.type).HasDefaultValueSql("'''citizenship'''");
+            entity.Property(e => e.AchievementGroup).HasDefaultValueSql("'''ACH_'''");
+            entity.Property(e => e.AchievementLevel).HasDefaultValueSql("'1'");
+            entity.Property(e => e.ParentCategory).HasDefaultValueSql("'-1'");
+            entity.Property(e => e.Prize).HasDefaultValueSql("'''A1 KUMIANKKA'''");
+            entity.Property(e => e.Type).HasDefaultValueSql("'''citizenship'''");
         });
 
-        modelBuilder.Entity<badge_definition>(entity =>
+        modelBuilder.Entity<BadgeDefinition>(entity =>
         {
-            entity.HasKey(e => e.code).HasName("PRIMARY");
+            entity.HasKey(e => e.Code).HasName("PRIMARY");
 
-            entity.Property(e => e.required_right).HasDefaultValueSql("''''''");
+            entity.Property(e => e.RequiredRight).HasDefaultValueSql("''''''");
         });
 
-        modelBuilder.Entity<ban>(entity =>
+        modelBuilder.Entity<Ban>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.appeal_state).HasDefaultValueSql("'''1'''");
-            entity.Property(e => e.bantype).HasDefaultValueSql("'''user'''");
+            entity.Property(e => e.AppealState).HasDefaultValueSql("'''1'''");
+            entity.Property(e => e.Bantype).HasDefaultValueSql("'''user'''");
         });
 
-        modelBuilder.Entity<bot>(entity =>
+        modelBuilder.Entity<Bot>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.ai_type).HasDefaultValueSql("'''generic'''");
-            entity.Property(e => e.automatic_chat).HasDefaultValueSql("'''false'''");
-            entity.Property(e => e.chat_bubble).HasDefaultValueSql("'2'");
-            entity.Property(e => e.gender).HasDefaultValueSql("'''M'''");
-            entity.Property(e => e.mix_sentences).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.speaking_interval).HasDefaultValueSql("'30'");
-            entity.Property(e => e.walk_mode).HasDefaultValueSql("'''freeroam'''");
+            entity.Property(e => e.AiType).HasDefaultValueSql("'''generic'''");
+            entity.Property(e => e.AutomaticChat).HasDefaultValueSql("'''false'''");
+            entity.Property(e => e.ChatBubble).HasDefaultValueSql("'2'");
+            entity.Property(e => e.Gender).HasDefaultValueSql("'''M'''");
+            entity.Property(e => e.MixSentences).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.SpeakingInterval).HasDefaultValueSql("'30'");
+            entity.Property(e => e.WalkMode).HasDefaultValueSql("'''freeroam'''");
         });
 
-        modelBuilder.Entity<bots_pet_command>(entity =>
+        modelBuilder.Entity<BotsPetCommand>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.input).HasDefaultValueSql("'NULL'");
+            entity.Property(e => e.Input).HasDefaultValueSql("'NULL'");
         });
 
-        modelBuilder.Entity<bots_pet_response>(entity =>
+        modelBuilder.Entity<BotsPetResponse>(entity =>
         {
-            entity.HasKey(e => e.pet_id).HasName("PRIMARY");
+            entity.HasKey(e => e.PetId).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<bots_petdatum>(entity =>
+        modelBuilder.Entity<BotsPetdatum>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.anyone_ride).HasDefaultValueSql("'0'");
-            entity.Property(e => e.color).HasDefaultValueSql("'NULL'");
-            entity.Property(e => e.createstamp).HasDefaultValueSql("'NULL'");
-            entity.Property(e => e.energy).HasDefaultValueSql("'0'");
-            entity.Property(e => e.experience).HasDefaultValueSql("'0'");
-            entity.Property(e => e.gnome_clothing).HasDefaultValueSql("'''-1'''");
-            entity.Property(e => e.hairdye).HasDefaultValueSql("'1'");
-            entity.Property(e => e.have_saddle).HasDefaultValueSql("'0'");
-            entity.Property(e => e.nutrition).HasDefaultValueSql("'0'");
-            entity.Property(e => e.pethair).HasDefaultValueSql("'-1'");
-            entity.Property(e => e.race).HasDefaultValueSql("'NULL'");
-            entity.Property(e => e.respect).HasDefaultValueSql("'0'");
-            entity.Property(e => e.type).HasDefaultValueSql("'0'");
+            entity.Property(e => e.AnyoneRide).HasDefaultValueSql("'0'");
+            entity.Property(e => e.Color).HasDefaultValueSql("'NULL'");
+            entity.Property(e => e.Createstamp).HasDefaultValueSql("'NULL'");
+            entity.Property(e => e.Energy).HasDefaultValueSql("'0'");
+            entity.Property(e => e.Experience).HasDefaultValueSql("'0'");
+            entity.Property(e => e.GnomeClothing).HasDefaultValueSql("'''-1'''");
+            entity.Property(e => e.Hairdye).HasDefaultValueSql("'1'");
+            entity.Property(e => e.HaveSaddle).HasDefaultValueSql("'0'");
+            entity.Property(e => e.Nutrition).HasDefaultValueSql("'0'");
+            entity.Property(e => e.Pethair).HasDefaultValueSql("'-1'");
+            entity.Property(e => e.Race).HasDefaultValueSql("'NULL'");
+            entity.Property(e => e.Respect).HasDefaultValueSql("'0'");
+            entity.Property(e => e.Type).HasDefaultValueSql("'0'");
         });
 
-        modelBuilder.Entity<bots_response>(entity =>
+        modelBuilder.Entity<BotsResponse>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.bot_ai).HasDefaultValueSql("'''generic'''");
-            entity.Property(e => e.response_beverage).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.response_mode).HasDefaultValueSql("'''say'''");
-            entity.Property(e => e.response_text).HasDefaultValueSql("''''''");
+            entity.Property(e => e.BotAi).HasDefaultValueSql("'''generic'''");
+            entity.Property(e => e.ResponseBeverage).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.ResponseMode).HasDefaultValueSql("'''say'''");
+            entity.Property(e => e.ResponseText).HasDefaultValueSql("''''''");
         });
 
-        modelBuilder.Entity<bots_speech>(entity =>
+        modelBuilder.Entity<BotsSpeech>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.shout).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.type).HasDefaultValueSql("'''normal'''");
+            entity.Property(e => e.Shout).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.Type).HasDefaultValueSql("'''normal'''");
         });
 
-        modelBuilder.Entity<catalog_bot_preset>(entity =>
+        modelBuilder.Entity<CatalogBotPreset>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.ai_type).HasDefaultValueSql("'''generic'''");
+            entity.Property(e => e.AiType).HasDefaultValueSql("'''generic'''");
         });
 
-        modelBuilder.Entity<catalog_clothing>(entity =>
+        modelBuilder.Entity<CatalogClothing>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.clothing_name).HasDefaultValueSql("''''''");
-            entity.Property(e => e.clothing_parts).HasDefaultValueSql("''''''");
+            entity.Property(e => e.ClothingName).HasDefaultValueSql("''''''");
+            entity.Property(e => e.ClothingParts).HasDefaultValueSql("''''''");
         });
 
-        modelBuilder.Entity<catalog_deal>(entity =>
+        modelBuilder.Entity<CatalogDeal>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<catalog_item>(entity =>
+        modelBuilder.Entity<CatalogItem>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.amount).HasDefaultValueSql("'1'");
-            entity.Property(e => e.badge).HasDefaultValueSql("''''''");
-            entity.Property(e => e.cost_credits).HasDefaultValueSql("'3'");
-            entity.Property(e => e.extradata).HasDefaultValueSql("''''''");
-            entity.Property(e => e.offer_active).HasDefaultValueSql("'''1'''");
-            entity.Property(e => e.offer_id).HasDefaultValueSql("'-1'");
-            entity.Property(e => e.points_type).HasDefaultValueSql("'NULL'");
+            entity.Property(e => e.Amount).HasDefaultValueSql("'1'");
+            entity.Property(e => e.Badge).HasDefaultValueSql("''''''");
+            entity.Property(e => e.CostCredits).HasDefaultValueSql("'3'");
+            entity.Property(e => e.Extradata).HasDefaultValueSql("''''''");
+            entity.Property(e => e.OfferActive).HasDefaultValueSql("'''1'''");
+            entity.Property(e => e.OfferId).HasDefaultValueSql("'-1'");
+            entity.Property(e => e.PointsType).HasDefaultValueSql("'NULL'");
         });
 
-        modelBuilder.Entity<catalog_marketplace_datum>(entity =>
+        modelBuilder.Entity<CatalogMarketplaceDatum>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<catalog_marketplace_offer>(entity =>
+        modelBuilder.Entity<CatalogMarketplaceOffer>(entity =>
         {
-            entity.HasKey(e => e.offer_id).HasName("PRIMARY");
+            entity.HasKey(e => e.OfferId).HasName("PRIMARY");
 
-            entity.Property(e => e.item_type).HasDefaultValueSql("'''1'''");
-            entity.Property(e => e.state).HasDefaultValueSql("'''1'''");
+            entity.Property(e => e.ItemType).HasDefaultValueSql("'''1'''");
+            entity.Property(e => e.State).HasDefaultValueSql("'''1'''");
         });
 
-        modelBuilder.Entity<catalog_page>(entity =>
+        modelBuilder.Entity<CatalogPage>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.caption).HasDefaultValueSql("'''noname'''");
-            entity.Property(e => e.enabled).HasDefaultValueSql("'''1'''");
-            entity.Property(e => e.icon_image).HasDefaultValueSql("'1'");
-            entity.Property(e => e.min_rank).HasDefaultValueSql("'1'");
-            entity.Property(e => e.order_num).HasDefaultValueSql("'69'");
-            entity.Property(e => e.page_layout).HasDefaultValueSql("'''default_3x3'''");
-            entity.Property(e => e.page_link).HasDefaultValueSql("''''''");
-            entity.Property(e => e.page_strings_1).HasDefaultValueSql("''''''");
-            entity.Property(e => e.page_strings_2).HasDefaultValueSql("''''''");
-            entity.Property(e => e.parent_id).HasDefaultValueSql("'-1'");
-            entity.Property(e => e.visible).HasDefaultValueSql("'''1'''");
+            entity.Property(e => e.Caption).HasDefaultValueSql("'''noname'''");
+            entity.Property(e => e.Enabled).HasDefaultValueSql("'''1'''");
+            entity.Property(e => e.IconImage).HasDefaultValueSql("'1'");
+            entity.Property(e => e.MinRank).HasDefaultValueSql("'1'");
+            entity.Property(e => e.OrderNum).HasDefaultValueSql("'69'");
+            entity.Property(e => e.PageLayout).HasDefaultValueSql("'''default_3x3'''");
+            entity.Property(e => e.PageLink).HasDefaultValueSql("''''''");
+            entity.Property(e => e.PageStrings1).HasDefaultValueSql("''''''");
+            entity.Property(e => e.PageStrings2).HasDefaultValueSql("''''''");
+            entity.Property(e => e.ParentId).HasDefaultValueSql("'-1'");
+            entity.Property(e => e.Visible).HasDefaultValueSql("'''1'''");
         });
 
-        modelBuilder.Entity<catalog_pet_race>(entity =>
+        modelBuilder.Entity<CatalogPetRace>(entity =>
         {
-            entity.Property(e => e.color1).HasDefaultValueSql("'NULL'");
-            entity.Property(e => e.color2).HasDefaultValueSql("'NULL'");
-            entity.Property(e => e.has1color).HasDefaultValueSql("'NULL'");
-            entity.Property(e => e.has2color).HasDefaultValueSql("'NULL'");
-            entity.Property(e => e.raceid).HasDefaultValueSql("'NULL'");
+            entity.Property(e => e.Color1).HasDefaultValueSql("'NULL'");
+            entity.Property(e => e.Color2).HasDefaultValueSql("'NULL'");
+            entity.Property(e => e.Has1color).HasDefaultValueSql("'NULL'");
+            entity.Property(e => e.Has2color).HasDefaultValueSql("'NULL'");
+            entity.Property(e => e.Raceid).HasDefaultValueSql("'NULL'");
         });
 
-        modelBuilder.Entity<catalog_promotion>(entity =>
+        modelBuilder.Entity<CatalogPromotion>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.image).HasDefaultValueSql("''''''");
-            entity.Property(e => e.page_link).HasDefaultValueSql("''''''");
-            entity.Property(e => e.parent_id).HasDefaultValueSql("'0'");
-            entity.Property(e => e.title).HasDefaultValueSql("''''''");
-            entity.Property(e => e.unknown).HasDefaultValueSql("'0'");
+            entity.Property(e => e.Image).HasDefaultValueSql("''''''");
+            entity.Property(e => e.PageLink).HasDefaultValueSql("''''''");
+            entity.Property(e => e.ParentId).HasDefaultValueSql("'0'");
+            entity.Property(e => e.Title).HasDefaultValueSql("''''''");
+            entity.Property(e => e.Unknown).HasDefaultValueSql("'0'");
         });
 
-        modelBuilder.Entity<catalog_voucher>(entity =>
+        modelBuilder.Entity<CatalogVoucher>(entity =>
         {
-            entity.HasKey(e => e.voucher).HasName("PRIMARY");
+            entity.HasKey(e => e.Voucher).HasName("PRIMARY");
 
-            entity.Property(e => e.enabled).HasDefaultValueSql("'''1'''");
-            entity.Property(e => e.max_uses).HasDefaultValueSql("'1'");
-            entity.Property(e => e.type).HasDefaultValueSql("'''credits'''");
-            entity.Property(e => e.value).HasDefaultValueSql("'100'");
+            entity.Property(e => e.Enabled).HasDefaultValueSql("'''1'''");
+            entity.Property(e => e.MaxUses).HasDefaultValueSql("'1'");
+            entity.Property(e => e.Type).HasDefaultValueSql("'''credits'''");
+            entity.Property(e => e.Value).HasDefaultValueSql("'100'");
         });
 
-        modelBuilder.Entity<chatlog>(entity =>
+        modelBuilder.Entity<Chatlog>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<chatlogs_console>(entity =>
+        modelBuilder.Entity<ChatlogsConsole>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<chatlogs_console_invitation>(entity =>
+        modelBuilder.Entity<ChatlogsConsoleInvitation>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<client_external_badge_text>(entity =>
+        modelBuilder.Entity<ClientExternalBadgeText>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.badge_code).HasDefaultValueSql("''''''");
-            entity.Property(e => e.badge_desc).HasDefaultValueSql("''''''");
-            entity.Property(e => e.badge_title).HasDefaultValueSql("''''''");
+            entity.Property(e => e.BadgeCode).HasDefaultValueSql("''''''");
+            entity.Property(e => e.BadgeDesc).HasDefaultValueSql("''''''");
+            entity.Property(e => e.BadgeTitle).HasDefaultValueSql("''''''");
         });
 
-        modelBuilder.Entity<client_external_text>(entity =>
+        modelBuilder.Entity<ClientExternalText>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<furniture>(entity =>
+        modelBuilder.Entity<Furniture>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.allow_gift).HasDefaultValueSql("'''1'''");
-            entity.Property(e => e.allow_inventory_stack).HasDefaultValueSql("'''1'''");
-            entity.Property(e => e.allow_lay).HasDefaultValueSql("'NULL'");
-            entity.Property(e => e.allow_marketplace_sell).HasDefaultValueSql("'''1'''");
-            entity.Property(e => e.allow_recycle).HasDefaultValueSql("'''1'''");
-            entity.Property(e => e.allow_trade).HasDefaultValueSql("'''1'''");
-            entity.Property(e => e.can_stack).HasDefaultValueSql("'1'");
-            entity.Property(e => e.extra_rot).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.height_adjustable).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.interaction_modes_count).HasDefaultValueSql("'1'");
-            entity.Property(e => e.interaction_type).HasDefaultValueSql("'''default'''");
-            entity.Property(e => e.is_rare).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.is_walkable).HasDefaultValueSql("'0'");
-            entity.Property(e => e.length).HasDefaultValueSql("'1'");
-            entity.Property(e => e.public_name).HasDefaultValueSql("''''''");
-            entity.Property(e => e.sprite_id).HasDefaultValueSql("'0'");
-            entity.Property(e => e.type).HasDefaultValueSql("'''s'''");
-            entity.Property(e => e.vending_ids).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.width).HasDefaultValueSql("'1'");
+            entity.Property(e => e.AllowGift).HasDefaultValueSql("'''1'''");
+            entity.Property(e => e.AllowInventoryStack).HasDefaultValueSql("'''1'''");
+            entity.Property(e => e.AllowLay).HasDefaultValueSql("'NULL'");
+            entity.Property(e => e.AllowMarketplaceSell).HasDefaultValueSql("'''1'''");
+            entity.Property(e => e.AllowRecycle).HasDefaultValueSql("'''1'''");
+            entity.Property(e => e.AllowTrade).HasDefaultValueSql("'''1'''");
+            entity.Property(e => e.CanStack).HasDefaultValueSql("'1'");
+            entity.Property(e => e.ExtraRot).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.HeightAdjustable).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.InteractionModesCount).HasDefaultValueSql("'1'");
+            entity.Property(e => e.InteractionType).HasDefaultValueSql("'''default'''");
+            entity.Property(e => e.IsRare).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.IsWalkable).HasDefaultValueSql("'0'");
+            entity.Property(e => e.Length).HasDefaultValueSql("'1'");
+            entity.Property(e => e.PublicName).HasDefaultValueSql("''''''");
+            entity.Property(e => e.SpriteId).HasDefaultValueSql("'0'");
+            entity.Property(e => e.Type).HasDefaultValueSql("'''s'''");
+            entity.Property(e => e.VendingIds).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.Width).HasDefaultValueSql("'1'");
         });
 
-        modelBuilder.Entity<furniture_copy1>(entity =>
+        modelBuilder.Entity<FurnitureCopy1>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.allow_gift).HasDefaultValueSql("'''1'''");
-            entity.Property(e => e.allow_inventory_stack).HasDefaultValueSql("'''1'''");
-            entity.Property(e => e.allow_marketplace_sell).HasDefaultValueSql("'''1'''");
-            entity.Property(e => e.allow_recycle).HasDefaultValueSql("'''1'''");
-            entity.Property(e => e.allow_trade).HasDefaultValueSql("'''1'''");
-            entity.Property(e => e.can_sit).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.can_stack).HasDefaultValueSql("'''1'''");
-            entity.Property(e => e.extra_rot).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.height_adjustable).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.interaction_modes_count).HasDefaultValueSql("'1'");
-            entity.Property(e => e.interaction_type).HasDefaultValueSql("'''default'''");
-            entity.Property(e => e.is_rare).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.is_walkable).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.length).HasDefaultValueSql("'1'");
-            entity.Property(e => e.public_name).HasDefaultValueSql("''''''");
-            entity.Property(e => e.type).HasDefaultValueSql("'''s'''");
-            entity.Property(e => e.vending_ids).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.width).HasDefaultValueSql("'1'");
+            entity.Property(e => e.AllowGift).HasDefaultValueSql("'''1'''");
+            entity.Property(e => e.AllowInventoryStack).HasDefaultValueSql("'''1'''");
+            entity.Property(e => e.AllowMarketplaceSell).HasDefaultValueSql("'''1'''");
+            entity.Property(e => e.AllowRecycle).HasDefaultValueSql("'''1'''");
+            entity.Property(e => e.AllowTrade).HasDefaultValueSql("'''1'''");
+            entity.Property(e => e.CanSit).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.CanStack).HasDefaultValueSql("'''1'''");
+            entity.Property(e => e.ExtraRot).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.HeightAdjustable).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.InteractionModesCount).HasDefaultValueSql("'1'");
+            entity.Property(e => e.InteractionType).HasDefaultValueSql("'''default'''");
+            entity.Property(e => e.IsRare).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.IsWalkable).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.Length).HasDefaultValueSql("'1'");
+            entity.Property(e => e.PublicName).HasDefaultValueSql("''''''");
+            entity.Property(e => e.Type).HasDefaultValueSql("'''s'''");
+            entity.Property(e => e.VendingIds).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.Width).HasDefaultValueSql("'1'");
         });
 
-        modelBuilder.Entity<games_config>(entity =>
+        modelBuilder.Entity<GamesConfig>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.colour_one).HasDefaultValueSql("''''''");
-            entity.Property(e => e.colour_two).HasDefaultValueSql("''''''");
-            entity.Property(e => e.game_assets).HasDefaultValueSql("''''''");
-            entity.Property(e => e.game_enabled).HasDefaultValueSql("'''1'''");
-            entity.Property(e => e.game_server_host).HasDefaultValueSql("''''''");
-            entity.Property(e => e.game_server_port).HasDefaultValueSql("''''''");
-            entity.Property(e => e.game_swf).HasDefaultValueSql("''''''");
-            entity.Property(e => e.last_reset).HasDefaultValueSql("'0'");
-            entity.Property(e => e.name).HasDefaultValueSql("''''''");
-            entity.Property(e => e.socket_policy_port).HasDefaultValueSql("''''''");
-            entity.Property(e => e.string_three).HasDefaultValueSql("''''''");
+            entity.Property(e => e.ColourOne).HasDefaultValueSql("''''''");
+            entity.Property(e => e.ColourTwo).HasDefaultValueSql("''''''");
+            entity.Property(e => e.GameAssets).HasDefaultValueSql("''''''");
+            entity.Property(e => e.GameEnabled).HasDefaultValueSql("'''1'''");
+            entity.Property(e => e.GameServerHost).HasDefaultValueSql("''''''");
+            entity.Property(e => e.GameServerPort).HasDefaultValueSql("''''''");
+            entity.Property(e => e.GameSwf).HasDefaultValueSql("''''''");
+            entity.Property(e => e.LastReset).HasDefaultValueSql("'0'");
+            entity.Property(e => e.Name).HasDefaultValueSql("''''''");
+            entity.Property(e => e.SocketPolicyPort).HasDefaultValueSql("''''''");
+            entity.Property(e => e.StringThree).HasDefaultValueSql("''''''");
         });
 
-        modelBuilder.Entity<group>(entity =>
+        modelBuilder.Entity<Group>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.admindeco).HasDefaultValueSql("'''1'''");
-            entity.Property(e => e.colour1).HasDefaultValueSql("'242424'");
-            entity.Property(e => e.colour2).HasDefaultValueSql("'242424'");
-            entity.Property(e => e.forum_enabled).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.state).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.Admindeco).HasDefaultValueSql("'''1'''");
+            entity.Property(e => e.Colour1).HasDefaultValueSql("'242424'");
+            entity.Property(e => e.Colour2).HasDefaultValueSql("'242424'");
+            entity.Property(e => e.ForumEnabled).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.State).HasDefaultValueSql("'''0'''");
         });
 
-        modelBuilder.Entity<group_membership>(entity =>
+        modelBuilder.Entity<GroupMembership>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.level).HasDefaultValueSql("'1'");
+            entity.Property(e => e.Level).HasDefaultValueSql("'1'");
         });
 
-        modelBuilder.Entity<group_permission>(entity =>
+        modelBuilder.Entity<GroupPermission>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.group_id).HasComment("groups.id");
-            entity.Property(e => e.level_id).HasComment("groups_roles.level");
-            entity.Property(e => e.permission_id).HasComment("group_permissiosn_keys.id");
-            entity.Property(e => e.updated_at)
+            entity.Property(e => e.GroupId).HasComment("groups.id");
+            entity.Property(e => e.LevelId).HasComment("groups_roles.level");
+            entity.Property(e => e.PermissionId).HasComment("group_permissiosn_keys.id");
+            entity.Property(e => e.UpdatedAt)
                 .ValueGeneratedOnAddOrUpdate()
                 .HasDefaultValueSql("'NULL'");
         });
 
-        modelBuilder.Entity<group_permission_key>(entity =>
+        modelBuilder.Entity<GroupPermissionKey>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.description).HasDefaultValueSql("'''nodesc'''");
+            entity.Property(e => e.Description).HasDefaultValueSql("'''nodesc'''");
         });
 
-        modelBuilder.Entity<group_role>(entity =>
+        modelBuilder.Entity<GroupRole>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.created_at).HasDefaultValueSql("'''0000-00-00 00:00:00'''");
-            entity.Property(e => e.group_id).HasComment("Group's ID.");
-            entity.Property(e => e.level)
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("'''0000-00-00 00:00:00'''");
+            entity.Property(e => e.GroupId).HasComment("Group's ID.");
+            entity.Property(e => e.Level)
                 .HasDefaultValueSql("'1'")
                 .HasComment("Levels go in order of Slave -> CEO. 1 = Slave, 100 = CEO.");
-            entity.Property(e => e.name)
+            entity.Property(e => e.Name)
                 .HasDefaultValueSql("''''''")
                 .HasComment("Literal name displayed; ex. general manager");
-            entity.Property(e => e.shift_costume)
+            entity.Property(e => e.ShiftCostume)
                 .HasDefaultValueSql("''''''")
                 .HasComment("Shift-Costume (full) to replace users own clothes. Blank for no swap.");
-            entity.Property(e => e.shift_duration)
+            entity.Property(e => e.ShiftDuration)
                 .HasDefaultValueSql("'5'")
                 .HasComment("The duration at which worker will be auto-rewarded. In minutes.");
-            entity.Property(e => e.shift_motto)
+            entity.Property(e => e.ShiftMotto)
                 .HasDefaultValueSql("''''''")
                 .HasComment("Replace users motto for the duration of shift? Blank for no swap.");
-            entity.Property(e => e.shift_pay).HasComment("Credits paid via intervals.");
-            entity.Property(e => e.updated_at)
+            entity.Property(e => e.ShiftPay).HasComment("Credits paid via intervals.");
+            entity.Property(e => e.UpdatedAt)
                 .ValueGeneratedOnAddOrUpdate()
                 .HasDefaultValueSql("'NULL'");
         });
 
-        modelBuilder.Entity<groups_item>(entity =>
+        modelBuilder.Entity<GroupsItem>(entity =>
         {
-            entity.HasKey(e => new { e.id, e.type }).HasName("PRIMARY");
+            entity.HasKey(e => new { e.Id, e.Type }).HasName("PRIMARY");
 
-            entity.Property(e => e.enabled).HasDefaultValueSql("'''1'''");
+            entity.Property(e => e.Enabled).HasDefaultValueSql("'''1'''");
         });
 
-        modelBuilder.Entity<item>(entity =>
+        modelBuilder.Entity<Item>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.limited_number).HasDefaultValueSql("'0'");
-            entity.Property(e => e.limited_stack).HasDefaultValueSql("'0'");
-            entity.Property(e => e.wall_pos).HasDefaultValueSql("''''''");
+            entity.Property(e => e.LimitedNumber).HasDefaultValueSql("'0'");
+            entity.Property(e => e.LimitedStack).HasDefaultValueSql("'0'");
+            entity.Property(e => e.WallPos).HasDefaultValueSql("''''''");
         });
 
-        modelBuilder.Entity<items_group>(entity =>
+        modelBuilder.Entity<ItemsGroup>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<items_youtube>(entity =>
+        modelBuilder.Entity<ItemsYoutube>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.description).HasDefaultValueSql("''''''");
-            entity.Property(e => e.enabled).HasDefaultValueSql("'''1'''");
-            entity.Property(e => e.title).HasDefaultValueSql("''''''");
-            entity.Property(e => e.youtube_id).HasDefaultValueSql("''''''");
+            entity.Property(e => e.Description).HasDefaultValueSql("''''''");
+            entity.Property(e => e.Enabled).HasDefaultValueSql("'''1'''");
+            entity.Property(e => e.Title).HasDefaultValueSql("''''''");
+            entity.Property(e => e.YoutubeId).HasDefaultValueSql("''''''");
         });
 
-        modelBuilder.Entity<logs_client_namechange>(entity =>
+        modelBuilder.Entity<LogsClientNamechange>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.new_name).HasDefaultValueSql("''''''");
-            entity.Property(e => e.old_name).HasDefaultValueSql("''''''");
+            entity.Property(e => e.NewName).HasDefaultValueSql("''''''");
+            entity.Property(e => e.OldName).HasDefaultValueSql("''''''");
         });
 
-        modelBuilder.Entity<logs_client_staff>(entity =>
+        modelBuilder.Entity<LogsClientStaff>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.machine_id).HasDefaultValueSql("''''''");
+            entity.Property(e => e.MachineId).HasDefaultValueSql("''''''");
         });
 
-        modelBuilder.Entity<logs_client_trade>(entity =>
+        modelBuilder.Entity<LogsClientTrade>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
             entity.Property(e => e._1id).HasDefaultValueSql("'0'");
             entity.Property(e => e._1items).HasDefaultValueSql("'NULL'");
             entity.Property(e => e._2id).HasDefaultValueSql("'0'");
             entity.Property(e => e._2items).HasDefaultValueSql("'NULL'");
-            entity.Property(e => e.timestamp)
+            entity.Property(e => e.Timestamp)
                 .HasDefaultValueSql("''''''")
                 .IsFixedLength();
         });
 
-        modelBuilder.Entity<messenger_friendship>(entity =>
+        modelBuilder.Entity<MessengerFriendship>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<messenger_offline_message>(entity =>
+        modelBuilder.Entity<MessengerOfflineMessage>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<messenger_request>(entity =>
+        modelBuilder.Entity<MessengerRequest>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<moderation_preset>(entity =>
+        modelBuilder.Entity<ModerationPreset>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.enabled).HasDefaultValueSql("'1'");
-            entity.Property(e => e.type).HasDefaultValueSql("'''user'''");
+            entity.Property(e => e.Enabled).HasDefaultValueSql("'1'");
+            entity.Property(e => e.Type).HasDefaultValueSql("'''user'''");
         });
 
-        modelBuilder.Entity<moderation_preset_action_category>(entity =>
+        modelBuilder.Entity<ModerationPresetActionCategory>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.caption).HasDefaultValueSql("''''''");
+            entity.Property(e => e.Caption).HasDefaultValueSql("''''''");
         });
 
-        modelBuilder.Entity<moderation_preset_action_message>(entity =>
+        modelBuilder.Entity<ModerationPresetActionMessage>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.ban_hours).HasDefaultValueSql("'24'");
+            entity.Property(e => e.BanHours).HasDefaultValueSql("'24'");
         });
 
-        modelBuilder.Entity<moderation_ticket>(entity =>
+        modelBuilder.Entity<ModerationTicket>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.status).HasDefaultValueSql("'''open'''");
+            entity.Property(e => e.Status).HasDefaultValueSql("'''open'''");
         });
 
-        modelBuilder.Entity<moderation_topic>(entity =>
+        modelBuilder.Entity<ModerationTopic>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.caption).HasDefaultValueSql("''''''");
+            entity.Property(e => e.Caption).HasDefaultValueSql("''''''");
         });
 
-        modelBuilder.Entity<moderation_topic_action>(entity =>
+        modelBuilder.Entity<ModerationTopicAction>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.caption).HasDefaultValueSql("''''''");
+            entity.Property(e => e.Caption).HasDefaultValueSql("''''''");
         });
 
-        modelBuilder.Entity<navigator_category>(entity =>
+        modelBuilder.Entity<NavigatorCategory>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.category).HasDefaultValueSql("'''hotel_view'''");
-            entity.Property(e => e.category_identifier).HasDefaultValueSql("''''''");
-            entity.Property(e => e.category_type).HasDefaultValueSql("'''category'''");
-            entity.Property(e => e.enabled).HasDefaultValueSql("'''1'''");
-            entity.Property(e => e.public_name).HasDefaultValueSql("''''''");
-            entity.Property(e => e.required_rank).HasDefaultValueSql("'1'");
-            entity.Property(e => e.search_allowance).HasDefaultValueSql("'''SHOW_MORE'''");
-            entity.Property(e => e.view_mode).HasDefaultValueSql("'''REGULAR'''");
+            entity.Property(e => e.Category).HasDefaultValueSql("'''hotel_view'''");
+            entity.Property(e => e.CategoryIdentifier).HasDefaultValueSql("''''''");
+            entity.Property(e => e.CategoryType).HasDefaultValueSql("'''category'''");
+            entity.Property(e => e.Enabled).HasDefaultValueSql("'''1'''");
+            entity.Property(e => e.PublicName).HasDefaultValueSql("''''''");
+            entity.Property(e => e.RequiredRank).HasDefaultValueSql("'1'");
+            entity.Property(e => e.SearchAllowance).HasDefaultValueSql("'''SHOW_MORE'''");
+            entity.Property(e => e.ViewMode).HasDefaultValueSql("'''REGULAR'''");
         });
 
-        modelBuilder.Entity<navigator_public>(entity =>
+        modelBuilder.Entity<NavigatorPublic>(entity =>
         {
-            entity.HasKey(e => e.room_id).HasName("PRIMARY");
+            entity.HasKey(e => e.RoomId).HasName("PRIMARY");
 
-            entity.Property(e => e.enabled).HasDefaultValueSql("'''1'''");
-            entity.Property(e => e.order_num).HasDefaultValueSql("'1'");
+            entity.Property(e => e.Enabled).HasDefaultValueSql("'''1'''");
+            entity.Property(e => e.OrderNum).HasDefaultValueSql("'1'");
         });
 
-        modelBuilder.Entity<permission>(entity =>
+        modelBuilder.Entity<Permission>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<permissions_command>(entity =>
+        modelBuilder.Entity<PermissionsCommand>(entity =>
         {
-            entity.HasKey(e => e.command).HasName("PRIMARY");
+            entity.HasKey(e => e.Command).HasName("PRIMARY");
 
-            entity.Property(e => e.command).HasDefaultValueSql("''''''");
-            entity.Property(e => e.group_id).HasDefaultValueSql("'4'");
+            entity.Property(e => e.Command).HasDefaultValueSql("''''''");
+            entity.Property(e => e.GroupId).HasDefaultValueSql("'4'");
         });
 
-        modelBuilder.Entity<permissions_group>(entity =>
+        modelBuilder.Entity<PermissionsGroup>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.badge_code).HasDefaultValueSql("''''''");
+            entity.Property(e => e.BadgeCode).HasDefaultValueSql("''''''");
         });
 
-        modelBuilder.Entity<permissions_right>(entity =>
+        modelBuilder.Entity<PermissionsRight>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<permissions_subscription>(entity =>
+        modelBuilder.Entity<PermissionsSubscription>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<quest>(entity =>
+        modelBuilder.Entity<Quest>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.action).HasDefaultValueSql("''''''");
-            entity.Property(e => e.data_bit).HasDefaultValueSql("''''''");
-            entity.Property(e => e.pixel_reward).HasDefaultValueSql("'10'");
-            entity.Property(e => e.reward_type).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.type).HasDefaultValueSql("''''''");
+            entity.Property(e => e.Action).HasDefaultValueSql("''''''");
+            entity.Property(e => e.DataBit).HasDefaultValueSql("''''''");
+            entity.Property(e => e.PixelReward).HasDefaultValueSql("'10'");
+            entity.Property(e => e.RewardType).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.Type).HasDefaultValueSql("''''''");
         });
 
-        modelBuilder.Entity<rank>(entity =>
+        modelBuilder.Entity<Rank>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<room>(entity =>
+        modelBuilder.Entity<Room>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.allow_hidewall).HasDefaultValueSql("'1'");
-            entity.Property(e => e.ban_settings).HasDefaultValueSql("'1'");
-            entity.Property(e => e.caption).HasDefaultValueSql("'''Room'''");
-            entity.Property(e => e.chat_hearing_distance).HasDefaultValueSql("'14'");
-            entity.Property(e => e.description).HasDefaultValueSql("''''''");
-            entity.Property(e => e.enables_enabled).HasDefaultValueSql("'1'");
-            entity.Property(e => e.floor).HasDefaultValueSql("'''0.0'''");
-            entity.Property(e => e.kick_settings).HasDefaultValueSql("'1'");
-            entity.Property(e => e.landscape).HasDefaultValueSql("'''0.0'''");
-            entity.Property(e => e.lay_enabled).HasDefaultValueSql("'''1'''");
-            entity.Property(e => e.mute_settings).HasDefaultValueSql("'1'");
-            entity.Property(e => e.owner).HasDefaultValueSql("''''''");
-            entity.Property(e => e.password).HasDefaultValueSql("''''''");
-            entity.Property(e => e.pet_morphs_allowed).HasDefaultValueSql("'1'");
-            entity.Property(e => e.pull_enabled).HasDefaultValueSql("'1'");
-            entity.Property(e => e.push_enabled).HasDefaultValueSql("'1'");
-            entity.Property(e => e.respect_notifications_enabled).HasDefaultValueSql("'1'");
-            entity.Property(e => e.roomtype).HasDefaultValueSql("'''private'''");
-            entity.Property(e => e.safezone).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.spull_enabled).HasDefaultValueSql("'1'");
-            entity.Property(e => e.spush_enabled).HasDefaultValueSql("'''1'''");
-            entity.Property(e => e.state).HasDefaultValueSql("'''open'''");
-            entity.Property(e => e.tags).HasDefaultValueSql("''''''");
-            entity.Property(e => e.taxi_x).HasDefaultValueSql("'-1'");
-            entity.Property(e => e.taxi_y).HasDefaultValueSql("'-1'");
-            entity.Property(e => e.trade_settings).HasDefaultValueSql("'2'");
-            entity.Property(e => e.users_max).HasDefaultValueSql("'25'");
-            entity.Property(e => e.wallpaper).HasDefaultValueSql("'''0.0'''");
+            entity.Property(e => e.AllowHidewall).HasDefaultValueSql("'1'");
+            entity.Property(e => e.BanSettings).HasDefaultValueSql("'1'");
+            entity.Property(e => e.Caption).HasDefaultValueSql("'''Room'''");
+            entity.Property(e => e.ChatHearingDistance).HasDefaultValueSql("'14'");
+            entity.Property(e => e.Description).HasDefaultValueSql("''''''");
+            entity.Property(e => e.EnablesEnabled).HasDefaultValueSql("'1'");
+            entity.Property(e => e.Floor).HasDefaultValueSql("'''0.0'''");
+            entity.Property(e => e.KickSettings).HasDefaultValueSql("'1'");
+            entity.Property(e => e.Landscape).HasDefaultValueSql("'''0.0'''");
+            entity.Property(e => e.LayEnabled).HasDefaultValueSql("'''1'''");
+            entity.Property(e => e.MuteSettings).HasDefaultValueSql("'1'");
+            entity.Property(e => e.Owner).HasDefaultValueSql("''''''");
+            entity.Property(e => e.Password).HasDefaultValueSql("''''''");
+            entity.Property(e => e.PetMorphsAllowed).HasDefaultValueSql("'1'");
+            entity.Property(e => e.PullEnabled).HasDefaultValueSql("'1'");
+            entity.Property(e => e.PushEnabled).HasDefaultValueSql("'1'");
+            entity.Property(e => e.RespectNotificationsEnabled).HasDefaultValueSql("'1'");
+            entity.Property(e => e.Roomtype).HasDefaultValueSql("'''private'''");
+            entity.Property(e => e.Safezone).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.SpullEnabled).HasDefaultValueSql("'1'");
+            entity.Property(e => e.SpushEnabled).HasDefaultValueSql("'''1'''");
+            entity.Property(e => e.State).HasDefaultValueSql("'''open'''");
+            entity.Property(e => e.Tags).HasDefaultValueSql("''''''");
+            entity.Property(e => e.TaxiX).HasDefaultValueSql("'-1'");
+            entity.Property(e => e.TaxiY).HasDefaultValueSql("'-1'");
+            entity.Property(e => e.TradeSettings).HasDefaultValueSql("'2'");
+            entity.Property(e => e.UsersMax).HasDefaultValueSql("'25'");
+            entity.Property(e => e.Wallpaper).HasDefaultValueSql("'''0.0'''");
         });
 
-        modelBuilder.Entity<room_ban>(entity =>
+        modelBuilder.Entity<RoomBan>(entity =>
         {
-            entity.HasKey(e => new { e.user_id, e.room_id }).HasName("PRIMARY");
+            entity.HasKey(e => new { e.UserId, e.RoomId }).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<room_chat_style>(entity =>
+        modelBuilder.Entity<RoomChatStyle>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.name).HasDefaultValueSql("''''''");
-            entity.Property(e => e.required_right).HasDefaultValueSql("''''''");
+            entity.Property(e => e.Name).HasDefaultValueSql("''''''");
+            entity.Property(e => e.RequiredRight).HasDefaultValueSql("''''''");
         });
 
-        modelBuilder.Entity<room_filter>(entity =>
+        modelBuilder.Entity<RoomFilter>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.word).HasDefaultValueSql("''''''");
+            entity.Property(e => e.Word).HasDefaultValueSql("''''''");
         });
 
-        modelBuilder.Entity<room_items_moodlight>(entity =>
+        modelBuilder.Entity<RoomItemsMoodlight>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.enabled).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.Enabled).HasDefaultValueSql("'''0'''");
         });
 
-        modelBuilder.Entity<room_items_tele_link>(entity =>
+        modelBuilder.Entity<RoomItemsTeleLink>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<room_items_toner>(entity =>
+        modelBuilder.Entity<RoomItemsToner>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.enabled).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.Enabled).HasDefaultValueSql("'''0'''");
         });
 
-        modelBuilder.Entity<room_model>(entity =>
+        modelBuilder.Entity<RoomModel>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.club_only).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.custom).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.door_dir).HasDefaultValueSql("'2'");
-            entity.Property(e => e.poolmap).HasDefaultValueSql("''''''");
-            entity.Property(e => e.public_items).HasDefaultValueSql("''''''");
-            entity.Property(e => e.wall_height).HasDefaultValueSql("'-1'");
+            entity.Property(e => e.ClubOnly).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.Custom).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.DoorDir).HasDefaultValueSql("'2'");
+            entity.Property(e => e.Poolmap).HasDefaultValueSql("''''''");
+            entity.Property(e => e.PublicItems).HasDefaultValueSql("''''''");
+            entity.Property(e => e.WallHeight).HasDefaultValueSql("'-1'");
         });
 
-        modelBuilder.Entity<room_promotion>(entity =>
+        modelBuilder.Entity<RoomPromotion>(entity =>
         {
-            entity.HasKey(e => e.room_id).HasName("PRIMARY");
+            entity.HasKey(e => e.RoomId).HasName("PRIMARY");
 
-            entity.Property(e => e.description).HasDefaultValueSql("''''''");
-            entity.Property(e => e.title).HasDefaultValueSql("''''''");
+            entity.Property(e => e.Description).HasDefaultValueSql("''''''");
+            entity.Property(e => e.Title).HasDefaultValueSql("''''''");
         });
 
-        modelBuilder.Entity<room_right>(entity =>
+        modelBuilder.Entity<RoomRight>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<room_taxi_point>(entity =>
+        modelBuilder.Entity<RoomTaxiPoint>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<rp_crime>(entity =>
+        modelBuilder.Entity<RpCrime>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.note).HasDefaultValueSql("''''''");
-            entity.Property(e => e.severity).HasDefaultValueSql("'1'");
-            entity.Property(e => e.time_active).HasDefaultValueSql("'1'");
+            entity.Property(e => e.Note).HasDefaultValueSql("''''''");
+            entity.Property(e => e.Severity).HasDefaultValueSql("'1'");
+            entity.Property(e => e.TimeActive).HasDefaultValueSql("'1'");
         });
 
-        modelBuilder.Entity<rp_crime_log>(entity =>
+        modelBuilder.Entity<RpCrimeLog>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<rp_crime_penalty>(entity =>
+        modelBuilder.Entity<RpCrimePenalty>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<rp_item>(entity =>
+        modelBuilder.Entity<RpItem>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.image_url).HasDefaultValueSql("''''''");
-            entity.Property(e => e.item_type).HasDefaultValueSql("'''consumable'''");
-            entity.Property(e => e.stack_limit).HasDefaultValueSql("'1'");
+            entity.Property(e => e.ImageUrl).HasDefaultValueSql("''''''");
+            entity.Property(e => e.ItemType).HasDefaultValueSql("'''consumable'''");
+            entity.Property(e => e.StackLimit).HasDefaultValueSql("'1'");
         });
 
-        modelBuilder.Entity<rp_shift_log>(entity =>
+        modelBuilder.Entity<RpShiftLog>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<rp_skill>(entity =>
+        modelBuilder.Entity<RpSkill>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.badge_code).HasDefaultValueSql("'NULL'");
-            entity.Property(e => e.description).HasDefaultValueSql("'''No description yet.'''");
-            entity.Property(e => e.name).HasDefaultValueSql("''''''");
+            entity.Property(e => e.BadgeCode).HasDefaultValueSql("'NULL'");
+            entity.Property(e => e.Description).HasDefaultValueSql("'''No description yet.'''");
+            entity.Property(e => e.Name).HasDefaultValueSql("''''''");
         });
 
-        modelBuilder.Entity<rp_skills_level>(entity =>
+        modelBuilder.Entity<RpSkillsLevel>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.level).HasDefaultValueSql("'''1'''");
+            entity.Property(e => e.Level).HasDefaultValueSql("'''1'''");
         });
 
-        modelBuilder.Entity<rp_trash_reward>(entity =>
+        modelBuilder.Entity<RpTrashReward>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.chance_weight).HasDefaultValueSql("'1'");
-            entity.Property(e => e.enabled).HasDefaultValueSql("'1'");
-            entity.Property(e => e.max_amount).HasDefaultValueSql("'1'");
-            entity.Property(e => e.min_amount).HasDefaultValueSql("'1'");
+            entity.Property(e => e.ChanceWeight).HasDefaultValueSql("'1'");
+            entity.Property(e => e.Enabled).HasDefaultValueSql("'1'");
+            entity.Property(e => e.MaxAmount).HasDefaultValueSql("'1'");
+            entity.Property(e => e.MinAmount).HasDefaultValueSql("'1'");
         });
 
-        modelBuilder.Entity<rp_weapon>(entity =>
+        modelBuilder.Entity<RpWeapon>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.critical_chance)
+            entity.Property(e => e.CriticalChance)
                 .HasDefaultValueSql("'10'")
                 .HasComment("As %. For instance 50% is 50-50 on hitting it, without Skill boosts.");
-            entity.Property(e => e.critical_hit_message).HasDefaultValueSql("'''*lands a critical hit on %username%, dealing %damage% damage*'''");
-            entity.Property(e => e.description).HasDefaultValueSql("''''''");
-            entity.Property(e => e.hit_message)
+            entity.Property(e => e.CriticalHitMessage).HasDefaultValueSql("'''*lands a critical hit on %username%, dealing %damage% damage*'''");
+            entity.Property(e => e.Description).HasDefaultValueSql("''''''");
+            entity.Property(e => e.HitMessage)
                 .HasDefaultValueSql("'''*swings at %username%, dealing %damage% damage*'''")
                 .HasComment("Variables available username and damage");
-            entity.Property(e => e.image).HasDefaultValueSql("''''''");
-            entity.Property(e => e.maximum_damage).HasDefaultValueSql("'1'");
-            entity.Property(e => e.name).HasDefaultValueSql("''''''");
-            entity.Property(e => e.stun_chance).HasComment("0-100");
+            entity.Property(e => e.Image).HasDefaultValueSql("''''''");
+            entity.Property(e => e.MaximumDamage).HasDefaultValueSql("'1'");
+            entity.Property(e => e.Name).HasDefaultValueSql("''''''");
+            entity.Property(e => e.StunChance).HasComment("0-100");
         });
 
-        modelBuilder.Entity<rp_weapon_skin>(entity =>
+        modelBuilder.Entity<RpWeaponSkin>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.critical_hit_message).HasDefaultValueSql("'''*lands a critical hit on %username%, dealing %damage% damage*'''");
-            entity.Property(e => e.hit_message).HasDefaultValueSql("'''*swings at %username%, dealing %damage% damage*'''");
+            entity.Property(e => e.CriticalHitMessage).HasDefaultValueSql("'''*lands a critical hit on %username%, dealing %damage% damage*'''");
+            entity.Property(e => e.HitMessage).HasDefaultValueSql("'''*swings at %username%, dealing %damage% damage*'''");
         });
 
-        modelBuilder.Entity<server_landing>(entity =>
+        modelBuilder.Entity<ServerLanding>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.button_link).HasDefaultValueSql("'NULL'");
-            entity.Property(e => e.button_text).HasDefaultValueSql("''''''");
-            entity.Property(e => e.button_type).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.image_link).HasDefaultValueSql("''''''");
-            entity.Property(e => e.text).HasDefaultValueSql("'NULL'");
-            entity.Property(e => e.title).HasDefaultValueSql("''''''");
+            entity.Property(e => e.ButtonLink).HasDefaultValueSql("'NULL'");
+            entity.Property(e => e.ButtonText).HasDefaultValueSql("''''''");
+            entity.Property(e => e.ButtonType).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.ImageLink).HasDefaultValueSql("''''''");
+            entity.Property(e => e.Text).HasDefaultValueSql("'NULL'");
+            entity.Property(e => e.Title).HasDefaultValueSql("''''''");
         });
 
-        modelBuilder.Entity<server_locale>(entity =>
+        modelBuilder.Entity<ServerLocale>(entity =>
         {
-            entity.HasKey(e => e.key).HasName("PRIMARY");
+            entity.HasKey(e => e.Key).HasName("PRIMARY");
 
-            entity.Property(e => e.value).HasDefaultValueSql("'NULL'");
+            entity.Property(e => e.Value).HasDefaultValueSql("'NULL'");
         });
 
-        modelBuilder.Entity<server_reward>(entity =>
+        modelBuilder.Entity<ServerReward>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.enabled).HasDefaultValueSql("'''1'''");
-            entity.Property(e => e.reward_type).HasDefaultValueSql("'''none'''");
+            entity.Property(e => e.Enabled).HasDefaultValueSql("'''1'''");
+            entity.Property(e => e.RewardType).HasDefaultValueSql("'''none'''");
         });
 
-        modelBuilder.Entity<server_reward_log>(entity =>
+        modelBuilder.Entity<ServerRewardLog>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<server_setting>(entity =>
+        modelBuilder.Entity<ServerSetting>(entity =>
         {
-            entity.HasKey(e => e.key).HasName("PRIMARY");
+            entity.HasKey(e => e.Key).HasName("PRIMARY");
 
-            entity.Property(e => e.key).HasDefaultValueSql("'''server.variable'''");
+            entity.Property(e => e.Key).HasDefaultValueSql("'''server.variable'''");
         });
 
-        modelBuilder.Entity<subscription>(entity =>
+        modelBuilder.Entity<Subscription>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.credits).HasDefaultValueSql("'100'");
-            entity.Property(e => e.duckets).HasDefaultValueSql("'100'");
-            entity.Property(e => e.respects).HasDefaultValueSql("'3'");
-            entity.Property(e => e.static_aggression).HasDefaultValueSql("'3'");
-            entity.Property(e => e.trash_search_cooldown).HasDefaultValueSql("'60'");
+            entity.Property(e => e.Credits).HasDefaultValueSql("'100'");
+            entity.Property(e => e.Duckets).HasDefaultValueSql("'100'");
+            entity.Property(e => e.Respects).HasDefaultValueSql("'3'");
+            entity.Property(e => e.StaticAggression).HasDefaultValueSql("'3'");
+            entity.Property(e => e.TrashSearchCooldown).HasDefaultValueSql("'60'");
         });
 
-        modelBuilder.Entity<talent>(entity =>
+        modelBuilder.Entity<Talent>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.level).HasDefaultValueSql("'0'");
+            entity.Property(e => e.Level).HasDefaultValueSql("'0'");
         });
 
-        modelBuilder.Entity<talents_sub_level>(entity =>
+        modelBuilder.Entity<TalentsSubLevel>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.badge_code).HasDefaultValueSql("''''''");
+            entity.Property(e => e.BadgeCode).HasDefaultValueSql("''''''");
         });
 
-        modelBuilder.Entity<user>(entity =>
+        modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => new { e.id, e.auth_ticket }).HasName("PRIMARY");
+            entity.HasKey(e => new { e.Id, e.AuthTicket }).HasName("PRIMARY");
 
-            entity.Property(e => e.id).ValueGeneratedOnAdd();
-            entity.Property(e => e.account_created)
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.AccountCreated)
                 .HasDefaultValueSql("'''0'''")
                 .IsFixedLength();
-            entity.Property(e => e.activity_points).HasDefaultValueSql("'5000'");
-            entity.Property(e => e.advertising_report_blocked).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.allow_gifts).HasDefaultValueSql("'''1'''");
-            entity.Property(e => e.allow_mimic).HasDefaultValueSql("'''1'''");
-            entity.Property(e => e.block_newfriends).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.bots_muted).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.chat_preference).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.credits).HasDefaultValueSql("'50000'");
-            entity.Property(e => e.disable_forced_effects).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.focus_preference).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.friend_bar_state).HasDefaultValueSql("'1'");
-            entity.Property(e => e.gender).HasDefaultValueSql("'''M'''");
-            entity.Property(e => e.gotw_points).HasDefaultValueSql("'0'");
-            entity.Property(e => e.hide_inroom).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.hide_online).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.home_room).HasDefaultValueSql("'0'");
-            entity.Property(e => e.home_room_data).HasDefaultValueSql("'''{\"roomid\":3,\"x\":18,\"y\":22,\"z\":0,\"rotation\":4,\"weapon\":0}'''");
-            entity.Property(e => e.ignore_invites).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.ip_last).HasDefaultValueSql("''''''");
-            entity.Property(e => e.ip_reg).HasDefaultValueSql("'NULL'");
-            entity.Property(e => e.is_muted).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.last_change).HasDefaultValueSql("'0'");
-            entity.Property(e => e.last_online).HasDefaultValueSql("'0'");
-            entity.Property(e => e.look)
+            entity.Property(e => e.ActivityPoints).HasDefaultValueSql("'5000'");
+            entity.Property(e => e.AdvertisingReportBlocked).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.AllowGifts).HasDefaultValueSql("'''1'''");
+            entity.Property(e => e.AllowMimic).HasDefaultValueSql("'''1'''");
+            entity.Property(e => e.BlockNewfriends).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.BotsMuted).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.ChatPreference).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.Credits).HasDefaultValueSql("'50000'");
+            entity.Property(e => e.DisableForcedEffects).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.FocusPreference).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.FriendBarState).HasDefaultValueSql("'1'");
+            entity.Property(e => e.Gender).HasDefaultValueSql("'''M'''");
+            entity.Property(e => e.GotwPoints).HasDefaultValueSql("'0'");
+            entity.Property(e => e.HideInroom).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.HideOnline).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.HomeRoom).HasDefaultValueSql("'0'");
+            entity.Property(e => e.HomeRoomData).HasDefaultValueSql("'''{\"roomid\":3,\"x\":18,\"y\":22,\"z\":0,\"rotation\":4,\"weapon\":0}'''");
+            entity.Property(e => e.IgnoreInvites).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.IpLast).HasDefaultValueSql("''''''");
+            entity.Property(e => e.IpReg).HasDefaultValueSql("'NULL'");
+            entity.Property(e => e.IsMuted).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.LastChange).HasDefaultValueSql("'0'");
+            entity.Property(e => e.LastOnline).HasDefaultValueSql("'0'");
+            entity.Property(e => e.Look)
                 .HasDefaultValueSql("'NULL'")
                 .IsFixedLength();
-            entity.Property(e => e.machine_id).HasDefaultValueSql("''''''");
-            entity.Property(e => e.mail).HasDefaultValueSql("'''defaultuser@meth0d.org'''");
-            entity.Property(e => e.motto)
+            entity.Property(e => e.MachineId).HasDefaultValueSql("''''''");
+            entity.Property(e => e.Mail).HasDefaultValueSql("'''defaultuser@meth0d.org'''");
+            entity.Property(e => e.Motto)
                 .HasDefaultValueSql("'NULL'")
                 .IsFixedLength();
-            entity.Property(e => e.online).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.password).HasDefaultValueSql("'NULL'");
-            entity.Property(e => e.pets_muted).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.rank).HasDefaultValueSql("'1'");
-            entity.Property(e => e.rank_vip).HasDefaultValueSql("'1'");
-            entity.Property(e => e.time_muted).HasDefaultValueSql("'0'");
-            entity.Property(e => e.trading_locked).HasDefaultValueSql("'0'");
-            entity.Property(e => e.vip).HasDefaultValueSql("'''1'''");
-            entity.Property(e => e.vip_points).HasDefaultValueSql("'0'");
-            entity.Property(e => e.volume).HasDefaultValueSql("'''100,100,100'''");
+            entity.Property(e => e.Online).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.Password).HasDefaultValueSql("'NULL'");
+            entity.Property(e => e.PetsMuted).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.Rank).HasDefaultValueSql("'1'");
+            entity.Property(e => e.RankVip).HasDefaultValueSql("'1'");
+            entity.Property(e => e.TimeMuted).HasDefaultValueSql("'0'");
+            entity.Property(e => e.TradingLocked).HasDefaultValueSql("'0'");
+            entity.Property(e => e.Vip).HasDefaultValueSql("'''1'''");
+            entity.Property(e => e.VipPoints).HasDefaultValueSql("'0'");
+            entity.Property(e => e.Volume).HasDefaultValueSql("'''100,100,100'''");
         });
 
-        modelBuilder.Entity<user_achievement>(entity =>
+        modelBuilder.Entity<UserAchievement>(entity =>
         {
-            entity.HasKey(e => new { e.userid, e.group }).HasName("PRIMARY");
+            entity.HasKey(e => new { e.Userid, e.Group }).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<user_badge>(entity =>
+        modelBuilder.Entity<UserBadge>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<user_chat_bubble>(entity =>
+        modelBuilder.Entity<UserChatBubble>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.created_at).HasDefaultValueSql("'current_timestamp()'");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("'current_timestamp()'");
 
-            entity.HasOne(d => d.user).WithMany(p => p.user_chat_bubbles)
-                .HasPrincipalKey(p => p.id)
-                .HasForeignKey(d => d.user_id)
+            entity.HasOne(d => d.User).WithMany(p => p.UserChatBubbles)
+                .HasPrincipalKey(p => p.Id)
+                .HasForeignKey(d => d.UserId)
                 .HasConstraintName("fk_user_chat_bubbles_user");
         });
 
-        modelBuilder.Entity<user_clothing>(entity =>
+        modelBuilder.Entity<UserClothing>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.part).HasDefaultValueSql("''''''");
+            entity.Property(e => e.Part).HasDefaultValueSql("''''''");
         });
 
-        modelBuilder.Entity<user_effect>(entity =>
+        modelBuilder.Entity<UserEffect>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.activated_stamp).HasDefaultValueSql("'0'");
-            entity.Property(e => e.effect_id).HasDefaultValueSql("'1'");
-            entity.Property(e => e.is_activated).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.quantity).HasDefaultValueSql("'0'");
-            entity.Property(e => e.total_duration).HasDefaultValueSql("'3600'");
-            entity.Property(e => e.user_id).HasDefaultValueSql("'NULL'");
+            entity.Property(e => e.ActivatedStamp).HasDefaultValueSql("'0'");
+            entity.Property(e => e.EffectId).HasDefaultValueSql("'1'");
+            entity.Property(e => e.IsActivated).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.Quantity).HasDefaultValueSql("'0'");
+            entity.Property(e => e.TotalDuration).HasDefaultValueSql("'3600'");
+            entity.Property(e => e.UserId).HasDefaultValueSql("'NULL'");
         });
 
-        modelBuilder.Entity<user_favorite>(entity =>
+        modelBuilder.Entity<UserFavorite>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<user_ignore>(entity =>
+        modelBuilder.Entity<UserIgnore>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<user_info>(entity =>
+        modelBuilder.Entity<UserInfo>(entity =>
         {
-            entity.HasKey(e => e.user_id).HasName("PRIMARY");
+            entity.HasKey(e => e.UserId).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<user_present>(entity =>
+        modelBuilder.Entity<UserPresent>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<user_quest>(entity =>
+        modelBuilder.Entity<UserQuest>(entity =>
         {
-            entity.HasKey(e => new { e.user_id, e.quest_id }).HasName("PRIMARY");
+            entity.HasKey(e => new { e.UserId, e.QuestId }).HasName("PRIMARY");
 
-            entity.Property(e => e.progress).HasDefaultValueSql("'0'");
+            entity.Property(e => e.Progress).HasDefaultValueSql("'0'");
         });
 
-        modelBuilder.Entity<user_relationship>(entity =>
+        modelBuilder.Entity<UserRelationship>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<user_roomvisit>(entity =>
+        modelBuilder.Entity<UserRoomvisit>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<user_rp_bank>(entity =>
+        modelBuilder.Entity<UserRpBank>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.account_opened)
+            entity.Property(e => e.AccountOpened)
                 .ValueGeneratedOnAddOrUpdate()
                 .HasDefaultValueSql("'''0000-00-00 00:00:00.000000'''");
         });
 
-        modelBuilder.Entity<user_rp_bank_log>(entity =>
+        modelBuilder.Entity<UserRpBankLog>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.action_type).HasDefaultValueSql("'''DEPOSIT'''");
-            entity.Property(e => e.management_type).HasDefaultValueSql("'''ATM'''");
-            entity.Property(e => e.timestamp)
+            entity.Property(e => e.ActionType).HasDefaultValueSql("'''DEPOSIT'''");
+            entity.Property(e => e.ManagementType).HasDefaultValueSql("'''ATM'''");
+            entity.Property(e => e.Timestamp)
                 .ValueGeneratedOnAddOrUpdate()
                 .HasDefaultValueSql("'''0000-00-00 00:00:00.000000'''");
         });
 
-        modelBuilder.Entity<user_rp_item>(entity =>
+        modelBuilder.Entity<UserRpItem>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.durability_left).HasDefaultValueSql("'-1'");
-            entity.Property(e => e.slot).HasDefaultValueSql("'-1'");
+            entity.Property(e => e.DurabilityLeft).HasDefaultValueSql("'-1'");
+            entity.Property(e => e.Slot).HasDefaultValueSql("'-1'");
         });
 
-        modelBuilder.Entity<user_rp_skill>(entity =>
+        modelBuilder.Entity<UserRpSkill>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<user_rp_statistic>(entity =>
+        modelBuilder.Entity<UserRpStatistic>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.energy).HasDefaultValueSql("'100'");
-            entity.Property(e => e.health).HasDefaultValueSql("'100'");
-            entity.Property(e => e.hunger).HasDefaultValueSql("'25'");
-            entity.Property(e => e.jail_revert_look).HasDefaultValueSql("''''''");
+            entity.Property(e => e.Energy).HasDefaultValueSql("'100'");
+            entity.Property(e => e.Health).HasDefaultValueSql("'100'");
+            entity.Property(e => e.Hunger).HasDefaultValueSql("'25'");
+            entity.Property(e => e.JailRevertLook).HasDefaultValueSql("''''''");
         });
 
-        modelBuilder.Entity<user_rp_weapon>(entity =>
+        modelBuilder.Entity<UserRpWeapon>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.slot).HasDefaultValueSql("'-1'");
+            entity.Property(e => e.Slot).HasDefaultValueSql("'-1'");
         });
 
-        modelBuilder.Entity<user_rp_weapon_skin>(entity =>
+        modelBuilder.Entity<UserRpWeaponSkin>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<user_saved_search>(entity =>
+        modelBuilder.Entity<UserSavedSearch>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.filter).HasDefaultValueSql("''''''");
-            entity.Property(e => e.search_code).HasDefaultValueSql("''''''");
+            entity.Property(e => e.Filter).HasDefaultValueSql("''''''");
+            entity.Property(e => e.SearchCode).HasDefaultValueSql("''''''");
         });
 
-        modelBuilder.Entity<user_stat>(entity =>
+        modelBuilder.Entity<UserStat>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
             entity.Property(e => e.DailyPetRespectPoints).HasDefaultValueSql("'3'");
             entity.Property(e => e.DailyRespectPoints).HasDefaultValueSql("'3'");
-            entity.Property(e => e.respectsTimestamp).HasDefaultValueSql("'''10/19'''");
+            entity.Property(e => e.RespectsTimestamp).HasDefaultValueSql("'''10/19'''");
         });
 
-        modelBuilder.Entity<user_voucher>(entity =>
+        modelBuilder.Entity<UserVoucher>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<user_wardrobe>(entity =>
+        modelBuilder.Entity<UserWardrobe>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.gender).HasDefaultValueSql("'''M'''");
+            entity.Property(e => e.Gender).HasDefaultValueSql("'''M'''");
         });
 
-        modelBuilder.Entity<users_macro>(entity =>
+        modelBuilder.Entity<UsersMacro>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.configs).HasDefaultValueSql("''''''");
+            entity.Property(e => e.Configs).HasDefaultValueSql("''''''");
         });
 
-        modelBuilder.Entity<users_macro_setting>(entity =>
+        modelBuilder.Entity<UsersMacroSetting>(entity =>
         {
-            entity.HasKey(e => e.user_id).HasName("PRIMARY");
+            entity.HasKey(e => e.UserId).HasName("PRIMARY");
         });
 
-        modelBuilder.Entity<wired_item>(entity =>
+        modelBuilder.Entity<WiredItem>(entity =>
         {
-            entity.HasKey(e => e.id).HasName("PRIMARY");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
             entity.Property(e => e._bool).HasDefaultValueSql("'''0'''");
         });
 
-        modelBuilder.Entity<wordfilter>(entity =>
+        modelBuilder.Entity<Wordfilter>(entity =>
         {
-            entity.HasKey(e => e.word).HasName("PRIMARY");
+            entity.HasKey(e => e.Word).HasName("PRIMARY");
 
-            entity.Property(e => e.addedby).HasDefaultValueSql("''''''");
-            entity.Property(e => e.bannable).HasDefaultValueSql("'''0'''");
-            entity.Property(e => e.replacement).HasDefaultValueSql("'''Habboon'''");
-            entity.Property(e => e.strict).HasDefaultValueSql("'''1'''");
+            entity.Property(e => e.Addedby).HasDefaultValueSql("''''''");
+            entity.Property(e => e.Bannable).HasDefaultValueSql("'''0'''");
+            entity.Property(e => e.Replacement).HasDefaultValueSql("'''Habboon'''");
+            entity.Property(e => e.Strict).HasDefaultValueSql("'''1'''");
         });
 
         OnModelCreatingPartial(modelBuilder);

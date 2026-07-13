@@ -22,7 +22,8 @@ namespace Plus.Core
         {
             ConfigurationData config = PlusEnvironment.GetConfig();
 
-            if (!TryGetBool(config, "redis.enabled", true)) {
+            if (!TryGetBool(config, "redis.enabled", true))
+            {
                 Log.Info("Redis is disabled in the configuration.");
                 return;
             }

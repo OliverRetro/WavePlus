@@ -24,9 +24,9 @@ namespace Plus.HabboHotel.Items.Televisions
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                foreach (var row in db.items_youtubes.AsNoTracking().OrderByDescending(x => x.id).ToList())
+                foreach (var row in db.ItemsYoutubes.AsNoTracking().OrderByDescending(x => x.Id).ToList())
                 {
-                    Televisions.Add(row.id, new TelevisionItem(row.id, row.youtube_id, row.title, row.description, PlusEnvironment.EnumToBool(row.enabled)));
+                    Televisions.Add(row.Id, new TelevisionItem(row.Id, row.YoutubeId, row.Title, row.Description, PlusEnvironment.EnumToBool(row.Enabled)));
                 }
             }
 

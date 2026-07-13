@@ -30,7 +30,8 @@ namespace Plus.HabboHotel.Rooms.PathFinding
 
             PathFinderNode nodes = FindPathReversed(user, diag, map, start, end);
 
-            if (nodes != null) {
+            if (nodes != null)
+            {
                 path.Add(end);
 
                 while (nodes.Next != null)
@@ -73,34 +74,44 @@ namespace Plus.HabboHotel.Rooms.PathFinding
                     tmp = current.Position + (diag ? DiagMovePoints[i] : NoDiagMovePoints[i]);
                     bool isFinalMove = (tmp.X == end.X && tmp.Y == end.Y);
 
-                    if (map.IsValidStep(new Vector2D(current.Position.X, current.Position.Y), tmp, isFinalMove, user.AllowOverride)) {
-                        if (pfMap[tmp.X, tmp.Y] == null) {
+                    if (map.IsValidStep(new Vector2D(current.Position.X, current.Position.Y), tmp, isFinalMove, user.AllowOverride))
+                    {
+                        if (pfMap[tmp.X, tmp.Y] == null)
+                        {
                             node = new PathFinderNode(tmp);
                             pfMap[tmp.X, tmp.Y] = node;
-                        } else {
+                        }
+                        else
+                        {
                             node = pfMap[tmp.X, tmp.Y];
                         }
 
-                        if (!node.InClosed) {
+                        if (!node.InClosed)
+                        {
                             diff = 0;
 
-                            if (current.Position.X != node.Position.X) {
+                            if (current.Position.X != node.Position.X)
+                            {
                                 diff += 1;
                             }
 
-                            if (current.Position.Y != node.Position.Y) {
+                            if (current.Position.Y != node.Position.Y)
+                            {
                                 diff += 1;
                             }
 
                             cost = current.Cost + diff + node.Position.GetDistanceSquared(end);
 
-                            if (cost < node.Cost) {
+                            if (cost < node.Cost)
+                            {
                                 node.Cost = cost;
                                 node.Next = current;
                             }
 
-                            if (!node.InOpen) {
-                                if (node.Equals(finish)) {
+                            if (!node.InOpen)
+                            {
+                                if (node.Equals(finish))
+                                {
                                     node.Next = current;
                                     return node;
                                 }

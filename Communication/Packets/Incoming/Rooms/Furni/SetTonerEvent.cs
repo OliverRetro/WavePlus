@@ -37,11 +37,11 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
             uint itemDbId = (uint)item.Id;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.room_items_toners.Where(t => t.id == itemDbId).ExecuteUpdate(s => s
-                    .SetProperty(t => t.enabled, "1")
-                    .SetProperty(t => t.data1, int1)
-                    .SetProperty(t => t.data2, int2)
-                    .SetProperty(t => t.data3, int3));
+                db.RoomItemsToners.Where(t => t.Id == itemDbId).ExecuteUpdate(s => s
+                    .SetProperty(t => t.Enabled, "1")
+                    .SetProperty(t => t.Data1, int1)
+                    .SetProperty(t => t.Data2, int2)
+                    .SetProperty(t => t.Data3, int3));
             }
 
             room.TonerData.Hue = int1;

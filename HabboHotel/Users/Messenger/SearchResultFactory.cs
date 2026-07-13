@@ -12,12 +12,12 @@ namespace Plus.HabboHotel.Users.Messenger
             string pattern = query + "%";
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            return db.users
-                .Where(u => EF.Functions.Like(u.username, pattern))
-                .Select(u => new { u.id, u.username, u.motto, u.look, u.last_online })
+            return db.Users
+                .Where(u => EF.Functions.Like(u.Username, pattern))
+                .Select(u => new { u.Id, u.Username, u.Motto, u.Look, u.LastOnline })
                 .Take(50)
                 .AsEnumerable()
-                .Select(u => new SearchResult(u.id, u.username, u.motto, u.look, u.last_online.HasValue ? u.last_online.Value.ToString() : string.Empty))
+                .Select(u => new SearchResult(u.Id, u.Username, u.Motto, u.Look, u.LastOnline.HasValue ? u.LastOnline.Value.ToString() : string.Empty))
                 .ToList();
         }
     }

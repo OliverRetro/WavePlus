@@ -36,9 +36,12 @@ public static class LevelManager
 
         foreach (var entry in Levels.OrderBy(l => l.Key))
         {
-            if (xp >= entry.Value) {
+            if (xp >= entry.Value)
+            {
                 level = entry.Key;
-            } else {
+            }
+            else
+            {
                 nextLevelXP = entry.Value;
                 break;
             }

@@ -1,19 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[Index("group_id", Name = "group_id")]
-[Index("id", Name = "id", IsUnique = true)]
-public partial class items_group
+[Index("GroupId", Name = "group_id")]
+[Index("Id", Name = "id", IsUnique = true)]
+[Table("items_groups")]
+public partial class ItemsGroup
 {
     [Key]
-    [Column(TypeName = "int(11) unsigned")]
-    public uint id { get; set; }
+    [Column("id", TypeName = "int(11) unsigned")]
+    public uint Id { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int group_id { get; set; }
+    [Column("group_id", TypeName = "int(11)")]
+    public int GroupId { get; set; }
 }

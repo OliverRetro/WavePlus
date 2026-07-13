@@ -1,7 +1,6 @@
 ﻿using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Roleplay.RpItem.Weapon;
 using Plus.HabboHotel.Roleplay.Skill;
-using System;
 using System.Linq;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
@@ -16,7 +15,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (session?.GetHabbo() == null || @params.Length < 2) {
+            if (session?.GetHabbo() == null || @params.Length < 2)
+            {
                 session?.SendWhisper("Use :unlockall skins, :unlockall weapons, or :unlockall skills.", 1);
                 return;
             }

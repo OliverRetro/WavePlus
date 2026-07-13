@@ -21,7 +21,7 @@ namespace Plus.Communication.Rcon.Commands.User
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                client.GetHabbo().VipRank = db.users.Where(u => u.id == userId).Select(u => u.rank_vip).FirstOrDefault() ?? 0;
+                client.GetHabbo().VipRank = db.Users.Where(u => u.Id == userId).Select(u => u.RankVip).FirstOrDefault() ?? 0;
             }
 
             client.GetHabbo().GetPermissions().Init(client.GetHabbo());

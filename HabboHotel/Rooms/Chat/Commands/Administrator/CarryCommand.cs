@@ -1,7 +1,4 @@
-﻿using Plus.Communication.Packets.Outgoing.Rooms.Chat;
-using Plus.Communication.Packets.Outgoing.Rooms.Notifications;
-using Plus.HabboHotel.GameClients;
-using Plus.HabboHotel.Roleplay.Utilities;
+﻿using Plus.HabboHotel.GameClients;
 using System;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator
@@ -16,7 +13,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (!int.TryParse(Convert.ToString(@params[1]), out int itemId)) {
+            if (!int.TryParse(Convert.ToString(@params[1]), out int itemId))
+            {
                 session.SendWhisper("Please enter a valid integer.");
                 return;
             }

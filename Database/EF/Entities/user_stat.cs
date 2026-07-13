@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
@@ -8,12 +7,13 @@ namespace Plus.Database.EF.Entities;
 
 [Index("OnlineTime", Name = "OnlineTime")]
 [Index("Respect", Name = "Respect")]
-[Index("id", Name = "id", IsUnique = true)]
-public partial class user_stat
+[Index("Id", Name = "id", IsUnique = true)]
+[Table("user_stats")]
+public partial class UserStat
 {
     [Key]
-    [Column(TypeName = "int(7)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(7)")]
+    public int Id { get; set; }
 
     [Column(TypeName = "int(7)")]
     public int RoomVisits { get; set; }
@@ -42,33 +42,34 @@ public partial class user_stat
     [Column(TypeName = "int(7)")]
     public int AchievementScore { get; set; }
 
-    [Column(TypeName = "int(10) unsigned")]
-    public uint quest_id { get; set; }
+    [Column("quest_id", TypeName = "int(10) unsigned")]
+    public uint QuestId { get; set; }
 
-    [Column(TypeName = "int(10)")]
-    public int quest_progress { get; set; }
+    [Column("quest_progress", TypeName = "int(10)")]
+    public int QuestProgress { get; set; }
 
-    [Column(TypeName = "int(10)")]
-    public int lev_builder { get; set; }
+    [Column("lev_builder", TypeName = "int(10)")]
+    public int LevBuilder { get; set; }
 
-    [Column(TypeName = "int(10)")]
-    public int lev_social { get; set; }
+    [Column("lev_social", TypeName = "int(10)")]
+    public int LevSocial { get; set; }
 
-    [Column(TypeName = "int(10)")]
-    public int lev_identity { get; set; }
+    [Column("lev_identity", TypeName = "int(10)")]
+    public int LevIdentity { get; set; }
 
-    [Column(TypeName = "int(10)")]
-    public int lev_explore { get; set; }
+    [Column("lev_explore", TypeName = "int(10)")]
+    public int LevExplore { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int groupid { get; set; }
+    [Column("groupid", TypeName = "int(11)")]
+    public int Groupid { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int tickets_answered { get; set; }
+    [Column("tickets_answered", TypeName = "int(11)")]
+    public int TicketsAnswered { get; set; }
 
     [StringLength(6)]
-    public string respectsTimestamp { get; set; }
+    [Column("respectsTimestamp")]
+    public string RespectsTimestamp { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int forum_posts { get; set; }
+    [Column("forum_posts", TypeName = "int(11)")]
+    public int ForumPosts { get; set; }
 }

@@ -32,36 +32,36 @@ namespace Plus.HabboHotel.Quests
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                var rows = db.quests.Select(q => new
+                var rows = db.Quests.Select(q => new
                 {
-                    q.id,
-                    q.type,
-                    q.level_num,
-                    q.goal_type,
-                    q.goal_data,
-                    q.action,
-                    q.pixel_reward,
-                    q.data_bit,
-                    q.reward_type,
-                    q.timestamp_unlock,
-                    q.timestamp_lock
+                    q.Id,
+                    q.Type,
+                    q.LevelNum,
+                    q.GoalType,
+                    q.GoalData,
+                    q.Action,
+                    q.PixelReward,
+                    q.DataBit,
+                    q.RewardType,
+                    q.TimestampUnlock,
+                    q.TimestampLock
                 }).ToList();
 
                 foreach (var dRow in rows)
                 {
-                    int id = Convert.ToInt32(dRow.id);
-                    string category = Convert.ToString(dRow.type);
-                    int num = Convert.ToInt32(dRow.level_num);
-                    int type = Convert.ToInt32(dRow.goal_type);
-                    int goalData = Convert.ToInt32(dRow.goal_data);
-                    string name = Convert.ToString(dRow.action);
-                    int reward = Convert.ToInt32(dRow.pixel_reward);
-                    string dataBit = Convert.ToString(dRow.data_bit);
-                    int rewardType = Convert.ToInt32(dRow.reward_type);
-                    int time = Convert.ToInt32(dRow.timestamp_unlock);
-                    int locked = Convert.ToInt32(dRow.timestamp_lock);
+                    int id = Convert.ToInt32(dRow.Id);
+                    string category = Convert.ToString(dRow.Type);
+                    int num = Convert.ToInt32(dRow.LevelNum);
+                    int type = Convert.ToInt32(dRow.GoalType);
+                    int goalData = Convert.ToInt32(dRow.GoalData);
+                    string name = Convert.ToString(dRow.Action);
+                    int reward = Convert.ToInt32(dRow.PixelReward);
+                    string dataBit = Convert.ToString(dRow.DataBit);
+                    int rewardType = Convert.ToInt32(dRow.RewardType);
+                    int time = Convert.ToInt32(dRow.TimestampUnlock);
+                    int locked = Convert.ToInt32(dRow.TimestampLock);
 
-                    _quests.Add(id, new Quest(id, category, num, (QuestType) type, goalData, name, reward, dataBit, rewardType, time, locked));
+                    _quests.Add(id, new Quest(id, category, num, (QuestType)type, goalData, name, reward, dataBit, rewardType, time, locked));
                     AddToCounter(category);
                 }
             }
@@ -71,9 +71,12 @@ namespace Plus.HabboHotel.Quests
 
         private void AddToCounter(string category)
         {
-            if (_questCount.TryGetValue(category, out int count)) {
+            if (_questCount.TryGetValue(category, out int count))
+            {
                 _questCount[category] = count + 1;
-            } else {
+            }
+            else
+            {
                 _questCount.Add(category, 1);
             }
         }
@@ -92,13 +95,15 @@ namespace Plus.HabboHotel.Quests
 
         public void ProgressUserQuest(GameClient session, QuestType type, int data = 0)
         {
-            if (session == null || session.GetHabbo() == null || session.GetHabbo().GetStats().QuestId <= 0) {
+            if (session == null || session.GetHabbo() == null || session.GetHabbo().GetStats().QuestId <= 0)
+            {
                 return;
             }
 
             Quest quest = GetQuest(session.GetHabbo().GetStats().QuestId);
 
-            if (quest == null || quest.GoalType != type) {
+            if (quest == null || quest.GoalType != type)
+            {
                 return;
             }
 
@@ -111,7 +116,8 @@ namespace Plus.HabboHotel.Quests
                 default:
                     totalProgress++;
 
-                    if (totalProgress >= quest.GoalData) {
+                    if (totalProgress >= quest.GoalData)
+                    {
                         completeQuest = true;
                     }
 
@@ -154,16 +160,17 @@ namespace Plus.HabboHotel.Quests
             int progressValue = totalProgress;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.user_quests.Where(q => q.user_id == progressUserId && q.quest_id == progressQuestId).ExecuteUpdate(s => s.SetProperty(q => q.progress, progressValue));
+                db.UserQuests.Where(q => q.UserId == progressUserId && q.QuestId == progressQuestId).ExecuteUpdate(s => s.SetProperty(q => q.Progress, progressValue));
 
                 if (completeQuest)
-                    db.user_stats.Where(s => s.id == progressStatsId).ExecuteUpdate(x => x.SetProperty(s => s.quest_id, 0u));
+                    db.UserStats.Where(s => s.Id == progressStatsId).ExecuteUpdate(x => x.SetProperty(s => s.QuestId, 0u));
             }
 
             session.GetHabbo().Quests[session.GetHabbo().GetStats().QuestId] = totalProgress;
             session.SendPacket(new QuestStartedComposer(session, quest));
 
-            if (completeQuest) {
+            if (completeQuest)
+            {
                 session.GetHabbo().GetMessenger().BroadcastAchievement(session.GetHabbo().Id, MessengerEventTypes.QuestCompleted, quest.Category + "." + quest.Name);
 
                 session.GetHabbo().GetStats().QuestId = 0;
@@ -179,7 +186,8 @@ namespace Plus.HabboHotel.Quests
         {
             foreach (Quest quest in _quests.Values)
             {
-                if (quest.Category == category && quest.Number == number) {
+                if (quest.Category == category && quest.Number == number)
+                {
                     return quest;
                 }
             }
@@ -197,15 +205,18 @@ namespace Plus.HabboHotel.Quests
                 if (quest.Category.Contains("xmas2012"))
                     continue;
 
-                if (!userQuestGoals.ContainsKey(quest.Category)) {
+                if (!userQuestGoals.ContainsKey(quest.Category))
+                {
                     userQuestGoals.Add(quest.Category, 1);
                     userQuests.Add(quest.Category, null);
                 }
 
-                if (quest.Number >= userQuestGoals[quest.Category]) {
+                if (quest.Number >= userQuestGoals[quest.Category])
+                {
                     int userProgress = session.GetHabbo().GetQuestProgress(quest.Id);
 
-                    if (session.GetHabbo().GetStats().QuestId != quest.Id && userProgress >= quest.GoalData) {
+                    if (session.GetHabbo().GetStats().QuestId != quest.Id && userProgress >= quest.GoalData)
+                    {
                         userQuestGoals[quest.Category] = quest.Number + 1;
                     }
                 }
@@ -218,7 +229,8 @@ namespace Plus.HabboHotel.Quests
                     if (quest.Category.Contains("xmas2012"))
                         continue;
 
-                    if (quest.Category == goal.Key && quest.Number == goal.Value) {
+                    if (quest.Category == goal.Key && quest.Number == goal.Value)
+                    {
                         userQuests[goal.Key] = quest;
                         break;
                     }

@@ -16,8 +16,8 @@ namespace Plus.Communication.Packets.Incoming.Users
             string focusPref = PlusEnvironment.BoolToEnum(focusPreference);
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.users.Where(u => u.id == userId)
-                    .ExecuteUpdate(s => s.SetProperty(u => u.focus_preference, focusPref));
+                db.Users.Where(u => u.Id == userId)
+                    .ExecuteUpdate(s => s.SetProperty(u => u.FocusPreference, focusPref));
             }
         }
     }

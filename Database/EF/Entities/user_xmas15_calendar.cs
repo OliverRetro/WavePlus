@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
@@ -7,11 +8,15 @@ namespace Plus.Database.EF.Entities;
 /// the WavePlus code only ever SELECTs from it (CalendarComponent.Init).
 /// </summary>
 [Keyless]
-public partial class user_xmas15_calendar
+[Table("user_xmas15_calendar")]
+public partial class UserXmas15Calendar
 {
-    public int user_id { get; set; }
+    [Column("user_id")]
+    public int UserId { get; set; }
 
-    public int status { get; set; }
+    [Column("status")]
+    public int Status { get; set; }
 
-    public int day { get; set; }
+    [Column("day")]
+    public int Day { get; set; }
 }

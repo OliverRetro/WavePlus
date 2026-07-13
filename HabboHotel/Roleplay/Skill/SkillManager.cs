@@ -21,29 +21,29 @@ namespace Plus.HabboHotel.Permissions
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
                 // Load skills
-                foreach (var row in db.rp_skills.AsNoTracking().ToList())
+                foreach (var row in db.RpSkills.AsNoTracking().ToList())
                 {
                     var skill = new Skill(
-                        row.id,
-                        row.name,
-                        row.progress_category,
-                        row.description,
-                        row.badge_code
+                        row.Id,
+                        row.Name,
+                        row.ProgressCategory,
+                        row.Description,
+                        row.BadgeCode
                     );
 
                     _skills.Add(skill.Id, skill);
                 }
 
                 // Load level requirements
-                foreach (var row in db.rp_skills_levels.AsNoTracking().ToList())
+                foreach (var row in db.RpSkillsLevels.AsNoTracking().ToList())
                 {
-                    int skillId = row.skill_id;
+                    int skillId = row.SkillId;
 
                     if (!_skills.TryGetValue(skillId, out Skill skill))
                         continue;
 
-                    int level = Convert.ToInt32(row.level);
-                    int required = row.required_progress;
+                    int level = Convert.ToInt32(row.Level);
+                    int required = row.RequiredProgress;
 
                     skill.Levels[level] = new SkillLevel(level, required);
                 }

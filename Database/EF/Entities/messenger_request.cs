@@ -1,22 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[Index("from_id", Name = "from_id")]
-[Index("to_id", Name = "to_id")]
-public partial class messenger_request
+[Index("FromId", Name = "from_id")]
+[Index("ToId", Name = "to_id")]
+[Table("messenger_requests")]
+public partial class MessengerRequest
 {
     [Key]
-    [Column(TypeName = "int(11) unsigned")]
-    public uint id { get; set; }
+    [Column("id", TypeName = "int(11) unsigned")]
+    public uint Id { get; set; }
 
-    [Column(TypeName = "int(10) unsigned")]
-    public uint from_id { get; set; }
+    [Column("from_id", TypeName = "int(10) unsigned")]
+    public uint FromId { get; set; }
 
-    [Column(TypeName = "int(10) unsigned")]
-    public uint to_id { get; set; }
+    [Column("to_id", TypeName = "int(10) unsigned")]
+    public uint ToId { get; set; }
 }

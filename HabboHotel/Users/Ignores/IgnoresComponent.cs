@@ -20,7 +20,7 @@ namespace Plus.HabboHotel.Users.Ignores
 
             uint uid = (uint)player.Id;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                _ignoredUsers.AddRange(db.user_ignores.Where(x => x.user_id == uid).Select(x => (int)x.ignore_id).ToList());
+                _ignoredUsers.AddRange(db.UserIgnores.Where(x => x.UserId == uid).Select(x => (int)x.IgnoreId).ToList());
 
             return true;
         }

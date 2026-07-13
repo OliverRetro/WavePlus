@@ -8,26 +8,26 @@ namespace Plus.HabboHotel.Achievements
     {
         public static void GetAchievementLevels(out Dictionary<string, Achievement> achievements)
         {
-            achievements = new Dictionary<string, Achievement>();
+            achievements = [];
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            var rows = db.Achievements.Where(a => a.Enabled == 1).Select(a => new { a.Id, a.Category, a.GroupName, a.Level, a.RewardAmount, a.PointsType, a.RewardPoints, a.ProgressNeeded, a.GameId }).ToList();
+            foreach (var row in rows)
             {
-                var rows = db.achievements.Where(a => a.enabled == 1).Select(a => new { a.id, a.category, a.group_name, a.level, a.reward_amount, a.points_type, a.reward_points, a.progress_needed, a.game_id }).ToList();
-                foreach (var row in rows)
+                int id = (int)row.Id;
+                string category = row.Category;
+                string groupName = row.GroupName;
+
+                AchievementLevel level = new(row.Level, row.RewardAmount, row.PointsType, row.RewardPoints, row.ProgressNeeded);
+
+                if (!achievements.ContainsKey(groupName))
                 {
-                    int id = (int)row.id;
-                    string category = row.category;
-                    string groupName = row.group_name;
-
-                    AchievementLevel level = new(row.level, row.reward_amount, row.points_type, row.reward_points, row.progress_needed);
-
-                    if (!achievements.ContainsKey(groupName)) {
-                        Achievement achievement = new(id, groupName, category, row.game_id);
-                        achievement.AddLevel(level);
-                        achievements.Add(groupName, achievement);
-                    } else
-                        achievements[groupName].AddLevel(level);
+                    Achievement achievement = new(id, groupName, category, row.GameId);
+                    achievement.AddLevel(level);
+                    achievements.Add(groupName, achievement);
                 }
+                else
+                    achievements[groupName].AddLevel(level);
             }
         }
     }

@@ -13,9 +13,9 @@ namespace Plus.Core.Persistence
         private static readonly TimeSpan WorldInterval = TimeSpan.FromMinutes(15);
         private static readonly TimeSpan MirrorInterval = TimeSpan.FromSeconds(60);
 
-        private readonly List<(string Name, Action Save)> _userSavers = new();
-        private readonly List<(string Name, Action Save)> _worldSavers = new();
-        private readonly List<(string Name, Action Save)> _mirrors = new();
+        private readonly List<(string Name, Action Save)> _userSavers = [];
+        private readonly List<(string Name, Action Save)> _worldSavers = [];
+        private readonly List<(string Name, Action Save)> _mirrors = [];
         private readonly object _userLock = new();
         private readonly object _worldLock = new();
         private readonly object _mirrorLock = new();

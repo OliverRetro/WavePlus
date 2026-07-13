@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Outgoing.Messenger;
 using Plus.Communication.Packets.Outgoing.Moderation;
@@ -21,17 +20,20 @@ namespace Plus.Communication.Packets.Incoming.Users
             int user = packet.PopInt();
             int type = packet.PopInt();
 
-            if (!session.GetHabbo().GetMessenger().FriendshipExists(user)) {
+            if (!session.GetHabbo().GetMessenger().FriendshipExists(user))
+            {
                 session.SendPacket(new BroadcastMessageAlertComposer("Oops, you can only set a relationship where a friendship exists."));
                 return;
             }
 
-            if (type < 0 || type > 3) {
+            if (type < 0 || type > 3)
+            {
                 session.SendPacket(new BroadcastMessageAlertComposer("Oops, you've chosen an invalid relationship type."));
                 return;
             }
 
-            if (session.GetHabbo().Relationships.Count > 2000) {
+            if (session.GetHabbo().Relationships.Count > 2000)
+            {
                 session.SendPacket(new BroadcastMessageAlertComposer("Sorry, you're limited to a total of 2000 relationships."));
                 return;
             }
@@ -39,25 +41,29 @@ namespace Plus.Communication.Packets.Incoming.Users
             int myId = session.GetHabbo().Id;
             using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-            if (type == 0) {
-                db.user_relationships.Where(r => r.user_id == myId && r.target == user).ExecuteDelete();
+            if (type == 0)
+            {
+                db.UserRelationships.Where(r => r.UserId == myId && r.Target == user).ExecuteDelete();
 
                 if (session.GetHabbo().Relationships.ContainsKey(user))
                     session.GetHabbo().Relationships.Remove(user);
-            } else {
-                int id = db.user_relationships.Where(r => r.user_id == myId && r.target == user).Select(r => r.id).FirstOrDefault();
+            }
+            else
+            {
+                int id = db.UserRelationships.Where(r => r.UserId == myId && r.Target == user).Select(r => r.Id).FirstOrDefault();
 
-                if (id > 0) {
-                    db.user_relationships.Where(r => r.user_id == myId && r.target == user).ExecuteDelete();
+                if (id > 0)
+                {
+                    db.UserRelationships.Where(r => r.UserId == myId && r.Target == user).ExecuteDelete();
 
                     if (session.GetHabbo().Relationships.ContainsKey(id))
                         session.GetHabbo().Relationships.Remove(id);
                 }
 
-                var entity = new Database.EF.Entities.user_relationship { user_id = myId, target = user, type = type.ToString() };
-                db.user_relationships.Add(entity);
+                var entity = new Database.EF.Entities.UserRelationship { UserId = myId, Target = user, Type = type.ToString() };
+                db.UserRelationships.Add(entity);
                 db.SaveChanges();
-                int newId = entity.id;
+                int newId = entity.Id;
 
                 if (!session.GetHabbo().Relationships.ContainsKey(user))
                     session.GetHabbo().Relationships.Add(user, new Relationship(newId, user, type));
@@ -66,9 +72,11 @@ namespace Plus.Communication.Packets.Incoming.Users
             GameClient client = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(user);
             if (client != null)
                 session.GetHabbo().GetMessenger().UpdateFriend(user, client, true);
-            else {
+            else
+            {
                 Habbo habbo = PlusEnvironment.GetHabboById(user);
-                if (habbo != null) {
+                if (habbo != null)
+                {
                     if (session.GetHabbo().GetMessenger().TryGetFriend(user, out MessengerBuddy buddy))
                         session.SendPacket(new FriendListUpdateComposer(session.GetHabbo(), buddy));
                 }

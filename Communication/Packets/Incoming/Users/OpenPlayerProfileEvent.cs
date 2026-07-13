@@ -4,7 +4,6 @@ using Plus.Communication.Packets.Outgoing.Users;
 using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
-using Plus.HabboHotel.Roleplay.Skill;
 using Plus.HabboHotel.Users;
 
 namespace Plus.Communication.Packets.Incoming.Users
@@ -17,7 +16,8 @@ namespace Plus.Communication.Packets.Incoming.Users
             packet.PopBoolean(); //IsMe?
 
             Habbo targetData = PlusEnvironment.GetHabboById(userId);
-            if (targetData == null) {
+            if (targetData == null)
+            {
                 session.SendNotification("An error occurred while finding that user's profile.");
                 return;
             }
@@ -28,7 +28,7 @@ namespace Plus.Communication.Packets.Incoming.Users
             int friendCount;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                friendCount = db.messenger_friendships.Count(f => f.user_one_id == uid || f.user_two_id == uid);
+                friendCount = db.MessengerFriendships.Count(f => f.UserOneId == uid || f.UserTwoId == uid);
             }
 
             session.SendPacket(new ProfileInformationComposer(targetData, session, groups, friendCount));

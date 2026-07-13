@@ -18,7 +18,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (!room.CheckRights(session, true)) {
+            if (!room.CheckRights(session, true))
+            {
                 session.SendWhisper("Oops, only the room owner can run this command!");
                 return;
             }
@@ -35,7 +36,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                 uint botId = (uint)user.BotData.Id;
                 using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    db.bots.Where(b => b.id == botId).ExecuteUpdate(s => s.SetProperty(b => b.room_id, 0u));
+                    db.Bots.Where(b => b.Id == botId).ExecuteUpdate(s => s.SetProperty(b => b.RoomId, 0u));
                 }
 
                 session.GetHabbo().GetInventoryComponent().TryAddBot(new Bot(Convert.ToInt32(botUser.BotData.Id), Convert.ToInt32(botUser.BotData.OwnerId), botUser.BotData.Name, botUser.BotData.Motto, botUser.BotData.Look, botUser.BotData.Gender));

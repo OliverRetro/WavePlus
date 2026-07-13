@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
@@ -37,8 +36,8 @@ namespace Plus.HabboHotel.Rooms.Instance
             long nowSec = (long)PlusEnvironment.GetUnixTimestamp();
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                foreach (var row in db.room_bans.Where(b => b.room_id == roomId && b.expire > nowSec).Select(b => new { b.user_id, b.expire }).ToList())
-                    _bans.TryAdd((int)row.user_id, row.expire);
+                foreach (var row in db.RoomBans.Where(b => b.RoomId == roomId && b.Expire > nowSec).Select(b => new { b.UserId, b.Expire }).ToList())
+                    _bans.TryAdd((int)row.UserId, row.Expire);
             }
         }
 
@@ -52,11 +51,11 @@ namespace Plus.HabboHotel.Rooms.Instance
                 _bans[avatar.UserId] = banTime;
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                db.room_bans.Upsert(new room_ban
+                db.RoomBans.Upsert(new RoomBan
                 {
-                    user_id = (uint)avatar.UserId,
-                    room_id = (uint)_instance.Id,
-                    expire = (int)banTime
+                    UserId = (uint)avatar.UserId,
+                    RoomId = (uint)_instance.Id,
+                    Expire = (int)banTime
                 }).Run();
 
             _instance.GetRoomUserManager().RemoveUserFromRoom(avatar.GetClient(), true, true);
@@ -68,13 +67,14 @@ namespace Plus.HabboHotel.Rooms.Instance
                 return false;
 
             double banTime = _bans[userId] - UnixTimestamp.GetNow();
-            if (banTime <= 0) {
+            if (banTime <= 0)
+            {
                 _bans.TryRemove(userId, out double time);
 
                 uint roomId = (uint)_instance.Id;
                 uint uid = (uint)userId;
                 using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                    db.room_bans.Where(b => b.room_id == roomId && b.user_id == uid).ExecuteDelete();
+                    db.RoomBans.Where(b => b.RoomId == roomId && b.UserId == uid).ExecuteDelete();
 
                 return false;
             }
@@ -87,11 +87,12 @@ namespace Plus.HabboHotel.Rooms.Instance
             if (!_bans.ContainsKey(userId))
                 return false;
 
-            if (_bans.TryRemove(userId, out double time)) {
+            if (_bans.TryRemove(userId, out double time))
+            {
                 uint roomId = (uint)_instance.Id;
                 uint uid = (uint)userId;
                 using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                    db.room_bans.Where(b => b.room_id == roomId && b.user_id == uid).ExecuteDelete();
+                    db.RoomBans.Where(b => b.RoomId == roomId && b.UserId == uid).ExecuteDelete();
 
                 return true;
             }
@@ -107,7 +108,7 @@ namespace Plus.HabboHotel.Rooms.Instance
             long nowSec = (long)PlusEnvironment.GetUnixTimestamp();
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                foreach (int uid in db.room_bans.Where(b => b.room_id == roomId && b.expire > nowSec).Select(b => (int)b.user_id).ToList())
+                foreach (int uid in db.RoomBans.Where(b => b.RoomId == roomId && b.Expire > nowSec).Select(b => (int)b.UserId).ToList())
                 {
                     if (!bans.Contains(uid))
                         bans.Add(uid);

@@ -19,8 +19,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
             int userId = session.GetHabbo().Id;
             string disabled = (session.GetHabbo().DisableForcedEffects ? 1 : 0).ToString();
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                db.users.Where(u => u.id == userId)
-                    .ExecuteUpdate(s => s.SetProperty(u => u.disable_forced_effects, disabled));
+                db.Users.Where(u => u.Id == userId)
+                    .ExecuteUpdate(s => s.SetProperty(u => u.DisableForcedEffects, disabled));
 
             session.SendWhisper("Forced FX mode is now " + (session.GetHabbo().DisableForcedEffects ? "disabled!" : "enabled!"));
         }

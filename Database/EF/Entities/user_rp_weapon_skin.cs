@@ -1,25 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[Index("skin_id", Name = "idx_user_rp_weapon_skins_skin_id")]
-[Index("user_id", Name = "idx_user_rp_weapon_skins_user_id")]
-public partial class user_rp_weapon_skin
+[Index("SkinId", Name = "idx_user_rp_weapon_skins_skin_id")]
+[Index("UserId", Name = "idx_user_rp_weapon_skins_user_id")]
+[Table("user_rp_weapon_skins")]
+public partial class UserRpWeaponSkin
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int user_id { get; set; }
+    [Column("user_id", TypeName = "int(11)")]
+    public int UserId { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int skin_id { get; set; }
+    [Column("skin_id", TypeName = "int(11)")]
+    public int SkinId { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int equipped { get; set; }
+    [Column("equipped", TypeName = "int(11)")]
+    public int Equipped { get; set; }
 }

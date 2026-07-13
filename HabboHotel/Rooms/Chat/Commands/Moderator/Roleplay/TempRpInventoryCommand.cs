@@ -1,12 +1,6 @@
-﻿using Plus.Communication.Packets.Incoming.Rooms.FloorPlan;
-using Plus.Communication.Packets.Outgoing.Quests;
-using Plus.HabboHotel.GameClients;
+﻿using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Roleplay.RpItem.Item;
 using Plus.HabboHotel.Roleplay.RpItem.Weapon;
-using Plus.HabboHotel.Roleplay.Skill;
-using System;
-using System.Data;
-using System.Linq;
 using System.Text;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
@@ -23,7 +17,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
         {
             StringBuilder habboInfo = new();
             habboInfo.Append("<b>Weapons:</b>\r");
-            if (session != null) {
+            if (session != null)
+            {
                 habboInfo.Append("Equipped Weapon: <b>" + session.GetHabbo().GetRpStats().ActiveWeapon().WeaponData.Name + "</b>\r\r");
 
                 habboInfo.Append("<b>Weapons owned:</b>\r");
@@ -60,7 +55,9 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
 
                     habboInfo.Append($"ID: {item.Id} - {item.ItemData.Name} - Used: {item.Uses} / {item.ItemData.MaxUses}\r");
                 }
-            } else {
+            }
+            else
+            {
                 habboInfo.Append("It appears you're offline. This is a bug. Please inform Oliver.\r");
             }
 

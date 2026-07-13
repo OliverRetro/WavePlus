@@ -1,24 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[Index("id", Name = "id", IsUnique = true)]
-public partial class wired_item
+[Index("Id", Name = "id", IsUnique = true)]
+[Table("wired_items")]
+public partial class WiredItem
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
     [Required]
     [StringLength(5000)]
-    public string items { get; set; }
+    [Column("items")]
+    public string Items { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int delay { get; set; }
+    [Column("delay", TypeName = "int(11)")]
+    public int Delay { get; set; }
 
     [Required]
     [Column("string")]

@@ -30,7 +30,8 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Bots
             int x = packet.PopInt();
             int y = packet.PopInt();
 
-            if (!room.GetGameMap().CanWalk(x, y, false) || !room.GetGameMap().ValidTile(x, y)) {
+            if (!room.GetGameMap().CanWalk(x, y, false) || !room.GetGameMap().ValidTile(x, y))
+            {
                 session.SendNotification("You cannot place a bot here!");
                 return;
             }
@@ -47,7 +48,8 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Bots
                 botCount += 1;
             }
 
-            if (botCount >= 5 && !session.GetHabbo().GetPermissions().HasRight("bot_place_any_override")) {
+            if (botCount >= 5 && !session.GetHabbo().GetPermissions().HasRight("bot_place_any_override"))
+            {
                 session.SendNotification("Sorry; 5 bots per room only!");
                 return;
             }
@@ -56,24 +58,24 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Bots
             uint botDbId = (uint)bot.Id;
             uint roomDbId = (uint)room.RoomId;
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            db.bots.Where(b => b.id == botDbId).ExecuteUpdate(s => s
-                .SetProperty(b => b.room_id, roomDbId)
-                .SetProperty(b => b.x, x)
-                .SetProperty(b => b.y, y));
+            db.Bots.Where(b => b.Id == botDbId).ExecuteUpdate(s => s
+                .SetProperty(b => b.RoomId, roomDbId)
+                .SetProperty(b => b.X, x)
+                .SetProperty(b => b.Y, y));
 
             List<RandomSpeech> botSpeechList = new();
 
             //TODO: Grab data?
-            var getData = db.bots.Where(b => b.id == botDbId)
-                .Select(b => new { b.ai_type, b.rotation, b.walk_mode, b.automatic_chat, b.speaking_interval, b.mix_sentences, b.chat_bubble, b.effect_id, b.gender, b.motto })
+            var getData = db.Bots.Where(b => b.Id == botDbId)
+                .Select(b => new { b.AiType, b.Rotation, b.WalkMode, b.AutomaticChat, b.SpeakingInterval, b.MixSentences, b.ChatBubble, b.EffectId, b.Gender, b.Motto })
                 .FirstOrDefault();
 
-            foreach (string speechText in db.bots_speeches.Where(s => s.bot_id == botDbId).Select(s => s.text).ToList())
+            foreach (string speechText in db.BotsSpeeches.Where(s => s.BotId == botDbId).Select(s => s.Text).ToList())
             {
                 botSpeechList.Add(new RandomSpeech(speechText, bot.Id));
             }
 
-            RoomUser botUser = room.GetRoomUserManager().DeployBot(new RoomBot(bot.Id, session.GetHabbo().CurrentRoomId, getData.ai_type, getData.walk_mode, bot.Name, getData.motto, bot.Figure, x, y, 0, getData.rotation, 0, 0, 0, 0, ref botSpeechList, getData.gender, 0, bot.OwnerId, PlusEnvironment.EnumToBool(getData.automatic_chat), getData.speaking_interval, PlusEnvironment.EnumToBool(getData.mix_sentences), getData.chat_bubble, getData.effect_id), null);
+            RoomUser botUser = room.GetRoomUserManager().DeployBot(new RoomBot(bot.Id, session.GetHabbo().CurrentRoomId, getData.AiType, getData.WalkMode, bot.Name, getData.Motto, bot.Figure, x, y, 0, getData.Rotation, 0, 0, 0, 0, ref botSpeechList, getData.Gender, 0, bot.OwnerId, PlusEnvironment.EnumToBool(getData.AutomaticChat), getData.SpeakingInterval, PlusEnvironment.EnumToBool(getData.MixSentences), getData.ChatBubble, getData.EffectId), null);
 
             if (botUser.BotData.RandomSpeech.Count > 0)
                 botUser.Chat(botUser.BotData.GetRandomSpeech().Message);
@@ -81,7 +83,8 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Bots
             room.GetGameMap().UpdateUserMovement(new Point(x, y), new Point(x, y), botUser);
 
 
-            if (!session.GetHabbo().GetInventoryComponent().TryRemoveBot(botId, out Bot toRemove)) {
+            if (!session.GetHabbo().GetInventoryComponent().TryRemoveBot(botId, out Bot toRemove))
+            {
                 Console.WriteLine("Error whilst removing Bot: " + toRemove.Id);
                 return;
             }

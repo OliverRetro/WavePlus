@@ -14,7 +14,8 @@ namespace Plus.Communication.Packets.Incoming.Users
             foreach (int userId in new List<int>(session.GetHabbo().GetIgnores().IgnoredUserIds()))
             {
                 Habbo player = PlusEnvironment.GetHabboById(userId);
-                if (player != null) {
+                if (player != null)
+                {
                     if (!ignoredUsers.Contains(player.Username))
                         ignoredUsers.Add(player.Username);
                 }

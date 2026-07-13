@@ -13,7 +13,8 @@ namespace Plus.Communication.Packets.Outgoing
         {
             Buffer = body;
             Id = id;
-            if (body.WriterIndex == 0) {
+            if (body.WriterIndex == 0)
+            {
                 Buffer.WriteInt(-1);
                 Buffer.WriteShort(id);
             }
@@ -26,7 +27,7 @@ namespace Plus.Communication.Packets.Outgoing
 
         public void WriteByte(int b)
         {
-            Buffer.WriteByte((byte) b);
+            Buffer.WriteByte((byte)b);
         }
 
         public void WriteDouble(double d)

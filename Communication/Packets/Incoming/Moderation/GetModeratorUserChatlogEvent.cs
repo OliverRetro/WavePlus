@@ -21,7 +21,8 @@ namespace Plus.Communication.Packets.Incoming.Moderation
                 return;
 
             Habbo data = PlusEnvironment.GetHabboById(packet.PopInt());
-            if (data == null) {
+            if (data == null)
+            {
                 session.SendNotification("Unable to load info for user.");
                 return;
             }
@@ -33,20 +34,20 @@ namespace Plus.Communication.Packets.Incoming.Moderation
             uint uid = (uint)data.Id;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                var getLogs = db.user_roomvisits.Where(v => v.user_id == uid)
-                    .OrderByDescending(v => v.entry_timestamp)
-                    .Select(v => new { v.room_id, v.entry_timestamp, v.exit_timestamp })
+                var getLogs = db.UserRoomvisits.Where(v => v.UserId == uid)
+                    .OrderByDescending(v => v.EntryTimestamp)
+                    .Select(v => new { v.RoomId, v.EntryTimestamp, v.ExitTimestamp })
                     .Take(7)
                     .ToList();
 
                 foreach (var row in getLogs)
                 {
-                    if (!RoomFactory.TryGetData((int)row.room_id, out RoomData roomData))
+                    if (!RoomFactory.TryGetData((int)row.RoomId, out RoomData roomData))
                         continue;
 
-                    double timestampExit = (row.exit_timestamp <= 0 ? UnixTimestamp.GetNow() : row.exit_timestamp);
+                    double timestampExit = (row.ExitTimestamp <= 0 ? UnixTimestamp.GetNow() : row.ExitTimestamp);
 
-                    chatlogs.Add(new KeyValuePair<RoomData, List<ChatLogEntry>>(roomData, GetChatlogs(roomData, row.entry_timestamp, timestampExit)));
+                    chatlogs.Add(new KeyValuePair<RoomData, List<ChatLogEntry>>(roomData, GetChatlogs(roomData, row.EntryTimestamp, timestampExit)));
                 }
             }
 
@@ -60,18 +61,19 @@ namespace Plus.Communication.Packets.Incoming.Moderation
             uint rid = (uint)roomData.Id;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                var data = db.chatlogs.Where(c => c.room_id == rid && c.timestamp > timeEnter && c.timestamp < timeExit)
-                    .OrderByDescending(c => c.timestamp)
-                    .Select(c => new { c.user_id, c.timestamp, c.message })
+                var data = db.Chatlogs.Where(c => c.RoomId == rid && c.Timestamp > timeEnter && c.Timestamp < timeExit)
+                    .OrderByDescending(c => c.Timestamp)
+                    .Select(c => new { c.UserId, c.Timestamp, c.Message })
                     .Take(100)
                     .ToList();
 
                 foreach (var row in data)
                 {
-                    Habbo habbo = PlusEnvironment.GetHabboById((int)row.user_id);
+                    Habbo habbo = PlusEnvironment.GetHabboById((int)row.UserId);
 
-                    if (habbo != null) {
-                        chats.Add(new ChatLogEntry((int)row.user_id, roomData.Id, row.message, row.timestamp, habbo));
+                    if (habbo != null)
+                    {
+                        chats.Add(new ChatLogEntry((int)row.UserId, roomData.Id, row.Message, row.Timestamp, habbo));
                     }
                 }
             }

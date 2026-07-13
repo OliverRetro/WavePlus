@@ -1,35 +1,36 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[Index("room_id", Name = "room_id")]
-public partial class room_taxi_point
+[Index("RoomId", Name = "room_id")]
+[Table("room_taxi_points")]
+public partial class RoomTaxiPoint
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int room_id { get; set; }
+    [Column("room_id", TypeName = "int(11)")]
+    public int RoomId { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int x { get; set; }
+    [Column("x", TypeName = "int(11)")]
+    public int X { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int y { get; set; }
+    [Column("y", TypeName = "int(11)")]
+    public int Y { get; set; }
 
-    public double z { get; set; }
+    [Column("z")]
+    public double Z { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int rotation { get; set; }
+    [Column("rotation", TypeName = "int(11)")]
+    public int Rotation { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int cost { get; set; }
+    [Column("cost", TypeName = "int(11)")]
+    public int Cost { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int delay { get; set; }
+    [Column("delay", TypeName = "int(11)")]
+    public int Delay { get; set; }
 }

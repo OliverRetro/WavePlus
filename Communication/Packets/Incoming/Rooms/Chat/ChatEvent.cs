@@ -42,20 +42,24 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Chat
             if (!isCommand && PlusEnvironment.GetUnixTimestamp() < session.GetHabbo().FloodTime && session.GetHabbo().FloodTime != 0)
                 return;
 
-            if (session.GetHabbo().TimeMuted > 0) {
+            if (session.GetHabbo().TimeMuted > 0)
+            {
                 session.SendPacket(new MutedComposer(session.GetHabbo().TimeMuted));
                 return;
             }
 
-            if (!session.GetHabbo().GetPermissions().HasRight("room_ignore_mute") && room.CheckMute(session)) {
+            if (!session.GetHabbo().GetPermissions().HasRight("room_ignore_mute") && room.CheckMute(session))
+            {
                 session.SendWhisper("Oops, you're currently muted.");
                 return;
             }
 
             user.LastBubble = session.GetHabbo().GetBubbleId(colour);
 
-            if (!isCommand && !session.GetHabbo().GetPermissions().HasRight("mod_tool")) {
-                if (user.IncrementAndCheckFlood(out int muteTime)) {
+            if (!isCommand && !session.GetHabbo().GetPermissions().HasRight("mod_tool"))
+            {
+                if (user.IncrementAndCheckFlood(out int muteTime))
+                {
                     session.SendPacket(new FloodControlComposer(muteTime));
                     return;
                 }
@@ -66,9 +70,11 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Chat
             if (isCommand && PlusEnvironment.GetGame().GetChatManager().GetCommands().Parse(session, message))
                 return;
 
-            if (PlusEnvironment.GetGame().GetChatManager().GetFilter().CheckBannedWords(message)) {
+            if (PlusEnvironment.GetGame().GetChatManager().GetFilter().CheckBannedWords(message))
+            {
                 session.GetHabbo().BannedPhraseCount++;
-                if (session.GetHabbo().BannedPhraseCount >= Convert.ToInt32(PlusEnvironment.GetSettingsManager().TryGetValue("room.chat.filter.banned_phrases.chances"))) {
+                if (session.GetHabbo().BannedPhraseCount >= Convert.ToInt32(PlusEnvironment.GetSettingsManager().TryGetValue("room.chat.filter.banned_phrases.chances")))
+                {
                     PlusEnvironment.GetGame().GetModerationManager().BanUser("System", ModerationBanType.Username, session.GetHabbo().Username, "Spamming banned phrases (" + message + ")", PlusEnvironment.GetUnixTimestamp() + 78892200);
                     session.Disconnect();
                     return;

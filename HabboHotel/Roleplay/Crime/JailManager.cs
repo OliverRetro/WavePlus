@@ -4,7 +4,6 @@ using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Roleplay.Police;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
-using StackExchange.Redis;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
@@ -31,7 +30,8 @@ namespace Plus.HabboHotel.Roleplay.Crime
         public JailSpawn GetJailSpawn()
         {
             string raw = PlusEnvironment.GetSettingsManager().TryGetValue("rp.jail.spawn");
-            if (!string.IsNullOrWhiteSpace(raw)) {
+            if (!string.IsNullOrWhiteSpace(raw))
+            {
                 try
                 {
                     JailSpawn spawn = JsonSerializer.Deserialize<JailSpawn>(raw);
@@ -95,9 +95,11 @@ namespace Plus.HabboHotel.Roleplay.Crime
             ApplyJailOutfit(target);
             SendToJail(target);
 
-            if (officer != null) {
+            if (officer != null)
+            {
                 int bonus = GetEscortBonus();
-                if (bonus > 0) {
+                if (bonus > 0)
+                {
                     officer.Credits += bonus;
                     officer.GetClient()?.SendPacket(new CreditBalanceComposer(officer.Credits));
                     officer.GetClient()?.SendWhisper($"You escorted {target.Username} to jail (+{bonus} credits).", 1);
@@ -116,23 +118,28 @@ namespace Plus.HabboHotel.Roleplay.Crime
 
             double now = PlusEnvironment.GetUnixTimestamp();
 
-            if (stats.JailTimeLeft > 0) {
+            if (stats.JailTimeLeft > 0)
+            {
                 stats.JailReleaseTime = now + stats.JailTimeLeft;
                 stats.JailTimeLeft = 0;
                 habbo.SaveRpStats();
             }
 
-            if (stats.JailPending) {
+            if (stats.JailPending)
+            {
                 RpCrimePenalty penalty = PlusEnvironment.GetRpCrimeManager().GetPenalty(stats.JailStars);
                 int jailMinutes = penalty?.JailTimeMinutes ?? 0;
                 stats.JailPending = false;
 
-                if (jailMinutes > 0) {
+                if (jailMinutes > 0)
+                {
                     TakeFine(habbo, penalty.FineAmount);
                     stats.JailReleaseTime = now + jailMinutes * 60.0;
                     if (stats.JailRoomId <= 0)
                         stats.JailRoomId = GetJailRoomId();
-                } else {
+                }
+                else
+                {
                     stats.JailReleaseTime = 0;
                 }
                 habbo.SaveRpStats();
@@ -142,7 +149,8 @@ namespace Plus.HabboHotel.Roleplay.Crime
                 return 0;
 
             // Sentence lapsed while offline — release them.
-            if (now >= stats.JailReleaseTime) {
+            if (now >= stats.JailReleaseTime)
+            {
                 ClearSentence(habbo, stats, restoreLook: true, whisper: false);
                 return 0;
             }
@@ -161,7 +169,8 @@ namespace Plus.HabboHotel.Roleplay.Crime
 
             int jailRoom = stats.JailRoomId > 0 ? stats.JailRoomId : (GetJailSpawn()?.roomid ?? 0);
 
-            if (!PoliceManager.GetJailRoomIds().Contains(habbo.CurrentRoom.RoomId)) {
+            if (!PoliceManager.GetJailRoomIds().Contains(habbo.CurrentRoom.RoomId))
+            {
                 if (jailRoom > 0 && habbo.CurrentRoom.RoomId != jailRoom)
                     habbo.PrepareRoom(jailRoom, string.Empty);
                 return;
@@ -235,7 +244,8 @@ namespace Plus.HabboHotel.Roleplay.Crime
             _jailed.TryRemove(habbo.Id, out _);
 
             double now = PlusEnvironment.GetUnixTimestamp();
-            if (stats.JailReleaseTime > now) {
+            if (stats.JailReleaseTime > now)
+            {
                 stats.JailTimeLeft = stats.JailReleaseTime - now;
                 stats.JailReleaseTime = 0;
                 habbo.SaveRpStats();
@@ -322,12 +332,14 @@ namespace Plus.HabboHotel.Roleplay.Crime
                 GameClient client = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(kv.Key);
                 UserRpStats stats = client?.GetHabbo()?.GetRpStats();
 
-                if (stats == null) {
+                if (stats == null)
+                {
                     _jailed.TryRemove(kv.Key, out _); // offline: resolved on next login
                     continue;
                 }
 
-                if (stats.JailReleaseTime <= 0) {
+                if (stats.JailReleaseTime <= 0)
+                {
                     _jailed.TryRemove(kv.Key, out _);
                     continue;
                 }
@@ -361,7 +373,8 @@ namespace Plus.HabboHotel.Roleplay.Crime
             habbo.SaveRpStats();
 
             PlusEnvironment.GetPoliceManager().Uncuff(habbo);
-            if (restoreLook && !string.IsNullOrEmpty(revertLook)) {
+            if (restoreLook && !string.IsNullOrEmpty(revertLook))
+            {
                 habbo.Look = revertLook;
                 BroadcastLook(habbo);
             }

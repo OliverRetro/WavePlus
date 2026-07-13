@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
@@ -7,55 +6,66 @@ using Microsoft.EntityFrameworkCore;
 namespace Plus.Database.EF.Entities;
 
 [Table("games_config")]
-[Index("id", Name = "id", IsUnique = true)]
-public partial class games_config
+[Index("Id", Name = "id", IsUnique = true)]
+public partial class GamesConfig
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
     [Required]
     [StringLength(25)]
-    public string name { get; set; }
+    [Column("name")]
+    public string Name { get; set; }
 
     [Required]
     [StringLength(25)]
-    public string colour_one { get; set; }
+    [Column("colour_one")]
+    public string ColourOne { get; set; }
 
     [Required]
     [StringLength(25)]
-    public string colour_two { get; set; }
+    [Column("colour_two")]
+    public string ColourTwo { get; set; }
 
     [Required]
     [StringLength(125)]
-    public string resource_path { get; set; }
+    [Column("resource_path")]
+    public string ResourcePath { get; set; }
 
     [Required]
     [StringLength(25)]
-    public string string_three { get; set; }
+    [Column("string_three")]
+    public string StringThree { get; set; }
 
     [Required]
     [StringLength(255)]
-    public string game_swf { get; set; }
+    [Column("game_swf")]
+    public string GameSwf { get; set; }
 
     [Required]
     [StringLength(255)]
-    public string game_assets { get; set; }
+    [Column("game_assets")]
+    public string GameAssets { get; set; }
 
     [Required]
     [StringLength(25)]
-    public string game_server_host { get; set; }
+    [Column("game_server_host")]
+    public string GameServerHost { get; set; }
 
     [Required]
     [StringLength(25)]
-    public string game_server_port { get; set; }
+    [Column("game_server_port")]
+    public string GameServerPort { get; set; }
 
     [Required]
     [StringLength(25)]
-    public string socket_policy_port { get; set; }
+    [Column("socket_policy_port")]
+    public string SocketPolicyPort { get; set; }
 
-    [Column(TypeName = "enum('0','1')")]
-    public string game_enabled { get; set; }
+    [Column("game_enabled", TypeName = "enum('0','1')")]
+    public string GameEnabled { get; set; }
 
-    public double? last_reset { get; set; }
+    [Column("last_reset")]
+    public double? LastReset { get; set; }
 }

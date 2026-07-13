@@ -13,18 +13,21 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length == 1) {
+            if (@params.Length == 1)
+            {
                 session.SendWhisper("Please enter the username you wish to flag.");
                 return;
             }
 
             GameClient targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(@params[1]);
-            if (targetClient == null) {
+            if (targetClient == null)
+            {
                 session.SendWhisper("An error occoured whilst finding that user, maybe they're not online.");
                 return;
             }
 
-            if (targetClient.GetHabbo().GetPermissions().HasRight("mod_tool")) {
+            if (targetClient.GetHabbo().GetPermissions().HasRight("mod_tool"))
+            {
                 session.SendWhisper("You are not allowed to flag that user.");
                 return;
             }

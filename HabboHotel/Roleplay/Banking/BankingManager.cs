@@ -36,13 +36,13 @@ namespace Plus.HabboHotel.Roleplay.Banking
         public List<UserRpBankLog> LoadRecentLogs(int userId)
         {
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            return db.user_rp_bank_logs
-                .Where(l => l.user_id == userId)
-                .OrderByDescending(l => l.timestamp)
+            return db.UserRpBankLogs
+                .Where(l => l.UserId == userId)
+                .OrderByDescending(l => l.Timestamp)
                 .Take(RecentLogLimit)
-                .Select(l => new { l.user_id, l.amount, l.action_type, l.management_type, l.fee_paid, l.timestamp })
+                .Select(l => new { l.UserId, l.Amount, l.ActionType, l.ManagementType, l.FeePaid, l.Timestamp })
                 .ToList()
-                .Select(l => new UserRpBankLog(l.user_id, l.amount, l.action_type, l.management_type, l.fee_paid, l.timestamp))
+                .Select(l => new UserRpBankLog(l.UserId, l.Amount, l.ActionType, l.ManagementType, l.FeePaid, l.Timestamp))
                 .ToList();
         }
 
@@ -55,13 +55,13 @@ namespace Plus.HabboHotel.Roleplay.Banking
         public UserRpBankAccount LoadAccount(int userId)
         {
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            var row = db.user_rp_banks.Where(b => b.user_id == userId)
-                .Select(b => new { b.user_id, b.balance, b.account_opened })
+            var row = db.UserRpBanks.Where(b => b.UserId == userId)
+                .Select(b => new { b.UserId, b.Balance, b.AccountOpened })
                 .FirstOrDefault();
             if (row == null)
                 return null;
 
-            return new UserRpBankAccount(row.user_id, row.balance, row.account_opened);
+            return new UserRpBankAccount(row.UserId, row.Balance, row.AccountOpened);
         }
 
         public bool CreateAccount(Habbo habbo)
@@ -81,11 +81,11 @@ namespace Plus.HabboHotel.Roleplay.Banking
             habbo.SetBankAccount(account);
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            db.user_rp_banks.Add(new user_rp_bank
+            db.UserRpBanks.Add(new UserRpBank
             {
-                user_id = habbo.Id,
-                balance = 0,
-                account_opened = account.AccountOpened
+                UserId = habbo.Id,
+                Balance = 0,
+                AccountOpened = account.AccountOpened
             });
             db.SaveChanges();
 
@@ -99,8 +99,8 @@ namespace Plus.HabboHotel.Roleplay.Banking
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.user_rp_bank_logs.Where(l => l.user_id == habbo.Id).ExecuteDelete();
-                db.user_rp_banks.Where(b => b.user_id == habbo.Id).ExecuteDelete();
+                db.UserRpBankLogs.Where(l => l.UserId == habbo.Id).ExecuteDelete();
+                db.UserRpBanks.Where(b => b.UserId == habbo.Id).ExecuteDelete();
             }
 
             habbo.SetBankAccount(null);
@@ -172,21 +172,23 @@ namespace Plus.HabboHotel.Roleplay.Banking
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-            if (account.Dirty) {
-                db.user_rp_banks.Where(b => b.user_id == habbo.Id)
-                    .ExecuteUpdate(s => s.SetProperty(b => b.balance, account.Balance));
+            if (account.Dirty)
+            {
+                db.UserRpBanks.Where(b => b.UserId == habbo.Id)
+                    .ExecuteUpdate(s => s.SetProperty(b => b.Balance, account.Balance));
                 account.MarkSaved();
             }
 
-            if (account.PendingLogs.Count > 0) {
-                db.user_rp_bank_logs.AddRange(account.PendingLogs.Select(log => new user_rp_bank_log
+            if (account.PendingLogs.Count > 0)
+            {
+                db.UserRpBankLogs.AddRange(account.PendingLogs.Select(log => new Plus.Database.EF.Entities.UserRpBankLog
                 {
-                    user_id = log.UserId,
-                    amount = log.Amount,
-                    action_type = log.ActionType,
-                    management_type = log.ManagementType,
-                    fee_paid = log.FeePaid,
-                    timestamp = log.Timestamp
+                    UserId = log.UserId,
+                    Amount = log.Amount,
+                    ActionType = log.ActionType,
+                    ManagementType = log.ManagementType,
+                    FeePaid = log.FeePaid,
+                    Timestamp = log.Timestamp
                 }));
                 db.SaveChanges();
                 account.PendingLogs.Clear();
@@ -196,11 +198,6 @@ namespace Plus.HabboHotel.Roleplay.Banking
         private static bool CanUseAccount(Habbo habbo, int amount)
         {
             return habbo?.GetBankAccount() != null && amount > 0;
-        }
-
-        private static int CalculateFee(int amount, int percent)
-        {
-            return percent <= 0 ? 0 : (int)Math.Ceiling(amount * (percent / 100.0));
         }
     }
 }

@@ -24,7 +24,8 @@ namespace Plus.Communication.Rcon.Commands.User
 
             string badge = Convert.ToString(parameters[1]);
 
-            if (client.GetHabbo().GetBadgeComponent().HasBadge(badge)) {
+            if (client.GetHabbo().GetBadgeComponent().HasBadge(badge))
+            {
                 client.GetHabbo().GetBadgeComponent().RemoveBadge(badge);
             }
 

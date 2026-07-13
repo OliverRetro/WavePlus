@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using Plus.HabboHotel.GameClients;
-using Plus.HabboHotel.Quests;
+﻿using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Users;
 
 namespace Plus.Communication.Packets.Outgoing.Quests
@@ -26,7 +24,8 @@ namespace Plus.Communication.Packets.Outgoing.Quests
             // desyncs and the client drops the whole stats update (incl. our own stats).
             bool hasOther = TargetHabbo != null && TargetHabbo.GetRpStats() != null;
             packet.WriteBoolean(hasOther);
-            if (hasOther) {
+            if (hasOther)
+            {
                 SerializeUserData(packet, TargetHabbo);
             }
         }

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -48,17 +47,17 @@ namespace Plus.HabboHotel.Roleplay.Macros
             _enabled[userId] = enabled;
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            db.users_macro_settings.Upsert(new users_macro_setting
+            db.UsersMacroSettings.Upsert(new UsersMacroSetting
             {
-                user_id = userId,
-                enabled = enabled
+                UserId = userId,
+                Enabled = enabled
             }).Run();
         }
 
         private bool LoadEnabled(int userId)
         {
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            return db.users_macro_settings.Where(x => x.user_id == userId).Select(x => x.enabled).FirstOrDefault();
+            return db.UsersMacroSettings.Where(x => x.UserId == userId).Select(x => x.Enabled).FirstOrDefault();
         }
 
         public Macro GetSelected(int userId)
@@ -85,10 +84,10 @@ namespace Plus.HabboHotel.Roleplay.Macros
             int id;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                var entity = new Database.EF.Entities.users_macro { user_id = userId, name = name, configs = "{}" };
-                db.users_macros.Add(entity);
+                var entity = new Database.EF.Entities.UsersMacro { UserId = userId, Name = name, Configs = "{}" };
+                db.UsersMacros.Add(entity);
                 db.SaveChanges();
-                id = entity.id;
+                id = entity.Id;
             }
 
             Macro macro = new(id, userId, name);
@@ -111,8 +110,8 @@ namespace Plus.HabboHotel.Roleplay.Macros
             string macroName = macro.Name;
             string configs = JsonSerializer.Serialize(macro.Sets);
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            db.users_macros.Where(m => m.id == macroId && m.user_id == userId)
-                .ExecuteUpdate(s => s.SetProperty(m => m.name, macroName).SetProperty(m => m.configs, configs));
+            db.UsersMacros.Where(m => m.Id == macroId && m.UserId == userId)
+                .ExecuteUpdate(s => s.SetProperty(m => m.Name, macroName).SetProperty(m => m.Configs, configs));
         }
 
         public void DeleteMacro(int userId, int macroId)
@@ -125,7 +124,7 @@ namespace Plus.HabboHotel.Roleplay.Macros
                 _selected.TryRemove(userId, out _);
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            db.users_macros.Where(m => m.id == macroId && m.user_id == userId).ExecuteDelete();
+            db.UsersMacros.Where(m => m.Id == macroId && m.UserId == userId).ExecuteDelete();
         }
 
         public void Unload(int userId)
@@ -139,10 +138,10 @@ namespace Plus.HabboHotel.Roleplay.Macros
         {
             Dictionary<int, Macro> macros = new();
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            foreach (var row in db.users_macros.Where(m => m.user_id == userId).Select(m => new { m.id, m.name, m.configs }).ToList())
+            foreach (var row in db.UsersMacros.Where(m => m.UserId == userId).Select(m => new { m.Id, m.Name, m.Configs }).ToList())
             {
-                Dictionary<string, string> sets = ParseConfigs(row.configs);
-                macros[row.id] = new Macro(row.id, userId, row.name, sets);
+                Dictionary<string, string> sets = ParseConfigs(row.Configs);
+                macros[row.Id] = new Macro(row.Id, userId, row.Name, sets);
             }
 
             return macros;

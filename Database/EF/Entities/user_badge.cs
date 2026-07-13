@@ -1,26 +1,27 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[Index("user_id", Name = "user_id")]
-[Index("user_id", "badge_id", Name = "user_id, badge_id", IsUnique = true)]
-public partial class user_badge
+[Index("UserId", Name = "user_id")]
+[Index("UserId", "BadgeId", Name = "user_id, badge_id", IsUnique = true)]
+[Table("user_badges")]
+public partial class UserBadge
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
-    [Column(TypeName = "int(10) unsigned")]
-    public uint user_id { get; set; }
+    [Column("user_id", TypeName = "int(10) unsigned")]
+    public uint UserId { get; set; }
 
     [Required]
     [StringLength(100)]
-    public string badge_id { get; set; }
+    [Column("badge_id")]
+    public string BadgeId { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int badge_slot { get; set; }
+    [Column("badge_slot", TypeName = "int(11)")]
+    public int BadgeSlot { get; set; }
 }

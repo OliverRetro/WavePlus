@@ -73,13 +73,15 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
                 return false;
 
             long now = PlusEnvironment.Now();
-            if (_next < now) {
+            if (_next < now)
+            {
                 foreach (Item item in SetItems.Values.ToList())
                 {
                     if (item == null)
                         continue;
 
-                    if (!Instance.GetRoomItemHandler().GetFloor.Contains(item)) {
+                    if (!Instance.GetRoomItemHandler().GetFloor.Contains(item))
+                    {
                         SetItems.TryRemove(item.Id, out Item _);
                         continue;
                     }

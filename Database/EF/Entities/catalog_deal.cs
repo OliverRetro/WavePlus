@@ -1,25 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class catalog_deal
+[Table("catalog_deals")]
+public partial class CatalogDeal
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
     [Required]
-    [Column(TypeName = "text")]
-    public string items { get; set; }
+    [Column("items", TypeName = "text")]
+    public string Items { get; set; }
 
     [Required]
     [StringLength(35)]
-    public string name { get; set; }
+    [Column("name")]
+    public string Name { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int room_id { get; set; }
+    [Column("room_id", TypeName = "int(11)")]
+    public int RoomId { get; set; }
 }

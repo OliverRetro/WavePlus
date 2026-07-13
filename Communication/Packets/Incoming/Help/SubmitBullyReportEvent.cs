@@ -16,18 +16,21 @@ namespace Plus.Communication.Packets.Incoming.Help
             if (userId == session.GetHabbo().Id) //Hax
                 return;
 
-            if (session.GetHabbo().AdvertisingReportedBlocked) {
+            if (session.GetHabbo().AdvertisingReportedBlocked)
+            {
                 session.SendPacket(new SubmitBullyReportComposer(1)); //This user is blocked from reporting.
                 return;
             }
 
             GameClient client = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(Convert.ToInt32(userId));
-            if (client == null) {
+            if (client == null)
+            {
                 session.SendPacket(new SubmitBullyReportComposer(0)); //Just say it's sent, the user isn't found.
                 return;
             }
 
-            if (session.GetHabbo().LastAdvertiseReport > PlusEnvironment.GetUnixTimestamp()) {
+            if (session.GetHabbo().LastAdvertiseReport > PlusEnvironment.GetUnixTimestamp())
+            {
                 session.SendNotification("Reports can only be sent per 5 minutes!");
                 return;
             }
@@ -39,13 +42,15 @@ namespace Plus.Communication.Packets.Incoming.Help
             }
 
             //This user hasn't even said a word, nope!
-            if (!client.GetHabbo().HasSpoken) {
+            if (!client.GetHabbo().HasSpoken)
+            {
                 session.SendPacket(new SubmitBullyReportComposer(2));
                 return;
             }
 
             //Already reported, nope.
-            if (client.GetHabbo().AdvertisingReported && session.GetHabbo().Rank < 2) {
+            if (client.GetHabbo().AdvertisingReported && session.GetHabbo().Rank < 2)
+            {
                 session.SendPacket(new SubmitBullyReportComposer(3));
                 return;
             }

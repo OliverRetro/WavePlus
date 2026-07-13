@@ -1,25 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[Index("item_id", Name = "item_id")]
-public partial class user_present
+[Index("ItemId", Name = "item_id")]
+[Table("user_presents")]
+public partial class UserPresent
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
-    [Column(TypeName = "int(10) unsigned")]
-    public uint item_id { get; set; }
+    [Column("item_id", TypeName = "int(10) unsigned")]
+    public uint ItemId { get; set; }
 
-    [Column(TypeName = "int(10) unsigned")]
-    public uint base_id { get; set; }
+    [Column("base_id", TypeName = "int(10) unsigned")]
+    public uint BaseId { get; set; }
 
     [Required]
-    [Column(TypeName = "text")]
-    public string extra_data { get; set; }
+    [Column("extra_data", TypeName = "text")]
+    public string ExtraData { get; set; }
 }

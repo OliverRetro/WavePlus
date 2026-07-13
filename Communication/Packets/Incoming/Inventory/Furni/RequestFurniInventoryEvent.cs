@@ -16,9 +16,12 @@ namespace Plus.Communication.Packets.Incoming.Inventory.Furni
             int page = 0;
             int pages = ((items.Count() - 1) / 700) + 1;
 
-            if (!items.Any()) {
+            if (!items.Any())
+            {
                 session.SendPacket(new FurniListComposer(items.ToList(), 1, 0));
-            } else {
+            }
+            else
+            {
                 foreach (ICollection<Item> batch in items.Batch(700))
                 {
                     session.SendPacket(new FurniListComposer(batch.ToList(), pages, page));

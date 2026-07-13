@@ -4,17 +4,10 @@ using Plus.HabboHotel.Users;
 
 namespace Plus.Communication.Packets.Outgoing.Inventory.Achievements
 {
-    internal class AchievementsComposer : MessageComposer
+    internal class AchievementsComposer(Habbo habbo, List<Achievement> achievements) : MessageComposer(ServerPacketHeader.AchievementsMessageComposer)
     {
-        public List<Achievement> Achievements { get; }
-        public Habbo Habbo { get; }
-
-        public AchievementsComposer(Habbo habbo, List<Achievement> achievements)
-            : base(ServerPacketHeader.AchievementsMessageComposer)
-        {
-            Achievements = achievements;
-            Habbo = habbo;
-        }
+        public List<Achievement> Achievements { get; } = achievements;
+        public Habbo Habbo { get; } = habbo;
 
         public override void Compose(ServerPacket packet)
         {

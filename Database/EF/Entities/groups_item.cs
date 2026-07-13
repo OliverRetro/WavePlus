@@ -1,31 +1,32 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[PrimaryKey("id", "type")]
-public partial class groups_item
+[PrimaryKey("Id", "Type")]
+[Table("groups_items")]
+public partial class GroupsItem
 {
     [Key]
-    [Column(TypeName = "enum('base','symbol','color','color2','color3')")]
-    public string type { get; set; }
+    [Column("type", TypeName = "enum('base','symbol','color','color2','color3')")]
+    public string Type { get; set; }
 
     [Key]
-    [Column(TypeName = "int(255)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(255)")]
+    public int Id { get; set; }
 
     [Required]
     [StringLength(255)]
-    public string firstvalue { get; set; }
+    [Column("firstvalue")]
+    public string Firstvalue { get; set; }
 
     [Required]
     [StringLength(2000)]
-    public string secondvalue { get; set; }
+    [Column("secondvalue")]
+    public string Secondvalue { get; set; }
 
     [Required]
-    [Column(TypeName = "enum('0','1')")]
-    public string enabled { get; set; }
+    [Column("enabled", TypeName = "enum('0','1')")]
+    public string Enabled { get; set; }
 }

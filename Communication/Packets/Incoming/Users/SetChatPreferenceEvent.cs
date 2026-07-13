@@ -16,8 +16,8 @@ namespace Plus.Communication.Packets.Incoming.Users
             string chatPreference = PlusEnvironment.BoolToEnum(preference);
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.users.Where(u => u.id == userId)
-                    .ExecuteUpdate(s => s.SetProperty(u => u.chat_preference, chatPreference));
+                db.Users.Where(u => u.Id == userId)
+                    .ExecuteUpdate(s => s.SetProperty(u => u.ChatPreference, chatPreference));
             }
         }
     }

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using Plus.Communication.Packets.Outgoing.Roleplay;
 using Plus.HabboHotel.GameClients;
@@ -74,13 +73,15 @@ namespace Plus.HabboHotel.Roleplay.TargetLock
             if (requester == null)
                 return;
 
-            if (!locked) {
+            if (!locked)
+            {
                 ReleaseLock(requester, false);
                 return;
             }
 
             Habbo target = GetTarget(requester);
-            if (target == null) {
+            if (target == null)
+            {
                 requester.GetClient()?.SendWhisper("Click a player first, then lock your target.", 1);
                 SendComposer(requester, string.Empty, false);
                 return;
@@ -106,7 +107,8 @@ namespace Plus.HabboHotel.Roleplay.TargetLock
 
         public static bool LockTarget(Habbo requester, Habbo target)
         {
-            if (!IsValidTarget(requester, target)) {
+            if (!IsValidTarget(requester, target))
+            {
                 requester?.GetClient()?.SendWhisper("That user is not a valid target.", 1);
                 return false;
             }
@@ -125,12 +127,14 @@ namespace Plus.HabboHotel.Roleplay.TargetLock
 
             string targetName = string.Empty;
 
-            if (Targets.TryGetValue(requester.Id, out TargetState state)) {
+            if (Targets.TryGetValue(requester.Id, out TargetState state))
+            {
                 targetName = clearTarget ? string.Empty : (state.TargetName ?? string.Empty);
 
                 if (clearTarget)
                     Targets.TryRemove(requester.Id, out _);
-                else {
+                else
+                {
                     state.Locked = false;
                     state.LastUpdated = PlusEnvironment.GetUnixTimestamp();
                 }
@@ -150,7 +154,8 @@ namespace Plus.HabboHotel.Roleplay.TargetLock
                 return null;
 
             Habbo target = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(state.TargetId)?.GetHabbo();
-            if (!IsValidTarget(requester, target)) {
+            if (!IsValidTarget(requester, target))
+            {
                 if (!state.Locked)
                     Targets.TryRemove(requester.Id, out _);
                 return null;
@@ -165,7 +170,8 @@ namespace Plus.HabboHotel.Roleplay.TargetLock
                 return null;
 
             Habbo target = GetTarget(requester);
-            if (target == null) {
+            if (target == null)
+            {
                 ReleaseLock(requester, true);
                 requester.GetClient()?.SendWhisper("Your locked target is no longer available.", 1);
             }

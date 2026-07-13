@@ -37,7 +37,8 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Settings
 
             for (int i = 0; i < tagCount; i++)
             {
-                if (i > 0) {
+                if (i > 0)
+                {
                     formattedTags.Append(",");
                 }
 
@@ -178,40 +179,43 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Settings
             string tagsStr = formattedTags.ToString();
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.rooms.Where(r => r.id == roomIdVal)
+                db.Rooms.Where(r => r.Id == roomIdVal)
                     .ExecuteUpdate(s => s
-                        .SetProperty(r => r.caption, room.Name)
-                        .SetProperty(r => r.description, room.Description)
-                        .SetProperty(r => r.password, room.Password)
-                        .SetProperty(r => r.category, categoryId)
-                        .SetProperty(r => r.state, accessStr)
-                        .SetProperty(r => r.tags, tagsStr)
-                        .SetProperty(r => r.users_max, maxUsers)
-                        .SetProperty(r => r.allow_pets, allowPets != 0)
-                        .SetProperty(r => r.allow_pets_eat, allowPetsEat != 0)
+                        .SetProperty(r => r.Caption, room.Name)
+                        .SetProperty(r => r.Description, room.Description)
+                        .SetProperty(r => r.Password, room.Password)
+                        .SetProperty(r => r.Category, categoryId)
+                        .SetProperty(r => r.State, accessStr)
+                        .SetProperty(r => r.Tags, tagsStr)
+                        .SetProperty(r => r.UsersMax, maxUsers)
+                        .SetProperty(r => r.AllowPets, allowPets != 0)
+                        .SetProperty(r => r.AllowPetsEat, allowPetsEat != 0)
                         // NOTE: legacy maps room_blocking_disabled to roomBlockingEnabled value; preserved as-is.
-                        .SetProperty(r => r.room_blocking_disabled, roomBlockingEnabled != 0)
-                        .SetProperty(r => r.allow_hidewall, (bool?)(room.HideWall != 0))
-                        .SetProperty(r => r.floorthick, room.FloorThickness)
-                        .SetProperty(r => r.wallthick, room.WallThickness)
-                        .SetProperty(r => r.mute_settings, (bool?)(room.WhoCanMute != 0))
-                        .SetProperty(r => r.kick_settings, (sbyte)room.WhoCanKick)
-                        .SetProperty(r => r.ban_settings, (bool?)(room.WhoCanBan != 0))
-                        .SetProperty(r => r.chat_mode, room.ChatMode)
-                        .SetProperty(r => r.chat_size, room.ChatSize)
-                        .SetProperty(r => r.chat_speed, room.ChatSpeed)
-                        .SetProperty(r => r.chat_extra_flood, room.ExtraFlood)
-                        .SetProperty(r => r.chat_hearing_distance, room.ChatDistance)
-                        .SetProperty(r => r.trade_settings, room.TradeSettings));
+                        .SetProperty(r => r.RoomBlockingDisabled, roomBlockingEnabled != 0)
+                        .SetProperty(r => r.AllowHidewall, (bool?)(room.HideWall != 0))
+                        .SetProperty(r => r.Floorthick, room.FloorThickness)
+                        .SetProperty(r => r.Wallthick, room.WallThickness)
+                        .SetProperty(r => r.MuteSettings, (bool?)(room.WhoCanMute != 0))
+                        .SetProperty(r => r.KickSettings, (sbyte)room.WhoCanKick)
+                        .SetProperty(r => r.BanSettings, (bool?)(room.WhoCanBan != 0))
+                        .SetProperty(r => r.ChatMode, room.ChatMode)
+                        .SetProperty(r => r.ChatSize, room.ChatSize)
+                        .SetProperty(r => r.ChatSpeed, room.ChatSpeed)
+                        .SetProperty(r => r.ChatExtraFlood, room.ExtraFlood)
+                        .SetProperty(r => r.ChatHearingDistance, room.ChatDistance)
+                        .SetProperty(r => r.TradeSettings, room.TradeSettings));
             }
 
             room.GetGameMap().GenerateMaps();
 
-            if (session.GetHabbo().CurrentRoom == null) {
+            if (session.GetHabbo().CurrentRoom == null)
+            {
                 session.SendPacket(new RoomSettingsSavedComposer(room.RoomId));
                 session.SendPacket(new RoomInfoUpdatedComposer(room.RoomId));
                 session.SendPacket(new RoomVisualizationSettingsComposer(room.WallThickness, room.FloorThickness, PlusEnvironment.EnumToBool(room.HideWall.ToString())));
-            } else {
+            }
+            else
+            {
                 room.SendPacket(new RoomSettingsSavedComposer(room.RoomId));
                 room.SendPacket(new RoomInfoUpdatedComposer(room.RoomId));
                 room.SendPacket(new RoomVisualizationSettingsComposer(room.WallThickness, room.FloorThickness, PlusEnvironment.EnumToBool(room.HideWall.ToString())));

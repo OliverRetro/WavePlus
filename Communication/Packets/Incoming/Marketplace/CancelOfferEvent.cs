@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Outgoing.Inventory.Furni;
 using Plus.Communication.Packets.Outgoing.Marketplace;
@@ -20,31 +19,34 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
             uint offerIdU = (uint)offerId;
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            var offerData = db.catalog_marketplace_offers.Where(o => o.offer_id == offerIdU)
-                .Select(o => new { o.user_id, o.item_id, o.extra_data, o.furni_id, o.limited_number, o.limited_stack })
+            var offerData = db.CatalogMarketplaceOffers.Where(o => o.OfferId == offerIdU)
+                .Select(o => new { o.UserId, o.ItemId, o.ExtraData, o.FurniId, o.LimitedNumber, o.LimitedStack })
                 .FirstOrDefault();
 
-            if (offerData == null) {
+            if (offerData == null)
+            {
                 session.SendPacket(new MarketplaceCancelOfferResultComposer(offerId, false));
                 return;
             }
 
-            if (offerData.user_id != session.GetHabbo().Id) {
+            if (offerData.UserId != session.GetHabbo().Id)
+            {
                 session.SendPacket(new MarketplaceCancelOfferResultComposer(offerId, false));
                 return;
             }
 
-            if (!PlusEnvironment.GetGame().GetItemManager().GetItem((int)offerData.item_id, out ItemData item)) {
+            if (!PlusEnvironment.GetGame().GetItemManager().GetItem((int)offerData.ItemId, out ItemData item))
+            {
                 session.SendPacket(new MarketplaceCancelOfferResultComposer(offerId, false));
                 return;
             }
 
-            Item giveItem = ItemFactory.CreateSingleItem(item, session.GetHabbo(), offerData.extra_data, offerData.extra_data, (int)offerData.furni_id, offerData.limited_number, offerData.limited_stack);
+            Item giveItem = ItemFactory.CreateSingleItem(item, session.GetHabbo(), offerData.ExtraData, offerData.ExtraData, (int)offerData.FurniId, offerData.LimitedNumber, offerData.LimitedStack);
             session.SendPacket(new FurniListNotificationComposer(giveItem.Id, 1));
             session.SendPacket(new FurniListUpdateComposer());
 
             uint ownerId = (uint)session.GetHabbo().Id;
-            db.catalog_marketplace_offers.Where(o => o.offer_id == offerIdU && o.user_id == ownerId).ExecuteDelete();
+            db.CatalogMarketplaceOffers.Where(o => o.OfferId == offerIdU && o.UserId == ownerId).ExecuteDelete();
 
             session.GetHabbo().GetInventoryComponent().UpdateItems(true);
             session.SendPacket(new MarketplaceCancelOfferResultComposer(offerId, true));

@@ -16,7 +16,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
             if (user == null)
                 return;
 
-            if (!room.GetGameMap().ValidTile(user.X + 2, user.Y + 2) && !room.GetGameMap().ValidTile(user.X + 1, user.Y + 1)) {
+            if (!room.GetGameMap().ValidTile(user.X + 2, user.Y + 2) && !room.GetGameMap().ValidTile(user.X + 1, user.Y + 1))
+            {
                 session.SendWhisper("Oops, cannot lay down here - try elsewhere!", 1);
                 return;
             }

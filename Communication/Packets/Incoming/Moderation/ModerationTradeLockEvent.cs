@@ -22,12 +22,14 @@ namespace Plus.Communication.Packets.Incoming.Moderation
             double length = PlusEnvironment.GetUnixTimestamp() + days * 86400;
 
             Habbo habbo = PlusEnvironment.GetHabboById(userId);
-            if (habbo == null) {
+            if (habbo == null)
+            {
                 session.SendWhisper("An error occoured whilst finding that user in the database.");
                 return;
             }
 
-            if (habbo.GetPermissions().HasRight("mod_trade_lock") && !session.GetHabbo().GetPermissions().HasRight("mod_trade_lock_any")) {
+            if (habbo.GetPermissions().HasRight("mod_trade_lock") && !session.GetHabbo().GetPermissions().HasRight("mod_trade_lock_any"))
+            {
                 session.SendWhisper("Oops, you cannot trade lock another user ranked 5 or higher.");
                 return;
             }
@@ -40,11 +42,12 @@ namespace Plus.Communication.Packets.Incoming.Moderation
 
             int targetId = habbo.Id;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                db.user_infos.Where(u => u.user_id == targetId)
-                    .ExecuteUpdate(s => s.SetProperty(u => u.trading_locked, length)
-                        .SetProperty(u => u.trading_locks_count, u => u.trading_locks_count + 1));
+                db.UserInfos.Where(u => u.UserId == targetId)
+                    .ExecuteUpdate(s => s.SetProperty(u => u.TradingLocked, length)
+                        .SetProperty(u => u.TradingLocksCount, u => u.TradingLocksCount + 1));
 
-            if (habbo.GetClient() != null) {
+            if (habbo.GetClient() != null)
+            {
                 habbo.TradingLockExpiry = length;
                 habbo.GetClient().SendNotification("You have been trade banned for " + days + " day(s)!\r\rReason:\r\r" + message);
             }

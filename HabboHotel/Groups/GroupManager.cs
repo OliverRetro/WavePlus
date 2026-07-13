@@ -54,40 +54,40 @@ namespace Plus.HabboHotel.Groups
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-            var groupItems = db.groups_items.Where(g => g.enabled == "1")
-                .Select(g => new { g.id, g.type, g.firstvalue, g.secondvalue }).ToList();
+            var groupItems = db.GroupsItems.Where(g => g.Enabled == "1")
+                .Select(g => new { g.Id, g.Type, g.Firstvalue, g.Secondvalue }).ToList();
 
             foreach (var groupItem in groupItems)
             {
-                switch (groupItem.type)
+                switch (groupItem.Type)
                 {
                     case "base":
-                        _bases.Add(new GroupBadgeParts(groupItem.id, groupItem.firstvalue, groupItem.secondvalue));
+                        _bases.Add(new GroupBadgeParts(groupItem.Id, groupItem.Firstvalue, groupItem.Secondvalue));
                         break;
 
                     case "symbol":
-                        _symbols.Add(new GroupBadgeParts(groupItem.id, groupItem.firstvalue, groupItem.secondvalue));
+                        _symbols.Add(new GroupBadgeParts(groupItem.Id, groupItem.Firstvalue, groupItem.Secondvalue));
                         break;
 
                     case "color":
-                        _baseColours.Add(new GroupColours(groupItem.id, groupItem.firstvalue));
+                        _baseColours.Add(new GroupColours(groupItem.Id, groupItem.Firstvalue));
                         break;
 
                     case "color2":
-                        _symbolColours.Add(groupItem.id, new GroupColours(groupItem.id, groupItem.firstvalue));
+                        _symbolColours.Add(groupItem.Id, new GroupColours(groupItem.Id, groupItem.Firstvalue));
                         break;
 
                     case "color3":
-                        _backgroundColours.Add(groupItem.id, new GroupColours(groupItem.id, groupItem.firstvalue));
+                        _backgroundColours.Add(groupItem.Id, new GroupColours(groupItem.Id, groupItem.Firstvalue));
                         break;
                 }
             }
 
-            var permissionKeys = db.group_permission_keys
-                .Select(k => new { k.id, k.name, k.key, k.description, k.type_specific }).ToList();
+            var permissionKeys = db.GroupPermissionKeys
+                .Select(k => new { k.Id, k.Name, k.Key, k.Description, k.TypeSpecific }).ToList();
             foreach (var row in permissionKeys)
             {
-                GroupPermissionKey permissionKey = new GroupPermissionKey(row.id, row.name, row.key, row.description, row.type_specific);
+                GroupPermissionKey permissionKey = new GroupPermissionKey(row.Id, row.Name, row.Key, row.Description, row.TypeSpecific);
 
                 _permissionKeys[permissionKey.Id] = permissionKey;
                 _permissionKeysByKey[permissionKey.Key] = permissionKey;
@@ -119,11 +119,11 @@ namespace Plus.HabboHotel.Groups
 
                 uint gid = (uint)id;
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
-                var r = db.groups.FirstOrDefault(x => x.id == gid);
+                var r = db.Groups.FirstOrDefault(x => x.Id == gid);
 
                 if (r != null)
                 {
-                    group = new Group((int)r.id, r.name, r.desc, r.badge, (int)r.room_id, (int)r.owner_id, r.created, Convert.ToInt32(r.state), r.group_type, r.colour1, r.colour2, Convert.ToInt32(r.admindeco), Convert.ToInt32(r.forum_enabled) == 1);
+                    group = new Group((int)r.Id, r.Name, r.Desc, r.Badge, (int)r.RoomId, (int)r.OwnerId, r.Created, Convert.ToInt32(r.State), r.GroupType, r.Colour1, r.Colour2, Convert.ToInt32(r.Admindeco), Convert.ToInt32(r.ForumEnabled) == 1);
                     _groups.TryAdd(group.Id, group);
                     return true;
                 }
@@ -134,28 +134,28 @@ namespace Plus.HabboHotel.Groups
 
         public bool TryCreateGroup(Habbo player, string name, string description, int roomId, string badge, int colour1, int colour2, out Group group)
         {
-            group = new Group(0, name, description, badge, roomId, player.Id, (int) PlusEnvironment.GetUnixTimestamp(), 0, 0, colour1, colour2, 0, false);
+            group = new Group(0, name, description, badge, roomId, player.Id, (int)PlusEnvironment.GetUnixTimestamp(), 0, 0, colour1, colour2, 0, false);
             if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(badge))
                 return false;
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            var entity = new Database.EF.Entities.group
+            var entity = new Database.EF.Entities.Group
             {
-                name = group.Name,
-                desc = group.Description,
-                badge = group.Badge,
-                owner_id = (uint)group.CreatorId,
-                created = (int)PlusEnvironment.GetUnixTimestamp(),
-                room_id = (uint)group.RoomId,
-                state = "0",
-                group_type = 0,
-                colour1 = group.Colour1,
-                colour2 = group.Colour2,
-                admindeco = "0"
+                Name = group.Name,
+                Desc = group.Description,
+                Badge = group.Badge,
+                OwnerId = (uint)group.CreatorId,
+                Created = (int)PlusEnvironment.GetUnixTimestamp(),
+                RoomId = (uint)group.RoomId,
+                State = "0",
+                GroupType = 0,
+                Colour1 = group.Colour1,
+                Colour2 = group.Colour2,
+                Admindeco = "0"
             };
-            db.groups.Add(entity);
+            db.Groups.Add(entity);
             db.SaveChanges();
-            group.Id = (int)entity.id;
+            group.Id = (int)entity.Id;
 
             group.AddMember(player.Id, 0);
             group.AddRole("Member", 0, string.Empty, string.Empty, 5, true);
@@ -166,8 +166,8 @@ namespace Plus.HabboHotel.Groups
             uint groupIdValue = (uint)group.Id;
             int roomIdInt = group.RoomId;
             uint roomIdValue = (uint)group.RoomId;
-            db.rooms.Where(x => x.id == roomIdInt).ExecuteUpdate(s => s.SetProperty(x => x.group_id, groupIdValue));
-            db.room_rights.Where(x => x.room_id == roomIdValue).ExecuteDelete();
+            db.Rooms.Where(x => x.Id == roomIdInt).ExecuteUpdate(s => s.SetProperty(x => x.GroupId, groupIdValue));
+            db.RoomRights.Where(x => x.RoomId == roomIdValue).ExecuteDelete();
 
             return true;
         }
@@ -206,12 +206,17 @@ namespace Plus.HabboHotel.Groups
 
         public string GetColourCode(int id, bool colourOne)
         {
-            if (colourOne) {
-                if (_symbolColours.ContainsKey(id)) {
+            if (colourOne)
+            {
+                if (_symbolColours.ContainsKey(id))
+                {
                     return _symbolColours[id].Colour;
                 }
-            } else {
-                if (_backgroundColours.ContainsKey(id)) {
+            }
+            else
+            {
+                if (_backgroundColours.ContainsKey(id))
+                {
                     return _backgroundColours[id].Colour;
                 }
             }
@@ -235,7 +240,8 @@ namespace Plus.HabboHotel.Groups
             workGroup = null;
             foreach (Group group in GetGroupsForUser(userId))
             {
-                if (group != null && IsWorkableKind(group.Kind)) {
+                if (group != null && IsWorkableKind(group.Kind))
+                {
                     workGroup = group;
                     return true;
                 }
@@ -262,7 +268,7 @@ namespace Plus.HabboHotel.Groups
             List<int> ids;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                ids = db.group_memberships.Where(m => m.user_id == uid).Select(m => (int)m.group_id).ToList();
+                ids = db.GroupMemberships.Where(m => m.UserId == uid).Select(m => (int)m.GroupId).ToList();
             }
 
             foreach (int gid in ids)

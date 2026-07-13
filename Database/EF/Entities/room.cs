@@ -1,173 +1,196 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[Index("caption", Name = "caption")]
-[Index("category", Name = "category")]
-[Index("group_id", Name = "group_id")]
-[Index("id", Name = "id", IsUnique = true)]
-[Index("owner", Name = "owner")]
-[Index("roomtype", Name = "roomtype")]
-[Index("score", Name = "score")]
-[Index("users_now", Name = "users_now")]
-public partial class room
+[Index("Caption", Name = "caption")]
+[Index("Category", Name = "category")]
+[Index("GroupId", Name = "group_id")]
+[Index("Id", Name = "id", IsUnique = true)]
+[Index("Owner", Name = "owner")]
+[Index("Roomtype", Name = "roomtype")]
+[Index("Score", Name = "score")]
+[Index("UsersNow", Name = "users_now")]
+[Table("rooms")]
+public partial class Room
 {
     [Key]
-    [Column(TypeName = "int(10)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(10)")]
+    public int Id { get; set; }
 
     [Required]
-    [Column(TypeName = "enum('public','private')")]
-    public string roomtype { get; set; }
+    [Column("roomtype", TypeName = "enum('public','private')")]
+    public string Roomtype { get; set; }
 
     [Required]
     [StringLength(100)]
-    public string caption { get; set; }
+    [Column("caption")]
+    public string Caption { get; set; }
 
     [Required]
     [StringLength(75)]
-    public string owner { get; set; }
+    [Column("owner")]
+    public string Owner { get; set; }
 
     [Required]
     [StringLength(255)]
-    public string description { get; set; }
+    [Column("description")]
+    public string Description { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int category { get; set; }
+    [Column("category", TypeName = "int(11)")]
+    public int Category { get; set; }
 
     [Required]
-    [Column(TypeName = "enum('open','locked','password','invisible')")]
-    public string state { get; set; }
+    [Column("state", TypeName = "enum('open','locked','password','invisible')")]
+    public string State { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int users_now { get; set; }
+    [Column("users_now", TypeName = "int(11)")]
+    public int UsersNow { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int users_max { get; set; }
+    [Column("users_max", TypeName = "int(11)")]
+    public int UsersMax { get; set; }
 
     [Required]
     [StringLength(50)]
-    public string model_name { get; set; }
+    [Column("model_name")]
+    public string ModelName { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int score { get; set; }
+    [Column("score", TypeName = "int(11)")]
+    public int Score { get; set; }
 
     [Required]
     [StringLength(100)]
-    public string tags { get; set; }
+    [Column("tags")]
+    public string Tags { get; set; }
 
     [Required]
     [StringLength(30)]
-    public string password { get; set; }
+    [Column("password")]
+    public string Password { get; set; }
 
     [Required]
     [StringLength(10)]
-    public string wallpaper { get; set; }
+    [Column("wallpaper")]
+    public string Wallpaper { get; set; }
 
     [Required]
     [StringLength(10)]
-    public string floor { get; set; }
+    [Column("floor")]
+    public string Floor { get; set; }
 
     [Required]
     [StringLength(10)]
-    public string landscape { get; set; }
+    [Column("landscape")]
+    public string Landscape { get; set; }
 
-    public bool allow_pets { get; set; }
+    [Column("allow_pets")]
+    public bool AllowPets { get; set; }
 
-    public bool allow_pets_eat { get; set; }
+    [Column("allow_pets_eat")]
+    public bool AllowPetsEat { get; set; }
 
-    public bool room_blocking_disabled { get; set; }
-
-    [Required]
-    public bool? allow_hidewall { get; set; }
-
-    [Column(TypeName = "int(1)")]
-    public int wallthick { get; set; }
-
-    [Column(TypeName = "int(1)")]
-    public int floorthick { get; set; }
-
-    [Column(TypeName = "int(11) unsigned")]
-    public uint group_id { get; set; }
+    [Column("room_blocking_disabled")]
+    public bool RoomBlockingDisabled { get; set; }
 
     [Required]
-    public bool? mute_settings { get; set; }
+    [Column("allow_hidewall")]
+    public bool? AllowHidewall { get; set; }
+
+    [Column("wallthick", TypeName = "int(1)")]
+    public int Wallthick { get; set; }
+
+    [Column("floorthick", TypeName = "int(1)")]
+    public int Floorthick { get; set; }
+
+    [Column("group_id", TypeName = "int(11) unsigned")]
+    public uint GroupId { get; set; }
 
     [Required]
-    public bool? ban_settings { get; set; }
-
-    [Column(TypeName = "tinyint(2)")]
-    public sbyte kick_settings { get; set; }
-
-    [Column(TypeName = "int(11)")]
-    public int chat_mode { get; set; }
-
-    [Column(TypeName = "int(11)")]
-    public int chat_size { get; set; }
-
-    [Column(TypeName = "int(11)")]
-    public int chat_speed { get; set; }
-
-    [Column(TypeName = "int(11)")]
-    public int chat_extra_flood { get; set; }
-
-    [Column(TypeName = "int(11)")]
-    public int chat_hearing_distance { get; set; }
-
-    [Column(TypeName = "int(11)")]
-    public int trade_settings { get; set; }
+    [Column("mute_settings")]
+    public bool? MuteSettings { get; set; }
 
     [Required]
-    public bool? push_enabled { get; set; }
+    [Column("ban_settings")]
+    public bool? BanSettings { get; set; }
+
+    [Column("kick_settings", TypeName = "tinyint(2)")]
+    public sbyte KickSettings { get; set; }
+
+    [Column("chat_mode", TypeName = "int(11)")]
+    public int ChatMode { get; set; }
+
+    [Column("chat_size", TypeName = "int(11)")]
+    public int ChatSize { get; set; }
+
+    [Column("chat_speed", TypeName = "int(11)")]
+    public int ChatSpeed { get; set; }
+
+    [Column("chat_extra_flood", TypeName = "int(11)")]
+    public int ChatExtraFlood { get; set; }
+
+    [Column("chat_hearing_distance", TypeName = "int(11)")]
+    public int ChatHearingDistance { get; set; }
+
+    [Column("trade_settings", TypeName = "int(11)")]
+    public int TradeSettings { get; set; }
 
     [Required]
-    public bool? pull_enabled { get; set; }
+    [Column("push_enabled")]
+    public bool? PushEnabled { get; set; }
 
     [Required]
-    public bool? enables_enabled { get; set; }
+    [Column("pull_enabled")]
+    public bool? PullEnabled { get; set; }
 
     [Required]
-    public bool? respect_notifications_enabled { get; set; }
+    [Column("enables_enabled")]
+    public bool? EnablesEnabled { get; set; }
 
     [Required]
-    public bool? pet_morphs_allowed { get; set; }
+    [Column("respect_notifications_enabled")]
+    public bool? RespectNotificationsEnabled { get; set; }
 
     [Required]
-    public bool? spull_enabled { get; set; }
+    [Column("pet_morphs_allowed")]
+    public bool? PetMorphsAllowed { get; set; }
 
     [Required]
-    [Column(TypeName = "enum('0','1')")]
-    public string spush_enabled { get; set; }
-
-    [Column(TypeName = "int(11)")]
-    public int sale_price { get; set; }
+    [Column("spull_enabled")]
+    public bool? SpullEnabled { get; set; }
 
     [Required]
-    [Column(TypeName = "enum('0','1')")]
-    public string lay_enabled { get; set; }
+    [Column("spush_enabled", TypeName = "enum('0','1')")]
+    public string SpushEnabled { get; set; }
+
+    [Column("sale_price", TypeName = "int(11)")]
+    public int SalePrice { get; set; }
+
+    [Required]
+    [Column("lay_enabled", TypeName = "enum('0','1')")]
+    public string LayEnabled { get; set; }
 
     [Required]
     [StringLength(4)]
-    public string safezone { get; set; }
+    [Column("safezone")]
+    public string Safezone { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int taxi_x { get; set; }
+    [Column("taxi_x", TypeName = "int(11)")]
+    public int TaxiX { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int taxi_y { get; set; }
+    [Column("taxi_y", TypeName = "int(11)")]
+    public int TaxiY { get; set; }
 
-    public double taxi_z { get; set; }
+    [Column("taxi_z")]
+    public double TaxiZ { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int taxi_rotation { get; set; }
+    [Column("taxi_rotation", TypeName = "int(11)")]
+    public int TaxiRotation { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int taxi_cost { get; set; }
+    [Column("taxi_cost", TypeName = "int(11)")]
+    public int TaxiCost { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int taxi_delay { get; set; }
+    [Column("taxi_delay", TypeName = "int(11)")]
+    public int TaxiDelay { get; set; }
 }

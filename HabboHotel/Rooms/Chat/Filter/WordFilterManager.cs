@@ -21,11 +21,11 @@ namespace Plus.HabboHotel.Rooms.Chat.Filter
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                var data = db.wordfilters.Select(w => new { w.word, w.replacement, w.strict, w.bannable }).ToList();
+                var data = db.Wordfilters.Select(w => new { w.Word, w.Replacement, w.Strict, w.Bannable }).ToList();
 
                 foreach (var row in data)
                 {
-                    _filteredWords.Add(new WordFilter(row.word, row.replacement, PlusEnvironment.EnumToBool(row.strict), PlusEnvironment.EnumToBool(row.bannable)));
+                    _filteredWords.Add(new WordFilter(row.Word, row.Replacement, PlusEnvironment.EnumToBool(row.Strict), PlusEnvironment.EnumToBool(row.Bannable)));
                 }
             }
         }
@@ -34,9 +34,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Filter
         {
             foreach (WordFilter filter in _filteredWords.ToList())
             {
-                if (message.ToLower().Contains(filter.Word) && filter.IsStrict || message == filter.Word) {
+                if (message.ToLower().Contains(filter.Word) && filter.IsStrict || message == filter.Word)
+                {
                     message = Regex.Replace(message, filter.Word, filter.Replacement, RegexOptions.IgnoreCase);
-                } else if (message.ToLower().Contains(filter.Word) && !filter.IsStrict || message == filter.Word) {
+                }
+                else if (message.ToLower().Contains(filter.Word) && !filter.IsStrict || message == filter.Word)
+                {
                     string[] words = message.Split(' ');
 
                     message = "";

@@ -13,7 +13,8 @@ namespace Plus.Communication.Packets.Incoming.Sound
             for (int i = 0; i < 3; i++)
             {
                 int vol = packet.PopInt();
-                if (vol < 0 || vol > 100) {
+                if (vol < 0 || vol > 100)
+                {
                     vol = 100;
                 }
 
@@ -26,8 +27,8 @@ namespace Plus.Communication.Packets.Incoming.Sound
             int userId = session.GetHabbo().Id;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.users.Where(u => u.id == userId)
-                    .ExecuteUpdate(s => s.SetProperty(u => u.volume, volume));
+                db.Users.Where(u => u.Id == userId)
+                    .ExecuteUpdate(s => s.SetProperty(u => u.Volume, volume));
             }
         }
     }

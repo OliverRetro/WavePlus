@@ -21,21 +21,24 @@ namespace Plus.Communication.Packets.Incoming.Avatar
             string genderUpper = gender.ToUpper();
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            bool exists = db.user_wardrobes.Any(w => w.user_id == uid && w.slot_id == slot);
+            bool exists = db.UserWardrobes.Any(w => w.UserId == uid && w.SlotId == slot);
 
-            if (exists) {
-                db.user_wardrobes
-                    .Where(w => w.user_id == uid && w.slot_id == slot)
+            if (exists)
+            {
+                db.UserWardrobes
+                    .Where(w => w.UserId == uid && w.SlotId == slot)
                     .ExecuteUpdate(s => s
-                        .SetProperty(x => x.look, look)
-                        .SetProperty(x => x.gender, genderUpper));
-            } else {
-                db.user_wardrobes.Add(new user_wardrobe
+                        .SetProperty(x => x.Look, look)
+                        .SetProperty(x => x.Gender, genderUpper));
+            }
+            else
+            {
+                db.UserWardrobes.Add(new UserWardrobe
                 {
-                    user_id = uid,
-                    slot_id = slot,
-                    look = look,
-                    gender = genderUpper
+                    UserId = uid,
+                    SlotId = slot,
+                    Look = look,
+                    Gender = genderUpper
                 });
                 db.SaveChanges();
             }

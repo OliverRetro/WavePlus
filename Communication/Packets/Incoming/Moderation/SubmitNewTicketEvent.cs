@@ -18,9 +18,11 @@ namespace Plus.Communication.Packets.Incoming.Moderation
                 return;
 
             // Run a quick check to see if we have any existing tickets.
-            if (PlusEnvironment.GetGame().GetModerationManager().UserHasTickets(session.GetHabbo().Id)) {
+            if (PlusEnvironment.GetGame().GetModerationManager().UserHasTickets(session.GetHabbo().Id))
+            {
                 ModerationTicket pendingTicket = PlusEnvironment.GetGame().GetModerationManager().GetTicketBySenderId(session.GetHabbo().Id);
-                if (pendingTicket != null) {
+                if (pendingTicket != null)
+                {
                     session.SendPacket(new CallForHelpPendingCallsComposer(pendingTicket));
                     return;
                 }
@@ -34,7 +36,8 @@ namespace Plus.Communication.Packets.Incoming.Moderation
             int type = packet.PopInt(); // Unsure on what this actually is.
 
             Habbo reportedUser = PlusEnvironment.GetHabboById(reportedUserId);
-            if (reportedUser == null) {
+            if (reportedUser == null)
+            {
                 // User doesn't exist.
                 return;
             }
@@ -53,8 +56,8 @@ namespace Plus.Communication.Packets.Incoming.Moderation
             // TODO: Come back to this (persisting the moderation_tickets row).
             int senderId = session.GetHabbo().Id;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                db.user_infos.Where(u => u.user_id == senderId)
-                    .ExecuteUpdate(s => s.SetProperty(u => u.cfhs, u => u.cfhs + 1));
+                db.UserInfos.Where(u => u.UserId == senderId)
+                    .ExecuteUpdate(s => s.SetProperty(u => u.Cfhs, u => u.Cfhs + 1));
 
             PlusEnvironment.GetGame().GetClientManager().ModAlert("A new support ticket has been submitted!");
             PlusEnvironment.GetGame().GetClientManager().SendPacket(new ModeratorSupportTicketComposer(session.GetHabbo().Id, ticket), "mod_tool");

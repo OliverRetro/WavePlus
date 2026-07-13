@@ -93,7 +93,8 @@ namespace Plus.Communication.Packets.Outgoing.Users
             packet.WriteInteger(Level);
             packet.WriteInteger(TargetHabbo.GetRpStats().Experience);
             packet.WriteInteger(NextLevelXP);
-            if (Corporation != null) {
+            if (Corporation != null)
+            {
                 packet.WriteInteger(Corporation.Id); // job group id
                 packet.WriteString(Corporation.Name); // name
                 packet.WriteString(Corporation.Badge); // badge
@@ -101,7 +102,9 @@ namespace Plus.Communication.Packets.Outgoing.Users
                 var (weeklyShifts, totalShifts) = PlusEnvironment.GetGame().GetShiftManager().GetShiftCounts(Corporation.Id, TargetHabbo.Id);
                 packet.WriteInteger(weeklyShifts); // weekly shifts (Mon-Sun, current IRL week)
                 packet.WriteInteger(totalShifts); // all shifts (any time)
-            } else {
+            }
+            else
+            {
                 packet.WriteInteger(0); // no corporation
             }
         }

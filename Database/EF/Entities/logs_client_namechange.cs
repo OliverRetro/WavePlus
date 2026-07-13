@@ -1,29 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
 [Table("logs_client_namechange")]
-public partial class logs_client_namechange
+public partial class LogsClientNamechange
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int user_id { get; set; }
-
-    [Required]
-    [StringLength(50)]
-    public string new_name { get; set; }
+    [Column("user_id", TypeName = "int(11)")]
+    public int UserId { get; set; }
 
     [Required]
     [StringLength(50)]
-    public string old_name { get; set; }
+    [Column("new_name")]
+    public string NewName { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int timestamp { get; set; }
+    [Required]
+    [StringLength(50)]
+    [Column("old_name")]
+    public string OldName { get; set; }
+
+    [Column("timestamp", TypeName = "int(11)")]
+    public int Timestamp { get; set; }
 }

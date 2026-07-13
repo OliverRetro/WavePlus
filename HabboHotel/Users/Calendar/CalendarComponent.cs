@@ -37,13 +37,13 @@ namespace Plus.HabboHotel.Users.Calendar
             int playerId = player.Id;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                var boxes = db.user_xmas15_calendars.Where(c => c.user_id == playerId).Select(c => new { c.status, c.day }).ToList();
+                var boxes = db.user_xmas15_calendars.Where(c => c.UserId == playerId).Select(c => new { c.Status, c.Day }).ToList();
                 foreach (var box in boxes)
                 {
-                    if (box.status == 0)
-                        _lateBoxes.Add(box.day);
+                    if (box.Status == 0)
+                        _lateBoxes.Add(box.Day);
                     else
-                        _openedBoxes.Add(box.day);
+                        _openedBoxes.Add(box.Day);
                 }
             }
 

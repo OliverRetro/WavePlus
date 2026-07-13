@@ -28,7 +28,8 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Bots
             if (!room.GetRoomUserManager().TryGetBot(botId, out RoomUser botUser))
                 return;
 
-            if (session.GetHabbo().Id != botUser.BotData.OwnerId && !session.GetHabbo().GetPermissions().HasRight("bot_place_any_override")) {
+            if (session.GetHabbo().Id != botUser.BotData.OwnerId && !session.GetHabbo().GetPermissions().HasRight("bot_place_any_override"))
+            {
                 session.SendWhisper("You can only pick up your own bots!");
                 return;
             }
@@ -36,7 +37,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Bots
             uint bId = (uint)botId;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.bots.Where(b => b.id == bId).ExecuteUpdate(s => s.SetProperty(b => b.room_id, 0u));
+                db.Bots.Where(b => b.Id == bId).ExecuteUpdate(s => s.SetProperty(b => b.RoomId, 0u));
             }
 
 

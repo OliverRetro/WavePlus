@@ -11,7 +11,6 @@ namespace Plus
 {
     public static class Program
     {
-        private const int MF_BYCOMMAND = 0x00000000;
         public const int SC_CLOSE = 0xF060;
 
         [DllImport("Kernel32")]
@@ -44,11 +43,13 @@ namespace Plus
 
             while (true)
             {
-                if (Console.ReadKey(true).Key == ConsoleKey.Enter) {
+                if (Console.ReadKey(true).Key == ConsoleKey.Enter)
+                {
                     Console.Write("plus> ");
                     string input = Console.ReadLine();
 
-                    if (input.Length > 0) {
+                    if (input.Length > 0)
+                    {
                         string s = input.Split(' ')[0];
 
                         ConsoleCommands.InvokeCommand(s);
@@ -59,7 +60,7 @@ namespace Plus
 
         private static void MyHandler(object sender, UnhandledExceptionEventArgs args)
         {
-            var e = (Exception) args.ExceptionObject;
+            var e = (Exception)args.ExceptionObject;
             //Logger.LogCriticalException("SYSTEM CRITICAL EXCEPTION: " + e);
             PlusEnvironment.PerformShutDown();
         }

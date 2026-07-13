@@ -1,29 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class rp_skill
+[Table("rp_skills")]
+public partial class RpSkill
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
     [Required]
     [StringLength(25)]
-    public string name { get; set; }
+    [Column("name")]
+    public string Name { get; set; }
 
     [Required]
     [StringLength(25)]
-    public string progress_category { get; set; }
+    [Column("progress_category")]
+    public string ProgressCategory { get; set; }
 
     [Required]
     [StringLength(255)]
-    public string description { get; set; }
+    [Column("description")]
+    public string Description { get; set; }
 
     [StringLength(255)]
-    public string badge_code { get; set; }
+    [Column("badge_code")]
+    public string BadgeCode { get; set; }
 }

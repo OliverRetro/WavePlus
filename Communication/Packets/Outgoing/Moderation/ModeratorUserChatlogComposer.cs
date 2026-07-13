@@ -39,7 +39,8 @@ namespace Plus.Communication.Packets.Outgoing.Moderation
                 foreach (ChatLogEntry entry in chatlog.Value)
                 {
                     string username = "NOT FOUND";
-                    if (entry.PlayerNullable() != null) {
+                    if (entry.PlayerNullable() != null)
+                    {
                         username = entry.PlayerNullable().Username;
                     }
 

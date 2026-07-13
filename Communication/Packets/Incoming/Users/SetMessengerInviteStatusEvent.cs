@@ -16,8 +16,8 @@ namespace Plus.Communication.Packets.Incoming.Users
             string messengerInvites = PlusEnvironment.BoolToEnum(status);
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.users.Where(u => u.id == userId)
-                    .ExecuteUpdate(s => s.SetProperty(u => u.ignore_invites, messengerInvites));
+                db.Users.Where(u => u.Id == userId)
+                    .ExecuteUpdate(s => s.SetProperty(u => u.IgnoreInvites, messengerInvites));
             }
         }
     }

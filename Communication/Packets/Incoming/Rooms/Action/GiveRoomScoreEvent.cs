@@ -37,7 +37,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Action
             int score = room.Score;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.rooms.Where(r => r.id == roomId).ExecuteUpdate(s => s.SetProperty(r => r.score, score));
+                db.Rooms.Where(r => r.Id == roomId).ExecuteUpdate(s => s.SetProperty(r => r.Score, score));
             }
 
             session.GetHabbo().RatedRooms.Add(room.RoomId);

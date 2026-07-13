@@ -18,7 +18,8 @@ namespace Plus.Communication.Packets.Outgoing.Marketplace
         public override void Compose(ServerPacket packet)
         {
             packet.WriteInteger(Offers.Count);
-            if (Offers.Count > 0) {
+            if (Offers.Count > 0)
+            {
                 foreach (KeyValuePair<int, MarketOffer> pair in Offers)
                 {
                     packet.WriteInteger(pair.Value.OfferId);

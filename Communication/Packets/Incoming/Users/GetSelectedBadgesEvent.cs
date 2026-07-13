@@ -16,7 +16,8 @@ namespace Plus.Communication.Packets.Incoming.Users
 
             session.SendPacket(new HabboUserBadgesComposer(habbo));
 
-            if (session?.GetHabbo() != null) {
+            if (session?.GetHabbo() != null)
+            {
                 Habbo target = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(userId)?.GetHabbo();
                 if (target != null)
                     TargetLockService.StickyClick(session.GetHabbo(), target);

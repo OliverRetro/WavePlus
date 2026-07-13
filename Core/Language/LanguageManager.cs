@@ -23,10 +23,10 @@ namespace Plus.Core.Language
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                var rows = db.server_locales.Select(l => new { l.key, l.value }).ToList();
+                var rows = db.ServerLocales.Select(l => new { l.Key, l.Value }).ToList();
                 foreach (var row in rows)
                 {
-                    _values.Add(row.key, row.value);
+                    _values.Add(row.Key, row.Value);
                 }
             }
 

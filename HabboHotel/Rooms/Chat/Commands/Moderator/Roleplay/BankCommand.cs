@@ -1,7 +1,5 @@
-﻿using Plus.Communication.Packets.Outgoing.Inventory.Purse;
-using Plus.HabboHotel.GameClients;
+﻿using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Roleplay.Banking;
-using Plus.HabboHotel.Users;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
 {
@@ -14,13 +12,15 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
         public string Description => "Manage bank account";
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length == 1) {
+            if (@params.Length == 1)
+            {
                 session.SendWhisper("Usage :bank <username> <type> <amount>");
                 return;
             }
 
             GameClient target = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(@params[1]);
-            if (target == null) {
+            if (target == null)
+            {
                 session.SendWhisper("Oops, couldn't find that user!");
                 return;
             }
@@ -33,7 +33,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
                     {
                         bool created = PlusEnvironment.GetBankingManager().CreateAccount(target.GetHabbo());
 
-                        if (!created) {
+                        if (!created)
+                        {
                             session.SendWhisper("User already has a bank account.");
                             return;
                         }
@@ -44,15 +45,18 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
 
                 case "withdraw":
                     {
-                        if (!session.GetHabbo().GetPermissions().HasCommand("command_give_pixels")) {
+                        if (!session.GetHabbo().GetPermissions().HasCommand("command_give_pixels"))
+                        {
                             session.SendWhisper("Oops, it appears that you do not have the permissions to use this command!");
                             break;
                         }
 
-                        if (int.TryParse(@params[3], out int amount)) {
+                        if (int.TryParse(@params[3], out int amount))
+                        {
                             BankTransactionResult result = PlusEnvironment.GetBankingManager().Withdraw(target.GetHabbo(), amount, "COMMAND");
 
-                            if (!result.Success) {
+                            if (!result.Success)
+                            {
                                 session.SendWhisper("Withdrawal failed.");
                                 return;
                             }
@@ -67,15 +71,18 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
 
                 case "deposit":
                     {
-                        if (!session.GetHabbo().GetPermissions().HasCommand("command_give_diamonds")) {
+                        if (!session.GetHabbo().GetPermissions().HasCommand("command_give_diamonds"))
+                        {
                             session.SendWhisper("Oops, it appears that you do not have the permissions to use this command!");
                             break;
                         }
 
-                        if (int.TryParse(@params[3], out int amount)) {
+                        if (int.TryParse(@params[3], out int amount))
+                        {
                             BankTransactionResult result = PlusEnvironment.GetBankingManager().Deposit(target.GetHabbo(), amount, "COMMAND");
 
-                            if (!result.Success) {
+                            if (!result.Success)
+                            {
                                 session.SendWhisper("Deposit failed.");
                                 return;
                             }

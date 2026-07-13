@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using log4net;
 using Plus.Database.EF;
-using Plus.HabboHotel.Items;
 using Plus.HabboHotel.Rooms;
 
 namespace Plus.Core.Cache
@@ -23,14 +22,15 @@ namespace Plus.Core.Cache
         {
             List<int> ids;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                ids = [.. db.rooms.Where(r => r.roomtype == "public").Select(r => r.id)];
+                ids = [.. db.Rooms.Where(r => r.Roomtype == "public").Select(r => r.Id)];
 
             int loaded = 0;
             foreach (int id in ids)
             {
                 try
                 {
-                    if (PlusEnvironment.GetGame().GetRoomManager().TryLoadRoom(id, out Room room)) {
+                    if (PlusEnvironment.GetGame().GetRoomManager().TryLoadRoom(id, out Room room))
+                    {
                         Mirror(room);
                         loaded++;
                     }
@@ -60,7 +60,8 @@ namespace Plus.Core.Cache
             if (redis == null || !redis.IsAvailable || room == null)
                 return;
 
-            var snapshot = new {
+            var snapshot = new
+            {
                 room.Id,
                 room.Name,
                 room.ModelName,
@@ -72,7 +73,8 @@ namespace Plus.Core.Cache
                 room.Wallpaper,
                 room.Floor,
                 room.Landscape,
-                Items = room.GetRoomItemHandler().GetWallAndFloor.Select(i => new {
+                Items = room.GetRoomItemHandler().GetWallAndFloor.Select(i => new
+                {
                     i.Id,
                     i.BaseItem,
                     Name = i.GetBaseItem()?.ItemName,

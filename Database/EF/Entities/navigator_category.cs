@@ -1,48 +1,49 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class navigator_category
+[Table("navigator_categories")]
+public partial class NavigatorCategory
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
     [Required]
-    [Column(TypeName = "enum('official_view','hotel_view','myworld_view','roomads_view','query')")]
-    public string category { get; set; }
-
-    [Required]
-    [StringLength(35)]
-    public string category_identifier { get; set; }
+    [Column("category", TypeName = "enum('official_view','hotel_view','myworld_view','roomads_view','query')")]
+    public string Category { get; set; }
 
     [Required]
     [StringLength(35)]
-    public string public_name { get; set; }
+    [Column("category_identifier")]
+    public string CategoryIdentifier { get; set; }
 
     [Required]
-    [Column(TypeName = "enum('REGULAR','THUMBNAIL')")]
-    public string view_mode { get; set; }
+    [StringLength(35)]
+    [Column("public_name")]
+    public string PublicName { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int required_rank { get; set; }
+    [Required]
+    [Column("view_mode", TypeName = "enum('REGULAR','THUMBNAIL')")]
+    public string ViewMode { get; set; }
+
+    [Column("required_rank", TypeName = "int(11)")]
+    public int RequiredRank { get; set; }
 
     [Required]
     [StringLength(25)]
-    public string category_type { get; set; }
+    [Column("category_type")]
+    public string CategoryType { get; set; }
 
     [Required]
-    [Column(TypeName = "enum('NOTHING','SHOW_MORE')")]
-    public string search_allowance { get; set; }
+    [Column("search_allowance", TypeName = "enum('NOTHING','SHOW_MORE')")]
+    public string SearchAllowance { get; set; }
 
     [Required]
-    [Column(TypeName = "enum('0','1')")]
-    public string enabled { get; set; }
+    [Column("enabled", TypeName = "enum('0','1')")]
+    public string Enabled { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int order_id { get; set; }
+    [Column("order_id", TypeName = "int(11)")]
+    public int OrderId { get; set; }
 }

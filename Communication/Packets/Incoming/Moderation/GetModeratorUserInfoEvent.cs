@@ -20,23 +20,25 @@ namespace Plus.Communication.Packets.Incoming.Moderation
             DataRow info;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                var userRow = db.users.Where(u => u.id == userId)
-                    .Select(u => new { u.id, u.username, u.online, u.mail, u.ip_last, u.look, u.account_created, u.last_online })
+                var userRow = db.Users.Where(u => u.Id == userId)
+                    .Select(u => new { u.Id, u.Username, u.Online, u.Mail, u.IpLast, u.Look, u.AccountCreated, u.LastOnline })
                     .FirstOrDefault();
 
-                if (userRow == null) {
+                if (userRow == null)
+                {
                     session.SendNotification(PlusEnvironment.GetLanguageManager().TryGetValue("user.not_found"));
                     return;
                 }
 
-                var infoRow = db.user_infos.Where(i => i.user_id == userId)
-                    .Select(i => new { i.cfhs, i.cfhs_abusive, i.cautions, i.bans, i.trading_locked, i.trading_locks_count })
+                var infoRow = db.UserInfos.Where(i => i.UserId == userId)
+                    .Select(i => new { i.Cfhs, i.CfhsAbusive, i.Cautions, i.Bans, i.TradingLocked, i.TradingLocksCount })
                     .FirstOrDefault();
 
-                if (infoRow == null) {
+                if (infoRow == null)
+                {
                     db.Database.ExecuteSqlInterpolated($"INSERT INTO `user_info` (`user_id`) VALUES ({userId})");
-                    infoRow = db.user_infos.Where(i => i.user_id == userId)
-                        .Select(i => new { i.cfhs, i.cfhs_abusive, i.cautions, i.bans, i.trading_locked, i.trading_locks_count })
+                    infoRow = db.UserInfos.Where(i => i.UserId == userId)
+                        .Select(i => new { i.Cfhs, i.CfhsAbusive, i.Cautions, i.Bans, i.TradingLocked, i.TradingLocksCount })
                         .FirstOrDefault();
                 }
 
@@ -49,8 +51,8 @@ namespace Plus.Communication.Packets.Incoming.Moderation
                 userTable.Columns.Add("look", typeof(string));
                 userTable.Columns.Add("account_created", typeof(string));
                 userTable.Columns.Add("last_online", typeof(int));
-                user = userTable.Rows.Add(userRow.id, userRow.username, userRow.online, userRow.mail, userRow.ip_last,
-                    userRow.look, userRow.account_created, userRow.last_online ?? 0);
+                user = userTable.Rows.Add(userRow.Id, userRow.Username, userRow.Online, userRow.Mail, userRow.IpLast,
+                    userRow.Look, userRow.AccountCreated, userRow.LastOnline ?? 0);
 
                 DataTable infoTable = new();
                 infoTable.Columns.Add("cfhs", typeof(int));
@@ -59,8 +61,8 @@ namespace Plus.Communication.Packets.Incoming.Moderation
                 infoTable.Columns.Add("bans", typeof(int));
                 infoTable.Columns.Add("trading_locked", typeof(double));
                 infoTable.Columns.Add("trading_locks_count", typeof(int));
-                info = infoTable.Rows.Add(infoRow.cfhs, infoRow.cfhs_abusive, infoRow.cautions, infoRow.bans,
-                    infoRow.trading_locked, infoRow.trading_locks_count);
+                info = infoTable.Rows.Add(infoRow.Cfhs, infoRow.CfhsAbusive, infoRow.Cautions, infoRow.Bans,
+                    infoRow.TradingLocked, infoRow.TradingLocksCount);
             }
 
             session.SendPacket(new ModeratorUserInfoComposer(user, info));

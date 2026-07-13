@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Plus.Database.EF;
 using Plus.HabboHotel.Items;
@@ -20,13 +19,14 @@ namespace Plus.HabboHotel.Catalog
             RoomId = roomId;
             ItemDataList = new List<CatalogItem>();
 
-            if (roomId != 0) {
+            if (roomId != 0)
+            {
                 uint rid = (uint)roomId;
                 // NOTE: original query LEFT JOINed items_groups but only used items.base_item; group_id was never read.
                 List<uint> baseItems;
                 using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    baseItems = db.items.Where(i => i.room_id == rid).Select(i => i.base_item).ToList();
+                    baseItems = db.Items.Where(i => i.RoomId == rid).Select(i => i.BaseItem).ToList();
                 }
 
                 Dictionary<int, int> roomItems = new();
@@ -44,7 +44,8 @@ namespace Plus.HabboHotel.Catalog
                     items += roomItem.Key + "*" + roomItem.Value + ";";
                 }
 
-                if (roomItems.Count > 0) {
+                if (roomItems.Count > 0)
+                {
                     items = items.Remove(items.Length - 1);
                 }
             }

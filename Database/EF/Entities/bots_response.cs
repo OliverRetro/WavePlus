@@ -1,35 +1,37 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[Index("bot_ai", Name = "bot_id")]
-public partial class bots_response
+[Index("BotAi", Name = "bot_id")]
+[Table("bots_responses")]
+public partial class BotsResponse
 {
     [Key]
-    [Column(TypeName = "int(10) unsigned")]
-    public uint id { get; set; }
+    [Column("id", TypeName = "int(10) unsigned")]
+    public uint Id { get; set; }
 
     [Required]
-    [Column(TypeName = "enum('generic','bartender')")]
-    public string bot_ai { get; set; }
+    [Column("bot_ai", TypeName = "enum('generic','bartender')")]
+    public string BotAi { get; set; }
 
     [Required]
-    [Column(TypeName = "text")]
-    public string chat_keywords { get; set; }
+    [Column("chat_keywords", TypeName = "text")]
+    public string ChatKeywords { get; set; }
 
     [Required]
     [StringLength(200)]
-    public string response_text { get; set; }
+    [Column("response_text")]
+    public string ResponseText { get; set; }
 
     [Required]
-    [Column(TypeName = "enum('say','shout','whisper')")]
-    public string response_mode { get; set; }
+    [Column("response_mode", TypeName = "enum('say','shout','whisper')")]
+    public string ResponseMode { get; set; }
 
     [Required]
     [StringLength(25)]
-    public string response_beverage { get; set; }
+    [Column("response_beverage")]
+    public string ResponseBeverage { get; set; }
 }

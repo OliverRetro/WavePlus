@@ -43,13 +43,16 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Engine
             packet.WriteString(string.Format("{0:0.00}", TextHandling.GetString(item.GetZ)));
             packet.WriteString(string.Empty);
 
-            if (item.LimitedNo > 0) {
+            if (item.LimitedNo > 0)
+            {
                 packet.WriteInteger(1);
                 packet.WriteInteger(256);
                 packet.WriteString(item.ExtraData);
                 packet.WriteInteger(item.LimitedNo);
                 packet.WriteInteger(item.LimitedTot);
-            } else {
+            }
+            else
+            {
                 ItemBehaviourUtility.GenerateExtradata(item, packet);
             }
 

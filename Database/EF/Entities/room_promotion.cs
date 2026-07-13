@@ -1,29 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class room_promotion
+[Table("room_promotions")]
+public partial class RoomPromotion
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int room_id { get; set; }
+    [Column("room_id", TypeName = "int(11)")]
+    public int RoomId { get; set; }
 
     [Required]
     [StringLength(35)]
-    public string title { get; set; }
+    [Column("title")]
+    public string Title { get; set; }
 
     [Required]
     [StringLength(220)]
-    public string description { get; set; }
+    [Column("description")]
+    public string Description { get; set; }
 
-    public double timestamp_start { get; set; }
+    [Column("timestamp_start")]
+    public double TimestampStart { get; set; }
 
-    public double timestamp_expire { get; set; }
+    [Column("timestamp_expire")]
+    public double TimestampExpire { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int category_id { get; set; }
+    [Column("category_id", TypeName = "int(11)")]
+    public int CategoryId { get; set; }
 }

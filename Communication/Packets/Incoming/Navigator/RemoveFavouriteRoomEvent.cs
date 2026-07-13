@@ -19,7 +19,7 @@ namespace Plus.Communication.Packets.Incoming.Navigator
             uint roomId = (uint)id;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.user_favorites.Where(f => f.user_id == userId && f.room_id == roomId).ExecuteDelete();
+                db.UserFavorites.Where(f => f.UserId == userId && f.RoomId == roomId).ExecuteDelete();
             }
         }
     }

@@ -5,7 +5,8 @@ using Plus.Database.EF;
 using Plus.Database.EF.Entities;
 using Plus.HabboHotel.Catalog.Utilities;
 using Plus.HabboHotel.GameClients;
-using Plus.HabboHotel.Items;
+// Disambiguates the bare name from the scaffolded EF entity Plus.Database.EF.Entities.Item.
+using Item = Plus.HabboHotel.Items.Item;
 
 namespace Plus.Communication.Packets.Incoming.Marketplace
 {
@@ -18,17 +19,20 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
             int itemId = packet.PopInt();
 
             Item item = session.GetHabbo().GetInventoryComponent().GetItem(itemId);
-            if (item == null) {
+            if (item == null)
+            {
                 session.SendPacket(new MarketplaceMakeOfferResultComposer(0));
                 return;
             }
 
-            if (!ItemUtility.IsRare(item)) {
+            if (!ItemUtility.IsRare(item))
+            {
                 session.SendNotification("Sorry, only Rares & LTDs can go be auctioned off in the Marketplace!");
                 return;
             }
 
-            if (sellingPrice > 70000000 || sellingPrice == 0) {
+            if (sellingPrice > 70000000 || sellingPrice == 0)
+            {
                 session.SendPacket(new MarketplaceMakeOfferResultComposer(0));
                 return;
             }
@@ -43,24 +47,24 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
             uint itemIdU = (uint)itemId;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.catalog_marketplace_offers.Add(new catalog_marketplace_offer
+                db.CatalogMarketplaceOffers.Add(new CatalogMarketplaceOffer
                 {
-                    furni_id = itemIdU,
-                    item_id = (uint)item.BaseItem,
-                    user_id = (uint)ownerId,
-                    asking_price = sellingPrice,
-                    total_price = totalPrice,
-                    public_name = item.GetBaseItem().PublicName,
-                    sprite_id = item.GetBaseItem().SpriteId,
-                    item_type = itemType.ToString(),
-                    timestamp = PlusEnvironment.GetUnixTimestamp(),
-                    extra_data = item.ExtraData,
-                    limited_number = item.LimitedNo,
-                    limited_stack = item.LimitedTot
+                    FurniId = itemIdU,
+                    ItemId = (uint)item.BaseItem,
+                    UserId = (uint)ownerId,
+                    AskingPrice = sellingPrice,
+                    TotalPrice = totalPrice,
+                    PublicName = item.GetBaseItem().PublicName,
+                    SpriteId = item.GetBaseItem().SpriteId,
+                    ItemType = itemType.ToString(),
+                    Timestamp = PlusEnvironment.GetUnixTimestamp(),
+                    ExtraData = item.ExtraData,
+                    LimitedNumber = item.LimitedNo,
+                    LimitedStack = item.LimitedTot
                 });
                 db.SaveChanges();
 
-                db.items.Where(i => i.id == itemIdU && i.user_id == ownerId).ExecuteDelete();
+                db.Items.Where(i => i.Id == itemIdU && i.UserId == ownerId).ExecuteDelete();
             }
 
             session.GetHabbo().GetInventoryComponent().RemoveItem(itemId);

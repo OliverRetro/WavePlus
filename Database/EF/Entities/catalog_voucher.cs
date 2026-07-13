@@ -1,30 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class catalog_voucher
+[Table("catalog_vouchers")]
+public partial class CatalogVoucher
 {
     [Key]
     [StringLength(45)]
-    public string voucher { get; set; }
+    [Column("voucher")]
+    public string Voucher { get; set; }
 
     [Required]
-    [Column(TypeName = "enum('credits','duckets')")]
-    public string type { get; set; }
+    [Column("type", TypeName = "enum('credits','duckets')")]
+    public string Type { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int value { get; set; }
+    [Column("value", TypeName = "int(11)")]
+    public int Value { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int current_uses { get; set; }
+    [Column("current_uses", TypeName = "int(11)")]
+    public int CurrentUses { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int max_uses { get; set; }
+    [Column("max_uses", TypeName = "int(11)")]
+    public int MaxUses { get; set; }
 
-    [Column(TypeName = "enum('0','1')")]
-    public string enabled { get; set; }
+    [Column("enabled", TypeName = "enum('0','1')")]
+    public string Enabled { get; set; }
 }

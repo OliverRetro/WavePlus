@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
@@ -22,29 +21,30 @@ namespace Plus.HabboHotel.Items.Data.Moodlight
             uint itemKey = (uint)itemId;
             using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-            var row = db.room_items_moodlights.Where(m => m.item_id == itemKey).Select(m => new { m.enabled, m.current_preset, m.preset_one, m.preset_two, m.preset_three }).FirstOrDefault();
+            var row = db.RoomItemsMoodlights.Where(m => m.ItemId == itemKey).Select(m => new { m.Enabled, m.CurrentPreset, m.PresetOne, m.PresetTwo, m.PresetThree }).FirstOrDefault();
 
-            if (row == null) {
-                db.room_items_moodlights.Add(new Database.EF.Entities.room_items_moodlight
+            if (row == null)
+            {
+                db.RoomItemsMoodlights.Add(new Database.EF.Entities.RoomItemsMoodlight
                 {
-                    item_id = itemKey,
-                    enabled = "0",
-                    current_preset = 1,
-                    preset_one = "#000000,255,0",
-                    preset_two = "#000000,255,0",
-                    preset_three = "#000000,255,0"
+                    ItemId = itemKey,
+                    Enabled = "0",
+                    CurrentPreset = 1,
+                    PresetOne = "#000000,255,0",
+                    PresetTwo = "#000000,255,0",
+                    PresetThree = "#000000,255,0"
                 });
                 db.SaveChanges();
-                row = db.room_items_moodlights.Where(m => m.item_id == itemKey).Select(m => new { m.enabled, m.current_preset, m.preset_one, m.preset_two, m.preset_three }).FirstOrDefault();
+                row = db.RoomItemsMoodlights.Where(m => m.ItemId == itemKey).Select(m => new { m.Enabled, m.CurrentPreset, m.PresetOne, m.PresetTwo, m.PresetThree }).FirstOrDefault();
             }
 
-            Enabled = PlusEnvironment.EnumToBool(row.enabled);
-            CurrentPreset = row.current_preset;
+            Enabled = PlusEnvironment.EnumToBool(row.Enabled);
+            CurrentPreset = row.CurrentPreset;
             Presets = new List<MoodlightPreset>();
 
-            Presets.Add(GeneratePreset(row.preset_one));
-            Presets.Add(GeneratePreset(row.preset_two));
-            Presets.Add(GeneratePreset(row.preset_three));
+            Presets.Add(GeneratePreset(row.PresetOne));
+            Presets.Add(GeneratePreset(row.PresetTwo));
+            Presets.Add(GeneratePreset(row.PresetThree));
         }
 
         public void Enable()
@@ -53,7 +53,7 @@ namespace Plus.HabboHotel.Items.Data.Moodlight
 
             uint itemKey = (uint)ItemId;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                db.room_items_moodlights.Where(m => m.item_id == itemKey).ExecuteUpdate(s => s.SetProperty(m => m.enabled, "1"));
+                db.RoomItemsMoodlights.Where(m => m.ItemId == itemKey).ExecuteUpdate(s => s.SetProperty(m => m.Enabled, "1"));
         }
 
         public void Disable()
@@ -62,12 +62,13 @@ namespace Plus.HabboHotel.Items.Data.Moodlight
 
             uint itemKey = (uint)ItemId;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                db.room_items_moodlights.Where(m => m.item_id == itemKey).ExecuteUpdate(s => s.SetProperty(m => m.enabled, "0"));
+                db.RoomItemsMoodlights.Where(m => m.ItemId == itemKey).ExecuteUpdate(s => s.SetProperty(m => m.Enabled, "0"));
         }
 
         public void UpdatePreset(int preset, string color, int intensity, bool bgOnly, bool hax = false)
         {
-            if (!IsValidColor(color) || !IsValidIntensity(intensity) && !hax) {
+            if (!IsValidColor(color) || !IsValidIntensity(intensity) && !hax)
+            {
                 return;
             }
 
@@ -78,15 +79,15 @@ namespace Plus.HabboHotel.Items.Data.Moodlight
                 switch (preset)
                 {
                     case 3:
-                        db.room_items_moodlights.Where(m => m.item_id == itemKey).ExecuteUpdate(s => s.SetProperty(m => m.preset_three, presetVal));
+                        db.RoomItemsMoodlights.Where(m => m.ItemId == itemKey).ExecuteUpdate(s => s.SetProperty(m => m.PresetThree, presetVal));
                         break;
 
                     case 2:
-                        db.room_items_moodlights.Where(m => m.item_id == itemKey).ExecuteUpdate(s => s.SetProperty(m => m.preset_two, presetVal));
+                        db.RoomItemsMoodlights.Where(m => m.ItemId == itemKey).ExecuteUpdate(s => s.SetProperty(m => m.PresetTwo, presetVal));
                         break;
 
                     default:
-                        db.room_items_moodlights.Where(m => m.item_id == itemKey).ExecuteUpdate(s => s.SetProperty(m => m.preset_one, presetVal));
+                        db.RoomItemsMoodlights.Where(m => m.ItemId == itemKey).ExecuteUpdate(s => s.SetProperty(m => m.PresetOne, presetVal));
                         break;
                 }
             }
@@ -100,7 +101,8 @@ namespace Plus.HabboHotel.Items.Data.Moodlight
         {
             string[] bits = data.Split(',');
 
-            if (!IsValidColor(bits[0])) {
+            if (!IsValidColor(bits[0]))
+            {
                 bits[0] = "#000000";
             }
 
@@ -111,7 +113,8 @@ namespace Plus.HabboHotel.Items.Data.Moodlight
         {
             i--;
 
-            if (Presets[i] != null) {
+            if (Presets[i] != null)
+            {
                 return Presets[i];
             }
 

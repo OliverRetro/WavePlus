@@ -24,12 +24,13 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni.Stickies
             if (item == null)
                 return;
 
-            if (item.GetBaseItem().InteractionType == InteractionType.PostIt || item.GetBaseItem().InteractionType == InteractionType.CameraPicture) {
+            if (item.GetBaseItem().InteractionType == InteractionType.PostIt || item.GetBaseItem().InteractionType == InteractionType.CameraPicture)
+            {
                 room.GetRoomItemHandler().RemoveFurniture(session, item.Id);
                 uint itemDbId = (uint)item.Id;
                 using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    db.items.Where(i => i.id == itemDbId).ExecuteDelete();
+                    db.Items.Where(i => i.Id == itemDbId).ExecuteDelete();
                 }
             }
         }

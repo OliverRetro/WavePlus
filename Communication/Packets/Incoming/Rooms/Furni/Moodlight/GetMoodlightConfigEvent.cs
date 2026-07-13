@@ -20,7 +20,8 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni.Moodlight
             if (!room.CheckRights(session, true))
                 return;
 
-            if (room.MoodlightData == null) {
+            if (room.MoodlightData == null)
+            {
                 foreach (Item item in room.GetRoomItemHandler().GetWall.ToList())
                 {
                     if (item.GetBaseItem().InteractionType == InteractionType.Moodlight)

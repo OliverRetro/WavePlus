@@ -1,27 +1,28 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[Index("skill_id", Name = "idx_user_rp_skills_skill_id")]
-[Index("user_id", "skill_id", Name = "uniq_user_rp_skills_user_skill", IsUnique = true)]
-public partial class user_rp_skill
+[Index("SkillId", Name = "idx_user_rp_skills_skill_id")]
+[Index("UserId", "SkillId", Name = "uniq_user_rp_skills_user_skill", IsUnique = true)]
+[Table("user_rp_skills")]
+public partial class UserRpSkill
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int user_id { get; set; }
+    [Column("user_id", TypeName = "int(11)")]
+    public int UserId { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int skill_id { get; set; }
+    [Column("skill_id", TypeName = "int(11)")]
+    public int SkillId { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int progress { get; set; }
+    [Column("progress", TypeName = "int(11)")]
+    public int Progress { get; set; }
 
-    public bool equipped { get; set; }
+    [Column("equipped")]
+    public bool Equipped { get; set; }
 }

@@ -14,12 +14,15 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Avatar
             if (user == null)
                 return;
 
-            if (user.Statusses.ContainsKey("lie") || user.IsLying || user.RidingHorse || user.IsWalking) {
+            if (user.Statusses.ContainsKey("lie") || user.IsLying || user.RidingHorse || user.IsWalking)
+            {
                 return;
             }
 
-            if (!user.Statusses.ContainsKey("sit")) {
-                if ((user.RotBody % 2) == 0) {
+            if (!user.Statusses.ContainsKey("sit"))
+            {
+                if ((user.RotBody % 2) == 0)
+                {
                     try
                     {
                         user.Statusses.Add("sit", "1.0");
@@ -31,14 +34,18 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Avatar
                     {
                         //ignored
                     }
-                } else {
+                }
+                else
+                {
                     user.RotBody--;
                     user.Statusses.Add("sit", "1.0");
                     user.Z -= 0.35;
                     user.IsSitting = true;
                     user.UpdateNeeded = true;
                 }
-            } else if (user.IsSitting) {
+            }
+            else if (user.IsSitting)
+            {
                 user.Z += 0.35;
                 user.Statusses.Remove("sit");
                 user.Statusses.Remove("1.0");

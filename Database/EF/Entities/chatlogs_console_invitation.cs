@@ -1,24 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[Index("id", Name = "id", IsUnique = true)]
-public partial class chatlogs_console_invitation
+[Index("Id", Name = "id", IsUnique = true)]
+[Table("chatlogs_console_invitations")]
+public partial class ChatlogsConsoleInvitation
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int user_id { get; set; }
+    [Column("user_id", TypeName = "int(11)")]
+    public int UserId { get; set; }
 
     [Required]
-    [Column(TypeName = "text")]
-    public string message { get; set; }
+    [Column("message", TypeName = "text")]
+    public string Message { get; set; }
 
-    public double timestamp { get; set; }
+    [Column("timestamp")]
+    public double Timestamp { get; set; }
 }

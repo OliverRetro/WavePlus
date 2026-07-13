@@ -1,48 +1,49 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class quest
+[Table("quests")]
+public partial class Quest
 {
     [Key]
-    [Column(TypeName = "int(10) unsigned")]
-    public uint id { get; set; }
+    [Column("id", TypeName = "int(10) unsigned")]
+    public uint Id { get; set; }
 
     [Required]
     [StringLength(32)]
-    public string type { get; set; }
+    [Column("type")]
+    public string Type { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int level_num { get; set; }
+    [Column("level_num", TypeName = "int(11)")]
+    public int LevelNum { get; set; }
 
-    [Column(TypeName = "int(10)")]
-    public int goal_type { get; set; }
+    [Column("goal_type", TypeName = "int(10)")]
+    public int GoalType { get; set; }
 
-    [Column(TypeName = "int(10) unsigned")]
-    public uint goal_data { get; set; }
+    [Column("goal_data", TypeName = "int(10) unsigned")]
+    public uint GoalData { get; set; }
 
     [Required]
     [StringLength(32)]
-    public string action { get; set; }
+    [Column("action")]
+    public string Action { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int pixel_reward { get; set; }
+    [Column("pixel_reward", TypeName = "int(11)")]
+    public int PixelReward { get; set; }
 
     [Required]
     [StringLength(2)]
-    public string data_bit { get; set; }
+    [Column("data_bit")]
+    public string DataBit { get; set; }
 
     [Required]
-    [Column(TypeName = "enum('0','1','2','3','4','5')")]
-    public string reward_type { get; set; }
+    [Column("reward_type", TypeName = "enum('0','1','2','3','4','5')")]
+    public string RewardType { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int timestamp_unlock { get; set; }
+    [Column("timestamp_unlock", TypeName = "int(11)")]
+    public int TimestampUnlock { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int timestamp_lock { get; set; }
+    [Column("timestamp_lock", TypeName = "int(11)")]
+    public int TimestampLock { get; set; }
 }

@@ -1,7 +1,4 @@
-﻿using System.Linq;
-using Microsoft.EntityFrameworkCore;
-using Plus.Communication.Packets.Outgoing.Groups;
-using Plus.Database.EF;
+﻿using Plus.Communication.Packets.Outgoing.Groups;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
 

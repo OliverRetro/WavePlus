@@ -26,7 +26,8 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Action
             foreach (int userId in new List<int>(instance.UsersWithRights))
             {
                 RoomUser user = instance.GetRoomUserManager().GetRoomUserByHabbo(userId);
-                if (user != null && !user.IsBot) {
+                if (user != null && !user.IsBot)
+                {
                     user.RemoveStatus("flatctrl 1");
                     user.UpdateNeeded = true;
 
@@ -37,7 +38,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Action
                 uint rid = (uint)instance.Id;
                 using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    db.room_rights.Where(r => r.user_id == uid && r.room_id == rid).ExecuteDelete();
+                    db.RoomRights.Where(r => r.UserId == uid && r.RoomId == rid).ExecuteDelete();
                 }
 
                 session.SendPacket(new FlatControllerRemovedComposer(instance.Id, userId));

@@ -38,7 +38,8 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
 
             TimeSpan timeSinceRegen = DateTime.Now - Instance.LastRegeneration;
 
-            if (timeSinceRegen.TotalMinutes > 1) {
+            if (timeSinceRegen.TotalMinutes > 1)
+            {
                 Instance.GetGameMap().GenerateMaps();
                 Instance.LastRegeneration = DateTime.Now;
                 return true;

@@ -1,26 +1,27 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[Index("user_id", "name", Name = "uniq_user_macro", IsUnique = true)]
-public partial class users_macro
+[Index("UserId", "Name", Name = "uniq_user_macro", IsUnique = true)]
+[Table("users_macros")]
+public partial class UsersMacro
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int user_id { get; set; }
+    [Column("user_id", TypeName = "int(11)")]
+    public int UserId { get; set; }
 
     [Required]
-    [Column(TypeName = "tinytext")]
-    public string name { get; set; }
+    [Column("name", TypeName = "tinytext")]
+    public string Name { get; set; }
 
     [Required]
     [StringLength(16000)]
-    public string configs { get; set; }
+    [Column("configs")]
+    public string Configs { get; set; }
 }

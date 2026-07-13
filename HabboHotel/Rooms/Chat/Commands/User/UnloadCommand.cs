@@ -12,7 +12,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (room.CheckRights(session, true) || session.GetHabbo().GetPermissions().HasRight("room_unload_any")) {
+            if (room.CheckRights(session, true) || session.GetHabbo().GetPermissions().HasRight("room_unload_any"))
+            {
                 PlusEnvironment.GetGame().GetRoomManager().UnloadRoom(room.Id);
             }
         }

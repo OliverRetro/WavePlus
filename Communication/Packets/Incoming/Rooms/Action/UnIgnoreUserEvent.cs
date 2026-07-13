@@ -28,12 +28,13 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Action
             if (!session.GetHabbo().GetIgnores().TryGet(player.Id))
                 return;
 
-            if (session.GetHabbo().GetIgnores().TryRemove(player.Id)) {
+            if (session.GetHabbo().GetIgnores().TryRemove(player.Id))
+            {
                 uint uid = (uint)session.GetHabbo().Id;
                 uint ignoreId = (uint)player.Id;
                 using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    db.user_ignores.Where(x => x.user_id == uid && x.ignore_id == ignoreId).ExecuteDelete();
+                    db.UserIgnores.Where(x => x.UserId == uid && x.IgnoreId == ignoreId).ExecuteDelete();
                 }
 
                 session.SendPacket(new IgnoreStatusComposer(3, player.Username));

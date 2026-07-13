@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
@@ -7,23 +6,23 @@ using Microsoft.EntityFrameworkCore;
 namespace Plus.Database.EF.Entities;
 
 [Table("room_items_toner")]
-[Index("enabled", Name = "enabled")]
-[Index("id", Name = "id", IsUnique = true)]
-public partial class room_items_toner
+[Index("Enabled", Name = "enabled")]
+[Index("Id", Name = "id", IsUnique = true)]
+public partial class RoomItemsToner
 {
     [Key]
-    [Column(TypeName = "int(11) unsigned")]
-    public uint id { get; set; }
+    [Column("id", TypeName = "int(11) unsigned")]
+    public uint Id { get; set; }
 
-    [Column(TypeName = "enum('0','1')")]
-    public string enabled { get; set; }
+    [Column("enabled", TypeName = "enum('0','1')")]
+    public string Enabled { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int data1 { get; set; }
+    [Column("data1", TypeName = "int(11)")]
+    public int Data1 { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int data2 { get; set; }
+    [Column("data2", TypeName = "int(11)")]
+    public int Data2 { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int data3 { get; set; }
+    [Column("data3", TypeName = "int(11)")]
+    public int Data3 { get; set; }
 }

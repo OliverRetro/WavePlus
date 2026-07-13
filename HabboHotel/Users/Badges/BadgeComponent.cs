@@ -5,8 +5,8 @@ using Plus.Communication.Packets.Outgoing.Inventory.Badges;
 using Plus.Communication.Packets.Outgoing.Inventory.Furni;
 using Plus.Database.EF;
 using Plus.Database.EF.Entities;
-using Plus.HabboHotel.Badges;
 using Plus.HabboHotel.GameClients;
+using BadgeDefinition = Plus.HabboHotel.Badges.BadgeDefinition;
 
 namespace Plus.HabboHotel.Users.Badges
 {
@@ -41,7 +41,8 @@ namespace Plus.HabboHotel.Users.Badges
 
                 foreach (Badge badge in _badges.Values)
                 {
-                    if (badge.Slot <= 0) {
+                    if (badge.Slot <= 0)
+                    {
                         continue;
                     }
 
@@ -80,19 +81,21 @@ namespace Plus.HabboHotel.Users.Badges
             if (!PlusEnvironment.GetGame().GetBadgeManager().TryGetBadge(code.ToUpper(), out BadgeDefinition badge) || badge.RequiredRight.Length > 0 && !session.GetHabbo().GetPermissions().HasRight(badge.RequiredRight))
                 return;
 
-            if (inDatabase) {
+            if (inDatabase)
+            {
                 using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                    db.user_badges.Upsert(new user_badge
+                    db.UserBadges.Upsert(new UserBadge
                     {
-                        user_id = (uint)_player.Id,
-                        badge_id = code,
-                        badge_slot = 0
-                    }).On(b => new { b.user_id, b.badge_id }).Run();
+                        UserId = (uint)_player.Id,
+                        BadgeId = code,
+                        BadgeSlot = 0
+                    }).On(b => new { b.UserId, b.BadgeId }).Run();
             }
 
             _badges.Add(code, new Badge(code, 0));
 
-            if (session != null) {
+            if (session != null)
+            {
                 session.SendPacket(new BadgesComposer(session.GetHabbo().GetBadgeComponent().GetBadges()));
                 session.SendPacket(new FurniListNotificationComposer(1, 4));
             }
@@ -108,13 +111,14 @@ namespace Plus.HabboHotel.Users.Badges
 
         public void RemoveBadge(string badge)
         {
-            if (!HasBadge(badge)) {
+            if (!HasBadge(badge))
+            {
                 return;
             }
 
             uint uid = (uint)_player.Id;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                db.user_badges.Where(b => b.badge_id == badge && b.user_id == uid).ExecuteDelete();
+                db.UserBadges.Where(b => b.BadgeId == badge && b.UserId == uid).ExecuteDelete();
 
             if (_badges.ContainsKey(badge))
                 _badges.Remove(badge);

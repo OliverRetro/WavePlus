@@ -71,7 +71,8 @@ namespace Plus.HabboHotel.Roleplay.Utilities
                     string stateKey = session.GetHabbo().Id + ":" + track.Key;
                     bool standing = IsStandingOn(tileItems, track.Value);
 
-                    if (!standing) {
+                    if (!standing)
+                    {
                         // Stepped off — keep the leftover remainder but stop counting the gap.
                         if (States.TryGetValue(stateKey, out StandState off))
                             off.LastSeen = 0;
@@ -83,7 +84,8 @@ namespace Plus.HabboHotel.Roleplay.Utilities
                         state.AccumSeconds += now - state.LastSeen;
                     state.LastSeen = now;
 
-                    if (state.AccumSeconds >= MinuteSeconds) {
+                    if (state.AccumSeconds >= MinuteSeconds)
+                    {
                         int minutes = (int)(state.AccumSeconds / MinuteSeconds);
                         state.AccumSeconds -= minutes * MinuteSeconds;
                         PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(session, track.Key, minutes);

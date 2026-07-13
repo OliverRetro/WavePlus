@@ -74,19 +74,19 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
                 switch (decorationKey)
                 {
                     case "floor":
-                        db.rooms.Where(r => r.id == rid).ExecuteUpdate(s => s.SetProperty(r => r.floor, extraData));
+                        db.Rooms.Where(r => r.Id == rid).ExecuteUpdate(s => s.SetProperty(r => r.Floor, extraData));
                         break;
 
                     case "wallpaper":
-                        db.rooms.Where(r => r.id == rid).ExecuteUpdate(s => s.SetProperty(r => r.wallpaper, extraData));
+                        db.Rooms.Where(r => r.Id == rid).ExecuteUpdate(s => s.SetProperty(r => r.Wallpaper, extraData));
                         break;
 
                     case "landscape":
-                        db.rooms.Where(r => r.id == rid).ExecuteUpdate(s => s.SetProperty(r => r.landscape, extraData));
+                        db.Rooms.Where(r => r.Id == rid).ExecuteUpdate(s => s.SetProperty(r => r.Landscape, extraData));
                         break;
                 }
 
-                db.items.Where(i => i.id == itemDbId).ExecuteDelete();
+                db.Items.Where(i => i.Id == itemDbId).ExecuteDelete();
             }
 
             session.GetHabbo().GetInventoryComponent().RemoveItem(item.Id);

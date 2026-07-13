@@ -38,7 +38,8 @@
 
             if (isItem)
                 packet.WriteInteger(ItemId);
-            else {
+            else
+            {
                 packet.WriteInteger(RollerId);
                 packet.WriteInteger(2);
                 packet.WriteInteger(AvatarId);
@@ -47,7 +48,8 @@
             packet.WriteDouble(FromZ);
             packet.WriteDouble(ToZ);
 
-            if (isItem) {
+            if (isItem)
+            {
                 packet.WriteInteger(RollerId);
             }
         }

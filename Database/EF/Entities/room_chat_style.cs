@@ -1,20 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class room_chat_style
+[Table("room_chat_styles")]
+public partial class RoomChatStyle
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
     [StringLength(25)]
-    public string name { get; set; }
+    [Column("name")]
+    public string Name { get; set; }
 
     [StringLength(25)]
-    public string required_right { get; set; }
+    [Column("required_right")]
+    public string RequiredRight { get; set; }
 }

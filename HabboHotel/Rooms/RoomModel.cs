@@ -57,9 +57,12 @@ namespace Plus.HabboHotel.Rooms
                     int x = 0;
                     foreach (char square in line)
                     {
-                        if (square == 'x') {
+                        if (square == 'x')
+                        {
                             SqState[x, y] = SquareState.Blocked;
-                        } else {
+                        }
+                        else
+                        {
                             SqState[x, y] = SquareState.Open;
                             SqFloorHeight[x, y] = Parse(square);
                         }

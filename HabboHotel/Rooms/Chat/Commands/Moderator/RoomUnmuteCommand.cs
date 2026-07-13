@@ -13,7 +13,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (!room.RoomMuted) {
+            if (!room.RoomMuted)
+            {
                 session.SendWhisper("This room isn't muted.");
                 return;
             }
@@ -21,7 +22,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
             room.RoomMuted = false;
 
             List<RoomUser> roomUsers = room.GetRoomUserManager().GetRoomUsers();
-            if (roomUsers.Count > 0) {
+            if (roomUsers.Count > 0)
+            {
                 foreach (RoomUser user in roomUsers)
                 {
                     if (user == null || user.GetClient() == null || user.GetClient().GetHabbo() == null || user.GetClient().GetHabbo().Username == session.GetHabbo().Username)

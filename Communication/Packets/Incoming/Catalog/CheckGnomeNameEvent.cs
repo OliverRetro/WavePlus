@@ -32,12 +32,14 @@ namespace Plus.Communication.Packets.Incoming.Catalog
                 return;
 
             string petName = packet.PopString();
-            if (string.IsNullOrEmpty(petName)) {
+            if (string.IsNullOrEmpty(petName))
+            {
                 session.SendPacket(new CheckGnomeNameComposer(petName, 1));
                 return;
             }
 
-            if (!PlusEnvironment.IsValidAlphaNumeric(petName)) {
+            if (!PlusEnvironment.IsValidAlphaNumeric(petName))
+            {
                 session.SendPacket(new CheckGnomeNameComposer(petName, 1));
                 return;
             }
@@ -49,7 +51,7 @@ namespace Plus.Communication.Packets.Incoming.Catalog
             uint deleteItemId = (uint)item.Id;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.items.Where(i => i.id == deleteItemId).ExecuteDelete();
+                db.Items.Where(i => i.Id == deleteItemId).ExecuteDelete();
             }
 
             //Remove the item.
@@ -60,12 +62,13 @@ namespace Plus.Communication.Packets.Incoming.Catalog
 
             //Create the pet here.
             Pet pet = PetUtility.CreatePet(session.GetHabbo().Id, petName, 26, "30", "ffffff");
-            if (pet == null) {
+            if (pet == null)
+            {
                 session.SendNotification("Oops, an error occoured. Please report this!");
                 return;
             }
 
-            List<RandomSpeech> rndSpeechList = new();
+            List<RandomSpeech> rndSpeechList = [];
 
             pet.RoomId = session.GetHabbo().CurrentRoomId;
             pet.GnomeClothing = RandomClothing();
@@ -75,16 +78,18 @@ namespace Plus.Communication.Packets.Incoming.Catalog
             string gnomeClothing = pet.GnomeClothing;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.bots_petdata.Where(p => p.id == petId).ExecuteUpdate(s => s.SetProperty(p => p.gnome_clothing, gnomeClothing));
+                db.BotsPetdata.Where(p => p.Id == petId).ExecuteUpdate(s => s.SetProperty(p => p.GnomeClothing, gnomeClothing));
             }
 
             //Make a RoomUser of the pet.
             room.GetRoomUserManager().DeployBot(new RoomBot(pet.PetId, pet.RoomId, "pet", "freeroam", pet.Name, "", pet.Look, x, y, 0, 0, 0, 0, 0, 0, ref rndSpeechList, "", 0, pet.OwnerId, false, 0, false, 0, 0), pet);
 
             //Give the food.
-            if (PlusEnvironment.GetGame().GetItemManager().GetItem(320, out ItemData petFood)) {
+            if (PlusEnvironment.GetGame().GetItemManager().GetItem(320, out ItemData petFood))
+            {
                 Item food = ItemFactory.CreateSingleItemNullable(petFood, session.GetHabbo(), "", "");
-                if (food != null) {
+                if (food != null)
+                {
                     session.GetHabbo().GetInventoryComponent().TryAddItem(food);
                     session.SendPacket(new FurniListNotificationComposer(food.Id, 1));
                 }
@@ -96,21 +101,15 @@ namespace Plus.Communication.Packets.Incoming.Catalog
             Random random = new();
 
             int randomNumber = random.Next(1, 6);
-            switch (randomNumber)
+            return randomNumber switch
             {
-                default:
-                    return "5 0 -1 0 4 402 5 3 301 4 1 101 2 2 201 3";
-                case 2:
-                    return "5 0 -1 0 1 102 13 3 301 4 4 401 5 2 201 3";
-                case 3:
-                    return "5 1 102 8 2 201 16 4 401 9 3 303 4 0 -1 6";
-                case 4:
-                    return "5 0 -1 0 3 303 4 4 401 5 1 101 2 2 201 3";
-                case 5:
-                    return "5 3 302 4 2 201 11 1 102 12 0 -1 28 4 401 24";
-                case 6:
-                    return "5 4 402 5 3 302 21 0 -1 7 1 101 12 2 201 17";
-            }
+                2 => "5 0 -1 0 1 102 13 3 301 4 4 401 5 2 201 3",
+                3 => "5 1 102 8 2 201 16 4 401 9 3 303 4 0 -1 6",
+                4 => "5 0 -1 0 3 303 4 4 401 5 1 101 2 2 201 3",
+                5 => "5 3 302 4 2 201 11 1 102 12 0 -1 28 4 401 24",
+                6 => "5 4 402 5 3 302 21 0 -1 7 1 101 12 2 201 17",
+                _ => "5 0 -1 0 4 402 5 3 301 4 1 101 2 2 201 3",
+            };
         }
     }
 }

@@ -17,25 +17,29 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length == 1) {
+            if (@params.Length == 1)
+            {
                 session.SendWhisper("Please enter a username and a valid length in days (min 1 day, max 365 days).");
                 return;
             }
 
             Habbo habbo = PlusEnvironment.GetHabboByUsername(@params[1]);
-            if (habbo == null) {
+            if (habbo == null)
+            {
                 session.SendWhisper("An error occoured whilst finding that user in the database.");
                 return;
             }
 
             int habboId = habbo.Id;
-            if (Convert.ToDouble(@params[2]) == 0) {
+            if (Convert.ToDouble(@params[2]) == 0)
+            {
                 using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    db.user_infos.Where(ui => ui.user_id == habboId).ExecuteUpdate(s => s.SetProperty(ui => ui.trading_locked, 0d));
+                    db.UserInfos.Where(ui => ui.UserId == habboId).ExecuteUpdate(s => s.SetProperty(ui => ui.TradingLocked, 0d));
                 }
 
-                if (habbo.GetClient() != null) {
+                if (habbo.GetClient() != null)
+                {
                     habbo.TradingLockExpiry = 0;
                     habbo.GetClient().SendNotification("Your outstanding trade ban has been removed.");
                 }
@@ -44,7 +48,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
                 return;
             }
 
-            if (double.TryParse(@params[2], out double days)) {
+            if (double.TryParse(@params[2], out double days))
+            {
                 if (days < 1)
                     days = 1;
 
@@ -54,16 +59,18 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
                 double length = (PlusEnvironment.GetUnixTimestamp() + (days * 86400));
                 using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    db.user_infos.Where(ui => ui.user_id == habboId).ExecuteUpdate(s => s.SetProperty(ui => ui.trading_locked, length).SetProperty(ui => ui.trading_locks_count, ui => ui.trading_locks_count + 1));
+                    db.UserInfos.Where(ui => ui.UserId == habboId).ExecuteUpdate(s => s.SetProperty(ui => ui.TradingLocked, length).SetProperty(ui => ui.TradingLocksCount, ui => ui.TradingLocksCount + 1));
                 }
 
-                if (habbo.GetClient() != null) {
+                if (habbo.GetClient() != null)
+                {
                     habbo.TradingLockExpiry = length;
                     habbo.GetClient().SendNotification("You have been trade banned for " + days + " day(s)!");
                 }
 
                 session.SendWhisper("You have successfully trade banned " + habbo.Username + " for " + days + " day(s).");
-            } else
+            }
+            else
                 session.SendWhisper("Please enter a valid integer.");
         }
     }

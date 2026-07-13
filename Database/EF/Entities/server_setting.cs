@@ -1,21 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class server_setting
+[Table("server_settings")]
+public partial class ServerSetting
 {
     [Key]
-    public string key { get; set; }
+    [Column("key")]
+    public string Key { get; set; }
 
     [Required]
-    [Column(TypeName = "text")]
-    public string value { get; set; }
+    [Column("value", TypeName = "text")]
+    public string Value { get; set; }
 
     [Required]
-    [Column(TypeName = "text")]
-    public string description { get; set; }
+    [Column("description", TypeName = "text")]
+    public string Description { get; set; }
 }

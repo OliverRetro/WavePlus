@@ -5,20 +5,20 @@ namespace Plus.HabboHotel.Users.Authenticator
 {
     public static class HabboFactory
     {
-        public static Habbo GenerateHabbo(user row, user_info userInfo)
+        public static Habbo GenerateHabbo(User row, UserInfo userInfo)
         {
-            Habbo habbo = new Habbo(row.id, row.username, (int)(row.rank ?? 0), row.motto, row.look,
-                row.gender, row.credits ?? 0, row.activity_points ?? 0,
-                row.home_room ?? 0, PlusEnvironment.EnumToBool(row.block_newfriends), row.last_online ?? 0,
-                PlusEnvironment.EnumToBool(row.hide_online), PlusEnvironment.EnumToBool(row.hide_inroom),
-                Convert.ToDouble(row.account_created), row.vip_points ?? 0, row.machine_id, row.volume,
-                PlusEnvironment.EnumToBool(row.chat_preference), PlusEnvironment.EnumToBool(row.focus_preference), PlusEnvironment.EnumToBool(row.pets_muted), PlusEnvironment.EnumToBool(row.bots_muted),
-                PlusEnvironment.EnumToBool(row.advertising_report_blocked), (double)(row.last_change ?? 0), row.gotw_points ?? 0,
-                PlusEnvironment.EnumToBool(row.ignore_invites), row.time_muted ?? 0, userInfo.trading_locked,
-                PlusEnvironment.EnumToBool(row.allow_gifts), (row.friend_bar_state ?? false) ? 1 : 0, PlusEnvironment.EnumToBool(row.disable_forced_effects),
-                PlusEnvironment.EnumToBool(row.allow_mimic), row.rank_vip ?? 0, row.bubble);
+            Habbo habbo = new Habbo(row.Id, row.Username, (int)(row.Rank ?? 0), row.Motto, row.Look,
+                row.Gender, row.Credits ?? 0, row.ActivityPoints ?? 0,
+                row.HomeRoom ?? 0, PlusEnvironment.EnumToBool(row.BlockNewfriends), row.LastOnline ?? 0,
+                PlusEnvironment.EnumToBool(row.HideOnline), PlusEnvironment.EnumToBool(row.HideInroom),
+                Convert.ToDouble(row.AccountCreated), row.VipPoints ?? 0, row.MachineId, row.Volume,
+                PlusEnvironment.EnumToBool(row.ChatPreference), PlusEnvironment.EnumToBool(row.FocusPreference), PlusEnvironment.EnumToBool(row.PetsMuted), PlusEnvironment.EnumToBool(row.BotsMuted),
+                PlusEnvironment.EnumToBool(row.AdvertisingReportBlocked), (double)(row.LastChange ?? 0), row.GotwPoints ?? 0,
+                PlusEnvironment.EnumToBool(row.IgnoreInvites), row.TimeMuted ?? 0, userInfo.TradingLocked,
+                PlusEnvironment.EnumToBool(row.AllowGifts), (row.FriendBarState ?? false) ? 1 : 0, PlusEnvironment.EnumToBool(row.DisableForcedEffects),
+                PlusEnvironment.EnumToBool(row.AllowMimic), row.RankVip ?? 0, row.Bubble);
 
-            habbo.LoadHomeRoomData(row.home_room_data);
+            habbo.LoadHomeRoomData(row.HomeRoomData);
 
             return habbo;
         }

@@ -1,26 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class messenger_offline_message
+[Table("messenger_offline_messages")]
+public partial class MessengerOfflineMessage
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
-    [Column(TypeName = "int(11) unsigned")]
-    public uint to_id { get; set; }
+    [Column("to_id", TypeName = "int(11) unsigned")]
+    public uint ToId { get; set; }
 
-    [Column(TypeName = "int(11) unsigned")]
-    public uint from_id { get; set; }
+    [Column("from_id", TypeName = "int(11) unsigned")]
+    public uint FromId { get; set; }
 
     [Required]
     [StringLength(255)]
-    public string message { get; set; }
+    [Column("message")]
+    public string Message { get; set; }
 
-    public double timestamp { get; set; }
+    [Column("timestamp")]
+    public double Timestamp { get; set; }
 }

@@ -23,7 +23,8 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.AI.Pets
 
         public override void Compose(ServerPacket packet)
         {
-            if (Pet != null) {
+            if (Pet != null)
+            {
                 packet.WriteInteger(Pet.PetId);
                 packet.WriteString(Pet.Name);
                 packet.WriteInteger(Pet.Level);
@@ -55,7 +56,9 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.AI.Pets
                 packet.WriteInteger(-1);
                 packet.WriteInteger(-1);
                 packet.WriteBoolean(false);
-            } else if (Habbo != null) {
+            }
+            else if (Habbo != null)
+            {
                 packet.WriteInteger(Habbo.Id);
                 packet.WriteString(Habbo.Username);
                 packet.WriteInteger(Habbo.Rank);

@@ -40,14 +40,15 @@ namespace Plus.HabboHotel.Rooms.Chat.Logs
         {
             _lock.EnterWriteLock();
 
-            if (_chatLogs.Count > 0) {
+            if (_chatLogs.Count > 0)
+            {
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
-                db.chatlogs.AddRange(_chatLogs.Select(entry => new Database.EF.Entities.chatlog
+                db.Chatlogs.AddRange(_chatLogs.Select(entry => new Database.EF.Entities.Chatlog
                 {
-                    user_id = (uint)entry.PlayerId,
-                    room_id = (uint)entry.RoomId,
-                    timestamp = entry.Timestamp,
-                    message = entry.Message
+                    UserId = (uint)entry.PlayerId,
+                    RoomId = (uint)entry.RoomId,
+                    Timestamp = entry.Timestamp,
+                    Message = entry.Message
                 }));
                 db.SaveChanges();
             }

@@ -1,36 +1,36 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class server_reward
+[Table("server_rewards")]
+public partial class ServerReward
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int reward_start { get; set; }
+    [Column("reward_start", TypeName = "int(11)")]
+    public int RewardStart { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int reward_end { get; set; }
-
-    [Required]
-    [Column(TypeName = "enum('credits','badge','diamonds','duckets','none')")]
-    public string reward_type { get; set; }
+    [Column("reward_end", TypeName = "int(11)")]
+    public int RewardEnd { get; set; }
 
     [Required]
-    [StringLength(255)]
-    public string reward_data { get; set; }
+    [Column("reward_type", TypeName = "enum('credits','badge','diamonds','duckets','none')")]
+    public string RewardType { get; set; }
 
     [Required]
     [StringLength(255)]
-    public string message { get; set; }
+    [Column("reward_data")]
+    public string RewardData { get; set; }
 
     [Required]
-    [Column(TypeName = "enum('1','0')")]
-    public string enabled { get; set; }
+    [StringLength(255)]
+    [Column("message")]
+    public string Message { get; set; }
+
+    [Required]
+    [Column("enabled", TypeName = "enum('1','0')")]
+    public string Enabled { get; set; }
 }

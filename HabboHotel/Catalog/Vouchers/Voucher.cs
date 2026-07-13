@@ -21,7 +21,7 @@ namespace Plus.HabboHotel.Catalog.Vouchers
             string code = Code;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.catalog_vouchers.Where(v => v.voucher == code).ExecuteUpdate(s => s.SetProperty(v => v.current_uses, v => v.current_uses + 1));
+                db.CatalogVouchers.Where(v => v.Voucher == code).ExecuteUpdate(s => s.SetProperty(v => v.CurrentUses, v => v.CurrentUses + 1));
             }
         }
 

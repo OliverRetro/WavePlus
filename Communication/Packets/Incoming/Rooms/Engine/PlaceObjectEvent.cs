@@ -28,7 +28,8 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
 
             bool hasRights = room.CheckRights(session, false, true);
 
-            if (!hasRights) {
+            if (!hasRights)
+            {
                 session.SendPacket(new RoomNotificationComposer("furni_placement_error", "message", "${room.error.cant_set_not_owner}"));
                 return;
             }
@@ -37,12 +38,14 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
             if (item == null)
                 return;
 
-            if (room.GetRoomItemHandler().GetWallAndFloor.Count() > Convert.ToInt32(PlusEnvironment.GetSettingsManager().TryGetValue("room.item.placement_limit"))) {
+            if (room.GetRoomItemHandler().GetWallAndFloor.Count() > Convert.ToInt32(PlusEnvironment.GetSettingsManager().TryGetValue("room.item.placement_limit")))
+            {
                 session.SendNotification("You cannot have more than " + Convert.ToInt32(PlusEnvironment.GetSettingsManager().TryGetValue("room.item.placement_limit")) + " items in a room!");
                 return;
             }
 
-            if (item.Data.InteractionType == InteractionType.Exchange && room.OwnerId != session.GetHabbo().Id && !session.GetHabbo().GetPermissions().HasRight("room_item_place_exchange_anywhere")) {
+            if (item.Data.InteractionType == InteractionType.Exchange && room.OwnerId != session.GetHabbo().Id && !session.GetHabbo().GetPermissions().HasRight("room_item_place_exchange_anywhere"))
+            {
                 session.SendNotification("You cannot place exchange items in other people's rooms!");
                 return;
             }
@@ -53,81 +56,94 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
                 #region Interaction Types
 
                 case InteractionType.Moodlight:
-                {
-                    MoodlightData moodData = room.MoodlightData;
-                    if (moodData != null && room.GetRoomItemHandler().GetItem(moodData.ItemId) != null) {
-                        session.SendNotification("You can only have one background moodlight per room!");
-                        return;
-                    }
+                    {
+                        MoodlightData moodData = room.MoodlightData;
+                        if (moodData != null && room.GetRoomItemHandler().GetItem(moodData.ItemId) != null)
+                        {
+                            session.SendNotification("You can only have one background moodlight per room!");
+                            return;
+                        }
 
-                    break;
-                }
+                        break;
+                    }
                 case InteractionType.Toner:
-                {
-                    TonerData tonerData = room.TonerData;
-                    if (tonerData != null && room.GetRoomItemHandler().GetItem(tonerData.ItemId) != null) {
-                        session.SendNotification("You can only have one background toner per room!");
-                        return;
-                    }
+                    {
+                        TonerData tonerData = room.TonerData;
+                        if (tonerData != null && room.GetRoomItemHandler().GetItem(tonerData.ItemId) != null)
+                        {
+                            session.SendNotification("You can only have one background toner per room!");
+                            return;
+                        }
 
-                    break;
-                }
+                        break;
+                    }
                 case InteractionType.Hopper:
-                {
-                    if (room.GetRoomItemHandler().HopperCount > 0) {
-                        session.SendNotification("You can only have one hopper per room!");
-                        return;
-                    }
+                    {
+                        if (room.GetRoomItemHandler().HopperCount > 0)
+                        {
+                            session.SendNotification("You can only have one hopper per room!");
+                            return;
+                        }
 
-                    break;
-                }
+                        break;
+                    }
 
                 case InteractionType.Tent:
                 case InteractionType.TentSmall:
-                {
-                    room.AddTent(item.Id);
-                    break;
-                }
+                    {
+                        room.AddTent(item.Id);
+                        break;
+                    }
 
                 #endregion
             }
 
-            if (!item.IsWallItem) {
+            if (!item.IsWallItem)
+            {
                 if (data.Length < 4)
                     return;
 
-                if (!int.TryParse(data[1], out int x)) {
+                if (!int.TryParse(data[1], out int x))
+                {
                     return;
                 }
 
-                if (!int.TryParse(data[2], out int y)) {
+                if (!int.TryParse(data[2], out int y))
+                {
                     return;
                 }
 
-                if (!int.TryParse(data[3], out int rotation)) {
+                if (!int.TryParse(data[3], out int rotation))
+                {
                     return;
                 }
 
                 Item roomItem = new(item.Id, room.RoomId, item.BaseItem, item.ExtraData, x, y, 0, rotation, session.GetHabbo().Id, item.GroupId, item.LimitedNo, item.LimitedTot, string.Empty, room);
-                if (room.GetRoomItemHandler().SetFloorItem(session, roomItem, x, y, rotation, true, false, true)) {
+                if (room.GetRoomItemHandler().SetFloorItem(session, roomItem, x, y, rotation, true, false, true))
+                {
                     session.GetHabbo().GetInventoryComponent().RemoveItem(itemId);
 
                     if (session.GetHabbo().Id == room.OwnerId)
                         PlusEnvironment.GetGame().GetAchievementManager().ProgressAchievement(session, "ACH_RoomDecoFurniCount", 1);
 
-                    if (roomItem.IsWired) {
+                    if (roomItem.IsWired)
+                    {
                         try
                         {
                             room.GetWired().LoadWiredBox(roomItem);
                         }
                         catch
                         {
-                                        }
+                        }
                     }
-                } else {
+                }
+                else
+                {
                     session.SendPacket(new RoomNotificationComposer("furni_placement_error", "message", "${room.error.cant_set_item}"));
                 }
-            } else if (item.IsWallItem) {
+            }
+            else if (item.IsWallItem)
+            {
                 string[] correctedData = new string[data.Length - 1];
 
                 for (int i = 1; i < data.Length; i++)
@@ -135,12 +151,14 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
                     correctedData[i - 1] = data[i];
                 }
 
-                if (TrySetWallItem(correctedData, out string wallPos)) {
+                if (TrySetWallItem(correctedData, out string wallPos))
+                {
                     try
                     {
                         Item roomItem = new(item.Id, room.RoomId, item.BaseItem, item.ExtraData, 0, 0, 0, 0, session.GetHabbo().Id, item.GroupId, item.LimitedNo, item.LimitedTot, wallPos, room);
 
-                        if (room.GetRoomItemHandler().SetWallItem(session, roomItem)) {
+                        if (room.GetRoomItemHandler().SetWallItem(session, roomItem))
+                        {
                             session.GetHabbo().GetInventoryComponent().RemoveItem(itemId);
                             if (session.GetHabbo().Id == room.OwnerId)
                                 PlusEnvironment.GetGame().GetAchievementManager().ProgressAchievement(session, "ACH_RoomDecoFurniCount", 1);
@@ -150,7 +168,9 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
                     {
                         session.SendPacket(new RoomNotificationComposer("furni_placement_error", "message", "${room.error.cant_set_item}"));
                     }
-                } else {
+                }
+                else
+                {
                     session.SendPacket(new RoomNotificationComposer("furni_placement_error", "message", "${room.error.cant_set_item}"));
                 }
             }
@@ -158,7 +178,8 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
 
         private static bool TrySetWallItem(IReadOnlyList<string> data, out string position)
         {
-            if (data.Count != 3 || !data[0].StartsWith(":w=") || !data[1].StartsWith("l=") || (data[2] != "r" && data[2] != "l")) {
+            if (data.Count != 3 || !data[0].StartsWith(":w=") || !data[1].StartsWith("l=") || (data[2] != "r" && data[2] != "l"))
+            {
                 position = null;
                 return false;
             }
@@ -166,7 +187,8 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
             string wBit = data[0].Substring(3, data[0].Length - 3);
             string lBit = data[1].Substring(2, data[1].Length - 2);
 
-            if (!wBit.Contains(",") || !lBit.Contains(",")) {
+            if (!wBit.Contains(",") || !lBit.Contains(","))
+            {
                 position = null;
                 return false;
             }
@@ -195,11 +217,13 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
             //:w=3,2 l=9,63 l
             try
             {
-                if (wallPosition.Contains(Convert.ToChar(13))) {
+                if (wallPosition.Contains(Convert.ToChar(13)))
+                {
                     return null;
                 }
 
-                if (wallPosition.Contains(Convert.ToChar(9))) {
+                if (wallPosition.Contains(Convert.ToChar(9)))
+                {
                     return null;
                 }
 

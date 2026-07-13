@@ -1,54 +1,57 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[Index("id", Name = "id", IsUnique = true)]
-public partial class bots_petdatum
+[Index("Id", Name = "id", IsUnique = true)]
+[Table("bots_petdata")]
+public partial class BotsPetdatum
 {
     [Key]
-    [Column(TypeName = "int(11) unsigned")]
-    public uint id { get; set; }
+    [Column("id", TypeName = "int(11) unsigned")]
+    public uint Id { get; set; }
 
-    [Column(TypeName = "int(11) unsigned")]
-    public uint? type { get; set; }
-
-    [StringLength(11)]
-    public string race { get; set; }
+    [Column("type", TypeName = "int(11) unsigned")]
+    public uint? Type { get; set; }
 
     [StringLength(11)]
-    public string color { get; set; }
+    [Column("race")]
+    public string Race { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int? energy { get; set; }
+    [StringLength(11)]
+    [Column("color")]
+    public string Color { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int? experience { get; set; }
+    [Column("energy", TypeName = "int(11)")]
+    public int? Energy { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int? nutrition { get; set; }
+    [Column("experience", TypeName = "int(11)")]
+    public int? Experience { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int? respect { get; set; }
+    [Column("nutrition", TypeName = "int(11)")]
+    public int? Nutrition { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int? createstamp { get; set; }
+    [Column("respect", TypeName = "int(11)")]
+    public int? Respect { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int? have_saddle { get; set; }
+    [Column("createstamp", TypeName = "int(11)")]
+    public int? Createstamp { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int? hairdye { get; set; }
+    [Column("have_saddle", TypeName = "int(11)")]
+    public int? HaveSaddle { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int? pethair { get; set; }
+    [Column("hairdye", TypeName = "int(11)")]
+    public int? Hairdye { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int? anyone_ride { get; set; }
+    [Column("pethair", TypeName = "int(11)")]
+    public int? Pethair { get; set; }
+
+    [Column("anyone_ride", TypeName = "int(11)")]
+    public int? AnyoneRide { get; set; }
 
     [StringLength(85)]
-    public string gnome_clothing { get; set; }
+    [Column("gnome_clothing")]
+    public string GnomeClothing { get; set; }
 }

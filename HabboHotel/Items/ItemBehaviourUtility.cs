@@ -59,11 +59,14 @@ namespace Plus.HabboHotel.Items
                 case InteractionType.GuildGate:
                 case InteractionType.GuildForum:
                     Group group = null;
-                    if (!PlusEnvironment.GetGame().GetGroupManager().TryGetGroup(item.GroupId, out group)) {
+                    if (!PlusEnvironment.GetGame().GetGroupManager().TryGetGroup(item.GroupId, out group))
+                    {
                         packet.WriteInteger(1);
                         packet.WriteInteger(0);
                         packet.WriteString(item.ExtraData);
-                    } else {
+                    }
+                    else
+                    {
                         packet.WriteInteger(0);
                         packet.WriteInteger(2);
                         packet.WriteInteger(5);
@@ -77,75 +80,83 @@ namespace Plus.HabboHotel.Items
                     break;
 
                 case InteractionType.Background:
-                {
-                    // Wire format (matching Java's InteractionCustomValues.serializeExtradata):
-                    //   [int: 1]     ← "extra" field (client reads this before the object data)
-                    //   [int: 1]     ← ObjectDataFactory type key → MapDataType
-                    //   [int: N]     ← number of key-value pairs
-                    //   [str:key][str:value] × N
-                    // ExtraData is stored as "key=value;key=value;"
-                    var pairs = new System.Collections.Generic.Dictionary<string, string>();
-                    if (!string.IsNullOrEmpty(item.ExtraData)) {
-                        foreach (string segment in item.ExtraData.Split(';'))
-                        {
-                            if (string.IsNullOrEmpty(segment)) continue;
-                            int eq = segment.IndexOf('=');
-                            if (eq < 0) continue;
-                            pairs[segment.Substring(0, eq)] = segment.Substring(eq + 1);
-                        }
-                    }
-                    packet.WriteInteger(1);  // extra
-                    packet.WriteInteger(1);  // MapDataType key
-                    packet.WriteInteger(pairs.Count);
-                    foreach (var kv in pairs)
                     {
-                        packet.WriteString(kv.Key);
-                        packet.WriteString(kv.Value);
+                        // Wire format (matching Java's InteractionCustomValues.serializeExtradata):
+                        //   [int: 1]     ← "extra" field (client reads this before the object data)
+                        //   [int: 1]     ← ObjectDataFactory type key → MapDataType
+                        //   [int: N]     ← number of key-value pairs
+                        //   [str:key][str:value] × N
+                        // ExtraData is stored as "key=value;key=value;"
+                        var pairs = new System.Collections.Generic.Dictionary<string, string>();
+                        if (!string.IsNullOrEmpty(item.ExtraData))
+                        {
+                            foreach (string segment in item.ExtraData.Split(';'))
+                            {
+                                if (string.IsNullOrEmpty(segment)) continue;
+                                int eq = segment.IndexOf('=');
+                                if (eq < 0) continue;
+                                pairs[segment.Substring(0, eq)] = segment.Substring(eq + 1);
+                            }
+                        }
+                        packet.WriteInteger(1);  // extra
+                        packet.WriteInteger(1);  // MapDataType key
+                        packet.WriteInteger(pairs.Count);
+                        foreach (var kv in pairs)
+                        {
+                            packet.WriteString(kv.Key);
+                            packet.WriteString(kv.Value);
+                        }
+                        break;
                     }
-                    break;
-                }
 
                 case InteractionType.Gift:
-                {
-                    string[] extraData = item.ExtraData.Split(Convert.ToChar(5));
-                    if (extraData.Length != 7) {
-                        packet.WriteInteger(0);
-                        packet.WriteInteger(0);
-                        packet.WriteString(item.ExtraData);
-                    } else {
-                        int style = int.Parse(extraData[6]) * 1000 + int.Parse(extraData[6]);
-
-                        UserCache purchaser = PlusEnvironment.GetGame().GetCacheManager().GenerateUser(Convert.ToInt32(extraData[2]));
-                        if (purchaser == null) {
+                    {
+                        string[] extraData = item.ExtraData.Split(Convert.ToChar(5));
+                        if (extraData.Length != 7)
+                        {
                             packet.WriteInteger(0);
                             packet.WriteInteger(0);
                             packet.WriteString(item.ExtraData);
-                        } else {
-                            packet.WriteInteger(style);
-                            packet.WriteInteger(1);
-                            packet.WriteInteger(6);
-                            packet.WriteString("EXTRA_PARAM");
-                            packet.WriteString("");
-                            packet.WriteString("MESSAGE");
-                            packet.WriteString(extraData[1]);
-                            packet.WriteString("PURCHASER_NAME");
-                            packet.WriteString(purchaser.Username);
-                            packet.WriteString("PURCHASER_FIGURE");
-                            packet.WriteString(purchaser.Look);
-                            packet.WriteString("PRODUCT_CODE");
-                            packet.WriteString("A1 KUMIANKKA");
-                            packet.WriteString("state");
-                            packet.WriteString(item.MagicRemove ? "1" : "0");
+                        }
+                        else
+                        {
+                            int style = int.Parse(extraData[6]) * 1000 + int.Parse(extraData[6]);
+
+                            UserCache purchaser = PlusEnvironment.GetGame().GetCacheManager().GenerateUser(Convert.ToInt32(extraData[2]));
+                            if (purchaser == null)
+                            {
+                                packet.WriteInteger(0);
+                                packet.WriteInteger(0);
+                                packet.WriteString(item.ExtraData);
+                            }
+                            else
+                            {
+                                packet.WriteInteger(style);
+                                packet.WriteInteger(1);
+                                packet.WriteInteger(6);
+                                packet.WriteString("EXTRA_PARAM");
+                                packet.WriteString("");
+                                packet.WriteString("MESSAGE");
+                                packet.WriteString(extraData[1]);
+                                packet.WriteString("PURCHASER_NAME");
+                                packet.WriteString(purchaser.Username);
+                                packet.WriteString("PURCHASER_FIGURE");
+                                packet.WriteString(purchaser.Look);
+                                packet.WriteString("PRODUCT_CODE");
+                                packet.WriteString("A1 KUMIANKKA");
+                                packet.WriteString("state");
+                                packet.WriteString(item.MagicRemove ? "1" : "0");
+                            }
                         }
                     }
-                }
                     break;
 
                 case InteractionType.Mannequin:
                     packet.WriteInteger(0);
                     packet.WriteInteger(1);
                     packet.WriteInteger(3);
-                    if (item.ExtraData.Contains(Convert.ToChar(5).ToString())) {
+                    if (item.ExtraData.Contains(Convert.ToChar(5).ToString()))
+                    {
                         string[] stuff = item.ExtraData.Split(Convert.ToChar(5));
                         packet.WriteString("GENDER");
                         packet.WriteString(stuff[0]);
@@ -153,7 +164,9 @@ namespace Plus.HabboHotel.Items
                         packet.WriteString(stuff[1]);
                         packet.WriteString("OUTFIT_NAME");
                         packet.WriteString(stuff[2]);
-                    } else {
+                    }
+                    else
+                    {
                         packet.WriteString("GENDER");
                         packet.WriteString("");
                         packet.WriteString("FIGURE");
@@ -165,7 +178,8 @@ namespace Plus.HabboHotel.Items
                     break;
 
                 case InteractionType.Toner:
-                    if (item.RoomId != 0) {
+                    if (item.RoomId != 0)
+                    {
                         if (item.GetRoom().TonerData == null)
                             item.GetRoom().TonerData = new TonerData(item.Id);
 
@@ -176,7 +190,9 @@ namespace Plus.HabboHotel.Items
                         packet.WriteInteger(item.GetRoom().TonerData.Hue);
                         packet.WriteInteger(item.GetRoom().TonerData.Saturation);
                         packet.WriteInteger(item.GetRoom().TonerData.Lightness);
-                    } else {
+                    }
+                    else
+                    {
                         packet.WriteInteger(0);
                         packet.WriteInteger(0);
                         packet.WriteString(string.Empty);
@@ -190,12 +206,15 @@ namespace Plus.HabboHotel.Items
                     packet.WriteInteger(4);
 
                     string[] badgeData = item.ExtraData.Split(Convert.ToChar(9));
-                    if (item.ExtraData.Contains(Convert.ToChar(9).ToString())) {
+                    if (item.ExtraData.Contains(Convert.ToChar(9).ToString()))
+                    {
                         packet.WriteString("0"); //No idea
                         packet.WriteString(badgeData[0]); //Badge name
                         packet.WriteString(badgeData[1]); //Owner
                         packet.WriteString(badgeData[2]); //Date
-                    } else {
+                    }
+                    else
+                    {
                         packet.WriteString("0"); //No idea
                         packet.WriteString("DEV"); //Badge name
                         packet.WriteString("Sledmore"); //Owner
@@ -215,8 +234,9 @@ namespace Plus.HabboHotel.Items
                     break;
 
                 case InteractionType.LoveLock:
-                    if (item.ExtraData.Contains(Convert.ToChar(5).ToString())) {
-                        var eData = item.ExtraData.Split((char) 5);
+                    if (item.ExtraData.Contains(Convert.ToChar(5).ToString()))
+                    {
+                        var eData = item.ExtraData.Split((char)5);
                         int I = 0;
                         packet.WriteInteger(0);
                         packet.WriteInteger(2);
@@ -226,7 +246,9 @@ namespace Plus.HabboHotel.Items
                             packet.WriteString(eData[I]);
                             I++;
                         }
-                    } else {
+                    }
+                    else
+                    {
                         packet.WriteInteger(0);
                         packet.WriteInteger(0);
                         packet.WriteString("0");

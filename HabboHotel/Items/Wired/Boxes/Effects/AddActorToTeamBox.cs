@@ -38,7 +38,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
             if (@params.Length == 0 || Instance == null || string.IsNullOrEmpty(StringData))
                 return false;
 
-            Habbo player = (Habbo) @params[0];
+            Habbo player = (Habbo)@params[0];
             if (player == null)
                 return false;
 
@@ -49,8 +49,10 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
             Team toJoin = (int.Parse(StringData) == 1 ? Team.Red : int.Parse(StringData) == 2 ? Team.Green : int.Parse(StringData) == 3 ? Team.Blue : int.Parse(StringData) == 4 ? Team.Yellow : Team.None);
 
             TeamManager team = Instance.GetTeamManagerForFreeze();
-            if (team != null) {
-                if (team.CanEnterOnTeam(toJoin)) {
+            if (team != null)
+            {
+                if (team.CanEnterOnTeam(toJoin))
+                {
                     if (user.Team != Team.None)
                         team.OnUserLeave(user);
 

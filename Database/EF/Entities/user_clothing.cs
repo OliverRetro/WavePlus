@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
@@ -7,21 +6,23 @@ using Microsoft.EntityFrameworkCore;
 namespace Plus.Database.EF.Entities;
 
 [Table("user_clothing")]
-[Index("user_id", Name = "user_id")]
-public partial class user_clothing
+[Index("UserId", Name = "user_id")]
+public partial class UserClothing
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int user_id { get; set; }
+    [Column("user_id", TypeName = "int(11)")]
+    public int UserId { get; set; }
 
     [Required]
     [StringLength(25)]
-    public string part_id { get; set; }
+    [Column("part_id")]
+    public string PartId { get; set; }
 
     [Required]
     [StringLength(45)]
-    public string part { get; set; }
+    [Column("part")]
+    public string Part { get; set; }
 }

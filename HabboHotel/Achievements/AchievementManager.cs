@@ -7,7 +7,6 @@ using Plus.Communication.Packets.Outgoing.Inventory.Achievements;
 using Plus.Communication.Packets.Outgoing.Inventory.Purse;
 using Microsoft.EntityFrameworkCore;
 using Plus.Database.EF;
-using Plus.Database.EF.Entities;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Users.Messenger;
 
@@ -40,12 +39,14 @@ namespace Plus.HabboHotel.Achievements
                 return false;
 
             Achievement data = Achievements[group];
-            if (data == null) {
+            if (data == null)
+            {
                 return false;
             }
 
             UserAchievement userData = session.GetHabbo().GetAchievementData(group);
-            if (userData == null) {
+            if (userData == null)
+            {
                 userData = new UserAchievement(group, 0, 0);
                 session.GetHabbo().Achievements.TryAdd(group, userData);
             }
@@ -242,12 +243,12 @@ namespace Plus.HabboHotel.Achievements
         private static void SaveUserAchievement(int userId, string group, int level, int progress)
         {
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            db.user_achievements.Upsert(new user_achievement
+            db.UserAchievements.Upsert(new Plus.Database.EF.Entities.UserAchievement
             {
-                userid = (uint)userId,
-                group = group,
-                level = level,
-                progress = progress
+                Userid = (uint)userId,
+                Group = group,
+                Level = level,
+                Progress = progress
             }).Run();
         }
 

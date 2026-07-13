@@ -17,7 +17,6 @@ using Plus.Core;
 using Plus.Core.FigureData;
 using Plus.Core.Language;
 using Plus.Core.Settings;
-using Plus.Database;
 using Plus.Database.EF;
 using Plus.HabboHotel;
 using Plus.HabboHotel.Cache.Type;
@@ -149,7 +148,8 @@ namespace Plus
                     dbConnected = false;
                 }
 
-                if (!dbConnected) {
+                if (!dbConnected)
+                {
                     Log.Error("Failed to Connect to the specified MySQL server.");
                     Console.ReadKey(true);
                     Environment.Exit(1);
@@ -165,9 +165,9 @@ namespace Plus
                 using (WavePlusContext db = GetDbContext())
                 {
                     db.Database.ExecuteSqlRaw("TRUNCATE `catalog_marketplace_data`");
-                    db.rooms.Where(r => r.users_now > 0).ExecuteUpdate(s => s.SetProperty(r => r.users_now, 0));
-                    db.users.Where(u => u.online == "1").ExecuteUpdate(s => s.SetProperty(u => u.online, "0"));
-                    db.server_statuses.ExecuteUpdate(s => s.SetProperty(x => x.users_online, 0).SetProperty(x => x.loaded_rooms, 0));
+                    db.Rooms.Where(r => r.UsersNow > 0).ExecuteUpdate(s => s.SetProperty(r => r.UsersNow, 0));
+                    db.Users.Where(u => u.Online == "1").ExecuteUpdate(s => s.SetProperty(u => u.Online, "0"));
+                    db.ServerStatuses.ExecuteUpdate(s => s.SetProperty(x => x.UsersOnline, 0).SetProperty(x => x.LoadedRooms, 0));
                 }
 
                 //Get the configuration & Game set.
@@ -274,7 +274,7 @@ namespace Plus
         {
             TimeSpan ts = DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0);
             double unixTime = ts.TotalMilliseconds;
-            return (long) unixTime;
+            return (long)unixTime;
         }
 
         public static string FilterFigure(string figure)
@@ -296,13 +296,15 @@ namespace Plus
         public static bool IsValidAlphaNumeric(string inputStr)
         {
             inputStr = inputStr.ToLower();
-            if (string.IsNullOrEmpty(inputStr)) {
+            if (string.IsNullOrEmpty(inputStr))
+            {
                 return false;
             }
 
             for (int i = 0; i < inputStr.Length; i++)
             {
-                if (!IsValid(inputStr[i])) {
+                if (!IsValid(inputStr[i]))
+                {
                     return false;
                 }
             }
@@ -323,7 +325,7 @@ namespace Plus
                 return user.Username;
 
             using (WavePlusContext db = GetDbContext())
-                name = db.users.Where(u => u.id == userId).Select(u => u.username).FirstOrDefault();
+                name = db.Users.Where(u => u.Id == userId).Select(u => u.Username).FirstOrDefault();
 
             if (string.IsNullOrEmpty(name))
                 name = "Unknown User";
@@ -336,21 +338,26 @@ namespace Plus
             try
             {
                 GameClient client = GetGame().GetClientManager().GetClientByUserId(userId);
-                if (client != null) {
+                if (client != null)
+                {
                     Habbo user = client.GetHabbo();
-                    if (user != null && user.Id > 0) {
+                    if (user != null && user.Id > 0)
+                    {
                         if (UsersCached.ContainsKey(userId))
                             UsersCached.TryRemove(userId, out user);
                         return user;
                     }
-                } else {
+                }
+                else
+                {
                     try
                     {
                         if (UsersCached.ContainsKey(userId))
                             return UsersCached[userId];
                         UserData data = UserDataFactory.GetUserData(userId);
                         Habbo generated = data?.User;
-                        if (generated != null) {
+                        if (generated != null)
+                        {
                             generated.InitInformation(data);
                             UsersCached.TryAdd(userId, generated);
                             return generated;
@@ -376,7 +383,7 @@ namespace Plus
             {
                 using (WavePlusContext db = GetDbContext())
                 {
-                    int id = db.users.Where(u => u.username == userName).Select(u => u.id).FirstOrDefault();
+                    int id = db.Users.Where(u => u.Username == userName).Select(u => u.Id).FirstOrDefault();
                     if (id > 0)
                         return GetHabboById(id);
                 }
@@ -411,9 +418,9 @@ namespace Plus
             using (WavePlusContext db = GetDbContext())
             {
                 db.Database.ExecuteSqlRaw("TRUNCATE `catalog_marketplace_data`");
-                db.users.ExecuteUpdate(s => s.SetProperty(u => u.online, "0").SetProperty(u => u.auth_ticket, (string)null));
-                db.rooms.Where(r => r.users_now > 0).ExecuteUpdate(s => s.SetProperty(r => r.users_now, 0));
-                db.server_statuses.ExecuteUpdate(s => s.SetProperty(x => x.users_online, 0).SetProperty(x => x.loaded_rooms, 0));
+                db.Users.ExecuteUpdate(s => s.SetProperty(u => u.Online, "0").SetProperty(u => u.AuthTicket, (string)null));
+                db.Rooms.Where(r => r.UsersNow > 0).ExecuteUpdate(s => s.SetProperty(r => r.UsersNow, 0));
+                db.ServerStatuses.ExecuteUpdate(s => s.SetProperty(x => x.UsersOnline, 0).SetProperty(x => x.LoadedRooms, 0));
             }
 
             Log.Info("Plus Emulator has successfully shutdown.");

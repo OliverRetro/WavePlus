@@ -116,7 +116,8 @@ namespace Plus.HabboHotel.Rooms
 
         public RoomItemHandling GetRoomItemHandler()
         {
-            if (_roomItemHandling == null) {
+            if (_roomItemHandling == null)
+            {
                 _roomItemHandling = new RoomItemHandling(this);
             }
 
@@ -207,15 +208,15 @@ namespace Plus.HabboHotel.Rooms
         {
             using WavePlusContext db = PlusEnvironment.GetDbContext();
             uint roomKey = (uint)RoomId;
-            var bots = db.bots.Where(b => b.room_id == roomKey && b.ai_type != "pet").ToList();
+            var bots = db.Bots.Where(b => b.RoomId == roomKey && b.AiType != "pet").ToList();
 
             foreach (var bot in bots)
             {
-                List<RandomSpeech> speeches = db.bots_speeches.Where(s => s.bot_id == bot.id)
-                    .Select(s => s.text).ToList()
-                    .Select(t => new RandomSpeech(t, (int)bot.id)).ToList();
+                List<RandomSpeech> speeches = db.BotsSpeeches.Where(s => s.BotId == bot.Id)
+                    .Select(s => s.Text).ToList()
+                    .Select(t => new RandomSpeech(t, (int)bot.Id)).ToList();
 
-                _roomUserManager.DeployBot(new RoomBot((int)bot.id, (int)bot.room_id, bot.ai_type, bot.walk_mode, bot.name, bot.motto, bot.look, bot.x, bot.y, bot.z, bot.rotation, 0, 0, 0, 0, ref speeches, bot.gender, 0, (int)bot.user_id, Convert.ToBoolean(bot.automatic_chat), bot.speaking_interval, PlusEnvironment.EnumToBool(bot.mix_sentences), bot.chat_bubble, bot.effect_id), null);
+                _roomUserManager.DeployBot(new RoomBot((int)bot.Id, (int)bot.RoomId, bot.AiType, bot.WalkMode, bot.Name, bot.Motto, bot.Look, bot.X, bot.Y, bot.Z, bot.Rotation, 0, 0, 0, 0, ref speeches, bot.Gender, 0, (int)bot.UserId, Convert.ToBoolean(bot.AutomaticChat), bot.SpeakingInterval, PlusEnvironment.EnumToBool(bot.MixSentences), bot.ChatBubble, bot.EffectId), null);
             }
         }
 
@@ -223,20 +224,20 @@ namespace Plus.HabboHotel.Rooms
         {
             using WavePlusContext db = PlusEnvironment.GetDbContext();
             uint roomKey = (uint)RoomId;
-            var pets = db.bots.Where(b => b.room_id == roomKey && b.ai_type == "pet")
-                .Select(b => new { b.id, b.user_id, b.room_id, b.name, b.x, b.y, b.z }).ToList();
+            var pets = db.Bots.Where(b => b.RoomId == roomKey && b.AiType == "pet")
+                .Select(b => new { b.Id, b.UserId, b.RoomId, b.Name, b.X, b.Y, b.Z }).ToList();
 
             foreach (var row in pets)
             {
-                var mRow = db.bots_petdata.Where(p => p.id == row.id)
-                    .Select(p => new { p.type, p.race, p.color, p.experience, p.energy, p.nutrition, p.respect, p.createstamp, p.have_saddle, p.anyone_ride, p.hairdye, p.pethair, p.gnome_clothing })
+                var mRow = db.BotsPetdata.Where(p => p.Id == row.Id)
+                    .Select(p => new { p.Type, p.Race, p.Color, p.Experience, p.Energy, p.Nutrition, p.Respect, p.Createstamp, p.HaveSaddle, p.AnyoneRide, p.Hairdye, p.Pethair, p.GnomeClothing })
                     .FirstOrDefault();
                 if (mRow == null)
                     continue;
 
-                Pet pet = new((int)row.id, (int)row.user_id, (int)row.room_id, row.name, (int)(mRow.type ?? 0), mRow.race,
-                    mRow.color, mRow.experience ?? 0, mRow.energy ?? 0, mRow.nutrition ?? 0, mRow.respect ?? 0, (double)(mRow.createstamp ?? 0), row.x, row.y,
-                    (double)row.z, mRow.have_saddle ?? 0, mRow.anyone_ride ?? 0, mRow.hairdye ?? 0, mRow.pethair ?? 0, mRow.gnome_clothing);
+                Pet pet = new((int)row.Id, (int)row.UserId, (int)row.RoomId, row.Name, (int)(mRow.Type ?? 0), mRow.Race,
+                    mRow.Color, mRow.Experience ?? 0, mRow.Energy ?? 0, mRow.Nutrition ?? 0, mRow.Respect ?? 0, (double)(mRow.Createstamp ?? 0), row.X, row.Y,
+                    (double)row.Z, mRow.HaveSaddle ?? 0, mRow.AnyoneRide ?? 0, mRow.Hairdye ?? 0, mRow.Pethair ?? 0, mRow.GnomeClothing);
 
                 var rndSpeechList = new List<RandomSpeech>();
 
@@ -272,13 +273,13 @@ namespace Plus.HabboHotel.Rooms
 
             uint roomKey = (uint)Id;
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            UsersWithRights = db.room_rights.Where(r => r.room_id == roomKey).Select(r => (int)r.user_id).ToList();
+            UsersWithRights = db.RoomRights.Where(r => r.RoomId == roomKey).Select(r => (int)r.UserId).ToList();
         }
 
         private void LoadFilter()
         {
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            WordFilterList = db.room_filters.Where(f => f.room_id == Id).Select(f => f.word).ToList();
+            WordFilterList = db.RoomFilters.Where(f => f.RoomId == Id).Select(f => f.Word).ToList();
         }
 
         public bool CheckRights(GameClient session)
@@ -299,7 +300,8 @@ namespace Plus.HabboHotel.Rooms
                 if (session.GetHabbo().GetPermissions().HasRight("room_any_owner"))
                     return true;
 
-                if (!requireOwnership && Type == "private") {
+                if (!requireOwnership && Type == "private")
+                {
                     if (session.GetHabbo().GetPermissions().HasRight("room_any_rights"))
                         return true;
 
@@ -307,14 +309,16 @@ namespace Plus.HabboHotel.Rooms
                         return true;
                 }
 
-                if (checkForGroups && Type == "private") {
+                if (checkForGroups && Type == "private")
+                {
                     if (Group == null)
                         return false;
 
                     if (Group.IsAdmin(session.GetHabbo().Id))
                         return true;
 
-                    if (Group.AdminOnlyDeco == 0) {
+                    if (Group.AdminOnlyDeco == 0)
+                    {
                         if (Group.IsAdmin(session.GetHabbo().Id))
                             return true;
                     }
@@ -334,8 +338,9 @@ namespace Plus.HabboHotel.Rooms
             string key = null;
             foreach (Item item in GetRoomItemHandler().GetFurniObjects(ball.GetX, ball.GetY).ToList())
             {
-                if (item.GetBaseItem().ItemName.StartsWith("fball_goal_")) {
-                    key = item.GetBaseItem().ItemName.Split(new[] {'_'})[2];
+                if (item.GetBaseItem().ItemName.StartsWith("fball_goal_"))
+                {
+                    key = item.GetBaseItem().ItemName.Split(new[] { '_' })[2];
                     user.UnIdle();
                     user.DanceId = 0;
 
@@ -346,14 +351,17 @@ namespace Plus.HabboHotel.Rooms
                 }
             }
 
-            if (key != null) {
-                if (predicate == null) {
+            if (key != null)
+            {
+                if (predicate == null)
+                {
                     predicate = p => p.GetBaseItem().ItemName == "fball_score_" + key;
                 }
 
                 foreach (Item item2 in GetRoomItemHandler().GetFloor.Where(predicate).ToList())
                 {
-                    if (item2.GetBaseItem().ItemName == "fball_score_" + key) {
+                    if (item2.GetBaseItem().ItemName == "fball_score_" + key)
+                    {
                         if (!string.IsNullOrEmpty(item2.ExtraData))
                             item2.ExtraData = (Convert.ToInt32(item2.ExtraData) + 1).ToString();
                         else
@@ -376,11 +384,13 @@ namespace Plus.HabboHotel.Rooms
                 else if (IdleTime > 0)
                     IdleTime = 0;
 
-                if (HasActivePromotion && Promotion.HasExpired) {
+                if (HasActivePromotion && Promotion.HasExpired)
+                {
                     EndPromotion();
                 }
 
-                if (IdleTime >= 60 && !HasActivePromotion && !IsPublic) {
+                if (IdleTime >= 60 && !HasActivePromotion && !IsPublic)
+                {
                     PlusEnvironment.GetGame().GetRoomManager().UnloadRoom(Id);
                     return;
                 }
@@ -487,10 +497,14 @@ namespace Plus.HabboHotel.Rooms
 
         public bool CheckMute(GameClient session)
         {
-            if (MutedUsers.ContainsKey(session.GetHabbo().Id)) {
-                if (MutedUsers[session.GetHabbo().Id] < PlusEnvironment.GetUnixTimestamp()) {
+            if (MutedUsers.ContainsKey(session.GetHabbo().Id))
+            {
+                if (MutedUsers[session.GetHabbo().Id] < PlusEnvironment.GetUnixTimestamp())
+                {
                     MutedUsers.Remove(session.GetHabbo().Id);
-                } else {
+                }
+                else
+                {
                     return true;
                 }
             }
@@ -566,7 +580,8 @@ namespace Plus.HabboHotel.Rooms
 
         public void AddUserToTent(int tentId, RoomUser user)
         {
-            if (user != null && user.GetClient() != null && user.GetClient().GetHabbo() != null) {
+            if (user != null && user.GetClient() != null && user.GetClient().GetHabbo() != null)
+            {
                 if (!_tents.ContainsKey(tentId))
                     _tents.Add(tentId, new List<RoomUser>());
 
@@ -578,7 +593,8 @@ namespace Plus.HabboHotel.Rooms
 
         public void RemoveUserFromTent(int tentId, RoomUser user)
         {
-            if (user != null && user.GetClient() != null && user.GetClient().GetHabbo() != null) {
+            if (user != null && user.GetClient() != null && user.GetClient().GetHabbo() != null)
+            {
                 if (!_tents.ContainsKey(tentId))
                     _tents.Add(tentId, new List<RoomUser>());
 
@@ -705,7 +721,8 @@ namespace Plus.HabboHotel.Rooms
                     user.GetClient().SendPacket(new CloseConnectionComposer());
             }
 
-            if (!mDisposed) {
+            if (!mDisposed)
+            {
                 IsCrashed = false;
                 mDisposed = true;
 
@@ -734,54 +751,64 @@ namespace Plus.HabboHotel.Rooms
                 if (UsersWithRights.Count > 0)
                     UsersWithRights.Clear();
 
-                if (_gameManager != null) {
+                if (_gameManager != null)
+                {
                     _gameManager.Dispose();
                     _gameManager = null;
                 }
 
-                if (_freeze != null) {
+                if (_freeze != null)
+                {
                     _freeze.Dispose();
                     _freeze = null;
                 }
 
-                if (_soccer != null) {
+                if (_soccer != null)
+                {
                     _soccer.Dispose();
                     _soccer = null;
                 }
 
-                if (_banzai != null) {
+                if (_banzai != null)
+                {
                     _banzai.Dispose();
                     _banzai = null;
                 }
 
-                if (_gamemap != null) {
+                if (_gamemap != null)
+                {
                     _gamemap.Dispose();
                     _gamemap = null;
                 }
 
-                if (_gameItemHandler != null) {
+                if (_gameItemHandler != null)
+                {
                     _gameItemHandler.Dispose();
                     _gameItemHandler = null;
                 }
 
                 // Room Data?
 
-                if (TeamBanzai != null) {
+                if (TeamBanzai != null)
+                {
                     TeamBanzai.Dispose();
                     TeamBanzai = null;
                 }
 
-                if (TeamFreeze != null) {
+                if (TeamFreeze != null)
+                {
                     TeamFreeze.Dispose();
                     TeamFreeze = null;
                 }
 
-                if (_roomUserManager != null) {
+                if (_roomUserManager != null)
+                {
                     _roomUserManager.Dispose();
                     _roomUserManager = null;
                 }
 
-                if (_roomItemHandling != null) {
+                if (_roomItemHandling != null)
+                {
                     _roomItemHandling.Dispose();
                     _roomItemHandling = null;
                 }

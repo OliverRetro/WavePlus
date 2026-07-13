@@ -4,7 +4,6 @@ using Plus.Communication.Packets.Outgoing.Quests;
 using Plus.Database.EF;
 using Plus.Database.EF.Entities;
 using Plus.HabboHotel.GameClients;
-using Plus.HabboHotel.Quests;
 
 namespace Plus.Communication.Packets.Incoming.Quests
 {
@@ -15,21 +14,21 @@ namespace Plus.Communication.Packets.Incoming.Quests
             if (session == null || session.GetHabbo() == null || !session.GetHabbo().InRoom)
                 return;
 
-            Quest userQuest = PlusEnvironment.GetGame().GetQuestManager().GetQuest(session.GetHabbo().QuestLastCompleted);
-            Quest nextQuest = PlusEnvironment.GetGame().GetQuestManager().GetNextQuestInSeries(userQuest.Category, userQuest.Number + 1);
+            HabboHotel.Quests.Quest userQuest = PlusEnvironment.GetGame().GetQuestManager().GetQuest(session.GetHabbo().QuestLastCompleted);
+            HabboHotel.Quests.Quest nextQuest = PlusEnvironment.GetGame().GetQuestManager().GetNextQuestInSeries(userQuest.Category, userQuest.Number + 1);
 
             if (nextQuest == null)
                 return;
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.user_quests.Upsert(new user_quest
+                db.UserQuests.Upsert(new UserQuest
                 {
-                    user_id = (uint)session.GetHabbo().Id,
-                    quest_id = (uint)nextQuest.Id
+                    UserId = (uint)session.GetHabbo().Id,
+                    QuestId = (uint)nextQuest.Id
                 }).Run();
-                db.user_stats.Where(s => s.id == session.GetHabbo().Id)
-                    .ExecuteUpdate(s => s.SetProperty(x => x.quest_id, (uint)nextQuest.Id));
+                db.UserStats.Where(s => s.Id == session.GetHabbo().Id)
+                    .ExecuteUpdate(s => s.SetProperty(x => x.QuestId, (uint)nextQuest.Id));
             }
 
             session.GetHabbo().GetStats().QuestId = nextQuest.Id;

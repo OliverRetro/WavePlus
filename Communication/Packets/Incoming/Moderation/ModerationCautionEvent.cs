@@ -21,8 +21,8 @@ namespace Plus.Communication.Packets.Incoming.Moderation
 
             int targetId = client.GetHabbo().Id;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                db.user_infos.Where(u => u.user_id == targetId)
-                    .ExecuteUpdate(s => s.SetProperty(u => u.cautions, u => u.cautions + 1));
+                db.UserInfos.Where(u => u.UserId == targetId)
+                    .ExecuteUpdate(s => s.SetProperty(u => u.Cautions, u => u.Cautions + 1));
 
             client.SendNotification(message);
         }

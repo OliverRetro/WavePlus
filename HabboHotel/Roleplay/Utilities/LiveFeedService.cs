@@ -1,9 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Plus.Communication.Packets.Outgoing.Rooms.Notifications;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Rooms;
-using Plus.HabboHotel.Users;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;

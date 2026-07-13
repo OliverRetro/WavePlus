@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using Microsoft.EntityFrameworkCore;
 using Plus.Database.EF;
 using Plus.HabboHotel.Rooms;
 
@@ -9,9 +8,9 @@ namespace Plus.HabboHotel.Items
     {
         public static int GetLinkedTele(int teleId)
         {
-            uint tid = (uint) teleId;
+            uint tid = (uint)teleId;
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            return db.room_items_tele_links.Where(x => x.tele_one_id == tid).Select(x => (int) x.tele_two_id).FirstOrDefault();
+            return db.RoomItemsTeleLinks.Where(x => x.TeleOneId == tid).Select(x => (int)x.TeleTwoId).FirstOrDefault();
         }
 
         public static int GetTeleRoomId(int teleId, Room pRoom)
@@ -19,16 +18,17 @@ namespace Plus.HabboHotel.Items
             if (pRoom.GetRoomItemHandler().GetItem(teleId) != null)
                 return pRoom.RoomId;
 
-            uint tid = (uint) teleId;
+            uint tid = (uint)teleId;
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            return db.items.Where(x => x.id == tid).Select(x => (int) x.room_id).FirstOrDefault();
+            return db.Items.Where(x => x.Id == tid).Select(x => (int)x.RoomId).FirstOrDefault();
         }
 
         public static bool IsTeleLinked(int teleId, Room pRoom)
         {
             int linkId = GetLinkedTele(teleId);
 
-            if (linkId == 0) {
+            if (linkId == 0)
+            {
                 return false;
             }
 
@@ -39,7 +39,8 @@ namespace Plus.HabboHotel.Items
 
             int roomId = GetTeleRoomId(linkId, pRoom);
 
-            if (roomId == 0) {
+            if (roomId == 0)
+            {
                 return false;
             }
 

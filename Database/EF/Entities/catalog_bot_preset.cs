@@ -1,34 +1,36 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class catalog_bot_preset
+[Table("catalog_bot_presets")]
+public partial class CatalogBotPreset
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
     [Required]
     [StringLength(255)]
-    public string name { get; set; }
+    [Column("name")]
+    public string Name { get; set; }
 
     [Required]
     [StringLength(255)]
-    public string figure { get; set; }
+    [Column("figure")]
+    public string Figure { get; set; }
 
     [Required]
     [StringLength(255)]
-    public string gender { get; set; }
+    [Column("gender")]
+    public string Gender { get; set; }
 
     [Required]
     [StringLength(255)]
-    public string motto { get; set; }
+    [Column("motto")]
+    public string Motto { get; set; }
 
     [Required]
-    [Column(TypeName = "enum('pet','generic','bartender')")]
-    public string ai_type { get; set; }
+    [Column("ai_type", TypeName = "enum('pet','generic','bartender')")]
+    public string AiType { get; set; }
 }

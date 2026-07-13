@@ -21,7 +21,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
             string petsMuted = session.GetHabbo().AllowPetSpeech ? "1" : "0";
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.users.Where(u => u.id == userId).ExecuteUpdate(s => s.SetProperty(u => u.pets_muted, petsMuted));
+                db.Users.Where(u => u.Id == userId).ExecuteUpdate(s => s.SetProperty(u => u.PetsMuted, petsMuted));
             }
 
             if (session.GetHabbo().AllowPetSpeech)

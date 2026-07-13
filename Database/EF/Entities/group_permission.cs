@@ -1,38 +1,37 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class group_permission
+[Table("group_permissions")]
+public partial class GroupPermission
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
     /// <summary>
     /// groups.id
     /// </summary>
-    [Column(TypeName = "int(11)")]
-    public int group_id { get; set; }
+    [Column("group_id", TypeName = "int(11)")]
+    public int GroupId { get; set; }
 
     /// <summary>
     /// groups_roles.level
     /// </summary>
-    [Column(TypeName = "int(11)")]
-    public int level_id { get; set; }
+    [Column("level_id", TypeName = "int(11)")]
+    public int LevelId { get; set; }
 
     /// <summary>
     /// group_permissiosn_keys.id
     /// </summary>
-    [Column(TypeName = "int(11)")]
-    public int permission_id { get; set; }
+    [Column("permission_id", TypeName = "int(11)")]
+    public int PermissionId { get; set; }
 
-    [Column(TypeName = "datetime")]
-    public DateTime created_at { get; set; }
+    [Column("created_at", TypeName = "datetime")]
+    public DateTime CreatedAt { get; set; }
 
-    [Column(TypeName = "datetime")]
-    public DateTime? updated_at { get; set; }
+    [Column("updated_at", TypeName = "datetime")]
+    public DateTime? UpdatedAt { get; set; }
 }

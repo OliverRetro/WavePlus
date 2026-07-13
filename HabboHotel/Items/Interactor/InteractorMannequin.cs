@@ -21,7 +21,8 @@ namespace Plus.HabboHotel.Items.Interactor
 
         public void OnTrigger(GameClient session, Item item, int request, bool hasRights)
         {
-            if (item.ExtraData.Contains(Convert.ToChar(5).ToString())) {
+            if (item.ExtraData.Contains(Convert.ToChar(5).ToString()))
+            {
                 string[] stuff = item.ExtraData.Split(Convert.ToChar(5));
                 session.GetHabbo().Gender = stuff[0].ToUpper();
                 Dictionary<string, string> newFig = new();
@@ -30,15 +31,22 @@ namespace Plus.HabboHotel.Items.Interactor
                 {
                     foreach (string fig in session.GetHabbo().Look.Split('.'))
                     {
-                        if (fig.Split('-')[0] == man.Split('-')[0]) {
-                            if (newFig.ContainsKey(fig.Split('-')[0]) && !newFig.ContainsValue(man)) {
+                        if (fig.Split('-')[0] == man.Split('-')[0])
+                        {
+                            if (newFig.ContainsKey(fig.Split('-')[0]) && !newFig.ContainsValue(man))
+                            {
                                 newFig.Remove(fig.Split('-')[0]);
                                 newFig.Add(fig.Split('-')[0], man);
-                            } else if (!newFig.ContainsKey(fig.Split('-')[0]) && !newFig.ContainsValue(man)) {
+                            }
+                            else if (!newFig.ContainsKey(fig.Split('-')[0]) && !newFig.ContainsValue(man))
+                            {
                                 newFig.Add(fig.Split('-')[0], man);
                             }
-                        } else {
-                            if (!newFig.ContainsKey(fig.Split('-')[0])) {
+                        }
+                        else
+                        {
+                            if (!newFig.ContainsKey(fig.Split('-')[0]))
+                            {
                                 newFig.Add(fig.Split('-')[0], fig);
                             }
                         }
@@ -59,12 +67,13 @@ namespace Plus.HabboHotel.Items.Interactor
                 string gender = session.GetHabbo().Gender;
                 using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    db.users.Where(u => u.id == habboId).ExecuteUpdate(s => s.SetProperty(u => u.look, look).SetProperty(u => u.gender, gender));
+                    db.Users.Where(u => u.Id == habboId).ExecuteUpdate(s => s.SetProperty(u => u.Look, look).SetProperty(u => u.Gender, gender));
                 }
 
                 Room room = session.GetHabbo().CurrentRoom;
                 RoomUser user = room?.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Username);
-                if (user != null) {
+                if (user != null)
+                {
                     session.SendPacket(new UserChangeComposer(user, true));
                     session.GetHabbo().CurrentRoom.SendPacket(new UserChangeComposer(user, false));
                 }

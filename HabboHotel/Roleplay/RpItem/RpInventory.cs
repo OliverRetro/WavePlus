@@ -41,7 +41,8 @@ namespace Plus.HabboHotel.Roleplay.RpItem
             List<RpInventoryEntry> entries = new();
 
             UserRpItems items = habbo?.GetRpItems();
-            if (items != null) {
+            if (items != null)
+            {
                 // Stackable items collapse by item-id into chunks of stack_limit; everything
                 // else (non-stackable, shields with durability) is a single entry.
                 Dictionary<int, List<UserRpItem>> stackable = new();
@@ -50,11 +51,14 @@ namespace Plus.HabboHotel.Roleplay.RpItem
                     if (item.Equipped) // equipped shield lives in the secondary slot
                         continue;
 
-                    if (item.ItemData != null && item.ItemData.IsStackable) {
+                    if (item.ItemData != null && item.ItemData.IsStackable)
+                    {
                         if (!stackable.TryGetValue(item.ItemId, out List<UserRpItem> list))
                             stackable[item.ItemId] = list = new List<UserRpItem>();
                         list.Add(item);
-                    } else {
+                    }
+                    else
+                    {
                         entries.Add(new RpInventoryEntry
                         {
                             Kind = item.ItemData == null ? "item"
@@ -84,7 +88,8 @@ namespace Plus.HabboHotel.Roleplay.RpItem
             }
 
             UserRpWeapons weapons = habbo?.GetRpWeapons();
-            if (weapons != null) {
+            if (weapons != null)
+            {
                 int activeId = weapons.ActiveWeaponId;
                 foreach (UserWeapon weapon in weapons.Weapons)
                 {
@@ -157,7 +162,8 @@ namespace Plus.HabboHotel.Roleplay.RpItem
                         reserved.Add(it.Slot);
 
             UserRpWeapons weapons = habbo?.GetRpWeapons();
-            if (weapons != null && weapons.ActiveWeaponId != 0) {
+            if (weapons != null && weapons.ActiveWeaponId != 0)
+            {
                 UserWeapon active = weapons.GetWeapon(weapons.ActiveWeaponId);
                 if (active != null && active.Slot >= 0 && active.Slot < slotCount)
                     reserved.Add(active.Slot);

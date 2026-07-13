@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
@@ -7,31 +6,34 @@ using Microsoft.EntityFrameworkCore;
 namespace Plus.Database.EF.Entities;
 
 [Table("user_info")]
-[Index("user_id", Name = "user_id", IsUnique = true)]
-public partial class user_info
+[Index("UserId", Name = "user_id", IsUnique = true)]
+public partial class UserInfo
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int user_id { get; set; }
+    [Column("user_id", TypeName = "int(11)")]
+    public int UserId { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int bans { get; set; }
+    [Column("bans", TypeName = "int(11)")]
+    public int Bans { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int cautions { get; set; }
+    [Column("cautions", TypeName = "int(11)")]
+    public int Cautions { get; set; }
 
-    public double reg_timestamp { get; set; }
+    [Column("reg_timestamp")]
+    public double RegTimestamp { get; set; }
 
-    public double login_timestamp { get; set; }
+    [Column("login_timestamp")]
+    public double LoginTimestamp { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int cfhs { get; set; }
+    [Column("cfhs", TypeName = "int(11)")]
+    public int Cfhs { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int cfhs_abusive { get; set; }
+    [Column("cfhs_abusive", TypeName = "int(11)")]
+    public int CfhsAbusive { get; set; }
 
-    public double trading_locked { get; set; }
+    [Column("trading_locked")]
+    public double TradingLocked { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int trading_locks_count { get; set; }
+    [Column("trading_locks_count", TypeName = "int(11)")]
+    public int TradingLocksCount { get; set; }
 }

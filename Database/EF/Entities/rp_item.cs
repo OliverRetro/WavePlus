@@ -1,41 +1,45 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-public partial class rp_item
+[Table("rp_items")]
+public partial class RpItem
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
     [Required]
     [StringLength(55)]
-    public string item_name { get; set; }
+    [Column("item_name")]
+    public string ItemName { get; set; }
 
     [Required]
-    public string handitem_data { get; set; }
+    [Column("handitem_data")]
+    public string HanditemData { get; set; }
 
     [Required]
-    public string effect_data { get; set; }
+    [Column("effect_data")]
+    public string EffectData { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int base_price { get; set; }
+    [Column("base_price", TypeName = "int(11)")]
+    public int BasePrice { get; set; }
 
     [Required]
-    public string attribute_effects { get; set; }
+    [Column("attribute_effects")]
+    public string AttributeEffects { get; set; }
 
     [Required]
     [StringLength(255)]
-    public string image_url { get; set; }
+    [Column("image_url")]
+    public string ImageUrl { get; set; }
 
-    [Column(TypeName = "int(11)")]
-    public int stack_limit { get; set; }
+    [Column("stack_limit", TypeName = "int(11)")]
+    public int StackLimit { get; set; }
 
     [Required]
     [StringLength(32)]
-    public string item_type { get; set; }
+    [Column("item_type")]
+    public string ItemType { get; set; }
 }

@@ -13,13 +13,14 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
             uint uid = (uint)session.GetHabbo().Id;
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            int creditsOwed = db.catalog_marketplace_offers.Where(o => o.user_id == uid && o.state == "2").Sum(o => (int?)o.asking_price) ?? 0;
+            int creditsOwed = db.CatalogMarketplaceOffers.Where(o => o.UserId == uid && o.State == "2").Sum(o => (int?)o.AskingPrice) ?? 0;
 
-            if (creditsOwed >= 1) {
+            if (creditsOwed >= 1)
+            {
                 session.GetHabbo().Credits += creditsOwed;
                 session.SendPacket(new CreditBalanceComposer(session.GetHabbo().Credits));
 
-                db.catalog_marketplace_offers.Where(o => o.user_id == uid && o.state == "2").ExecuteDelete();
+                db.CatalogMarketplaceOffers.Where(o => o.UserId == uid && o.State == "2").ExecuteDelete();
             }
         }
     }

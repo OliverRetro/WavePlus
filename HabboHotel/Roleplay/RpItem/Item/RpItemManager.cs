@@ -22,20 +22,20 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                var rows = db.rp_items.AsNoTracking().ToList();
+                var rows = db.RpItems.AsNoTracking().ToList();
 
                 foreach (var row in rows)
                 {
                     RpItemData item = new(
-                        row.id,
-                        row.item_name,
-                        Convert.ToInt32(row.handitem_data),
-                        Convert.ToInt32(row.effect_data),
-                        row.base_price,
-                        row.image_url,
-                        row.attribute_effects,
-                        row.stack_limit,
-                        row.item_type ?? "consumable"
+                        row.Id,
+                        row.ItemName,
+                        Convert.ToInt32(row.HanditemData),
+                        Convert.ToInt32(row.EffectData),
+                        row.BasePrice,
+                        row.ImageUrl,
+                        row.AttributeEffects,
+                        row.StackLimit,
+                        row.ItemType ?? "consumable"
                     );
 
                     _items[item.Id] = item;

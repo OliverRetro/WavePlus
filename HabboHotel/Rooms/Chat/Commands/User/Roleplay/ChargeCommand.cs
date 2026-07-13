@@ -1,6 +1,5 @@
 using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.HabboHotel.GameClients;
-using Plus.HabboHotel.Roleplay.Police;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 {
@@ -17,7 +16,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
             if (session?.GetHabbo() == null || room == null)
                 return;
 
-            if (@params.Length < 2) {
+            if (@params.Length < 2)
+            {
                 session.SendWhisper("Please enter the username of the suspect you wish to charge.", 1);
                 return;
             }
@@ -30,7 +30,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 
             int targetId = targetClient.GetHabbo().Id;
 
-            if (PlusEnvironment.GetRpCrimeManager().GetTotalStars(targetId) <= 0) {
+            if (PlusEnvironment.GetRpCrimeManager().GetTotalStars(targetId) <= 0)
+            {
                 session.SendWhisper(targetClient.GetHabbo().Username + " has no active crimes to charge.", 1);
                 return;
             }

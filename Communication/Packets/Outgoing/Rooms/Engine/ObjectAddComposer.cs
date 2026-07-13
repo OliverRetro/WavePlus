@@ -1,5 +1,4 @@
-﻿using System;
-using Plus.HabboHotel.Items;
+﻿using Plus.HabboHotel.Items;
 using Plus.Utilities;
 
 namespace Plus.Communication.Packets.Outgoing.Rooms.Engine
@@ -24,13 +23,16 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Engine
             packet.WriteString(string.Format("{0:0.00}", TextHandling.GetString(Item.GetZ)));
             packet.WriteString(string.Empty);
 
-            if (Item.LimitedNo > 0) {
+            if (Item.LimitedNo > 0)
+            {
                 packet.WriteInteger(1);
                 packet.WriteInteger(256);
                 packet.WriteString(Item.ExtraData);
                 packet.WriteInteger(Item.LimitedNo);
                 packet.WriteInteger(Item.LimitedTot);
-            } else {
+            }
+            else
+            {
                 ItemBehaviourUtility.GenerateExtradata(Item, packet);
             }
 

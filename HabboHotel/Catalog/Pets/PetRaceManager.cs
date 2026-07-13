@@ -15,10 +15,10 @@ namespace Plus.HabboHotel.Catalog.Pets
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                var rows = db.catalog_pet_races.Select(r => new { r.raceid, r.color1, r.color2, r.has1color, r.has2color }).ToList();
+                var rows = db.CatalogPetRaces.Select(r => new { r.Raceid, r.Color1, r.Color2, r.Has1color, r.Has2color }).ToList();
                 foreach (var row in rows)
                 {
-                    PetRace race = new(row.raceid ?? 0, row.color1 ?? 0, row.color2 ?? 0, row.has1color == "1", row.has2color == "1");
+                    PetRace race = new(row.Raceid ?? 0, row.Color1 ?? 0, row.Color2 ?? 0, row.Has1color == "1", row.Has2color == "1");
                     if (!_races.Contains(race))
                         _races.Add(race);
                 }

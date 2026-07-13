@@ -17,7 +17,7 @@ namespace Plus.Communication.Packets.Incoming.Inventory.Badges
             uint badgeUserId = (uint)session.GetHabbo().Id;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.user_badges.Where(b => b.user_id == badgeUserId).ExecuteUpdate(s => s.SetProperty(b => b.badge_slot, 0));
+                db.UserBadges.Where(b => b.UserId == badgeUserId).ExecuteUpdate(s => s.SetProperty(b => b.BadgeSlot, 0));
             }
 
             for (int i = 0; i < 5; i++)
@@ -37,7 +37,7 @@ namespace Plus.Communication.Packets.Incoming.Inventory.Badges
                 string badgeId = badge;
                 using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    db.user_badges.Where(b => b.badge_id == badgeId && b.user_id == badgeUserId).ExecuteUpdate(s => s.SetProperty(b => b.badge_slot, badgeSlot));
+                    db.UserBadges.Where(b => b.BadgeId == badgeId && b.UserId == badgeUserId).ExecuteUpdate(s => s.SetProperty(b => b.BadgeSlot, badgeSlot));
                 }
             }
 

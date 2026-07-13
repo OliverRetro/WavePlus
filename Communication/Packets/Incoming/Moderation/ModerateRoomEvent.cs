@@ -22,7 +22,8 @@ namespace Plus.Communication.Packets.Incoming.Moderation
             bool setName = packet.PopInt() == 1;
             bool kickAll = packet.PopInt() == 1;
 
-            if (setName) {
+            if (setName)
+            {
                 room.Name = "Inappropriate to Hotel Management";
                 room.Description = "Inappropriate to Hotel Management";
             }
@@ -41,26 +42,27 @@ namespace Plus.Communication.Packets.Incoming.Moderation
             {
                 // NOTE: legacy sets `state` = '1' even though the column is an enum('open','locked','password','invisible'); preserved as-is.
                 if (setName && setLock)
-                    db.rooms.Where(r => r.id == roomId).ExecuteUpdate(s => s
-                        .SetProperty(r => r.caption, "Inappropriate to Hotel Management")
-                        .SetProperty(r => r.description, "Inappropriate to Hotel Management")
-                        .SetProperty(r => r.tags, "")
-                        .SetProperty(r => r.state, "1"));
+                    db.Rooms.Where(r => r.Id == roomId).ExecuteUpdate(s => s
+                        .SetProperty(r => r.Caption, "Inappropriate to Hotel Management")
+                        .SetProperty(r => r.Description, "Inappropriate to Hotel Management")
+                        .SetProperty(r => r.Tags, "")
+                        .SetProperty(r => r.State, "1"));
                 else if (setName)
-                    db.rooms.Where(r => r.id == roomId).ExecuteUpdate(s => s
-                        .SetProperty(r => r.caption, "Inappropriate to Hotel Management")
-                        .SetProperty(r => r.description, "Inappropriate to Hotel Management")
-                        .SetProperty(r => r.tags, ""));
+                    db.Rooms.Where(r => r.Id == roomId).ExecuteUpdate(s => s
+                        .SetProperty(r => r.Caption, "Inappropriate to Hotel Management")
+                        .SetProperty(r => r.Description, "Inappropriate to Hotel Management")
+                        .SetProperty(r => r.Tags, ""));
                 else if (setLock)
-                    db.rooms.Where(r => r.id == roomId).ExecuteUpdate(s => s
-                        .SetProperty(r => r.state, "1")
-                        .SetProperty(r => r.tags, ""));
+                    db.Rooms.Where(r => r.Id == roomId).ExecuteUpdate(s => s
+                        .SetProperty(r => r.State, "1")
+                        .SetProperty(r => r.Tags, ""));
             }
 
             room.SendPacket(new RoomSettingsSavedComposer(room.RoomId));
             room.SendPacket(new RoomInfoUpdatedComposer(room.RoomId));
 
-            if (kickAll) {
+            if (kickAll)
+            {
                 foreach (RoomUser roomUser in room.GetRoomUserManager().GetUserList().ToList())
                 {
                     if (roomUser == null || roomUser.IsBot)

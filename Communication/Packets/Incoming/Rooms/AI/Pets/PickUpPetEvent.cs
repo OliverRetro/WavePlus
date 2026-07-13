@@ -25,7 +25,8 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Pets
 
             int petId = packet.PopInt();
 
-            if (!room.GetRoomUserManager().TryGetPet(petId, out RoomUser pet)) {
+            if (!room.GetRoomUserManager().TryGetPet(petId, out RoomUser pet))
+            {
                 //Check kick rights, just because it seems most appropriate.
                 if ((!room.CheckRights(session) && room.WhoCanKick != 2 && room.Group == null) || (room.Group != null && !room.CheckRights(session, false, true)))
                     return;
@@ -48,23 +49,28 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Pets
                 return;
             }
 
-            if (session.GetHabbo().Id != pet.PetData.OwnerId && !room.CheckRights(session, true)) {
+            if (session.GetHabbo().Id != pet.PetData.OwnerId && !room.CheckRights(session, true))
+            {
                 session.SendWhisper("You can only pickup your own pets, to kick a pet you must have room rights.");
                 return;
             }
 
-            if (pet.RidingHorse) {
+            if (pet.RidingHorse)
+            {
                 RoomUser userRiding = room.GetRoomUserManager().GetRoomUserByVirtualId(pet.HorseId);
-                if (userRiding != null) {
+                if (userRiding != null)
+                {
                     userRiding.RidingHorse = false;
                     userRiding.ApplyEffect(-1);
                     userRiding.MoveTo(new Point(userRiding.X + 1, userRiding.Y + 1));
-                } else
+                }
+                else
                     pet.RidingHorse = false;
             }
 
             Pet data = pet.PetData;
-            if (data != null) {
+            if (data != null)
+            {
                 uint petDbId = (uint)data.PetId;
                 int experience = data.Experience;
                 int energy = data.Energy;
@@ -72,23 +78,26 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Pets
                 int respect = data.Respect;
                 using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    db.bots.Where(b => b.id == petDbId).ExecuteUpdate(s => s
-                        .SetProperty(b => b.room_id, 0u)
-                        .SetProperty(b => b.x, 0)
-                        .SetProperty(b => b.y, 0)
-                        .SetProperty(b => b.z, 0));
-                    db.bots_petdata.Where(p => p.id == petDbId).ExecuteUpdate(s => s
-                        .SetProperty(p => p.experience, experience)
-                        .SetProperty(p => p.energy, energy)
-                        .SetProperty(p => p.nutrition, nutrition)
-                        .SetProperty(p => p.respect, respect));
+                    db.Bots.Where(b => b.Id == petDbId).ExecuteUpdate(s => s
+                        .SetProperty(b => b.RoomId, 0u)
+                        .SetProperty(b => b.X, 0)
+                        .SetProperty(b => b.Y, 0)
+                        .SetProperty(b => b.Z, 0));
+                    db.BotsPetdata.Where(p => p.Id == petDbId).ExecuteUpdate(s => s
+                        .SetProperty(p => p.Experience, experience)
+                        .SetProperty(p => p.Energy, energy)
+                        .SetProperty(p => p.Nutrition, nutrition)
+                        .SetProperty(p => p.Respect, respect));
                 }
             }
 
-            if (data.OwnerId != session.GetHabbo().Id) {
+            if (data.OwnerId != session.GetHabbo().Id)
+            {
                 GameClient target = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(data.OwnerId);
-                if (target != null) {
-                    if (target.GetHabbo().GetInventoryComponent().TryAddPet(pet.PetData)) {
+                if (target != null)
+                {
+                    if (target.GetHabbo().GetInventoryComponent().TryAddPet(pet.PetData))
+                    {
                         pet.PetData.RoomId = 0;
                         pet.PetData.PlacedInRoom = false;
 

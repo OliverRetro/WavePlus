@@ -54,7 +54,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Emotions
         {
             foreach (KeyValuePair<string, ChatEmotions> kvp in _emotions)
             {
-                if (text.ToLower().Contains(kvp.Key.ToLower())) {
+                if (text.ToLower().Contains(kvp.Key.ToLower()))
+                {
                     return GetEmoticonPacketNum(kvp.Value);
                 }
             }

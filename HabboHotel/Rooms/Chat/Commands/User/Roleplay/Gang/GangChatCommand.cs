@@ -1,7 +1,5 @@
-﻿using Plus.Communication.Packets.Outgoing.Groups;
-using Plus.HabboHotel.GameClients;
+﻿using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
-using Plus.HabboHotel.Users;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
 {
@@ -18,13 +16,15 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
             if (session?.GetHabbo() == null)
                 return;
 
-            if (@params.Length < 2) {
+            if (@params.Length < 2)
+            {
                 session.SendWhisper("Please enter the message you want to send to your gang.", 1);
                 return;
             }
 
             Group Gang = session.GetHabbo().GetStats().FavouriteGroupId != 0 && PlusEnvironment.GetGame().GetGroupManager().TryGetGroup(session.GetHabbo().GetStats().FavouriteGroupId, out Group gang) ? gang : null;
-            if (Gang == null) {
+            if (Gang == null)
+            {
                 session.SendWhisper("You need to have a gang selected.", 1);
                 return;
             }

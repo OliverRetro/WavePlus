@@ -53,8 +53,8 @@ namespace Plus.HabboHotel.Groups
             Colour1 = colour1 == 0 ? 1 : colour1;
             Colour2 = colour2 == 0 ? 1 : colour2;
             HasForum = hasForum;
-            Type = (GroupType) type;
-            Kind = (GroupKind) groupType;
+            Type = (GroupType)type;
+            Kind = (GroupKind)groupType;
 
             AdminOnlyDeco = adminOnlyDeco;
             ForumEnabled = ForumEnabled;
@@ -66,7 +66,8 @@ namespace Plus.HabboHotel.Groups
             _permissions = new ConcurrentDictionary<string, GroupPermissionAssignment>(StringComparer.OrdinalIgnoreCase);
             _deletedPermissionIds = new List<int>();
 
-            if (Id > 0) {
+            if (Id > 0)
+            {
                 InitMembers();
                 InitRoles();
                 InitPermissions();
@@ -78,28 +79,30 @@ namespace Plus.HabboHotel.Groups
             uint gid = (uint)Id;
             using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-            var members = db.group_memberships.Where(m => m.group_id == gid)
-                .Select(m => new { m.user_id, m.level }).ToList();
+            var members = db.GroupMemberships.Where(m => m.GroupId == gid)
+                .Select(m => new { m.UserId, m.Level }).ToList();
 
             foreach (var row in members)
             {
-                int userId = (int)row.user_id;
-                int level = row.level;
-                if (userId == CreatorId) {
+                int userId = (int)row.UserId;
+                int level = row.Level;
+                if (userId == CreatorId)
+                {
                     level = 0;
-                    if (row.level != 0)
+                    if (row.Level != 0)
                         MarkDirty(); // creator level correction; persisted on the next flush
                 }
 
                 _memberLevels[userId] = level;
             }
 
-            if (!_memberLevels.ContainsKey(CreatorId)) {
+            if (!_memberLevels.ContainsKey(CreatorId))
+            {
                 _memberLevels[CreatorId] = 0;
                 MarkDirty();
             }
 
-            var requests = db.group_requests.Where(r => r.group_id == gid).Select(r => (int)r.user_id).ToList();
+            var requests = db.GroupRequests.Where(r => r.GroupId == gid).Select(r => (int)r.UserId).ToList();
             foreach (int userId in requests)
             {
                 if (_memberLevels.ContainsKey(userId))
@@ -114,12 +117,12 @@ namespace Plus.HabboHotel.Groups
             int gid = Id;
             using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-            var roles = db.group_roles.Where(r => r.group_id == gid).OrderBy(r => r.level)
-                .Select(r => new { r.id, r.group_id, r.level, r.name, r.shift_pay, r.shift_costume, r.shift_duration, r.shift_motto, r.created_at }).ToList();
+            var roles = db.GroupRoles.Where(r => r.GroupId == gid).OrderBy(r => r.Level)
+                .Select(r => new { r.Id, r.GroupId, r.Level, r.Name, r.ShiftPay, r.ShiftCostume, r.ShiftDuration, r.ShiftMotto, r.CreatedAt }).ToList();
 
             foreach (var row in roles)
             {
-                GroupRole role = new(row.id, row.group_id, row.level, row.name, row.shift_pay, row.shift_costume, row.shift_duration == null ? 5 : (int)row.shift_duration, row.shift_motto, row.created_at);
+                GroupRole role = new(row.Id, row.GroupId, row.Level, row.Name, row.ShiftPay, row.ShiftCostume, row.ShiftDuration == null ? 5 : (int)row.ShiftDuration, row.ShiftMotto, row.CreatedAt);
 
                 _roles[role.Level] = role;
             }
@@ -130,13 +133,13 @@ namespace Plus.HabboHotel.Groups
             int gid = Id;
             using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-            var permissions = db.group_permissions.Where(p => p.group_id == gid)
-                .Select(p => new { p.id, p.group_id, p.level_id, p.permission_id, p.created_at }).ToList();
+            var permissions = db.GroupPermissions.Where(p => p.GroupId == gid)
+                .Select(p => new { p.Id, p.GroupId, p.LevelId, p.PermissionId, p.CreatedAt }).ToList();
 
             foreach (var row in permissions)
             {
                 GroupPermissionAssignment assignment = new GroupPermissionAssignment(
-                    row.id, row.group_id, row.level_id, row.permission_id, row.created_at);
+                    row.Id, row.GroupId, row.LevelId, row.PermissionId, row.CreatedAt);
 
                 _permissions[BuildPermissionKey(assignment.LevelId, assignment.PermissionId)] = assignment;
             }
@@ -231,14 +234,16 @@ namespace Plus.HabboHotel.Groups
                 return false;
 
             string assignmentKey = BuildPermissionKey(levelId, permissionId);
-            if (!permission.SupportsGroupKind(Kind)) {
+            if (!permission.SupportsGroupKind(Kind))
+            {
                 if (!enabled)
                     return true;
 
                 return false;
             }
 
-            if (!enabled) {
+            if (!enabled)
+            {
                 if (!_permissions.TryRemove(assignmentKey, out GroupPermissionAssignment removed))
                     return true;
 
@@ -278,12 +283,14 @@ namespace Plus.HabboHotel.Groups
             if (!_memberLevels.TryGetValue(id, out int level))
                 return false;
 
-            if (id == CreatorId || level == 0) {
+            if (id == CreatorId || level == 0)
+            {
                 role = GetOwnerRole();
                 return true;
             }
 
-            if (_roles.TryGetValue(level, out GroupRole foundRole)) {
+            if (_roles.TryGetValue(level, out GroupRole foundRole))
+            {
                 role = foundRole;
                 return true;
             }
@@ -393,7 +400,8 @@ namespace Plus.HabboHotel.Groups
 
         public RoomData GetRoom()
         {
-            if (_room == null) {
+            if (_room == null)
+            {
                 if (!RoomFactory.TryGetData(RoomId, out RoomData data))
                     return null;
 
@@ -452,28 +460,29 @@ namespace Plus.HabboHotel.Groups
             foreach (int deletedRoleId in _deletedRoleIds.ToList())
             {
                 int rid = deletedRoleId;
-                db.group_roles.Where(r => r.id == rid).ExecuteDelete();
+                db.GroupRoles.Where(r => r.Id == rid).ExecuteDelete();
             }
 
             _deletedRoleIds.Clear();
 
             foreach (GroupRole role in _roles.Values.OrderBy(x => x.Level))
             {
-                if (role.IsNew) {
-                    var entity = new Database.EF.Entities.group_role
+                if (role.IsNew)
+                {
+                    var entity = new Database.EF.Entities.GroupRole
                     {
-                        group_id = role.GroupId,
-                        level = role.Level,
-                        name = role.Name,
-                        shift_pay = role.ShiftPay,
-                        shift_costume = role.ShiftCostume,
-                        shift_duration = (short)role.ShiftDuration,
-                        shift_motto = role.ShiftMotto,
-                        created_at = role.CreatedAt
+                        GroupId = role.GroupId,
+                        Level = role.Level,
+                        Name = role.Name,
+                        ShiftPay = role.ShiftPay,
+                        ShiftCostume = role.ShiftCostume,
+                        ShiftDuration = (short)role.ShiftDuration,
+                        ShiftMotto = role.ShiftMotto,
+                        CreatedAt = role.CreatedAt
                     };
-                    db.group_roles.Add(entity);
+                    db.GroupRoles.Add(entity);
                     db.SaveChanges();
-                    role.MarkPersisted(entity.id);
+                    role.MarkPersisted(entity.Id);
                     continue;
                 }
 
@@ -486,12 +495,12 @@ namespace Plus.HabboHotel.Groups
                 string shiftCostume = role.ShiftCostume;
                 short shiftDuration = (short)role.ShiftDuration;
                 string shiftMotto = role.ShiftMotto;
-                db.group_roles.Where(r => r.id == roleId).ExecuteUpdate(s => s
-                    .SetProperty(r => r.name, name)
-                    .SetProperty(r => r.shift_pay, shiftPay)
-                    .SetProperty(r => r.shift_costume, shiftCostume)
-                    .SetProperty(r => r.shift_duration, shiftDuration)
-                    .SetProperty(r => r.shift_motto, shiftMotto));
+                db.GroupRoles.Where(r => r.Id == roleId).ExecuteUpdate(s => s
+                    .SetProperty(r => r.Name, name)
+                    .SetProperty(r => r.ShiftPay, shiftPay)
+                    .SetProperty(r => r.ShiftCostume, shiftCostume)
+                    .SetProperty(r => r.ShiftDuration, shiftDuration)
+                    .SetProperty(r => r.ShiftMotto, shiftMotto));
                 role.MarkSaved();
             }
         }
@@ -506,7 +515,7 @@ namespace Plus.HabboHotel.Groups
             foreach (int deletedPermissionId in _deletedPermissionIds.ToList())
             {
                 int pid = deletedPermissionId;
-                db.group_permissions.Where(p => p.id == pid).ExecuteDelete();
+                db.GroupPermissions.Where(p => p.Id == pid).ExecuteDelete();
             }
 
             _deletedPermissionIds.Clear();
@@ -516,16 +525,16 @@ namespace Plus.HabboHotel.Groups
                 if (!assignment.IsNew)
                     continue;
 
-                var entity = new Database.EF.Entities.group_permission
+                var entity = new Database.EF.Entities.GroupPermission
                 {
-                    group_id = assignment.GroupId,
-                    level_id = assignment.LevelId,
-                    permission_id = assignment.PermissionId,
-                    created_at = assignment.CreatedAt
+                    GroupId = assignment.GroupId,
+                    LevelId = assignment.LevelId,
+                    PermissionId = assignment.PermissionId,
+                    CreatedAt = assignment.CreatedAt
                 };
-                db.group_permissions.Add(entity);
+                db.GroupPermissions.Add(entity);
                 db.SaveChanges();
-                assignment.MarkPersisted(entity.id);
+                assignment.MarkPersisted(entity.Id);
             }
         }
 
@@ -558,34 +567,35 @@ namespace Plus.HabboHotel.Groups
             SaveRoles();
             SavePermissions();
 
-            if (_dirty) {
+            if (_dirty)
+            {
                 uint gid = (uint)Id;
                 using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    db.groups.Where(g => g.id == gid).ExecuteUpdate(s => s
-                        .SetProperty(g => g.name, Name)
-                        .SetProperty(g => g.desc, Description)
-                        .SetProperty(g => g.badge, Badge)
-                        .SetProperty(g => g.colour1, Colour1)
-                        .SetProperty(g => g.colour2, Colour2)
-                        .SetProperty(g => g.state, ((int)Type).ToString())
-                        .SetProperty(g => g.admindeco, AdminOnlyDeco.ToString())
-                        .SetProperty(g => g.forum_enabled, ForumEnabled ? "1" : "0")
-                        .SetProperty(g => g.group_type, (short)Kind));
+                    db.Groups.Where(g => g.Id == gid).ExecuteUpdate(s => s
+                        .SetProperty(g => g.Name, Name)
+                        .SetProperty(g => g.Desc, Description)
+                        .SetProperty(g => g.Badge, Badge)
+                        .SetProperty(g => g.Colour1, Colour1)
+                        .SetProperty(g => g.Colour2, Colour2)
+                        .SetProperty(g => g.State, ((int)Type).ToString())
+                        .SetProperty(g => g.Admindeco, AdminOnlyDeco.ToString())
+                        .SetProperty(g => g.ForumEnabled, ForumEnabled ? "1" : "0")
+                        .SetProperty(g => g.GroupType, (short)Kind));
 
-                    db.group_memberships.Where(m => m.group_id == gid).ExecuteDelete();
-                    db.group_memberships.AddRange(_memberLevels.Select(kv => new Database.EF.Entities.group_membership
+                    db.GroupMemberships.Where(m => m.GroupId == gid).ExecuteDelete();
+                    db.GroupMemberships.AddRange(_memberLevels.Select(kv => new Database.EF.Entities.GroupMembership
                     {
-                        group_id = gid,
-                        user_id = (uint)kv.Key,
-                        level = (short)kv.Value
+                        GroupId = gid,
+                        UserId = (uint)kv.Key,
+                        Level = (short)kv.Value
                     }));
 
-                    db.group_requests.Where(r => r.group_id == gid).ExecuteDelete();
-                    db.group_requests.AddRange(_requests.Select(uid => new Database.EF.Entities.group_request
+                    db.GroupRequests.Where(r => r.GroupId == gid).ExecuteDelete();
+                    db.GroupRequests.AddRange(_requests.Select(uid => new Database.EF.Entities.GroupRequest
                     {
-                        group_id = gid,
-                        user_id = (uint)uid
+                        GroupId = gid,
+                        UserId = (uint)uid
                     }));
 
                     db.SaveChanges();

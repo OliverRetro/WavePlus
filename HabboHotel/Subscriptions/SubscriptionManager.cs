@@ -18,13 +18,13 @@ namespace Plus.HabboHotel.Subscriptions
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                var subs = db.subscriptions
-                    .Select(s => new { s.id, s.name, s.badge_code, s.credits, s.duckets, s.respects, s.static_aggression, s.trash_search_cooldown })
+                var subs = db.Subscriptions
+                    .Select(s => new { s.Id, s.Name, s.BadgeCode, s.Credits, s.Duckets, s.Respects, s.StaticAggression, s.TrashSearchCooldown })
                     .ToList();
                 foreach (var row in subs)
                 {
-                    if (!_subscriptions.ContainsKey(row.id))
-                        _subscriptions.Add(row.id, new SubscriptionData(row.id, row.name, row.badge_code, row.credits, row.duckets, row.respects, row.static_aggression, row.trash_search_cooldown));
+                    if (!_subscriptions.ContainsKey(row.Id))
+                        _subscriptions.Add(row.Id, new SubscriptionData(row.Id, row.Name, row.BadgeCode, row.Credits, row.Duckets, row.Respects, row.StaticAggression, row.TrashSearchCooldown));
                 }
             }
 

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Plus.Communication.Packets.Outgoing.Notifications
+﻿namespace Plus.Communication.Packets.Outgoing.Notifications
 {
     public class NuxAlertComposer : MessageComposer
     {

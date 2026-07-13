@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using Plus.Communication.Packets.Incoming;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Rooms.Games.Teams;
@@ -38,7 +37,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Conditions
             if (@params.Length == 0 || Instance == null || string.IsNullOrEmpty(StringData))
                 return false;
 
-            Habbo player = (Habbo) @params[0];
+            Habbo player = (Habbo)@params[0];
             if (player == null)
                 return false;
 

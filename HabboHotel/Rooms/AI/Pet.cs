@@ -33,7 +33,7 @@ namespace Plus.HabboHotel.Rooms.AI
         public double Z;
         public int Experience;
 
-        public int[] ExperienceLevels = {100, 200, 400, 600, 1000, 1300, 1800, 2400, 3200, 4300, 7200, 8500, 10100, 13300, 17500, 23000, 51900, 75000, 128000, 150000};
+        public int[] ExperienceLevels = { 100, 200, 400, 600, 1000, 1300, 1800, 2400, 3200, 4300, 7200, 8500, 10100, 13300, 17500, 23000, 51900, 75000, 128000, 150000 };
 
         public string GnomeClothing;
 
@@ -79,7 +79,8 @@ namespace Plus.HabboHotel.Rooms.AI
         {
             Experience += amount;
 
-            if (Experience > 150000) {
+            if (Experience > 150000)
+            {
                 Experience = 150000;
 
                 Room?.SendPacket(new AddExperiencePointsComposer(PetId, VirtualId, amount));
@@ -90,7 +91,8 @@ namespace Plus.HabboHotel.Rooms.AI
             if (DbState != PetDatabaseUpdateState.NeedsInsert)
                 DbState = PetDatabaseUpdateState.NeedsUpdate;
 
-            if (Room != null) {
+            if (Room != null)
+            {
                 Room.SendPacket(new AddExperiencePointsComposer(PetId, VirtualId, amount));
 
                 if (Experience >= ExperienceGoal)
@@ -101,7 +103,8 @@ namespace Plus.HabboHotel.Rooms.AI
         public void PetEnergy(bool add)
         {
             int maxE;
-            if (add) {
+            if (add)
+            {
                 if (Energy == 100) // If Energy is 100, no point.
                     return;
 
@@ -109,7 +112,8 @@ namespace Plus.HabboHotel.Rooms.AI
                     maxE = MaxEnergy - Energy;
                 else
                     maxE = 10;
-            } else
+            }
+            else
                 maxE = 15; // Remove Max Energy as 15
 
             if (maxE <= 4)
@@ -117,14 +121,17 @@ namespace Plus.HabboHotel.Rooms.AI
 
             int r = PlusEnvironment.GetRandomNumber(4, maxE);
 
-            if (!add) {
+            if (!add)
+            {
                 Energy -= r;
 
-                if (Energy < 0) {
+                if (Energy < 0)
+                {
                     Energy = 1;
                     r = 1;
                 }
-            } else
+            }
+            else
 
                 Energy += r;
 

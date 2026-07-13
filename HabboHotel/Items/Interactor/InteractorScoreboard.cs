@@ -14,7 +14,8 @@ namespace Plus.HabboHotel.Items.Interactor
 
         public void OnTrigger(GameClient session, Item item, int request, bool hasRights)
         {
-            if (!hasRights) {
+            if (!hasRights)
+            {
                 return;
             }
 
@@ -23,12 +24,14 @@ namespace Plus.HabboHotel.Items.Interactor
             // Request 3 - Reset with UI/Wired/Double click
 
             // Find out what number we are on right now
-            if (!int.TryParse(item.ExtraData, out int oldValue)) {
+            if (!int.TryParse(item.ExtraData, out int oldValue))
+            {
                 oldValue = 0;
             }
 
             // Decrease value with red button
-            if (oldValue >= 0 && oldValue <= 99 && request == 1) {
+            if (oldValue >= 0 && oldValue <= 99 && request == 1)
+            {
                 if (oldValue > 0)
                     oldValue--;
                 else if (oldValue == 0)
@@ -36,7 +39,8 @@ namespace Plus.HabboHotel.Items.Interactor
             }
 
             // Increase value with green button
-            if (oldValue >= 0 && oldValue <= 99 && request == 2) {
+            if (oldValue >= 0 && oldValue <= 99 && request == 2)
+            {
                 if (oldValue < 99)
                     oldValue++;
                 else if (oldValue == 99)
@@ -44,7 +48,8 @@ namespace Plus.HabboHotel.Items.Interactor
             }
 
             // Reset with UI/Wired/Double click
-            if (request == 3) {
+            if (request == 3)
+            {
                 oldValue = 0;
                 item.PendingReset = true;
             }

@@ -1,17 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
 [Table("logs_client_trade")]
-public partial class logs_client_trade
+public partial class LogsClientTrade
 {
     [Key]
-    [Column(TypeName = "int(11)")]
-    public int id { get; set; }
+    [Column("id", TypeName = "int(11)")]
+    public int Id { get; set; }
 
     [Column("1id", TypeName = "int(11)")]
     public int? _1id { get; set; }
@@ -26,5 +23,6 @@ public partial class logs_client_trade
     public string _2items { get; set; }
 
     [StringLength(20)]
-    public string timestamp { get; set; }
+    [Column("timestamp")]
+    public string Timestamp { get; set; }
 }

@@ -35,19 +35,24 @@ namespace Plus.HabboHotel.Rooms
             try
             {
                 TimeSpan sinceLastTime = DateTime.Now - _cycleLastExecution;
-                if (sinceLastTime.TotalMilliseconds >= 500) {
+                if (sinceLastTime.TotalMilliseconds >= 500)
+                {
                     _cycleLastExecution = DateTime.Now;
                     foreach (Room room in _rooms.Values)
                     {
                         if (room.IsCrashed)
                             continue;
 
-                        if (room.ProcessTask == null || room.ProcessTask.IsCompleted) {
+                        if (room.ProcessTask == null || room.ProcessTask.IsCompleted)
+                        {
                             room.ProcessTask = Task.Run(room.ProcessRoom);
                             room.IsLagging = 0;
-                        } else {
+                        }
+                        else
+                        {
                             room.IsLagging++;
-                            if (room.IsLagging >= 30) {
+                            if (room.IsLagging >= 30)
+                            {
                                 room.IsCrashed = true;
                                 UnloadRoom(room.Id);
                             }
@@ -69,31 +74,32 @@ namespace Plus.HabboHotel.Rooms
                 _roomModels.Clear();
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            var models = db.room_models.Where(m => m.custom == "0")
-                .Select(m => new { m.id, m.door_x, m.door_y, m.door_z, m.door_dir, m.heightmap, m.club_only, m.wall_height })
+            var models = db.RoomModels.Where(m => m.Custom == "0")
+                .Select(m => new { m.Id, m.DoorX, m.DoorY, m.DoorZ, m.DoorDir, m.Heightmap, m.ClubOnly, m.WallHeight })
                 .ToList();
 
             foreach (var m in models)
             {
-                if (m.id != null)
-                    _roomModels.Add(m.id, new RoomModel(m.id, m.door_x, m.door_y, m.door_z, m.door_dir,
-                        m.heightmap, PlusEnvironment.EnumToBool(m.club_only), m.wall_height, false));
+                if (m.Id != null)
+                    _roomModels.Add(m.Id, new RoomModel(m.Id, m.DoorX, m.DoorY, m.DoorZ, m.DoorDir,
+                        m.Heightmap, PlusEnvironment.EnumToBool(m.ClubOnly), m.WallHeight, false));
             }
         }
 
         public bool LoadModel(string id)
         {
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            var m = db.room_models.Where(x => x.custom == "1" && x.id == id)
-                .Select(x => new { x.id, x.door_x, x.door_y, x.door_z, x.door_dir, x.heightmap, x.club_only, x.wall_height })
+            var m = db.RoomModels.Where(x => x.Custom == "1" && x.Id == id)
+                .Select(x => new { x.Id, x.DoorX, x.DoorY, x.DoorZ, x.DoorDir, x.Heightmap, x.ClubOnly, x.WallHeight })
                 .FirstOrDefault();
 
             if (m == null)
                 return false;
 
-            if (m.id != null && !_roomModels.ContainsKey(m.id)) {
-                _roomModels.Add(m.id, new RoomModel(m.id, m.door_x, m.door_y, m.door_z, m.door_dir,
-                    m.heightmap, PlusEnvironment.EnumToBool(m.club_only), m.wall_height, true));
+            if (m.Id != null && !_roomModels.ContainsKey(m.Id))
+            {
+                _roomModels.Add(m.Id, new RoomModel(m.Id, m.DoorX, m.DoorY, m.DoorZ, m.DoorDir,
+                    m.Heightmap, PlusEnvironment.EnumToBool(m.ClubOnly), m.WallHeight, true));
             }
 
             return true;
@@ -101,7 +107,8 @@ namespace Plus.HabboHotel.Rooms
 
         public void ReloadModel(string id)
         {
-            if (!_roomModels.ContainsKey(id)) {
+            if (!_roomModels.ContainsKey(id))
+            {
                 LoadModel(id);
                 return;
             }
@@ -112,14 +119,17 @@ namespace Plus.HabboHotel.Rooms
 
         public bool TryGetModel(string id, out RoomModel model)
         {
-            if (_roomModels.ContainsKey(id)) {
+            if (_roomModels.ContainsKey(id))
+            {
                 model = _roomModels[id];
                 return true;
             }
 
             // Try to load this model.
-            if (LoadModel(id)) {
-                if (TryGetModel(id, out RoomModel customModel)) {
+            if (LoadModel(id))
+            {
+                if (TryGetModel(id, out RoomModel customModel))
+                {
                     model = customModel;
                     return true;
                 }
@@ -131,15 +141,18 @@ namespace Plus.HabboHotel.Rooms
 
         public void UnloadRoom(int roomId)
         {
-            if (_rooms.TryRemove(roomId, out Room room)) {
+            if (_rooms.TryRemove(roomId, out Room room))
+            {
                 room.Dispose();
             }
         }
 
         public bool TryLoadRoom(int roomId, out Room room)
         {
-            if (_rooms.TryGetValue(roomId, out Room inst)) {
-                if (!inst.Unloaded) {
+            if (_rooms.TryGetValue(roomId, out Room inst))
+            {
+                if (!inst.Unloaded)
+                {
                     room = inst;
                     return true;
                 }
@@ -150,8 +163,10 @@ namespace Plus.HabboHotel.Rooms
 
             lock (_roomLoadingSync)
             {
-                if (_rooms.TryGetValue(roomId, out inst)) {
-                    if (!inst.Unloaded) {
+                if (_rooms.TryGetValue(roomId, out inst))
+                {
+                    if (!inst.Unloaded)
+                    {
                         room = inst;
                         return true;
                     }
@@ -160,13 +175,15 @@ namespace Plus.HabboHotel.Rooms
                     return false;
                 }
 
-                if (!RoomFactory.TryGetData(roomId, out RoomData data)) {
+                if (!RoomFactory.TryGetData(roomId, out RoomData data))
+                {
                     room = null;
                     return false;
                 }
 
                 Room myInstance = new(data);
-                if (_rooms.TryAdd(roomId, myInstance)) {
+                if (_rooms.TryAdd(roomId, myInstance))
+                {
                     room = myInstance;
                     return true;
                 }
@@ -208,7 +225,8 @@ namespace Plus.HabboHotel.Rooms
 
         public List<Room> GetOnGoingRoomPromotions(int mode, int amount = 50)
         {
-            if (mode == 17) {
+            if (mode == 17)
+            {
                 return _rooms.Values.Where(x => x.HasActivePromotion && x.Access != RoomAccess.Invisible).OrderByDescending(x => x.Promotion.TimestampStarted).Take(amount).ToList();
             }
 
@@ -242,7 +260,8 @@ namespace Plus.HabboHotel.Rooms
 
         public RoomData CreateRoom(GameClient session, string name, string description, int category, int maxVisitors, int tradeSettings, RoomModel model, string wallpaper = "0.0", string floor = "0.0", string landscape = "0.0", int wallThick = 0, int floorThick = 0)
         {
-            if (name.Length < 3) {
+            if (name.Length < 3)
+            {
                 session.SendNotification(PlusEnvironment.GetLanguageManager().TryGetValue("room.creation.name.too_short"));
                 return null;
             }
@@ -251,20 +270,20 @@ namespace Plus.HabboHotel.Rooms
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                var newRoom = new Database.EF.Entities.room
+                var newRoom = new Database.EF.Entities.Room
                 {
-                    roomtype = "private",
-                    caption = name,
-                    description = description,
-                    owner = session.GetHabbo().Id.ToString(),
-                    model_name = model.Id,
-                    category = category,
-                    users_max = maxVisitors,
-                    trade_settings = tradeSettings
+                    Roomtype = "private",
+                    Caption = name,
+                    Description = description,
+                    Owner = session.GetHabbo().Id.ToString(),
+                    ModelName = model.Id,
+                    Category = category,
+                    UsersMax = maxVisitors,
+                    TradeSettings = tradeSettings
                 };
-                db.rooms.Add(newRoom);
+                db.Rooms.Add(newRoom);
                 db.SaveChanges();
-                roomId = newRoom.id;
+                roomId = newRoom.Id;
             }
 
             RoomData data = new(roomId, name, model.Id, session.GetHabbo().Username, session.GetHabbo().Id, "", 0, "public", "open", 0, maxVisitors, category, description, string.Empty,
@@ -308,7 +327,7 @@ namespace Plus.HabboHotel.Rooms
 
                 PlusEnvironment.GetGame().GetRoomManager().UnloadRoom(room.Id);
                 Console.Clear();
-                Log.Info("<<- SERVER SHUTDOWN ->> ROOM ITEM SAVE: " + string.Format("{0:0.##}", ((double) i / length) * 100) + "%");
+                Log.Info("<<- SERVER SHUTDOWN ->> ROOM ITEM SAVE: " + string.Format("{0:0.##}", ((double)i / length) * 100) + "%");
                 i++;
             }
 

@@ -37,7 +37,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Pets.Horse
             uint petDbId = (uint)petUser.PetData.PetId;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.bots_petdata.Where(p => p.id == petDbId).ExecuteUpdate(s => s.SetProperty(p => p.have_saddle, 0));
+                db.BotsPetdata.Where(p => p.Id == petDbId).ExecuteUpdate(s => s.SetProperty(p => p.HaveSaddle, 0));
             }
 
             //Give the saddle back to the user.
@@ -45,7 +45,8 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Pets.Horse
                 return;
 
             Item item = ItemFactory.CreateSingleItemNullable(itemData, session.GetHabbo(), "", "");
-            if (item != null) {
+            if (item != null)
+            {
                 session.GetHabbo().GetInventoryComponent().TryAddItem(item);
                 session.SendPacket(new FurniListNotificationComposer(item.Id, 1));
                 session.SendPacket(new PurchaseOkComposer());

@@ -46,7 +46,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Conditions
             if (@params.Length == 0)
                 return false;
 
-            Habbo player = (Habbo) @params[0];
+            Habbo player = (Habbo)@params[0];
 
             RoomUser user = player?.CurrentRoom?.GetRoomUserManager().GetRoomUserByHabbo(player.Username);
             if (user == null)

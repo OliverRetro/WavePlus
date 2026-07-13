@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
@@ -7,26 +6,29 @@ using Microsoft.EntityFrameworkCore;
 namespace Plus.Database.EF.Entities;
 
 [Table("wordfilter")]
-[Index("word", Name = "word", IsUnique = true)]
-public partial class wordfilter
+[Index("Word", Name = "word", IsUnique = true)]
+public partial class Wordfilter
 {
     [Key]
     [StringLength(100)]
-    public string word { get; set; }
+    [Column("word")]
+    public string Word { get; set; }
 
     [Required]
     [StringLength(255)]
-    public string replacement { get; set; }
+    [Column("replacement")]
+    public string Replacement { get; set; }
 
     [Required]
-    [Column(TypeName = "enum('1','0')")]
-    public string strict { get; set; }
+    [Column("strict", TypeName = "enum('1','0')")]
+    public string Strict { get; set; }
 
     [Required]
     [StringLength(100)]
-    public string addedby { get; set; }
+    [Column("addedby")]
+    public string Addedby { get; set; }
 
     [Required]
-    [Column(TypeName = "enum('0','1')")]
-    public string bannable { get; set; }
+    [Column("bannable", TypeName = "enum('0','1')")]
+    public string Bannable { get; set; }
 }

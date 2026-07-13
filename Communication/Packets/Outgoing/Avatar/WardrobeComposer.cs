@@ -19,17 +19,17 @@ namespace Plus.Communication.Packets.Outgoing.Avatar
             uint uid = (uint)UserId;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                var wardrobeData = db.user_wardrobes
-                    .Where(w => w.user_id == uid)
-                    .Select(w => new { w.slot_id, w.look, w.gender })
+                var wardrobeData = db.UserWardrobes
+                    .Where(w => w.UserId == uid)
+                    .Select(w => new { w.SlotId, w.Look, w.Gender })
                     .ToList();
 
                 packet.WriteInteger(wardrobeData.Count);
                 foreach (var row in wardrobeData)
                 {
-                    packet.WriteInteger((int)row.slot_id);
-                    packet.WriteString(row.look);
-                    packet.WriteString(row.gender.ToUpper());
+                    packet.WriteInteger((int)row.SlotId);
+                    packet.WriteString(row.Look);
+                    packet.WriteString(row.Gender.ToUpper());
                 }
             }
         }

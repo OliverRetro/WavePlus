@@ -67,7 +67,8 @@ namespace Plus.HabboHotel.Rooms.Trading
                     if (user == null)
                         continue;
 
-                    if (!user.HasAccepted) {
+                    if (!user.HasAccepted)
+                    {
                         return false;
                     }
                 }
@@ -110,7 +111,8 @@ namespace Plus.HabboHotel.Rooms.Trading
         {
             TradeUser tradeUser = Users[0];
 
-            if (tradeUser.RoomUser.UserId != userId) {
+            if (tradeUser.RoomUser.UserId != userId)
+            {
                 tradeUser = Users[1];
             }
 
@@ -142,7 +144,8 @@ namespace Plus.HabboHotel.Rooms.Trading
             {
                 Item I = roomUserOne.GetClient().GetHabbo().GetInventoryComponent().GetItem(item.Id);
 
-                if (I == null) {
+                if (I == null)
+                {
                     SendPacket(new BroadcastMessageAlertComposer("Error! Trading Failed!"));
                     return;
                 }
@@ -152,7 +155,8 @@ namespace Plus.HabboHotel.Rooms.Trading
             {
                 Item I = roomUserTwo.GetClient().GetHabbo().GetInventoryComponent().GetItem(item.Id);
 
-                if (I == null) {
+                if (I == null)
+                {
                     SendPacket(new BroadcastMessageAlertComposer("Error! Trading Failed!"));
                     return;
                 }
@@ -164,20 +168,24 @@ namespace Plus.HabboHotel.Rooms.Trading
             {
                 logUserOne += item.Id + ";";
                 roomUserOne.GetClient().GetHabbo().GetInventoryComponent().RemoveItem(item.Id);
-                if (item.Data.InteractionType == InteractionType.Exchange && PlusEnvironment.GetSettingsManager().TryGetValue("trading.auto_exchange_redeemables") == "1") {
+                if (item.Data.InteractionType == InteractionType.Exchange && PlusEnvironment.GetSettingsManager().TryGetValue("trading.auto_exchange_redeemables") == "1")
+                {
                     roomUserTwo.GetClient().GetHabbo().Credits += item.Data.BehaviourData;
                     roomUserTwo.GetClient().SendPacket(new CreditBalanceComposer(roomUserTwo.GetClient().GetHabbo().Credits));
 
                     uint delId = (uint)item.Id;
-                    db.items.Where(i => i.id == delId).ExecuteDelete();
-                } else {
-                    if (roomUserTwo.GetClient().GetHabbo().GetInventoryComponent().TryAddItem(item)) {
+                    db.Items.Where(i => i.Id == delId).ExecuteDelete();
+                }
+                else
+                {
+                    if (roomUserTwo.GetClient().GetHabbo().GetInventoryComponent().TryAddItem(item))
+                    {
                         roomUserTwo.GetClient().SendPacket(new FurniListAddComposer(item));
                         roomUserTwo.GetClient().SendPacket(new FurniListNotificationComposer(item.Id, 1));
 
                         uint updId = (uint)item.Id;
                         int newUser = roomUserTwo.UserId;
-                        db.items.Where(i => i.id == updId).ExecuteUpdate(s => s.SetProperty(i => i.user_id, newUser));
+                        db.Items.Where(i => i.Id == updId).ExecuteUpdate(s => s.SetProperty(i => i.UserId, newUser));
                     }
                 }
             }
@@ -186,20 +194,24 @@ namespace Plus.HabboHotel.Rooms.Trading
             {
                 logUserTwo += item.Id + ";";
                 roomUserTwo.GetClient().GetHabbo().GetInventoryComponent().RemoveItem(item.Id);
-                if (item.Data.InteractionType == InteractionType.Exchange && PlusEnvironment.GetSettingsManager().TryGetValue("trading.auto_exchange_redeemables") == "1") {
+                if (item.Data.InteractionType == InteractionType.Exchange && PlusEnvironment.GetSettingsManager().TryGetValue("trading.auto_exchange_redeemables") == "1")
+                {
                     roomUserOne.GetClient().GetHabbo().Credits += item.Data.BehaviourData;
                     roomUserOne.GetClient().SendPacket(new CreditBalanceComposer(roomUserOne.GetClient().GetHabbo().Credits));
 
                     uint delId = (uint)item.Id;
-                    db.items.Where(i => i.id == delId).ExecuteDelete();
-                } else {
-                    if (roomUserOne.GetClient().GetHabbo().GetInventoryComponent().TryAddItem(item)) {
+                    db.Items.Where(i => i.Id == delId).ExecuteDelete();
+                }
+                else
+                {
+                    if (roomUserOne.GetClient().GetHabbo().GetInventoryComponent().TryAddItem(item))
+                    {
                         roomUserOne.GetClient().SendPacket(new FurniListAddComposer(item));
                         roomUserOne.GetClient().SendPacket(new FurniListNotificationComposer(item.Id, 1));
 
                         uint updId = (uint)item.Id;
                         int newUser = roomUserOne.UserId;
-                        db.items.Where(i => i.id == updId).ExecuteUpdate(s => s.SetProperty(i => i.user_id, newUser));
+                        db.Items.Where(i => i.Id == updId).ExecuteUpdate(s => s.SetProperty(i => i.UserId, newUser));
                     }
                 }
             }

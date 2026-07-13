@@ -57,7 +57,8 @@ namespace Plus.HabboHotel.Items
             BehaviourData = behaviourData;
             Modes = modes;
             VendingIds = new List<int>();
-            if (!string.IsNullOrEmpty(vendingIds)) {
+            if (!string.IsNullOrEmpty(vendingIds))
+            {
                 foreach (string vendingId in vendingIds.Split(','))
                 {
                     if (int.TryParse(vendingId, out int idValue))
@@ -68,7 +69,8 @@ namespace Plus.HabboHotel.Items
             }
 
             AdjustableHeights = new List<double>();
-            if (!string.IsNullOrEmpty(adjustableHeights)) {
+            if (!string.IsNullOrEmpty(adjustableHeights))
+            {
                 foreach (string h in adjustableHeights.Split(','))
                 {
                     if (double.TryParse(h, NumberStyles.Any, CultureInfo.InvariantCulture, out double heightValue))

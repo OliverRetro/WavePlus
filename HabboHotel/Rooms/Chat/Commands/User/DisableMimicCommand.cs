@@ -22,7 +22,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
             string allowMimic = PlusEnvironment.BoolToEnum(session.GetHabbo().AllowMimic);
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            db.users.Where(u => u.id == userId).ExecuteUpdate(s => s.SetProperty(u => u.allow_mimic, allowMimic));
+            db.Users.Where(u => u.Id == userId).ExecuteUpdate(s => s.SetProperty(u => u.AllowMimic, allowMimic));
         }
     }
 }

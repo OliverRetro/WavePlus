@@ -1,25 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Plus.Database.EF.Entities;
 
-[Index("group_id", Name = "groupid")]
-[Index("user_id", Name = "userid")]
-public partial class group_membership
+[Index("GroupId", Name = "groupid")]
+[Index("UserId", Name = "userid")]
+[Table("group_memberships")]
+public partial class GroupMembership
 {
     [Key]
-    [Column(TypeName = "int(11) unsigned")]
-    public uint id { get; set; }
+    [Column("id", TypeName = "int(11) unsigned")]
+    public uint Id { get; set; }
 
-    [Column(TypeName = "int(11) unsigned")]
-    public uint group_id { get; set; }
+    [Column("group_id", TypeName = "int(11) unsigned")]
+    public uint GroupId { get; set; }
 
-    [Column(TypeName = "int(11) unsigned")]
-    public uint user_id { get; set; }
+    [Column("user_id", TypeName = "int(11) unsigned")]
+    public uint UserId { get; set; }
 
-    [Column(TypeName = "smallint(6)")]
-    public short level { get; set; }
+    [Column("level", TypeName = "smallint(6)")]
+    public short Level { get; set; }
 }
