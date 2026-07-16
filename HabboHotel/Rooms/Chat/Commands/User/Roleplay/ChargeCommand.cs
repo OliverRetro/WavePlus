@@ -7,7 +7,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 {
     internal class ChargeCommand : IChatCommand
     {
-        public string PermissionRequired => "command_rp_hit";
+        public string PermissionRequired => "command_rp_charge";
 
         public string Parameters => "%username% %crime%";
 
