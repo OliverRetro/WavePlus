@@ -14,7 +14,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
     {
         private const int SlotCount = 10;
 
-        public string PermissionRequired => "command_rp_use_item";
+        public string PermissionRequired => "command_rp_disband_item";
 
         public string Parameters => "%slot%";
 

@@ -5,7 +5,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Banking
 {
     internal class BalanceCommand : IChatCommand
     {
-        public string PermissionRequired => "command_rp_bank_account";
+        public string PermissionRequired => "command_rp_bank_balance";
 
         public string Parameters => "";
 

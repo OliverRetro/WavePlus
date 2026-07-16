@@ -6,7 +6,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 {
     internal class ToggleWeaponSkinCommand : IChatCommand
     {
-        public string PermissionRequired => "command_carry";
+        public string PermissionRequired => "command_rp_weapon_skin";
 
         public string Parameters => "%userSkinId%";
 

@@ -7,7 +7,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
 {
     internal class TempRpInventoryCommand : IChatCommand
     {
-        public string PermissionRequired => "command_rp_user_info";
+        public string PermissionRequired => "command_rp_inventory";
 
         public string Parameters => "%username%";
 

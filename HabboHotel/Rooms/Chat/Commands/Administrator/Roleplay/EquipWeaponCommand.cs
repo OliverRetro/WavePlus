@@ -6,7 +6,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 {
     internal class EquipWeaponCommand : IChatCommand
     {
-        public string PermissionRequired => "command_carry";
+        public string PermissionRequired => "command_rp_equipweapon";
 
         public string Parameters => "%weaponId%";
 

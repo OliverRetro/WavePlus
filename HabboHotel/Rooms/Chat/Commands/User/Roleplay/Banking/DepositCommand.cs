@@ -6,7 +6,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Banking
 {
     internal class DepositCommand : IChatCommand
     {
-        public string PermissionRequired => "command_rp_bank_account";
+        public string PermissionRequired => "command_rp_bank_deposit";
 
         public string Parameters => "%amount%";
 

@@ -4,7 +4,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 {
     internal class SuicideCommand : IChatCommand
     {
-        public string PermissionRequired => "command_rp_hit";
+        public string PermissionRequired => "command_rp_giveup";
 
         public string Parameters => "";
 
