@@ -442,8 +442,17 @@ namespace Plus.Communication.Packets.Incoming
             if (items == null)
                 return;
 
-            if (items.GetEquippedShield() == null)
+            UserRpItem equippedSecondary = items.GetEquippedShield();
+            if (equippedSecondary == null)
             {
+                OpenInventory(session);
+                return;
+            }
+
+            // Double-clicking an equipped suicide vest detonates it instead of unequipping.
+            if (equippedSecondary.ItemData != null && equippedSecondary.ItemData.IsSuicideVest)
+            {
+                items.Use(equippedSecondary.Id, habbo);
                 OpenInventory(session);
                 return;
             }

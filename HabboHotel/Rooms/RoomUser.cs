@@ -26,6 +26,9 @@ namespace Plus.HabboHotel.Rooms
         public bool CanWalk;
         public int CarryItemId; //byte
         public int CarryTimer; //byte
+        // Countdown (in room cycles) after a gesture/action temporarily cleared the avatar effect;
+        // when it hits zero the stored CurrentEffect is re-applied. 0 = nothing pending.
+        public int EffectReapplyTimer;
         public int ChatSpamCount;
         public int ChatSpamTicks = 16;
         public ItemEffectType CurrentItemEffect;

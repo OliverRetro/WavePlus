@@ -5,7 +5,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Police
 {
     internal class EscortCommand : IChatCommand
     {
-        public string PermissionRequired => "command_rp_police_override";
+        public string PermissionRequired => "command_rp_escort";
         public string GroupPermissionRequired => "escort_user";
         public string Parameters => "%username%";
         public string Description => "Escort a cuffed suspect (police only).";
@@ -31,7 +31,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Police
                 return;
 
             PlusEnvironment.GetPoliceManager().StartArrestEscort(session.GetHabbo(), targetClient.GetHabbo(), 0);
-            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*" + session.GetHabbo().Username + " starts escorting " + targetClient.GetHabbo().Username + "*", 0, 4));
+            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*starts escorting " + targetClient.GetHabbo().Username + "*", 0, 4, isRpAction: true));
         }
     }
 }

@@ -270,7 +270,7 @@ namespace Plus.HabboHotel.Rooms
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                var newRoom = new Database.EF.Entities.Room
+                var newRoom = new Database.EF.Entities.RoomEntity
                 {
                     Roomtype = "private",
                     Caption = name,

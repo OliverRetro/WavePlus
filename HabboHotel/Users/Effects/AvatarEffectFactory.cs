@@ -15,7 +15,7 @@ namespace Plus.HabboHotel.Users.Effects
         public static AvatarEffect CreateNullable(Habbo habbo, int spriteId, double duration)
         {
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            UserEffect row = new()
+            UserEffectEntity row = new()
             {
                 UserId = (uint)habbo.Id,
                 EffectId = spriteId,

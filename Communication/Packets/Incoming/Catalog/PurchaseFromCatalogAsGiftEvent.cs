@@ -108,7 +108,7 @@ namespace Plus.Communication.Packets.Incoming.Catalog
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
                 //Insert the dummy item.
-                Plus.Database.EF.Entities.Item dummyItem = new()
+                Plus.Database.EF.Entities.ItemEntity dummyItem = new()
                 {
                     BaseItem = (uint)presentData.Id,
                     UserId = habbo.Id,
@@ -205,7 +205,7 @@ namespace Plus.Communication.Packets.Incoming.Catalog
                 }
 
                 //Insert the present, forever.
-                db.UserPresents.Add(new UserPresent
+                db.UserPresents.Add(new UserPresentEntity
                 {
                     ItemId = (uint)newItemId,
                     BaseId = (uint)item.Data.Id,

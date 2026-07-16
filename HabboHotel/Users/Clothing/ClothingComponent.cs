@@ -45,7 +45,7 @@ namespace Plus.HabboHotel.Users.Clothing
                     int newId;
                     using (WavePlusContext db = PlusEnvironment.GetDbContext())
                     {
-                        var entity = new Database.EF.Entities.UserClothing { UserId = _habbo.Id, PartId = partId.ToString(), Part = clothingName };
+                        var entity = new Database.EF.Entities.UserClothingEntity { UserId = _habbo.Id, PartId = partId.ToString(), Part = clothingName };
                         db.UserClothings.Add(entity);
                         db.SaveChanges();
                         newId = entity.Id;

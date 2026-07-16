@@ -1,4 +1,6 @@
-﻿using Plus.HabboHotel.GameClients;
+using Plus.Communication.Packets.Outgoing.Rooms.Chat;
+using Plus.Communication.Packets.Outgoing.Rooms.Session;
+using Plus.HabboHotel.GameClients;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
 {
@@ -18,19 +20,24 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
                 return;
             }
 
-
             if (!int.TryParse(@params[1], out int roomId))
-                session.SendWhisper("You must enter a valid room ID");
-            else
             {
-                if (!RoomFactory.TryGetData(roomId, out RoomData _))
-                {
-                    session.SendWhisper("This room does not exist!");
-                    return;
-                }
-
-                session.GetHabbo().PrepareRoom(roomId, "");
+                session.SendWhisper("You must enter a valid room ID");
+                return;
             }
+
+            if (!RoomFactory.TryGetData(roomId, out RoomData data))
+            {
+                session.SendWhisper("This room does not exist!");
+                return;
+            }
+
+            Room current = session.GetHabbo().CurrentRoom;
+            RoomUser user = current?.GetRoomUserManager()?.GetRoomUserByHabbo(session.GetHabbo().Id);
+            if (user != null)
+                current.SendPacket(new ShoutComposer(user.VirtualId, "*request for a Staff Taxi to " + data.Name + "*", 0, 23, isRpAction: true));
+
+            session.SendPacket(new RoomForwardComposer(roomId));
         }
     }
 }

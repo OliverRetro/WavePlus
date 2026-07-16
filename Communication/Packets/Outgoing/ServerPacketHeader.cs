@@ -11,6 +11,7 @@
         public const int UserStatsMessageComposer = 6004;
         public const int WantedListMessageComposer = 6003;
         public const int OfferItemMessageComposer = 6002;
+        public const int OpenAtmMessageComposer = 6001;
         public const int TargetLockMessageComposer = 6000;
 
         // credit to Keorich##1440 for the headers for Production-201611291003-338511768

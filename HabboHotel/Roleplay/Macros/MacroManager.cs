@@ -47,7 +47,7 @@ namespace Plus.HabboHotel.Roleplay.Macros
             _enabled[userId] = enabled;
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            db.UsersMacroSettings.Upsert(new UsersMacroSetting
+            db.UsersMacroSettings.Upsert(new UsersMacroSettingEntity
             {
                 UserId = userId,
                 Enabled = enabled
@@ -84,7 +84,7 @@ namespace Plus.HabboHotel.Roleplay.Macros
             int id;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                var entity = new Database.EF.Entities.UsersMacro { UserId = userId, Name = name, Configs = "{}" };
+                var entity = new Database.EF.Entities.UsersMacroEntity { UserId = userId, Name = name, Configs = "{}" };
                 db.UsersMacros.Add(entity);
                 db.SaveChanges();
                 id = entity.Id;

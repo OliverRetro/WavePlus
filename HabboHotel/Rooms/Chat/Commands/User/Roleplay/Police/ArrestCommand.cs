@@ -6,7 +6,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Police
 {
     internal class ArrestCommand : IChatCommand
     {
-        public string PermissionRequired => "command_rp_police_override";
+        public string PermissionRequired => "command_pig_arrest";
         public string GroupPermissionRequired => "arrest_user";
         public string Parameters => "%username%";
         public string Description => "Arrest a cuffed suspect and escort them to jail (police only).";
@@ -42,7 +42,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Police
             PlusEnvironment.GetPoliceManager().StartArrestEscort(session.GetHabbo(), targetClient.GetHabbo(), stars);
 
             LiveFeedService.LiveFeed("🚓 <b>" + LiveFeedService.Name(session.GetHabbo().Username, "green") + "</b> arrested <b> " + LiveFeedService.Name(targetClient.GetHabbo().Username) + "</b>");
-            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*" + session.GetHabbo().Username + " arrests " + targetClient.GetHabbo().Username + "*", 0, 4));
+            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*arrests " + targetClient.GetHabbo().Username + "*", 0, 4, isRpAction: true));
         }
     }
 }

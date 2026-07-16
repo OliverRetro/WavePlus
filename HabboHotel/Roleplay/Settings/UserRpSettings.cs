@@ -46,10 +46,10 @@ namespace Plus.HabboHotel.Roleplay.Settings
         {
             using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-            UserRpSetting row = db.UserRpSettings.FirstOrDefault(s => s.UserId == userId);
+            UserRpSettingEntity row = db.UserRpSettings.FirstOrDefault(s => s.UserId == userId);
             if (row == null)
             {
-                row = new UserRpSetting { UserId = userId };
+                row = new UserRpSettingEntity { UserId = userId };
                 db.UserRpSettings.Add(row);
                 db.SaveChanges();
             }
@@ -72,10 +72,10 @@ namespace Plus.HabboHotel.Roleplay.Settings
         {
             using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-            UserRpSetting row = db.UserRpSettings.FirstOrDefault(s => s.UserId == UserId);
+            UserRpSettingEntity row = db.UserRpSettings.FirstOrDefault(s => s.UserId == UserId);
             if (row == null)
             {
-                row = new UserRpSetting { UserId = UserId };
+                row = new UserRpSettingEntity { UserId = UserId };
                 db.UserRpSettings.Add(row);
             }
 

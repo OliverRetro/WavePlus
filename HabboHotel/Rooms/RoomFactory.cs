@@ -14,9 +14,9 @@ namespace Plus.HabboHotel.Rooms
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
             string username = db.Users.Where(u => u.Id == ownerId).Select(u => u.Username).FirstOrDefault();
-            List<Database.EF.Entities.Room> rooms = db.Rooms.Where(r => r.Owner == ownerStr).OrderBy(r => r.Caption).ToList();
+            List<Database.EF.Entities.RoomEntity> rooms = db.Rooms.Where(r => r.Owner == ownerStr).OrderBy(r => r.Caption).ToList();
 
-            foreach (Database.EF.Entities.Room r in rooms)
+            foreach (Database.EF.Entities.RoomEntity r in rooms)
             {
                 if (PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(r.Id, out Room room))
                 {
@@ -43,7 +43,7 @@ namespace Plus.HabboHotel.Rooms
             }
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            Database.EF.Entities.Room r = db.Rooms.FirstOrDefault(x => x.Id == roomId);
+            Database.EF.Entities.RoomEntity r = db.Rooms.FirstOrDefault(x => x.Id == roomId);
 
             if (r != null)
             {
@@ -70,7 +70,7 @@ namespace Plus.HabboHotel.Rooms
         /// columns scaffold as nullable bool and a couple (spush_enabled/lay_enabled/safezone)
         /// as enum-strings; both are normalised back to the flags/ints RoomData expects.
         /// </summary>
-        private static RoomData BuildRoomData(Database.EF.Entities.Room r, string username, RoomModel model)
+        private static RoomData BuildRoomData(Database.EF.Entities.RoomEntity r, string username, RoomModel model)
         {
             return new RoomData(r.Id, r.Caption, r.ModelName, username, Convert.ToInt32(r.Owner),
                 r.Password, r.Score, r.Roomtype, r.State, r.UsersNow,

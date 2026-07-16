@@ -136,7 +136,7 @@ namespace Plus.HabboHotel.Bots
             roomPoints.Add(point);
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            db.RoomTaxiPoints.Add(new Database.EF.Entities.RoomTaxiPoint
+            db.RoomTaxiPoints.Add(new Database.EF.Entities.RoomTaxiPointEntity
             {
                 RoomId = point.RoomId,
                 X = point.X,

@@ -131,6 +131,8 @@ namespace Plus.HabboHotel
             _permissionManager = new PermissionManager();
             _permissionManager.Init();
 
+            _chatManager.GetCommands().ApplyDatabaseAliases();
+
             _subscriptionManager = new SubscriptionManager();
             _subscriptionManager.Init();
 

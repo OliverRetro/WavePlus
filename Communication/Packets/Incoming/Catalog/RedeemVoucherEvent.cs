@@ -35,7 +35,7 @@ namespace Plus.Communication.Packets.Incoming.Catalog
                     return;
                 }
 
-                db.UserVouchers.Add(new UserVoucher
+                db.UserVouchers.Add(new UserVoucherEntity
                 {
                     UserId = voucherUserId,
                     Voucher = code

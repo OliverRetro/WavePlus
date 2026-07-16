@@ -35,7 +35,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Action
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.RoomRights.Add(new RoomRight { RoomId = (uint)room.RoomId, UserId = (uint)userId });
+                db.RoomRights.Add(new RoomRightEntity { RoomId = (uint)room.RoomId, UserId = (uint)userId });
                 db.SaveChanges();
             }
 

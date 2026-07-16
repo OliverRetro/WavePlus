@@ -22,6 +22,7 @@ namespace Plus.Core.Persistence
             scheduler.RegisterWorldSaver("logs", LogBuffer.Flush);
             scheduler.RegisterWorldSaver("room-items", SaveLoadedRoomItems);
             scheduler.RegisterWorldSaver("bots", SaveLoadedRoomBots);
+            scheduler.RegisterWorldSaver("room-stock", () => PlusEnvironment.GetRoomStockManager().Save());
 
             // 60 second saver
             scheduler.RegisterMirror("user-mirror", MirrorOnlineUsers);

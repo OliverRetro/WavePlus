@@ -84,7 +84,7 @@ namespace Plus.HabboHotel.Users.Badges
             if (inDatabase)
             {
                 using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                    db.UserBadges.Upsert(new UserBadge
+                    db.UserBadges.Upsert(new UserBadgeEntity
                     {
                         UserId = (uint)_player.Id,
                         BadgeId = code,

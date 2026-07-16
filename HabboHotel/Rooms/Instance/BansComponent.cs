@@ -51,7 +51,7 @@ namespace Plus.HabboHotel.Rooms.Instance
                 _bans[avatar.UserId] = banTime;
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                db.RoomBans.Upsert(new RoomBan
+                db.RoomBans.Upsert(new RoomBanEntity
                 {
                     UserId = (uint)avatar.UserId,
                     RoomId = (uint)_instance.Id,

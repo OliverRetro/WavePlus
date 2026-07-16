@@ -1,4 +1,5 @@
 using Plus.Communication.Packets.Outgoing.Notifications;
+using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
 using Plus.HabboHotel.Items.Wired;
@@ -11,8 +12,10 @@ using Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay;
 using Plus.HabboHotel.Rooms.Chat.Commands.User;
 using Plus.HabboHotel.Rooms.Chat.Commands.User.Fun;
 using Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay;
+using Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Banking;
 using Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation;
 using Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Police;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -27,9 +30,18 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
         private readonly string _prefix = ":";
 
         /// <summary>
-        /// Commands registered for use.
+        /// Every known command instance, keyed by its class name (e.g. "GotoCommand").
+        /// Populated at construction. This is the master list; it does NOT make a command usable
+        /// on its own — the actual chat triggers come from the DB (see <see cref="ApplyDatabaseAliases"/>).
         /// </summary>
-        private readonly Dictionary<string, IChatCommand> _commands;
+        private readonly Dictionary<string, IChatCommand> _registry = new(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// The live trigger table: chat alias -> command instance. Built entirely from the DB
+        /// (permissions_commands.keys) by <see cref="ApplyDatabaseAliases"/>. A command with no keys
+        /// row simply isn't reachable until keys are added in the database.
+        /// </summary>
+        private readonly Dictionary<string, IChatCommand> _commands = new();
 
         /// <summary>
         /// The default initializer for the CommandManager
@@ -37,7 +49,6 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
         public CommandManager(string prefix)
         {
             _prefix = prefix;
-            _commands = new Dictionary<string, IChatCommand>();
 
             RegisterRoleplay();
             RegisterVip();
@@ -109,47 +120,48 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
 
         private void RegisterRoleplay()
         {
-            Register("livefeedtest", new LiveFeedTestCommand());
-            Register("stopwork", new StopWorkCommand());
-            Register("startwork", new StartWorkCommand());
-            Register("rob", new RobUserCommand());
-            Register("gchat", new GangChatCommand());
-            Register("set", new AttributeEditCommand());
-            Register("bank", new BankCommand());
-            Register("rpstats", new RpuserRpInfoCommand());
-            Register("roomheal", new RoomHealCommand());
-            Register("globalheal", new GlobalHealCommand());
-            Register("tempinventory", new TempRpInventoryCommand());
-            Register("setweapon", new EquipWeaponCommand());
-            Register("setweaponskin", new ToggleWeaponSkinCommand());
-            Register("unlockall", new UnlockEverythingCommand());
-            Register("demote", new DemoteCommand());
-            Register("promote", new PromoteCommand());
-            Register("fire", new FireCommand());
-            Register("passive", new PassiveModeCommand());
-            Register("wantedlist", new WantedListCommand());
-            Register("cuff", new CuffCommand());
-            Register("uncuff", new UncuffCommand());
-            Register("escort", new EscortCommand());
-            Register("stopescort", new StopEscortCommand());
-            Register("arrest", new ArrestCommand());
-            Register("charge", new ChargeCommand());
-            Register("pardon", new PardonCommand());
-            Register("hire", new HireCommand());
-            Register("superhire", new SuperHireCommand());
-            Register("groupperms", new GroupPermissionsCommand());
-            Register("hit", new HitCommand());
-            Register("locktarget", new LockTargetCommand());
-            Register("targetlock", new LockTargetCommand());
-            Register("tl", new LockTargetCommand());
-            Register("unlocktarget", new UnlockTargetCommand());
-            Register("releasetarget", new UnlockTargetCommand());
-            Register("targetrelease", new UnlockTargetCommand());
-            Register("rt", new UnlockTargetCommand());
-            Register("toggleskill", new ToggleSkillCommand());
-            Register("bh", new BuildHeightCommand());
-            Register("suicide", new SuicideCommand());
-            Register("settaxipoint", new SetTaxiPointCommand());
+            Register(new LiveFeedTestCommand());
+            Register(new StopWorkCommand());
+            Register(new StartWorkCommand());
+            Register(new RobUserCommand());
+            Register(new GangChatCommand());
+            Register(new AttributeEditCommand());
+            Register(new BankCommand());
+            Register(new RpuserRpInfoCommand());
+            Register(new RoomHealCommand());
+            Register(new GlobalHealCommand());
+            Register(new TempRpInventoryCommand());
+            Register(new EquipWeaponCommand());
+            Register(new ToggleWeaponSkinCommand());
+            Register(new UnlockEverythingCommand());
+            Register(new AddStockCommand());
+            Register(new StockCommand());
+            Register(new DemoteCommand());
+            Register(new PromoteCommand());
+            Register(new FireCommand());
+            Register(new PassiveModeCommand());
+            Register(new WantedListCommand());
+            Register(new CuffCommand());
+            Register(new UncuffCommand());
+            Register(new EscortCommand());
+            Register(new StopEscortCommand());
+            Register(new ArrestCommand());
+            Register(new ChargeCommand());
+            Register(new PardonCommand());
+            Register(new HireCommand());
+            Register(new SuperHireCommand());
+            Register(new GroupPermissionsCommand());
+            Register(new HitCommand());
+            Register(new LockTargetCommand());
+            Register(new UnlockTargetCommand());
+            Register(new ToggleSkillCommand());
+            Register(new BuildHeightCommand());
+            Register(new SuicideCommand());
+            Register(new SetTaxiPointCommand());
+            Register(new BalanceCommand());
+            Register(new DepositCommand());
+            Register(new WithdrawCommand());
+            Register(new OpenAccountCommand());
         }
 
         /// <summary>
@@ -157,7 +169,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
         /// </summary>
         private void RegisterVip()
         {
-            Register("spull", new SuperPullCommand());
+            Register(new SuperPullCommand());
         }
 
         private static bool CanExecuteCommand(GameClient session, string commandKey, IChatCommand command)
@@ -180,8 +192,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
         /// </summary>
         private void RegisterEvents()
         {
-            Register("eha", new EventAlertCommand());
-            Register("eventalert", new EventAlertCommand());
+            Register(new EventAlertCommand());
         }
 
         /// <summary>
@@ -189,48 +200,47 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
         /// </summary>
         private void RegisterUser()
         {
-            Register("about", new InfoCommand());
-            Register("pickall", new PickAllCommand());
-            Register("ejectall", new EjectAllCommand());
-            Register("lay", new LayCommand());
-            Register("sit", new SitCommand());
-            Register("stand", new StandCommand());
-            Register("mutepets", new MutePetsCommand());
-            Register("mutebots", new MuteBotsCommand());
+            Register(new InfoCommand());
+            Register(new PickAllCommand());
+            Register(new EjectAllCommand());
+            Register(new LayCommand());
+            Register(new SitCommand());
+            Register(new StandCommand());
+            Register(new MutePetsCommand());
+            Register(new MuteBotsCommand());
 
-            Register("mimic", new MimicCommand());
-            Register("dance", new DanceCommand());
-            Register("push", new PushCommand());
-            Register("pull", new PullCommand());
-            Register("enable", new EnableCommand());
-            Register("follow", new FollowCommand());
-            Register("faceless", new FacelessCommand());
-            Register("moonwalk", new MoonwalkCommand());
+            Register(new MimicCommand());
+            Register(new DanceCommand());
+            Register(new PushCommand());
+            Register(new PullCommand());
+            Register(new EnableCommand());
+            Register(new FollowCommand());
+            Register(new FacelessCommand());
+            Register(new MoonwalkCommand());
 
-            Register("unload", new UnloadCommand());
-            Register("regenmaps", new RegenMaps());
-            Register("emptyitems", new EmptyItemsCommand());
-            Register("setmax", new SetMaxCommand());
-            Register("setspeed", new SetSpeedCommand());
-            Register("disablediagonal", new DisableDiagonalCommand());
-            Register("clickthrough", new ClickThroughCommand());
-            Register("flagme", new FlagMeCommand());
+            Register(new UnloadCommand());
+            Register(new RegenMaps());
+            Register(new EmptyItemsCommand());
+            Register(new SetMaxCommand());
+            Register(new SetSpeedCommand());
+            Register(new DisableDiagonalCommand());
+            Register(new ClickThroughCommand());
+            Register(new FlagMeCommand());
 
-            Register("stats", new StatsCommand());
-            Register("kickpets", new KickPetsCommand());
-            Register("kickbots", new KickBotsCommand());
+            Register(new StatsCommand());
+            Register(new KickPetsCommand());
+            Register(new KickBotsCommand());
 
-            Register("room", new RoomCommand());
-            Register("dnd", new DndCommand());
-            Register("disablegifts", new DisableGiftsCommand());
-            Register("convertcredits", new ConvertCreditsCommand());
-            Register("disablewhispers", new DisableWhispersCommand());
-            Register("disablemimic", new DisableMimicCommand());
+            Register(new RoomCommand());
+            Register(new DndCommand());
+            Register(new DisableGiftsCommand());
+            Register(new ConvertCreditsCommand());
+            Register(new DisableWhispersCommand());
+            Register(new DisableMimicCommand());
 
-            Register("pet", new PetCommand());
-            Register("spush", new SuperPushCommand());
-            Register("superpush", new SuperPushCommand());
-            Register("taxi", new TaxiCommand());
+            Register(new PetCommand());
+            Register(new SuperPushCommand());
+            Register(new TaxiCommand());
         }
 
         /// <summary>
@@ -238,60 +248,54 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
         /// </summary>
         private void RegisterModerator()
         {
-            Register("ban", new BanCommand());
-            Register("mip", new MipCommand());
-            Register("ipban", new IpBanCommand());
+            Register(new BanCommand());
+            Register(new MipCommand());
+            Register(new IpBanCommand());
 
-            Register("ui", new UserInfoCommand());
-            Register("userinfo", new UserInfoCommand());
-            Register("sa", new StaffAlertCommand());
-            Register("roomunmute", new RoomUnmuteCommand());
-            Register("roommute", new RoomMuteCommand());
-            Register("roombadge", new RoomBadgeCommand());
-            Register("roomalert", new RoomAlertCommand());
-            Register("roomkick", new RoomKickCommand());
-            Register("mute", new MuteCommand());
-            Register("smute", new MuteCommand());
-            Register("unmute", new UnmuteCommand());
-            Register("massbadge", new MassBadgeCommand());
-            Register("kick", new KickCommand());
-            Register("skick", new KickCommand());
-            Register("ha", new HotelAlertCommand());
-            Register("hotelalert", new HotelAlertCommand());
-            Register("hal", new HalCommand());
-            Register("give", new GiveCommand());
-            Register("givebadge", new GiveBadgeCommand());
-            Register("dc", new DisconnectCommand());
-            Register("kill", new DisconnectCommand());
-            Register("Disconnect", new DisconnectCommand());
-            Register("alert", new AlertCommand());
-            Register("tradeban", new TradeBanCommand());
+            Register(new UserInfoCommand());
+            Register(new StaffAlertCommand());
+            Register(new RoomUnmuteCommand());
+            Register(new RoomMuteCommand());
+            Register(new RoomBadgeCommand());
+            Register(new RoomAlertCommand());
+            Register(new RoomKickCommand());
+            Register(new MuteCommand());
+            Register(new UnmuteCommand());
+            Register(new MassBadgeCommand());
+            Register(new KickCommand());
+            Register(new HotelAlertCommand());
+            Register(new HalCommand());
+            Register(new GiveCommand());
+            Register(new GiveBadgeCommand());
+            Register(new DisconnectCommand());
+            Register(new AlertCommand());
+            Register(new TradeBanCommand());
 
-            Register("teleport", new TeleportCommand());
-            Register("summon", new SummonCommand());
-            Register("override", new OverrideCommand());
-            Register("massenable", new MassEnableCommand());
-            Register("massdance", new MassDanceCommand());
-            Register("freeze", new FreezeCommand());
-            Register("unfreeze", new UnFreezeCommand());
-            Register("fastwalk", new FastwalkCommand());
-            Register("superfastwalk", new SuperFastwalkCommand());
-            Register("coords", new CoordsCommand());
-            Register("alleyesonme", new AllEyesOnMeCommand());
-            Register("allaroundme", new AllAroundMeCommand());
-            Register("forcesit", new ForceSitCommand());
+            Register(new TeleportCommand());
+            Register(new SummonCommand());
+            Register(new OverrideCommand());
+            Register(new MassEnableCommand());
+            Register(new MassDanceCommand());
+            Register(new FreezeCommand());
+            Register(new UnFreezeCommand());
+            Register(new FastwalkCommand());
+            Register(new SuperFastwalkCommand());
+            Register(new CoordsCommand());
+            Register(new AllEyesOnMeCommand());
+            Register(new AllAroundMeCommand());
+            Register(new ForceSitCommand());
 
-            Register("ignorewhispers", new IgnoreWhispersCommand());
-            Register("forced_effects", new DisableForcedFxCommand());
+            Register(new IgnoreWhispersCommand());
+            Register(new DisableForcedFxCommand());
 
-            Register("makesay", new MakeSayCommand());
-            Register("flaguser", new FlagUserCommand());
+            Register(new MakeSayCommand());
+            Register(new FlagUserCommand());
 
-            Register("useitem", new UseItemCommand());
-            Register("inv", new InvCommand());
-            Register("disbanditem", new DisbandItemCommand());
-            Register("giveitem", new GiveItemCommand());
-            Register("rpupdate", new RpUpdateCommand());
+            Register(new UseItemCommand());
+            Register(new InvCommand());
+            Register(new DisbandItemCommand());
+            Register(new GiveItemCommand());
+            Register(new RpUpdateCommand());
         }
 
         /// <summary>
@@ -299,26 +303,85 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
         /// </summary>
         private void RegisterAdministrator()
         {
-            Register("chatbubble", new AddChatBubbleCommand());
-            Register("bubble", new BubbleCommand());
-            Register("update", new UpdateCommand());
-            Register("deletegroup", new DeleteGroupCommand());
-            Register("carry", new CarryCommand());
-            Register("goto", new GotoCommand());
+            Register(new AddChatBubbleCommand());
+            Register(new BubbleCommand());
+            Register(new UpdateCommand());
+            Register(new DeleteGroupCommand());
+            Register(new CarryCommand());
+            Register(new GotoCommand());
+            Register(new SendToCommand());
         }
 
         /// <summary>
-        /// Registers a Chat Command.
+        /// Adds a command instance to the master registry (keyed by its class name). Chat triggers
+        /// for it are supplied separately from the database — see <see cref="ApplyDatabaseAliases"/>.
         /// </summary>
-        /// <param name="commandText">Text to type for this command.</param>
-        /// <param name="command">The command to execute.</param>
-        public void Register(string commandText, IChatCommand command)
+        public void Register(IChatCommand command)
         {
-            if (string.IsNullOrWhiteSpace(commandText) || command == null)
+            if (command == null)
                 return;
 
-            // Use assignment instead of Add() so duplicate aliases cannot crash boot.
-            _commands[commandText.ToLower()] = command;
+            _registry[command.GetType().Name] = command;
+        }
+
+        /// <summary>
+        /// Binds a single chat alias to a command instance in the live trigger table.
+        /// </summary>
+        private void Bind(string alias, IChatCommand command)
+        {
+            if (string.IsNullOrWhiteSpace(alias) || command == null)
+                return;
+
+            // Assignment (not Add) so a duplicate alias can't crash boot; last one wins.
+            _commands[alias.Trim().ToLower()] = command;
+        }
+
+        /// <summary>
+        /// (Re)builds the live trigger table from the database. Each permissions_commands row's
+        /// `keys` value (a ';'-separated alias list) is bound to the command it names. A row is
+        /// matched to a command by EITHER the command's class name (e.g. "CuffCommand" — required to
+        /// disambiguate the several commands that share one permission fuse) OR the command's
+        /// permission fuse (e.g. "command_goto" — convenient for the common one-command-per-fuse case).
+        ///
+        /// Keys are the ONLY way to trigger a command, so this must run at boot after the permission
+        /// manager has loaded. A command with no keys row is intentionally unreachable until keys are
+        /// added in the DB. Safe to call repeatedly (it clears and rebuilds).
+        /// </summary>
+        public void ApplyDatabaseAliases()
+        {
+            _commands.Clear();
+
+            // Fuse -> instance, for rows that reference a command by its (unique) permission fuse.
+            var byFuse = new Dictionary<string, IChatCommand>(StringComparer.OrdinalIgnoreCase);
+            foreach (IChatCommand cmd in _registry.Values)
+            {
+                if (!string.IsNullOrEmpty(cmd.PermissionRequired) && !byFuse.ContainsKey(cmd.PermissionRequired))
+                    byFuse[cmd.PermissionRequired] = cmd;
+            }
+
+            try
+            {
+                using WavePlusContext db = PlusEnvironment.GetDbContext();
+                foreach (var row in db.PermissionsCommands.Select(c => new { c.Command, c.Keys }).ToList())
+                {
+                    if (string.IsNullOrWhiteSpace(row.Keys) || string.IsNullOrWhiteSpace(row.Command))
+                        continue;
+
+                    // Class name wins (unambiguous); fall back to the permission fuse.
+                    if (!_registry.TryGetValue(row.Command, out IChatCommand cmd) &&
+                        !byFuse.TryGetValue(row.Command, out cmd))
+                        continue;
+
+                    foreach (string alias in row.Keys.Split(';'))
+                        Bind(alias, cmd);
+                }
+            }
+            catch (Exception e)
+            {
+                // Most likely the permissions_commands.keys column hasn't been added yet. Without it
+                // no commands bind — log loudly so the missing migration is obvious.
+                Core.ExceptionLogger.LogException(e);
+            }
         }
 
         public static string MergeParams(string[] @params, int start)

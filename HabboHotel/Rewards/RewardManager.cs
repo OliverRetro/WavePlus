@@ -62,7 +62,7 @@ namespace Plus.HabboHotel.Rewards
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.ServerRewardLogs.Add(new ServerRewardLog { UserId = id, RewardId = rewardId });
+                db.ServerRewardLogs.Add(new ServerRewardLogEntity { UserId = id, RewardId = rewardId });
                 db.SaveChanges();
             }
         }

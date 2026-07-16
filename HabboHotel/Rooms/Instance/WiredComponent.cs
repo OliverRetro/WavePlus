@@ -472,7 +472,7 @@ namespace Plus.HabboHotel.Rooms.Instance
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.WiredItems.Upsert(new WiredItem
+                db.WiredItems.Upsert(new WiredItemEntity
                 {
                     Id = item.Item.Id,
                     Items = items,

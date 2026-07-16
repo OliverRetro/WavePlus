@@ -65,13 +65,13 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
 
             string message;
             if (weaponId == 0)
-                message = "*" + habbo.Username + " unequips weapons*";
+                message = "*unequips weapons*";
             else if (equippedSkin != null)
-                message = "*" + habbo.Username + " equips " + equippedSkin.SkinData.Name + " as their active weapon skin*";
+                message = "*equips " + equippedSkin.SkinData.Name + " as their active weapon skin*";
             else
-                message = "*" + habbo.Username + " equips " + weapon.WeaponData.Name + " as their active weapon*";
+                message = "*equips " + weapon.WeaponData.Name + " as their active weapon*";
 
-            room.SendPacket(new ShoutComposer(user.VirtualId, message, 0, 11));
+            room.SendPacket(new ShoutComposer(user.VirtualId, message, 0, 11, isRpAction: true));
             return true;
         }
     }

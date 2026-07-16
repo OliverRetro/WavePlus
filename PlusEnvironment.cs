@@ -27,6 +27,7 @@ using Plus.HabboHotel.Roleplay.Combat;
 using Plus.HabboHotel.Roleplay.Hospital;
 using Plus.HabboHotel.Roleplay.Trash;
 using Plus.HabboHotel.Roleplay.Police;
+using Plus.HabboHotel.Roleplay.Stock;
 using Plus.HabboHotel.Roleplay.RpItem.Item;
 using Plus.HabboHotel.Users;
 using Plus.HabboHotel.Users.UserData;
@@ -59,12 +60,14 @@ namespace Plus
         private static CombatManager _combatManager;
         private static WeaponManager _weaponManager;
         private static RpItemManager _rpItemManager;
+        private static RoomStockManager _roomStockManager;
         private static Plus.HabboHotel.Roleplay.Crime.RpCrimeManager _rpCrimeManager;
         private static Plus.HabboHotel.Roleplay.Crime.JailManager _jailManager;
         private static HospitalManager _hospitalManager;
         private static BankingManager _bankingManager;
         private static PoliceManager _policeManager;
         private static TrashSearchManager _trashSearchManager;
+        private static Plus.HabboHotel.GameClients.DisconnectDelayManager _disconnectDelayManager;
 
         // TODO: Get rid?
         public static bool Event = false;
@@ -194,6 +197,9 @@ namespace Plus
                 _rpItemManager = new RpItemManager();
                 _rpItemManager.Init();
 
+                _roomStockManager = new RoomStockManager();
+                _roomStockManager.Init();
+
                 _rpCrimeManager = new Plus.HabboHotel.Roleplay.Crime.RpCrimeManager();
                 _rpCrimeManager.Init();
 
@@ -202,6 +208,8 @@ namespace Plus
                 _bankingManager = new BankingManager();
 
                 _policeManager = new PoliceManager();
+
+                _disconnectDelayManager = new Plus.HabboHotel.GameClients.DisconnectDelayManager();
 
                 _trashSearchManager = new TrashSearchManager();
                 _trashSearchManager.Init();
@@ -503,6 +511,11 @@ namespace Plus
             return _rpItemManager;
         }
 
+        public static RoomStockManager GetRoomStockManager()
+        {
+            return _roomStockManager;
+        }
+
         public static Plus.HabboHotel.Roleplay.Crime.RpCrimeManager GetRpCrimeManager()
         {
             return _rpCrimeManager;
@@ -516,6 +529,11 @@ namespace Plus
         public static PoliceManager GetPoliceManager()
         {
             return _policeManager;
+        }
+
+        public static Plus.HabboHotel.GameClients.DisconnectDelayManager GetDisconnectDelayManager()
+        {
+            return _disconnectDelayManager;
         }
 
         public static TrashSearchManager GetTrashSearchManager()

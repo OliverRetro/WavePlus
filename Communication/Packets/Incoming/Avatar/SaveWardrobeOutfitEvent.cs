@@ -33,7 +33,7 @@ namespace Plus.Communication.Packets.Incoming.Avatar
             }
             else
             {
-                db.UserWardrobes.Add(new UserWardrobe
+                db.UserWardrobes.Add(new UserWardrobeEntity
                 {
                     UserId = uid,
                     SlotId = slot,

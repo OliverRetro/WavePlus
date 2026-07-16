@@ -243,7 +243,7 @@ namespace Plus.HabboHotel.Achievements
         private static void SaveUserAchievement(int userId, string group, int level, int progress)
         {
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            db.UserAchievements.Upsert(new Plus.Database.EF.Entities.UserAchievement
+            db.UserAchievements.Upsert(new Plus.Database.EF.Entities.UserAchievementEntity
             {
                 Userid = (uint)userId,
                 Group = group,

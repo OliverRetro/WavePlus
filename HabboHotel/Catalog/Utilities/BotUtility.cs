@@ -11,7 +11,7 @@ namespace Plus.HabboHotel.Catalog.Utilities
             if (!PlusEnvironment.GetGame().GetCatalog().TryGetBot(itemData.Id, out CatalogBot cataBot))
                 return null;
 
-            Database.EF.Entities.Bot botEntity = new()
+            Database.EF.Entities.BotEntity botEntity = new()
             {
                 UserId = (uint)ownerId,
                 Name = cataBot.Name,

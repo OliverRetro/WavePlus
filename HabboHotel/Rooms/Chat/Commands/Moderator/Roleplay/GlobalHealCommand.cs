@@ -33,7 +33,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Fun
                 }
             }
 
-            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*heals everyone to their full HP!*", 0, 23));
+            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*heals everyone to their full HP!*", 0, 23, isRpAction: true));
         }
     }
 }

@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Plus.Database.EF;
 using Plus.Database.EF.Entities;
 using Plus.HabboHotel.GameClients;
+using Plus.HabboHotel.Roleplay.Utilities;
 using Plus.HabboHotel.Users;
 
 namespace Plus.HabboHotel.Roleplay.Crime
@@ -105,9 +106,9 @@ namespace Plus.HabboHotel.Roleplay.Crime
                 {
                     CrimeId = crime.Id,
                     Severity = crime.Severity,
-                    // Every committed crime is charged/visible regardless of the crime's
-                    // automatic_report flag — committing it is enough to be wanted for it.
-                    AutoReported = true,
+                    // Auto-reported crimes are instantly visible (and livefed) — hidden crimes
+                    // stay invisible until a police officer runs `:charge <user> <crime>`.
+                    AutoReported = crime.AutomaticReport,
                     Revealed = false,
                     CommittedAt = now,
                     ExpiresAt = now.AddMinutes(Math.Max(1, crime.TimeActiveMinutes)),
@@ -117,6 +118,64 @@ namespace Plus.HabboHotel.Roleplay.Crime
 
             if (crime.PoliceAlert)
                 AlertPolice(offender, crime, room);
+
+            // Only auto-reported crimes are announced publicly on the livefeed.
+            if (crime.AutomaticReport)
+            {
+                string stars = crime.Severity > 0 ? " " + new string('⭐', Math.Min(5, crime.Severity)) : "";
+                LiveFeedService.LiveFeed("[AUTO CHARGE] 🚨 " + LiveFeedService.Name(offender.Username, "green") + " committed " + crime.Name + stars);
+            }
+        }
+
+        /// <summary>
+        /// Resolves a crime from a free-text query (its name, tag, or tag with spaces).
+        /// e.g. "Cop Assault", "cop_assault" and "cop assault" all resolve the same crime.
+        /// </summary>
+        public RpCrime ResolveCrime(string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+                return null;
+
+            string q = query.Trim();
+            foreach (RpCrime crime in _byId.Values)
+            {
+                if (string.Equals(crime.Name, q, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(crime.Tag, q, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(crime.Tag.Replace('_', ' '), q, StringComparison.OrdinalIgnoreCase))
+                    return crime;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Charges a suspect with a specific crime: reveals every still-active instance of that
+        /// crime (adjusting their visible stars), and flags the record as charged so they can be
+        /// cuffed. Returns how many instances were newly revealed, and the resulting visible stars.
+        /// </summary>
+        public (int applied, int stars) ChargeCrime(int userId, RpCrime crime)
+        {
+            if (crime == null || !_wanted.TryGetValue(userId, out UserWantedRecord rec))
+                return (0, 0);
+
+            Prune(rec);
+            int applied = 0;
+            lock (rec.Crimes)
+            {
+                foreach (ActiveCrime c in rec.Crimes)
+                {
+                    if (c.CrimeId != crime.Id)
+                        continue;
+
+                    // Count every active instance of this crime; reveal any still hidden.
+                    c.Revealed = true;
+                    applied++;
+                }
+
+                if (applied > 0)
+                    rec.Charged = true;
+            }
+
+            return (applied, GetVisibleStars(userId));
         }
 
         private static void AlertPolice(Habbo offender, RpCrime crime, Rooms.Room room)
@@ -267,7 +326,7 @@ namespace Plus.HabboHotel.Roleplay.Crime
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
                 foreach (PendingCrimeLog log in logs)
                 {
-                    db.RpCrimeLogs.Add(new RpCrimeLog
+                    db.RpCrimeLogs.Add(new RpCrimeLogEntity
                     {
                         CrimeId = log.CrimeId,
                         UserId = userId,

@@ -89,7 +89,7 @@ namespace Plus.HabboHotel.Users.Inventory
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.Database.ExecuteSqlInterpolated($"DELETE FROM `items` WHERE `room_id` = 0 AND `user_id` = {_userId}");
+                db.Items.Where(i => i.RoomId == 0 && i.UserId == _userId).ExecuteDelete();
             }
 
             _floorItems.Clear();
@@ -152,7 +152,7 @@ namespace Plus.HabboHotel.Users.Inventory
                     }
                     else
                     {
-                        var row = new Database.EF.Entities.Item { BaseItem = (uint)baseItem, UserId = _userId, LimitedNumber = limitedNumber, LimitedStack = limitedStack };
+                        var row = new Database.EF.Entities.ItemEntity { BaseItem = (uint)baseItem, UserId = _userId, LimitedNumber = limitedNumber, LimitedStack = limitedStack };
                         db.Items.Add(row);
                         db.SaveChanges();
                         id = (int)row.Id;

@@ -63,7 +63,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.UserChatBubbles.Add(new UserChatBubble
+                db.UserChatBubbles.Add(new UserChatBubbleEntity
                 {
                     ChatBubbleId = bubbleId,
                     UserId = targetClient.GetHabbo().Id,

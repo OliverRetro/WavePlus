@@ -5,7 +5,7 @@ namespace Plus.HabboHotel.Users.Authenticator
 {
     public static class HabboFactory
     {
-        public static Habbo GenerateHabbo(User row, UserInfo userInfo)
+        public static Habbo GenerateHabbo(UserEntity row, UserInfoEntity userInfo)
         {
             Habbo habbo = new Habbo(row.Id, row.Username, (int)(row.Rank ?? 0), row.Motto, row.Look,
                 row.Gender, row.Credits ?? 0, row.ActivityPoints ?? 0,

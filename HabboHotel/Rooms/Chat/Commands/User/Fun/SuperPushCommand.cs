@@ -120,7 +120,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Fun
                     targetUser.MoveTo(targetUser.X, targetUser.Y + 3);
                 }
 
-                room.SendPacket(new ShoutComposer(thisUser.VirtualId, "*" + session.GetHabbo().Username + " super pushes " + @params[1] + " away from them*", 0, thisUser.LastBubble));
+                room.SendPacket(new ShoutComposer(thisUser.VirtualId, "*super pushes " + @params[1] + " away from them*", 0, thisUser.LastBubble, isRpAction: true));
             }
             else
             {

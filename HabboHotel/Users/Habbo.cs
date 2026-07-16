@@ -281,7 +281,7 @@ namespace Plus.HabboHotel.Users
             {
                 if (!db.UserInfos.Any(u => u.UserId == id))
                 {
-                    db.UserInfos.Add(new UserInfo { UserId = id });
+                    db.UserInfos.Add(new UserInfoEntity { UserId = id });
                     db.SaveChanges();
                 }
 
@@ -358,10 +358,10 @@ namespace Plus.HabboHotel.Users
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                UserStat statRow = db.UserStats.FirstOrDefault(s => s.Id == id);
+                UserStatEntity statRow = db.UserStats.FirstOrDefault(s => s.Id == id);
                 if (statRow == null)
                 {
-                    statRow = new UserStat { Id = id };
+                    statRow = new UserStatEntity { Id = id };
                     db.UserStats.Add(statRow);
                     db.SaveChanges();
                 }
@@ -433,10 +433,10 @@ namespace Plus.HabboHotel.Users
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                UserRpStatistic statRow = db.UserRpStatistics.FirstOrDefault(s => s.UserId == id);
+                UserRpStatisticEntity statRow = db.UserRpStatistics.FirstOrDefault(s => s.UserId == id);
                 if (statRow == null)
                 {
-                    statRow = new UserRpStatistic { UserId = id };
+                    statRow = new UserRpStatisticEntity { UserId = id };
                     db.UserRpStatistics.Add(statRow);
                     db.SaveChanges();
                 }
@@ -829,7 +829,7 @@ namespace Plus.HabboHotel.Users
             try
             {
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
-                db.UserRpStatistics.Upsert(new UserRpStatistic
+                db.UserRpStatistics.Upsert(new UserRpStatisticEntity
                 {
                     UserId = Id,
                     Health = _rpStats.Health,
@@ -894,7 +894,7 @@ namespace Plus.HabboHotel.Users
 
             try
             {
-                var rows = _rpSkills.Skills.Select(skill => new UserRpSkill
+                var rows = _rpSkills.Skills.Select(skill => new UserRpSkillEntity
                 {
                     UserId = Id,
                     SkillId = skill.SkillId,
@@ -932,7 +932,7 @@ namespace Plus.HabboHotel.Users
                     db.UserRpWeapons.Where(w => removed.Contains(w.Id)).ExecuteDelete();
 
                 // Track new rows so we can copy the DB-generated id back after SaveChanges.
-                var inserted = new List<(UserWeapon Src, UserRpWeapon Row)>();
+                var inserted = new List<(UserWeapon Src, UserRpWeaponEntity Row)>();
 
                 foreach (UserWeapon weapon in _rpWeapons.Weapons.ToList())
                 {
@@ -941,21 +941,21 @@ namespace Plus.HabboHotel.Users
 
                     if (weapon.Id > 0)
                     {
-                        var row = new UserRpWeapon { Id = weapon.Id, DurabilityLeft = weapon.DurabilityLeft, Slot = weapon.Slot };
+                        var row = new UserRpWeaponEntity { Id = weapon.Id, DurabilityLeft = weapon.DurabilityLeft, Slot = weapon.Slot };
                         db.UserRpWeapons.Attach(row);
                         db.Entry(row).Property(w => w.DurabilityLeft).IsModified = true;
                         db.Entry(row).Property(w => w.Slot).IsModified = true;
                         continue;
                     }
 
-                    var newRow = new UserRpWeapon { UserId = Id, WeaponId = weapon.WeaponId, DurabilityLeft = weapon.DurabilityLeft, Slot = weapon.Slot };
+                    var newRow = new UserRpWeaponEntity { UserId = Id, WeaponId = weapon.WeaponId, DurabilityLeft = weapon.DurabilityLeft, Slot = weapon.Slot };
                     db.UserRpWeapons.Add(newRow);
                     inserted.Add((weapon, newRow));
                 }
 
                 db.SaveChanges();
 
-                foreach ((UserWeapon src, UserRpWeapon row) in inserted)
+                foreach ((UserWeapon src, UserRpWeaponEntity row) in inserted)
                 {
                     int oldId = src.Id;
                     src.Id = row.Id;
@@ -983,13 +983,13 @@ namespace Plus.HabboHotel.Users
                 if (removed.Count > 0)
                     db.UserRpItems.Where(i => removed.Contains(i.Id)).ExecuteDelete();
 
-                var inserted = new List<(UserRpItem Src, Plus.Database.EF.Entities.UserRpItem Row)>();
+                var inserted = new List<(UserRpItem Src, Plus.Database.EF.Entities.UserRpItemEntity Row)>();
 
                 foreach (UserRpItem item in _rpItems.Items.ToList())
                 {
                     if (item.Id > 0)
                     {
-                        var row = new Plus.Database.EF.Entities.UserRpItem { Id = item.Id, Uses = (short)item.Uses, Slot = item.Slot, DurabilityLeft = item.DurabilityLeft, Equipped = item.Equipped };
+                        var row = new Plus.Database.EF.Entities.UserRpItemEntity { Id = item.Id, Uses = (short)item.Uses, Slot = item.Slot, DurabilityLeft = item.DurabilityLeft, Equipped = item.Equipped };
                         db.UserRpItems.Attach(row);
                         db.Entry(row).Property(i => i.Uses).IsModified = true;
                         db.Entry(row).Property(i => i.Slot).IsModified = true;
@@ -998,14 +998,14 @@ namespace Plus.HabboHotel.Users
                         continue;
                     }
 
-                    var newRow = new Plus.Database.EF.Entities.UserRpItem { UserId = Id, ItemId = item.ItemId, Uses = (short)item.Uses, Slot = item.Slot, DurabilityLeft = item.DurabilityLeft, Equipped = item.Equipped };
+                    var newRow = new Plus.Database.EF.Entities.UserRpItemEntity { UserId = Id, ItemId = item.ItemId, Uses = (short)item.Uses, Slot = item.Slot, DurabilityLeft = item.DurabilityLeft, Equipped = item.Equipped };
                     db.UserRpItems.Add(newRow);
                     inserted.Add((item, newRow));
                 }
 
                 db.SaveChanges();
 
-                foreach ((UserRpItem src, Plus.Database.EF.Entities.UserRpItem row) in inserted)
+                foreach ((UserRpItem src, Plus.Database.EF.Entities.UserRpItemEntity row) in inserted)
                 {
                     int oldId = src.Id;
                     src.Id = row.Id;
@@ -1029,26 +1029,26 @@ namespace Plus.HabboHotel.Users
             {
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-                var inserted = new List<(UserWeaponSkin Src, UserRpWeaponSkin Row)>();
+                var inserted = new List<(UserWeaponSkin Src, UserRpWeaponSkinEntity Row)>();
 
                 foreach (UserWeaponSkin skin in _rpWeaponSkins.Skins)
                 {
                     if (skin.Id > 0)
                     {
-                        var row = new UserRpWeaponSkin { Id = skin.Id, Equipped = skin.Equipped ? 1 : 0 };
+                        var row = new UserRpWeaponSkinEntity { Id = skin.Id, Equipped = skin.Equipped ? 1 : 0 };
                         db.UserRpWeaponSkins.Attach(row);
                         db.Entry(row).Property(s => s.Equipped).IsModified = true;
                         continue;
                     }
 
-                    var newRow = new UserRpWeaponSkin { UserId = Id, SkinId = skin.SkinId, Equipped = skin.Equipped ? 1 : 0 };
+                    var newRow = new UserRpWeaponSkinEntity { UserId = Id, SkinId = skin.SkinId, Equipped = skin.Equipped ? 1 : 0 };
                     db.UserRpWeaponSkins.Add(newRow);
                     inserted.Add((skin, newRow));
                 }
 
                 db.SaveChanges();
 
-                foreach ((UserWeaponSkin src, UserRpWeaponSkin row) in inserted)
+                foreach ((UserWeaponSkin src, UserRpWeaponSkinEntity row) in inserted)
                 {
                     int oldId = src.Id;
                     src.Id = row.Id;
@@ -1608,7 +1608,7 @@ namespace Plus.HabboHotel.Users
             GetClient().SendPacket(new FurnitureAliasesComposer());
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.UserRoomvisits.Add(new UserRoomvisit
+                db.UserRoomvisits.Add(new UserRoomvisitEntity
                 {
                     UserId = (uint)GetClient().GetHabbo().Id,
                     RoomId = (uint)GetClient().GetHabbo().CurrentRoomId,

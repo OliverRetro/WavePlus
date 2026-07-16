@@ -25,7 +25,7 @@ namespace Plus.HabboHotel.Rooms.Instance
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.RoomFilters.Add(new RoomFilter { RoomId = _instance.Id, Word = word });
+                db.RoomFilters.Add(new RoomFilterEntity { RoomId = _instance.Id, Word = word });
                 db.SaveChanges();
             }
 

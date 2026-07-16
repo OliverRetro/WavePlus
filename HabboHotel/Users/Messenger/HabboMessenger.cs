@@ -146,7 +146,7 @@ namespace Plus.HabboHotel.Users.Messenger
         public void CreateFriendship(int friendId)
         {
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                db.MessengerFriendships.Upsert(new MessengerFriendship
+                db.MessengerFriendships.Upsert(new MessengerFriendshipEntity
                 {
                     UserOneId = (uint)_userId,
                     UserTwoId = (uint)friendId
@@ -282,7 +282,7 @@ namespace Plus.HabboHotel.Users.Messenger
                 return true;
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                db.MessengerRequests.Upsert(new Plus.Database.EF.Entities.MessengerRequest
+                db.MessengerRequests.Upsert(new Plus.Database.EF.Entities.MessengerRequestEntity
                 {
                     FromId = (uint)_userId,
                     ToId = (uint)toId
@@ -352,7 +352,7 @@ namespace Plus.HabboHotel.Users.Messenger
             {
                 using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    db.MessengerOfflineMessages.Add(new Database.EF.Entities.MessengerOfflineMessage
+                    db.MessengerOfflineMessages.Add(new Database.EF.Entities.MessengerOfflineMessageEntity
                     {
                         ToId = (uint)toId,
                         FromId = (uint)GetClient().GetHabbo().Id,
@@ -393,7 +393,7 @@ namespace Plus.HabboHotel.Users.Messenger
         {
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.ChatlogsConsoles.Add(new Database.EF.Entities.ChatlogsConsole
+                db.ChatlogsConsoles.Add(new Database.EF.Entities.ChatlogsConsoleEntity
                 {
                     FromId = (uint)fromId,
                     ToId = (uint)toId,

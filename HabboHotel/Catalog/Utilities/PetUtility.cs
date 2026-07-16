@@ -22,7 +22,7 @@ namespace Plus.HabboHotel.Catalog.Utilities
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
                 // motto/look are NOT NULL without a scaffolded model default; set empty to match the legacy partial insert.
-                Bot botEntity = new()
+                BotEntity botEntity = new()
                 {
                     UserId = (uint)pet.OwnerId,
                     Name = pet.Name,

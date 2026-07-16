@@ -5,7 +5,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 {
     internal class TaxiCommand : IChatCommand
     {
-        public string PermissionRequired => string.Empty;
+        public string PermissionRequired => "command_rp_taxi";
 
         public string Parameters => "%targetroomid%";
 

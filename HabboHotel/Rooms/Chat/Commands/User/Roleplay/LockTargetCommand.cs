@@ -6,7 +6,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 {
     internal class LockTargetCommand : IChatCommand
     {
-        public string PermissionRequired => string.Empty;
+        public string PermissionRequired => "command_rp_locktarget";
         public string Parameters => "%username%";
         public string Description => "Lock your current RP target so swings only hit that player.";
 

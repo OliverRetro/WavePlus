@@ -43,7 +43,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Logs
             if (_chatLogs.Count > 0)
             {
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
-                db.Chatlogs.AddRange(_chatLogs.Select(entry => new Database.EF.Entities.Chatlog
+                db.Chatlogs.AddRange(_chatLogs.Select(entry => new Database.EF.Entities.ChatlogEntity
                 {
                     UserId = (uint)entry.PlayerId,
                     RoomId = (uint)entry.RoomId,

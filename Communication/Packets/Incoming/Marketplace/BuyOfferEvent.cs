@@ -93,7 +93,7 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
                         .SetProperty(d => d.Avgprice, d => d.Avgprice + salePrice));
                 else
                 {
-                    db.CatalogMarketplaceData.Add(new CatalogMarketplaceDatum { Sprite = spriteId, Sold = 1, Avgprice = salePrice });
+                    db.CatalogMarketplaceData.Add(new CatalogMarketplaceDatumEntity { Sprite = spriteId, Sold = 1, Avgprice = salePrice });
                     db.SaveChanges();
                 }
 

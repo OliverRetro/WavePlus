@@ -20,14 +20,14 @@ namespace Plus.HabboHotel.Achievements
 
                 AchievementLevel level = new(row.Level, row.RewardAmount, row.PointsType, row.RewardPoints, row.ProgressNeeded);
 
-                if (!achievements.ContainsKey(groupName))
+                if (!achievements.TryGetValue(groupName, out Achievement value))
                 {
                     Achievement achievement = new(id, groupName, category, row.GameId);
                     achievement.AddLevel(level);
                     achievements.Add(groupName, achievement);
                 }
                 else
-                    achievements[groupName].AddLevel(level);
+                    value.AddLevel(level);
             }
         }
     }

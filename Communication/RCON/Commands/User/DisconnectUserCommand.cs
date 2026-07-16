@@ -17,7 +17,7 @@ namespace Plus.Communication.Rcon.Commands.User
             if (client == null || client.GetHabbo() == null)
                 return false;
 
-            client.Disconnect();
+            client.Disconnect(immediate: true);
             return true;
         }
     }

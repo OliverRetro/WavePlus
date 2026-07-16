@@ -74,6 +74,27 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
         /// <summary>Maximum shield/durability for a secondary (shield) item (from the `shield` attribute).</summary>
         public int MaxShield => GetInt("shield", 0);
 
+        /// <summary>A body-armour vest: a secondary item that flat-reduces incoming non-fist damage.</summary>
+        public bool IsVest => Has("vest");
+
+        /// <summary>A suicide vest: a secondary item that detonates for area damage when used.</summary>
+        public bool IsSuicideVest => Has("suicide_vest");
+
+        /// <summary>Minimum flat damage a standard vest removes from a non-fist hit.</summary>
+        public int VestReductionMin => GetInt("vest_reduction_min", 1);
+
+        /// <summary>Maximum flat damage a standard vest removes from a non-fist hit.</summary>
+        public int VestReductionMax => Math.Max(VestReductionMin, GetInt("vest_reduction_max", 3));
+
+        /// <summary>Percent chance (0-100) a standard vest fails to reduce a hit but still loses durability.</summary>
+        public int VestFailChance => Math.Clamp(GetInt("vest_fail_chance", 0), 0, 100);
+
+        /// <summary>Minimum explosion damage from a suicide vest.</summary>
+        public int ExplosionMin => GetInt("explosion_min", 50);
+
+        /// <summary>Maximum explosion damage from a suicide vest.</summary>
+        public int ExplosionMax => Math.Max(ExplosionMin, GetInt("explosion_max", 100));
+
         /// <summary>
         /// Whether copies of this item collapse into a stack. Items with their own per-copy
         /// state — durability/equip slots, or a stack limit of 1 — never stack.

@@ -114,7 +114,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Bots
                                 .SetProperty(b => b.MixSentences, mixEnum));
 
                             for (int i = 0; i <= speechData.Length - 1; i++)
-                                db.BotsSpeeches.Add(new Database.EF.Entities.BotsSpeech { BotId = updBotId, Text = speechData[i] });
+                                db.BotsSpeeches.Add(new Database.EF.Entities.BotsSpeechEntity { BotId = updBotId, Text = speechData[i] });
 
                             db.SaveChanges();
 

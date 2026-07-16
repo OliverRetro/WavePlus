@@ -13,10 +13,71 @@ namespace Plus.Core
         private ConnectionMultiplexer _connection;
         private IDatabase _database;
 
+        private static readonly TimeSpan BreakerCooldown = TimeSpan.FromSeconds(30);
+        private volatile bool _healthy = true;
+        private DateTime _nextProbeUtc = DateTime.MinValue;
+        private readonly object _breakerLock = new();
+
         public bool IsConnected => _connection != null && _connection.IsConnected;
 
         /// <summary>True when Redis is available for the write-behind cache to use.</summary>
-        public bool IsAvailable => _database != null;
+        public bool IsAvailable => _database != null && Ready();
+
+        private bool Ready()
+        {
+            if (_database == null)
+                return false;
+            if (_healthy)
+                return true;
+
+            lock (_breakerLock)
+                return DateTime.UtcNow >= _nextProbeUtc;
+        }
+
+        private void TripBreaker(Exception ex)
+        {
+            bool wasHealthy;
+            lock (_breakerLock)
+            {
+                wasHealthy = _healthy;
+                _healthy = false;
+                _nextProbeUtc = DateTime.UtcNow.Add(BreakerCooldown);
+            }
+
+            if (wasHealthy)
+            {
+                Log.Error($"Redis went unavailable — degrading to database-only for {BreakerCooldown.TotalSeconds:0}s. ({ex.Message})");
+                NotifyStaff("[REDIS] Cache is unavailable — running on the database failsafe. Play continues; performance may dip until it recovers.");
+            }
+        }
+
+        private void MarkHealthy()
+        {
+            bool wasUnhealthy;
+            lock (_breakerLock)
+            {
+                wasUnhealthy = !_healthy;
+                _healthy = true;
+            }
+
+            if (wasUnhealthy)
+            {
+                Log.Info("Redis recovered — cache is back online.");
+                NotifyStaff("[REDIS] Cache recovered and is back online.");
+            }
+        }
+
+        private static void NotifyStaff(string message)
+        {
+            try
+            {
+                PlusEnvironment.GetGame()?.GetClientManager()?.ModAlert(message);
+            }
+            catch
+            {
+                // Never let the failsafe notification become a new point of failure.
+            }
+        }
 
         public void Init()
         {
@@ -39,7 +100,12 @@ namespace Plus.Core
                 {
                     EndPoints = { { hostname, port } },
                     AbortOnConnectFail = false,
-                    ConnectTimeout = 5000,
+                    ConnectTimeout = 2000,
+                    // Keep synchronous ops short so a Redis stall can't hang the game loop; the
+                    // circuit breaker then skips Redis entirely until it recovers.
+                    SyncTimeout = 1000,
+                    ConnectRetry = 3,
+                    KeepAlive = 5,
                     DefaultDatabase = database
                 };
 
@@ -67,7 +133,7 @@ namespace Plus.Core
         /// </summary>
         public IDatabase GetDatabase()
         {
-            return _database;
+            return Ready() ? _database : null;
         }
 
         /// <summary>
@@ -75,16 +141,17 @@ namespace Plus.Core
         /// </summary>
         public void ListPush(string key, string value)
         {
-            if (_database == null)
+            if (!Ready())
                 return;
 
             try
             {
                 _database.ListRightPush(key, value);
+                MarkHealthy();
             }
             catch (Exception ex)
             {
-                Log.Error($"Redis ListPush failed: {ex.Message}");
+                TripBreaker(ex);
             }
         }
 
@@ -95,29 +162,32 @@ namespace Plus.Core
         /// </summary>
         public bool SetObject<T>(string key, T value, TimeSpan? expiry = null)
         {
-            if (_database == null)
+            if (!Ready())
                 return false;
 
             try
             {
                 string json = JsonConvert.SerializeObject(value);
-                return _database.StringSet(key, json, expiry);
+                bool result = _database.StringSet(key, json, expiry);
+                MarkHealthy();
+                return result;
             }
             catch (Exception ex)
             {
-                Log.Error($"Redis SetObject({key}) failed: {ex.Message}");
+                TripBreaker(ex);
                 return false;
             }
         }
 
         public T GetObject<T>(string key)
         {
-            if (_database == null)
+            if (!Ready())
                 return default;
 
             try
             {
                 RedisValue value = _database.StringGet(key);
+                MarkHealthy();
                 if (value.IsNullOrEmpty)
                     return default;
 
@@ -125,39 +195,42 @@ namespace Plus.Core
             }
             catch (Exception ex)
             {
-                Log.Error($"Redis GetObject({key}) failed: {ex.Message}");
+                TripBreaker(ex);
                 return default;
             }
         }
 
         public bool KeyExists(string key)
         {
-            if (_database == null)
+            if (!Ready())
                 return false;
 
             try
             {
-                return _database.KeyExists(key);
+                bool result = _database.KeyExists(key);
+                MarkHealthy();
+                return result;
             }
             catch (Exception ex)
             {
-                Log.Error($"Redis KeyExists({key}) failed: {ex.Message}");
+                TripBreaker(ex);
                 return false;
             }
         }
 
         public void Delete(string key)
         {
-            if (_database == null)
+            if (!Ready())
                 return;
 
             try
             {
                 _database.KeyDelete(key);
+                MarkHealthy();
             }
             catch (Exception ex)
             {
-                Log.Error($"Redis Delete({key}) failed: {ex.Message}");
+                TripBreaker(ex);
             }
         }
 
@@ -167,48 +240,51 @@ namespace Plus.Core
         /// </summary>
         public void SetAdd(string setKey, string member)
         {
-            if (_database == null)
+            if (!Ready())
                 return;
 
             try
             {
                 _database.SetAdd(setKey, member);
+                MarkHealthy();
             }
             catch (Exception ex)
             {
-                Log.Error($"Redis SetAdd({setKey}) failed: {ex.Message}");
+                TripBreaker(ex);
             }
         }
 
         public void SetRemove(string setKey, string member)
         {
-            if (_database == null)
+            if (!Ready())
                 return;
 
             try
             {
                 _database.SetRemove(setKey, member);
+                MarkHealthy();
             }
             catch (Exception ex)
             {
-                Log.Error($"Redis SetRemove({setKey}) failed: {ex.Message}");
+                TripBreaker(ex);
             }
         }
 
         public List<string> SetMembers(string setKey)
         {
             var result = new List<string>();
-            if (_database == null)
+            if (!Ready())
                 return result;
 
             try
             {
                 foreach (RedisValue member in _database.SetMembers(setKey))
                     result.Add(member);
+                MarkHealthy();
             }
             catch (Exception ex)
             {
-                Log.Error($"Redis SetMembers({setKey}) failed: {ex.Message}");
+                TripBreaker(ex);
             }
 
             return result;

@@ -29,7 +29,7 @@ namespace Plus.Communication.Packets.Incoming.Navigator
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.UserFavorites.Add(new UserFavorite
+                db.UserFavorites.Add(new UserFavoriteEntity
                 {
                     UserId = (uint)session.GetHabbo().Id,
                     RoomId = (uint)roomId

@@ -15,6 +15,40 @@ namespace Plus.HabboHotel.Roleplay.Banking
         private const int RecentLogLimit = 25;
 
         /// <summary>
+        /// Activity-point currency type the bank balance is published under, so the client purse
+        /// (and the phone/ATM "Current Balance") can display it. Keep in sync with the Nitro client
+        /// (PhoneBankApp BANK_CURRENCY_ID / ATMView).
+        /// </summary>
+        public const int BankCurrencyType = 200;
+
+        /// <summary>
+        /// Resolves the fee percentage for a transaction. <paramref name="kind"/> is "deposit" or
+        /// "withdrawal"; <paramref name="managementType"/> is the source ("ATM" vs "PHONE"). Prefers the
+        /// source-specific setting (rp.bank.{kind}.fee.{atm|phone}) and falls back to rp.bank.{kind}.fee.default.
+        /// </summary>
+        public static int ResolveFeePercent(string kind, string managementType)
+        {
+            string source = string.Equals(managementType, "PHONE", StringComparison.OrdinalIgnoreCase) ? "phone" : "atm";
+            var settings = PlusEnvironment.GetSettingsManager();
+
+            string specificKey = $"rp.bank.{kind}.fee.{source}";
+            if (settings.ContainsKey(specificKey) && int.TryParse(settings.TryGetValue(specificKey), out int specific))
+                return specific;
+
+            return int.TryParse(settings.TryGetValue($"rp.bank.{kind}.fee.default"), out int def) ? def : 0;
+        }
+
+        /// <summary>Publishes the user's bank balance to the client purse as currency type 200.</summary>
+        public void SendBankCurrency(Habbo habbo)
+        {
+            if (habbo?.GetClient() == null)
+                return;
+
+            int balance = habbo.GetBankAccount()?.Balance ?? 0;
+            habbo.GetClient().SendPacket(new HabboActivityPointNotificationComposer(balance, 0, BankCurrencyType));
+        }
+
+        /// <summary>
         /// Sends both the ATM (6006) and Phone (6007) bank snapshots to a user.
         /// </summary>
         public void SendBankSnapshot(Habbo habbo)
@@ -22,15 +56,10 @@ namespace Plus.HabboHotel.Roleplay.Banking
             if (habbo?.GetClient() == null)
                 return;
 
-            UserRpBankAccount account = habbo.GetBankAccount();
-            bool hasAccount = account != null;
-            int bankBalance = account?.Balance ?? 0;
-            int walletBalance = habbo.Credits;
-            string accountNumber = hasAccount ? habbo.Id.ToString("D8") : string.Empty;
-            double feePercentage = GetDepositFeeFraction();
-
-            habbo.GetClient().SendPacket(new AtmBankComposer(hasAccount, accountNumber, bankBalance, walletBalance, feePercentage, hasAccount, hasAccount));
-            habbo.GetClient().SendPacket(new PhoneBankComposer(hasAccount, accountNumber, bankBalance, walletBalance, feePercentage, hasAccount, hasAccount, hasAccount ? LoadRecentLogs(habbo.Id) : new List<UserRpBankLog>()));
+            // NOTE: the legacy AtmBankComposer (header 6006) collides with the Nitro client's
+            // GetGroupsRolesListEvent, so it is intentionally NOT sent — the phone/ATM read the
+            // balance from the purse (currency 200) instead, published below.
+            SendBankCurrency(habbo);
         }
 
         public List<UserRpBankLog> LoadRecentLogs(int userId)
@@ -69,7 +98,7 @@ namespace Plus.HabboHotel.Roleplay.Banking
             if (habbo == null || habbo.GetBankAccount() != null)
                 return false;
 
-            int cost = int.TryParse(PlusEnvironment.GetSettingsManager().TryGetValue("rp.bank.account.cost"), out int amount) ? amount : 50;
+            int cost = int.TryParse(PlusEnvironment.GetSettingsManager().TryGetValue("rp.bank.account.opening.cost"), out int amount) ? amount : 50;
             if (habbo.Credits < cost)
                 return false;
 
@@ -81,7 +110,7 @@ namespace Plus.HabboHotel.Roleplay.Banking
             habbo.SetBankAccount(account);
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            db.UserRpBanks.Add(new UserRpBank
+            db.UserRpBanks.Add(new UserRpBankEntity
             {
                 UserId = habbo.Id,
                 Balance = 0,
@@ -89,6 +118,7 @@ namespace Plus.HabboHotel.Roleplay.Banking
             });
             db.SaveChanges();
 
+            SendBankCurrency(habbo);
             return true;
         }
 
@@ -112,11 +142,7 @@ namespace Plus.HabboHotel.Roleplay.Banking
             if (!CanUseAccount(habbo, amount) || habbo.Credits < amount)
                 return new BankTransactionResult(false, 0, 0);
 
-            int feePercentage = int.TryParse(
-                PlusEnvironment.GetSettingsManager().TryGetValue("rp.bank.deposit.fee.default"),
-                out int parsedFeePercentage)
-                    ? parsedFeePercentage
-                    : 0;
+            int feePercentage = ResolveFeePercent("deposit", managementType);
 
             int fee = amount * feePercentage / 100;
             int netAmount = amount - fee;
@@ -130,6 +156,7 @@ namespace Plus.HabboHotel.Roleplay.Banking
             UserRpBankAccount account = habbo.GetBankAccount();
             account.SetBalance(account.Balance + netAmount);
             account.AddLog(new UserRpBankLog(habbo.Id, amount, "DEPOSIT", managementType, fee, DateTime.UtcNow));
+            SendBankCurrency(habbo);
 
             return new BankTransactionResult(true, fee, netAmount);
         }
@@ -143,11 +170,7 @@ namespace Plus.HabboHotel.Roleplay.Banking
             if (account.Balance < amount)
                 return new BankTransactionResult(false, 0, 0);
 
-            int feePercentage = int.TryParse(
-                PlusEnvironment.GetSettingsManager().TryGetValue("rp.bank.withdrawal.fee.default"),
-                out int parsedFeePercentage)
-                    ? parsedFeePercentage
-                    : 0;
+            int feePercentage = ResolveFeePercent("withdrawal", managementType);
 
             int fee = amount * feePercentage / 100;
             int netAmount = amount - fee;
@@ -157,6 +180,7 @@ namespace Plus.HabboHotel.Roleplay.Banking
 
             account.SetBalance(account.Balance - amount);
             account.AddLog(new UserRpBankLog(habbo.Id, amount, "WITHDRAWAL", managementType, fee, DateTime.UtcNow));
+            SendBankCurrency(habbo);
 
             habbo.Credits += netAmount;
             habbo.GetClient()?.SendPacket(new CreditBalanceComposer(habbo.Credits));
@@ -181,7 +205,7 @@ namespace Plus.HabboHotel.Roleplay.Banking
 
             if (account.PendingLogs.Count > 0)
             {
-                db.UserRpBankLogs.AddRange(account.PendingLogs.Select(log => new Plus.Database.EF.Entities.UserRpBankLog
+                db.UserRpBankLogs.AddRange(account.PendingLogs.Select(log => new Plus.Database.EF.Entities.UserRpBankLogEntity
                 {
                     UserId = log.UserId,
                     Amount = log.Amount,

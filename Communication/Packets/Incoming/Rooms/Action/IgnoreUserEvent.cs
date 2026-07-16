@@ -32,7 +32,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Action
             {
                 using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
-                    db.UserIgnores.Add(new UserIgnore { UserId = (uint)session.GetHabbo().Id, IgnoreId = (uint)player.Id });
+                    db.UserIgnores.Add(new UserIgnoreEntity { UserId = (uint)session.GetHabbo().Id, IgnoreId = (uint)player.Id });
                     db.SaveChanges();
                 }
 

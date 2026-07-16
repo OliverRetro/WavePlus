@@ -96,7 +96,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
             session.SendPacket(new GroupMemberUpdatedComposer(group, targetHabbo, 4));
             session.SendPacket(new GroupInfoComposer(group, targetClient));
             LiveFeedService.LiveFeed(LiveFeedService.Name(session.GetHabbo().Username, "green") + " hired " + LiveFeedService.Name(targetHabbo.Username, "lightblue") + " to <b>" + group.Name + "</b>");
-            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*" + session.GetHabbo().Username + " hired " + targetHabbo.Username + " to " + group.Name + "*", 0, session.GetHabbo().CustomBubbleId));
+            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*hired " + targetHabbo.Username + " to " + group.Name + "*", 0, session.GetHabbo().CustomBubbleId, isRpAction: true));
         }
     }
 }

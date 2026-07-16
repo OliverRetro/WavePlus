@@ -60,7 +60,7 @@ namespace Plus.Communication.Packets.Incoming.Users
                         session.GetHabbo().Relationships.Remove(id);
                 }
 
-                var entity = new Database.EF.Entities.UserRelationship { UserId = myId, Target = user, Type = type.ToString() };
+                var entity = new Database.EF.Entities.UserRelationshipEntity { UserId = myId, Target = user, Type = type.ToString() };
                 db.UserRelationships.Add(entity);
                 db.SaveChanges();
                 int newId = entity.Id;

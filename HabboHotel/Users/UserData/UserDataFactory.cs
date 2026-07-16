@@ -19,7 +19,7 @@ namespace Plus.HabboHotel.Users.UserData
         {
             using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-            User dUserInfo = db.Users.FirstOrDefault(u => u.AuthTicket == sessionTicket);
+            UserEntity dUserInfo = db.Users.FirstOrDefault(u => u.AuthTicket == sessionTicket);
             if (dUserInfo == null)
             {
                 errorCode = 1;
@@ -32,9 +32,23 @@ namespace Plus.HabboHotel.Users.UserData
             GameClients.GameClient existing = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(userId);
             if (existing != null)
             {
-                errorCode = 2;
-                existing.Disconnect();
-                return null;
+                // A login is colliding with an existing session for this user. This is almost always
+                // a reconnect (page reload / socket re-open), so we take over rather than reject —
+                // otherwise a reload would kick the user out entirely.
+                //
+                //  - If the old session is already a ghost (its socket closed and it's sitting in the
+                //    disconnect grace window), finalize it now: persist its cached state and free the
+                //    room presence.
+                //  - Otherwise the old socket hasn't been noticed as closed yet (the reload race:
+                //    the new connection authenticated before the old one's ChannelInactive fired).
+                //    Tear it down immediately (no new ghost) so this fresh login can take its place.
+                //
+                // Either way we FALL THROUGH to load fresh DB state for the new connection instead of
+                // aborting with errorCode 2.
+                if (PlusEnvironment.GetDisconnectDelayManager()?.IsGhost(userId) == true)
+                    PlusEnvironment.GetDisconnectDelayManager().FinalizeNow(userId);
+                else
+                    existing.Disconnect(immediate: true);
             }
 
             ConcurrentDictionary<string, UserAchievement> achievements = new();
@@ -96,10 +110,10 @@ namespace Plus.HabboHotel.Users.UserData
                 quests[(int)q.QuestId] = q.Progress ?? 0;
             }
 
-            UserInfo userInfo = db.UserInfos.FirstOrDefault(i => i.UserId == userId);
+            UserInfoEntity userInfo = db.UserInfos.FirstOrDefault(i => i.UserId == userId);
             if (userInfo == null)
             {
-                userInfo = new UserInfo { UserId = userId };
+                userInfo = new UserInfoEntity { UserId = userId };
                 db.UserInfos.Add(userInfo);
                 db.SaveChanges();
             }
@@ -129,14 +143,14 @@ namespace Plus.HabboHotel.Users.UserData
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-            User dUserInfo = db.Users.FirstOrDefault(u => u.Id == userId);
+            UserEntity dUserInfo = db.Users.FirstOrDefault(u => u.Id == userId);
             if (dUserInfo == null)
                 return null;
 
-            UserInfo userInfo = db.UserInfos.FirstOrDefault(i => i.UserId == userId);
+            UserInfoEntity userInfo = db.UserInfos.FirstOrDefault(i => i.UserId == userId);
             if (userInfo == null)
             {
-                userInfo = new UserInfo { UserId = userId };
+                userInfo = new UserInfoEntity { UserId = userId };
                 db.UserInfos.Add(userInfo);
                 db.SaveChanges();
             }

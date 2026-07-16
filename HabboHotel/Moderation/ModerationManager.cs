@@ -131,7 +131,7 @@ namespace Plus.HabboHotel.Moderation
             double timestamp = PlusEnvironment.GetUnixTimestamp();
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                db.Bans.Upsert(new Ban
+                db.Bans.Upsert(new BanEntity
                 {
                     Bantype = banType,
                     Value = banValue,

@@ -8,6 +8,8 @@ using Plus.HabboHotel.Groups;
 // Disambiguates the bare names from the scaffolded EF entities Plus.Database.EF.Entities.Group/GroupRole.
 using Group = Plus.HabboHotel.Groups.Group;
 using GroupRole = Plus.HabboHotel.Groups.GroupRole;
+using Plus.HabboHotel.Roleplay.Police;
+using Plus.HabboHotel.Roleplay.RpItem.Weapon;
 using Plus.HabboHotel.Roleplay.Utilities;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
@@ -95,7 +97,11 @@ namespace Plus.HabboHotel.Roleplay.Corporation
             // Refresh the avatar effect (e.g. apply the staff effect, drop the weapon effect).
             RpEffectService.Refresh(habbo);
 
-            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*" + habbo.Username + " starts work as " + role.Name + "*", 0, session.GetHabbo().CustomBubbleId));
+            // Police officers are issued a fresh, fully-charged tazer for the shift.
+            if (PoliceManager.IsOnDutyPolice(habbo))
+                TazerService.GiveTazer(habbo);
+
+            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*starts work as " + role.Name + "*", 0, session.GetHabbo().CustomBubbleId, isRpAction: true));
 
             // Update the user regardless of whether costume/motto changed.
             RoomUser user = room.GetRoomUserManager().GetRoomUserByHabbo(habbo.Id);
@@ -129,7 +135,7 @@ namespace Plus.HabboHotel.Roleplay.Corporation
                 return;
             }
 
-            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*" + habbo.Username + " stops working*", 0, session.GetHabbo().CustomBubbleId));
+            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*stops working*", 0, session.GetHabbo().CustomBubbleId, isRpAction: true));
             InterruptShift(habbo, room);
         }
 
@@ -236,6 +242,9 @@ namespace Plus.HabboHotel.Roleplay.Corporation
             if (!_activeShifts.TryRemove(habbo.Id, out ActiveShift shift))
                 return;
 
+            // Stopping work (including by death) strips any police-issue tazer.
+            TazerService.RemoveTazer(habbo);
+
             if (shift.BonusCredits > 0)
             {
                 GivePay(habbo, shift.BonusCredits);
@@ -269,6 +278,9 @@ namespace Plus.HabboHotel.Roleplay.Corporation
 
         public void OnDisconnect(Habbo habbo)
         {
+            // The tazer is shift-scoped and must never persist across sessions.
+            TazerService.RemoveTazer(habbo);
+
             if (_activeShifts.TryRemove(habbo.Id, out ActiveShift shift))
             {
                 if (shift.BonusCredits > 0)
@@ -392,7 +404,7 @@ namespace Plus.HabboHotel.Roleplay.Corporation
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
                 foreach (var (groupId, credits, finished) in snapshot)
                 {
-                    db.RpShiftLogs.Add(new RpShiftLog
+                    db.RpShiftLogs.Add(new RpShiftLogEntity
                     {
                         GroupId = groupId,
                         UserId = userId,

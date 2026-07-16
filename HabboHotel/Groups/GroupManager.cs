@@ -139,7 +139,7 @@ namespace Plus.HabboHotel.Groups
                 return false;
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            var entity = new Database.EF.Entities.Group
+            var entity = new Database.EF.Entities.GroupEntity
             {
                 Name = group.Name,
                 Desc = group.Description,

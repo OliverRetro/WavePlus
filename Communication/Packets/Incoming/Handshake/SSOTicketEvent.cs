@@ -17,7 +17,7 @@ namespace Plus.Communication.Packets.Incoming.Handshake
             if (string.IsNullOrEmpty(sso) || sso.Length < 15)
             {
                 Log.Debug("Invalid SSO Ticket, disconnecting client");
-                session.Disconnect();
+                session.Disconnect(immediate: true);
                 return;
             }
 

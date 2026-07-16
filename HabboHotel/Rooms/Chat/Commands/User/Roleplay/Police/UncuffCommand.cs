@@ -5,7 +5,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Police
 {
     internal class UncuffCommand : IChatCommand
     {
-        public string PermissionRequired => "command_rp_police_override";
+        public string PermissionRequired => "command_pigs_uncuff";
         public string GroupPermissionRequired => "cuff_user";
         public string Parameters => "%username%";
         public string Description => "Uncuff a user (police only).";
@@ -22,7 +22,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Police
                 return;
 
             PlusEnvironment.GetPoliceManager().Uncuff(targetClient.GetHabbo());
-            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*" + session.GetHabbo().Username + " removes " + targetClient.GetHabbo().Username + "' cuffs*", 0, 4));
+            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*removes " + targetClient.GetHabbo().Username + "' cuffs*", 0, 4, isRpAction: true));
         }
     }
 }

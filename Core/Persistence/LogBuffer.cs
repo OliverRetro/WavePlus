@@ -12,14 +12,14 @@ namespace Plus.Core.Persistence
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(LogBuffer));
 
-        private static readonly ConcurrentQueue<LogsClientStaff> CommandLogs = new();
-        private static readonly ConcurrentQueue<LogsClientNamechange> NameChangeLogs = new();
-        private static readonly ConcurrentQueue<LogsClientTrade> TradeLogs = new();
-        private static readonly ConcurrentQueue<ChatlogsConsoleInvitation> ConsoleInvitations = new();
+        private static readonly ConcurrentQueue<LogsClientStaffEntity> CommandLogs = new();
+        private static readonly ConcurrentQueue<LogsClientNamechangeEntity> NameChangeLogs = new();
+        private static readonly ConcurrentQueue<LogsClientTradeEntity> TradeLogs = new();
+        private static readonly ConcurrentQueue<ChatlogsConsoleInvitationEntity> ConsoleInvitations = new();
 
         public static void LogCommand(int userId, string data, string machineId)
         {
-            CommandLogs.Enqueue(new LogsClientStaff
+            CommandLogs.Enqueue(new LogsClientStaffEntity
             {
                 UserId = userId,
                 DataString = data,
@@ -30,7 +30,7 @@ namespace Plus.Core.Persistence
 
         public static void LogNameChange(int userId, string newName, string oldName)
         {
-            NameChangeLogs.Enqueue(new LogsClientNamechange
+            NameChangeLogs.Enqueue(new LogsClientNamechangeEntity
             {
                 UserId = userId,
                 NewName = newName,
@@ -41,7 +41,7 @@ namespace Plus.Core.Persistence
 
         public static void LogTrade(int userOneId, int userTwoId, string userOneItems, string userTwoItems)
         {
-            TradeLogs.Enqueue(new LogsClientTrade
+            TradeLogs.Enqueue(new LogsClientTradeEntity
             {
                 _1id = userOneId,
                 _2id = userTwoId,
@@ -53,7 +53,7 @@ namespace Plus.Core.Persistence
 
         public static void LogConsoleInvitation(int userId, string message)
         {
-            ConsoleInvitations.Enqueue(new ChatlogsConsoleInvitation
+            ConsoleInvitations.Enqueue(new ChatlogsConsoleInvitationEntity
             {
                 UserId = userId,
                 Message = message,

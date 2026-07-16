@@ -439,6 +439,12 @@ namespace Plus.HabboHotel.Items
                     case InteractionType.Counter:
                         return new InteractorCounter();
 
+                    case InteractionType.Atm:
+                        return new InteractorAtm();
+
+                    case InteractionType.Bank:
+                        return new InteractorBank();
+
                     case InteractionType.None:
                     default:
                         return new InteractorGenericSwitch();

@@ -25,7 +25,7 @@ namespace Plus.HabboHotel.Items.Data.Moodlight
 
             if (row == null)
             {
-                db.RoomItemsMoodlights.Add(new Database.EF.Entities.RoomItemsMoodlight
+                db.RoomItemsMoodlights.Add(new Database.EF.Entities.RoomItemsMoodlightEntity
                 {
                     ItemId = itemKey,
                     Enabled = "0",

@@ -48,6 +48,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
             PlusEnvironment.GetHospitalManager().HandleRoomEntry(session.GetHabbo());
             PlusEnvironment.GetJailManager().HandleRoomEntry(session.GetHabbo());
             PlusEnvironment.GetPoliceManager().HandleRoomEntry(session.GetHabbo());
+            Plus.HabboHotel.Roleplay.RpItem.Weapon.TazerService.TryRechargeAtStation(session.GetHabbo());
 
             if (session.GetHabbo().GetRpStats()?.IsDead != true)
                 session.GetHabbo().ApplyHomeRoomData();

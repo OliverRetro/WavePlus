@@ -28,8 +28,22 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Avatar
             if (danceId > 0 && user.CarryItemId > 0)
                 user.CarryItem(0);
 
-            if (session.GetHabbo().Effects().CurrentEffect > 0)
-                room.SendPacket(new AvatarEffectComposer(user.VirtualId, 0));
+            int currentEffect = session.GetHabbo().Effects().CurrentEffect;
+            if (currentEffect > 0)
+            {
+                if (danceId > 0)
+                {
+                    // Starting a dance: clear the effect for the duration (dance + effect clash
+                    // visually). Cancel any pending gesture re-apply so it doesn't fire mid-dance.
+                    room.SendPacket(new AvatarEffectComposer(user.VirtualId, 0));
+                    user.EffectReapplyTimer = 0;
+                }
+                else
+                {
+                    // Stopping the dance: restore whatever effect they had on.
+                    room.SendPacket(new AvatarEffectComposer(user.VirtualId, currentEffect));
+                }
+            }
 
             user.DanceId = danceId;
 

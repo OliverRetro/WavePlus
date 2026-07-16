@@ -15,7 +15,7 @@ namespace Plus.HabboHotel.Items
             Item item = new(0, 0, data.Id, extraData, 0, 0, 0, 0, habbo.Id, groupId, limitedNumber, limitedStack, "");
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            var row = new Database.EF.Entities.Item
+            var row = new Database.EF.Entities.ItemEntity
             {
                 BaseItem = (uint)data.Id,
                 UserId = habbo.Id,
@@ -72,10 +72,10 @@ namespace Plus.HabboHotel.Items
             List<Item> items = new();
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            var rows = new List<Database.EF.Entities.Item>();
+            var rows = new List<Database.EF.Entities.ItemEntity>();
             for (int i = 0; i < amount; i++)
             {
-                var row = new Database.EF.Entities.Item
+                var row = new Database.EF.Entities.ItemEntity
                 {
                     BaseItem = (uint)data.Id,
                     UserId = habbo.Id,
@@ -111,12 +111,12 @@ namespace Plus.HabboHotel.Items
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-            var i1 = new Database.EF.Entities.Item { BaseItem = (uint)data.Id, UserId = habbo.Id, RoomId = 0, X = 0, Y = 0, Z = 0, Rot = 0, WallPos = "", ExtraData = "" };
+            var i1 = new Database.EF.Entities.ItemEntity { BaseItem = (uint)data.Id, UserId = habbo.Id, RoomId = 0, X = 0, Y = 0, Z = 0, Rot = 0, WallPos = "", ExtraData = "" };
             db.Items.Add(i1);
             db.SaveChanges();
             int item1Id = (int)i1.Id;
 
-            var i2 = new Database.EF.Entities.Item { BaseItem = (uint)data.Id, UserId = habbo.Id, RoomId = 0, X = 0, Y = 0, Z = 0, Rot = 0, WallPos = "", ExtraData = item1Id.ToString() };
+            var i2 = new Database.EF.Entities.ItemEntity { BaseItem = (uint)data.Id, UserId = habbo.Id, RoomId = 0, X = 0, Y = 0, Z = 0, Rot = 0, WallPos = "", ExtraData = item1Id.ToString() };
             db.Items.Add(i2);
             db.SaveChanges();
             int item2Id = (int)i2.Id;
@@ -125,8 +125,8 @@ namespace Plus.HabboHotel.Items
             Item item2 = new(item2Id, 0, data.Id, "", 0, 0, 0, 0, habbo.Id, groupId, 0, 0, "");
 
             db.RoomItemsTeleLinks.AddRange(
-                new Database.EF.Entities.RoomItemsTeleLink { TeleOneId = (uint)item1Id, TeleTwoId = (uint)item2Id },
-                new Database.EF.Entities.RoomItemsTeleLink { TeleOneId = (uint)item2Id, TeleTwoId = (uint)item1Id });
+                new Database.EF.Entities.RoomItemsTeleLinkEntity { TeleOneId = (uint)item1Id, TeleTwoId = (uint)item2Id },
+                new Database.EF.Entities.RoomItemsTeleLinkEntity { TeleOneId = (uint)item2Id, TeleTwoId = (uint)item1Id });
             db.SaveChanges();
 
             items.Add(item1);

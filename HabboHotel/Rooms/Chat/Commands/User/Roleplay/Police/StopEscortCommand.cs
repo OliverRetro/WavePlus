@@ -4,7 +4,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Police
 {
     internal class StopEscortCommand : IChatCommand
     {
-        public string PermissionRequired => "command_rp_police_override";
+        public string PermissionRequired => "command_rp_unescort";
         public string GroupPermissionRequired => "escort_user";
         public string Parameters => "%username%";
         public string Description => "Stop escorting a suspect (police only).";

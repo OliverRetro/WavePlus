@@ -1,5 +1,7 @@
 using Plus.Communication.Packets.Outgoing.Inventory.Purse;
 using Plus.Communication.Packets.Outgoing.Rooms.Chat;
+using Plus.HabboHotel.Groups;
+using Plus.HabboHotel.Roleplay.Police;
 using Plus.HabboHotel.Roleplay.RpItem.Weapon;
 using Plus.HabboHotel.Roleplay.Utilities;
 using Plus.HabboHotel.Rooms;
@@ -32,6 +34,20 @@ namespace Plus.HabboHotel.Roleplay.Combat
             if (targetRoomUser == null || attackerRoomUser == null)
                 return;
 
+            // No fighting while idle — an idle attacker can't swing, and an idle player can't be
+            // jumped (stops people getting killed while AFK, and stops idlers from attacking).
+            if (attackerRoomUser.IsAsleep)
+            {
+                attacker.GetClient()?.SendWhisper("You can't attack while you're idle.", 1);
+                return;
+            }
+
+            if (targetRoomUser.IsAsleep)
+            {
+                attacker.GetClient()?.SendWhisper(target.Username + " is idle — you can't attack them right now.", 1);
+                return;
+            }
+
             if (attackerStats.IsDead || targetStats.IsDead)
             {
                 attacker.GetClient().SendWhisper("User is already knocked out!", 1);
@@ -52,7 +68,15 @@ namespace Plus.HabboHotel.Roleplay.Combat
 
             if (!inRange)
             {
-                attacker.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, "*" + attacker.Username + " swings at " + target.Username + ", but misses*", 0, 29));
+                attacker.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, "*swings at " + target.Username + ", but misses*", 0, 29, isRpAction: true));
+                return;
+            }
+
+            // The tazer is a pure-stun police tool: no damage, guaranteed 2s stun, limited charges,
+            // and tazing is not treated as an assault crime.
+            if (TazerService.IsTazer(weapon))
+            {
+                HandleTazer(attacker, target, attackerStats, attackerRoomUser, targetRoomUser);
                 return;
             }
 
@@ -60,6 +84,10 @@ namespace Plus.HabboHotel.Roleplay.Combat
             DamageResult result = CalculateDamage(weapon?.MinimumDamage ?? 0, weapon?.MaximumDamage ?? 0, weapon?.CriticalChance ?? 0, weapon?.CriticalMultiplier ?? 1, attackerStats.Strength);
 
             int totalDamage = result.TotalDamage;
+
+            // A standard vest flat-reduces non-fist hits (and takes durability doing so).
+            bool isFistAttack = (weapon?.Id ?? 0) == 0;
+            totalDamage = target.GetRpItems()?.AbsorbWithVest(target, totalDamage, isFistAttack) ?? totalDamage;
 
             int shieldBeforeHit = targetStats.Shield;
             int healthBeforeHit = targetStats.Health;
@@ -85,11 +113,11 @@ namespace Plus.HabboHotel.Roleplay.Combat
                 attacker.ResetAggressionTimer();
                 targetStats.Health = 0;
                 LiveFeedService.LiveFeed(LiveFeedService.Name(attacker.Username, "green") + " knocked out <b>" + LiveFeedService.Name(target.Username, "red") + "</b>");
-                LiveFeedService.LiveFeed("[AUTO CHARGE] 🚨 " + LiveFeedService.Name(attacker.Username, "green") + " committed murder ⭐⭐");
                 UserRpStats.Kill(target, targetRoomUser, attackerStats);
 
-                // Killing a player is murder.
-                PlusEnvironment.GetRpCrimeManager().Commit(attacker, "murder", attacker.CurrentRoom);
+                // Resolve which murder-family crime applies (the livefeed for auto crimes is
+                // emitted from RpCrimeManager.Commit).
+                CommitKillCrimes(attacker, target);
 
                 // Achievements (batched: a fight can produce bursts of these).
                 PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(attacker.GetClient(), "ACH_Kill", 1);
@@ -98,18 +126,21 @@ namespace Plus.HabboHotel.Roleplay.Combat
             else
             {
                 attacker.ResetAggressionTimer();
+
+                // A non-lethal hit is an assault (or a more specific variant).
+                CommitAssaultCrime(attacker, target, attacker.CurrentRoom);
             }
 
             // Send shout about the attack after damage is resolved so it reflects the final result.
             string shoutResult = isFinalBlow
                 ? "*deals the final blow to " + target.Username + " with " + actualDamageDealt + " damage*" : FormatAttackMessage(attacker.Username, skin, weapon, target.Username, actualDamageDealt, result.IsCritical);
-            attacker.CurrentRoom.SendPacket(new ShoutComposer(attackerRoomUser.VirtualId, shoutResult, 0, 29));
+            attacker.CurrentRoom.SendPacket(new ShoutComposer(attackerRoomUser.VirtualId, shoutResult, 0, 29, isRpAction: true));
 
             // stun
             bool stunTarget = Random.Shared.NextDouble() < ((weapon?.StunChance ?? 0) / 100.0);
             if (stunTarget && !targetStats.IsDead)
             {
-                target.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(target.Id).VirtualId, "*" + target.Username + " gets stunned by the hit*", 0, 29));
+                target.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(target.Id).VirtualId, "*gets stunned by the hit*", 0, 29, isRpAction: true));
                 StunUser(targetRoomUser);
             }
 
@@ -118,6 +149,128 @@ namespace Plus.HabboHotel.Roleplay.Combat
 
             targetStats.Attacked++;
             targetStats.DamageTaken += actualDamageDealt;
+        }
+
+        /// <summary>
+        /// Resolves and commits the murder-family crime for a kill. Exactly one of cop_murder /
+        /// gang_homicide / murder applies (they don't stack); mass_murder is added on top when the
+        /// victim had active charges at the time of death.
+        /// </summary>
+        private static void CommitKillCrimes(Habbo attacker, Habbo target)
+        {
+            var crimes = PlusEnvironment.GetRpCrimeManager();
+
+            // Checked before committing — reflects the victim's wanted state at time of death.
+            bool victimHadCharges = crimes.HasActiveCrimes(target.Id);
+
+            string tag;
+            if (PoliceManager.IsOnDutyPolice(target))
+                tag = "cop_murder";
+            else if (IsInGang(attacker) && IsInGang(target))
+                tag = "gang_homicide";
+            else
+                tag = "murder";
+
+            crimes.Commit(attacker, tag, attacker.CurrentRoom);
+
+            // Killing someone who already had active charges is mass murder (an added charge).
+            if (victimHadCharges)
+                crimes.Commit(attacker, "mass_murder", attacker.CurrentRoom);
+        }
+
+        /// <summary>
+        /// Resolves and commits the assault-family crime for a non-lethal hit. cop_assault (hitting
+        /// an on-duty officer) and obstruction (hitting an escorted suspect) take precedence over a
+        /// plain assault; only one applies.
+        /// </summary>
+        private static void CommitAssaultCrime(Habbo attacker, Habbo target, Room room)
+        {
+            string tag;
+            if (PoliceManager.IsOnDutyPolice(target))
+                tag = "cop_assault";
+            else if (PlusEnvironment.GetPoliceManager().IsEscorted(target.Id))
+                tag = "obstruction";
+            else
+                tag = "assault";
+
+            PlusEnvironment.GetRpCrimeManager().Commit(attacker, tag, room);
+        }
+
+        /// <summary>True when the user is a member of any gang/cartel/mafia group.</summary>
+        private static bool IsInGang(Habbo habbo)
+        {
+            if (habbo == null)
+                return false;
+
+            foreach (Group group in PlusEnvironment.GetGame().GetGroupManager().GetGroupsForUser(habbo.Id))
+            {
+                if (group != null && (group.Kind == GroupKind.Gang || group.Kind == GroupKind.Cartel || group.Kind == GroupKind.Mafia))
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Detonates a suicide vest: deals random explosive damage to everyone on the 8 tiles
+        /// surrounding the source (the 3x3 grid), then always knocks the source out.
+        /// </summary>
+        public void ApplyExplosion(Habbo source, int minDamage, int maxDamage)
+        {
+            if (source == null)
+                return;
+
+            Room room = source.CurrentRoom;
+            RoomUser sourceUser = room?.GetRoomUserManager().GetRoomUserByHabbo(source.Id);
+            if (room == null || sourceUser == null)
+                return;
+
+            minDamage = Math.Max(0, minDamage);
+            maxDamage = Math.Max(minDamage, maxDamage);
+
+            foreach (RoomUser ru in room.GetRoomUserManager().GetRoomUsers())
+            {
+                if (ru == null || ru.IsBot || ru.HabboId == source.Id)
+                    continue;
+
+                if (Math.Abs(ru.X - sourceUser.X) > 1 || Math.Abs(ru.Y - sourceUser.Y) > 1)
+                    continue;
+
+                Habbo victim = ru.GetClient()?.GetHabbo();
+                UserRpStats victimStats = victim?.GetRpStats();
+                if (victim == null || victimStats == null || victimStats.IsDead)
+                    continue;
+
+                ApplyBlastDamage(victim, ru, victimStats, Random.Shared.Next(minDamage, maxDamage + 1));
+            }
+
+            room.SendPacket(new ShoutComposer(sourceUser.VirtualId, "*detonates a suicide vest!*", 0, 29, isRpAction: true));
+            LiveFeedService.LiveFeed("💥 " + LiveFeedService.Name(source.Username, "red") + " set off a suicide vest!", "red");
+
+            // The bomber always dies.
+            UserRpStats sourceStats = source.GetRpStats();
+            if (sourceStats != null && !sourceStats.IsDead)
+                UserRpStats.Kill(source, sourceUser);
+        }
+
+        private static void ApplyBlastDamage(Habbo victim, RoomUser victimUser, UserRpStats victimStats, int totalDamage)
+        {
+            int shieldBefore = victimStats.Shield;
+            int healthBefore = victimStats.Health;
+            int damageToHealth = Math.Min(healthBefore, Math.Max(0, totalDamage - shieldBefore));
+            bool lethal = damageToHealth >= healthBefore && healthBefore > 0;
+
+            victimStats.Shield = Math.Max(0, victimStats.Shield - totalDamage);
+            if (damageToHealth > 0)
+                victimStats.Health -= damageToHealth;
+
+            if (lethal)
+            {
+                victimStats.Health = 0;
+                LiveFeedService.LiveFeed("💥 " + LiveFeedService.Name(victim.Username, "red") + " was caught in the blast");
+                UserRpStats.Kill(victim, victimUser);
+            }
+
+            victim.TrySendUserStatsUpdate(true);
         }
 
         private DamageResult CalculateDamage(int minDamage, int maxDamage, double critChancePercent, double critMultiplier, int strength)
@@ -141,6 +294,32 @@ namespace Plus.HabboHotel.Roleplay.Combat
             };
         }
 
+        /// <summary>
+        /// Fires the tazer: consumes one charge and stuns the target for the full stun duration
+        /// with 100% reliability. When empty the tazer isn't destroyed — the officer must recharge
+        /// it at the police station.
+        /// </summary>
+        private void HandleTazer(Habbo attacker, Habbo target, UserRpStats attackerStats, RoomUser attackerRoomUser, RoomUser targetRoomUser)
+        {
+            UserWeapon tazer = attacker.GetRpWeapons()?.GetActiveWeapon();
+            if (tazer == null || tazer.DurabilityLeft <= 0)
+            {
+                attacker.GetClient()?.SendWhisper("Your tazer is out of charge — recharge it at the station.", 1);
+                return;
+            }
+
+            tazer.DurabilityLeft--;
+            attacker.GetRpWeapons()?.MarkDirty();
+
+            attacker.ResetAggressionTimer();
+            attacker.CurrentRoom.SendPacket(new ShoutComposer(attackerRoomUser.VirtualId, "*tazes " + target.Username + ", stunning them*", 0, 29, isRpAction: true));
+
+            if (!target.GetRpStats().IsDead)
+                StunUser(targetRoomUser);
+
+            attackerStats.Attacks++;
+        }
+
         private void StunUser(RoomUser targetRoomUser)
         {
             if (targetRoomUser == null)
@@ -157,9 +336,8 @@ namespace Plus.HabboHotel.Roleplay.Combat
 
             message = message.Replace("%attacker%", attackerUsername).Replace("%username%", targetUsername).Replace("%damage%", damage.ToString());
 
-            if (message.StartsWith("*") && !message.StartsWith("*" + attackerUsername + " "))
-                message = "*" + attackerUsername + " " + message.Substring(1);
-
+            // The client folds the attacker's name into the RP-action bubble ("*Attacker: ...*"),
+            // so the message text is left bare here — no username prefix baked in.
             return message;
         }
 
@@ -180,7 +358,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
             // the chance of success
             if (UserRpStats.GetRobberyChance(attacker) < Random.Shared.Next(0, 100) || target.Credits <= 0)
             {
-                attacker.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, "*" + attacker.Username + " attempts to rob " + target.Username + ", but fails*", 0, 6));
+                attacker.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, "*attempts to rob " + target.Username + ", but fails*", 0, 6, isRpAction: true));
                 return;
             }
 
@@ -208,7 +386,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
             PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(attacker.GetClient(), "ACH_Robber", 1);
 
             // notification
-            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, "*robs " + target.Username + " of " + amountToSteal + " credits*", 0, 6));
+            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, "*robs " + target.Username + " of " + amountToSteal + " credits*", 0, 6, isRpAction: true));
             return;
         }
     }

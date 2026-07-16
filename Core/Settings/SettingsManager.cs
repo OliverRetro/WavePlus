@@ -37,5 +37,7 @@ namespace Plus.Core.Settings
         {
             return _settings.TryGetValue(value, out string value1) ? value1 : "0";
         }
+
+        public bool ContainsKey(string key) => _settings.ContainsKey(key);
     }
 }

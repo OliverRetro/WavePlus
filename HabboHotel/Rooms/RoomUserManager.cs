@@ -778,6 +778,20 @@ namespace Plus.HabboHotel.Rooms
                             user.CarryItem(0);
                     }
 
+                    // A gesture temporarily cleared this user's avatar effect; once the countdown
+                    // elapses (and they aren't dancing, which suppresses effects on purpose),
+                    // re-apply whatever effect they had on.
+                    if (user.EffectReapplyTimer > 0)
+                    {
+                        user.EffectReapplyTimer--;
+                        if (user.EffectReapplyTimer <= 0 && !user.IsDancing)
+                        {
+                            int effect = user.GetClient()?.GetHabbo()?.Effects()?.CurrentEffect ?? 0;
+                            if (effect > 0)
+                                _room.SendPacket(new Plus.Communication.Packets.Outgoing.Rooms.Avatar.AvatarEffectComposer(user.VirtualId, effect));
+                        }
+                    }
+
                     if (_room.GotFreeze())
                         _room.GetFreeze().CycleUser(user);
 

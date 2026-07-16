@@ -70,7 +70,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
             session.SendPacket(new GroupInfoComposer(group, targetClient));
             targetHabbo.GetClient()?.SendPacket(new GroupInfoComposer(group, targetHabbo.GetClient()));
             LiveFeedService.LiveFeed(LiveFeedService.Name(session.GetHabbo().Username, "green") + " fired " + LiveFeedService.Name(targetHabbo.Username, "lightblue") + " from <b>" + group.Name + "</b>");
-            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*" + session.GetHabbo().Username + " fired " + targetHabbo.Username + " from " + group.Name + "*", 0, session.GetHabbo().CustomBubbleId));
+            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*fired " + targetHabbo.Username + " from " + group.Name + "*", 0, session.GetHabbo().CustomBubbleId, isRpAction: true));
             targetHabbo.GetClient()?.SendWhisper("You've been removed from your role in '" + group.Name + "'.", 1);
         }
     }

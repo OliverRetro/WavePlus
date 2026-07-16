@@ -42,7 +42,7 @@ namespace Plus.Communication.Packets.Incoming.Catalog
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.RoomPromotions.Upsert(new Plus.Database.EF.Entities.RoomPromotion
+                db.RoomPromotions.Upsert(new Plus.Database.EF.Entities.RoomPromotionEntity
                 {
                     RoomId = roomId,
                     Title = name,

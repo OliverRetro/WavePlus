@@ -9,6 +9,9 @@ namespace Plus.Communication.Packets.Incoming.Inventory.Purse
         {
             session.SendPacket(new CreditBalanceComposer(session.GetHabbo().Credits));
             session.SendPacket(new ActivityPointsComposer(session.GetHabbo().Duckets, session.GetHabbo().Diamonds, session.GetHabbo().GotwPoints));
+
+            // Publish the bank balance as currency 200 for the phone/ATM "Current Balance".
+            PlusEnvironment.GetBankingManager().SendBankCurrency(session.GetHabbo());
         }
     }
 }

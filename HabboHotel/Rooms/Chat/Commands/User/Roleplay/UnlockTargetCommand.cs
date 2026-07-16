@@ -5,7 +5,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 {
     internal class UnlockTargetCommand : IChatCommand
     {
-        public string PermissionRequired => string.Empty;
+        public string PermissionRequired => "command_rp_unlocktarget";
         public string Parameters => "";
         public string Description => "Release your locked RP target.";
 

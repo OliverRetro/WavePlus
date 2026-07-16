@@ -47,7 +47,7 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
             uint itemIdU = (uint)itemId;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.CatalogMarketplaceOffers.Add(new CatalogMarketplaceOffer
+                db.CatalogMarketplaceOffers.Add(new CatalogMarketplaceOfferEntity
                 {
                     FurniId = itemIdU,
                     ItemId = (uint)item.BaseItem,

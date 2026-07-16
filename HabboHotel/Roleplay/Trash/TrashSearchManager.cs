@@ -139,6 +139,10 @@ namespace Plus.HabboHotel.Roleplay.Trash
 
             roomUser.CanWalk = false;
             roomUser.ClearMovement(true);
+            // Canonical movement freeze (honoured by RoomUser.MoveTo via IsMovementFrozen), so the
+            // user is pinned for the whole search regardless of how movement is initiated. The small
+            // buffer guarantees it outlives the search tick; UnlockUser clears it on completion/cancel.
+            roomUser.TimedFreezeUntilUtc = DateTime.UtcNow.AddSeconds(duration + 1);
 
             UserRpStats stats = habbo.GetRpStats();
             if (stats != null)
@@ -151,7 +155,7 @@ namespace Plus.HabboHotel.Roleplay.Trash
             item.UpdateState(false, true);
 
             session.GetHabbo().GetRpSkills().ProgressSkill(8, 1);
-            room.SendPacket(new ShoutComposer(roomUser.VirtualId, "*" + habbo.Username + " searches through the bin for something valueable*", 0, 4));
+            room.SendPacket(new ShoutComposer(roomUser.VirtualId, "*searches through the bin for something valueable*", 0, 4, isRpAction: true));
             return true;
         }
 
@@ -220,7 +224,7 @@ namespace Plus.HabboHotel.Roleplay.Trash
             int chance = GetFindChance(habbo);
             if (_random.Next(1, 101) <= chance && TryGiveReward(habbo, out string rewardText))
             {
-                room.SendPacket(new ShoutComposer(roomUser.VirtualId, "*" + habbo.Username + " finds " + rewardText + " inside of the bin*", 0, 4));
+                room.SendPacket(new ShoutComposer(roomUser.VirtualId, "*finds " + rewardText + " inside of the bin*", 0, 4, isRpAction: true));
                 ProgressScavenge(habbo, 1);
                 return;
             }
@@ -230,12 +234,12 @@ namespace Plus.HabboHotel.Roleplay.Trash
                 int credits = _random.Next(1, Math.Max(2, GetMaxCreditReward() + 1));
                 habbo.Credits += credits;
                 client.SendPacket(new CreditBalanceComposer(habbo.Credits));
-                room.SendPacket(new ShoutComposer(roomUser.VirtualId, "*" + habbo.Username + " finds " + credits + " credits inside of the bin*", 0, 4));
+                room.SendPacket(new ShoutComposer(roomUser.VirtualId, "*finds " + credits + " credits inside of the bin*", 0, 4, isRpAction: true));
                 ProgressScavenge(habbo, 1);
                 return;
             }
 
-            room.SendPacket(new ShoutComposer(roomUser.VirtualId, "*" + habbo.Username + " fails to find anything in the bin*", 0, 4));
+            room.SendPacket(new ShoutComposer(roomUser.VirtualId, "*fails to find anything in the bin*", 0, 4, isRpAction: true));
             ProgressScavenge(habbo, 1);
         }
 
@@ -359,6 +363,7 @@ namespace Plus.HabboHotel.Roleplay.Trash
                 return;
 
             roomUser.CanWalk = true;
+            roomUser.TimedFreezeUntilUtc = DateTime.MinValue;
             roomUser.UpdateNeeded = true;
         }
 

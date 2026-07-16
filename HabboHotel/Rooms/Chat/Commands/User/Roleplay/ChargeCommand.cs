@@ -1,5 +1,7 @@
+using System;
 using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.HabboHotel.GameClients;
+using Plus.HabboHotel.Roleplay.Crime;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 {
@@ -7,18 +9,18 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
     {
         public string PermissionRequired => "command_rp_hit";
 
-        public string Parameters => "%username%";
+        public string Parameters => "%username% %crime%";
 
-        public string Description => "Charge an adjacent suspect, activating their crimes (police only).";
+        public string Description => "Charge an adjacent suspect with a named crime, applying its hidden stars (police only).";
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
             if (session?.GetHabbo() == null || room == null)
                 return;
 
-            if (@params.Length < 2)
+            if (@params.Length < 3)
             {
-                session.SendWhisper("Please enter the username of the suspect you wish to charge.", 1);
+                session.SendWhisper("Usage: :charge <username> <crime>", 1);
                 return;
             }
 
@@ -28,16 +30,29 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
             if (!RpCommandUtil.RequireAdjacent(session, room, targetClient.GetHabbo(), "You need to be right next to the suspect to charge them."))
                 return;
 
-            int targetId = targetClient.GetHabbo().Id;
+            // Everything after the username is the (possibly multi-word) crime name.
+            string crimeQuery = string.Join(" ", @params, 2, @params.Length - 2).Trim();
 
-            if (PlusEnvironment.GetRpCrimeManager().GetTotalStars(targetId) <= 0)
+            RpCrime crime = PlusEnvironment.GetRpCrimeManager().ResolveCrime(crimeQuery);
+            if (crime == null)
             {
-                session.SendWhisper(targetClient.GetHabbo().Username + " has no active crimes to charge.", 1);
+                session.SendWhisper("There's no crime called '" + crimeQuery + "'.", 1);
                 return;
             }
 
-            int stars = PlusEnvironment.GetRpCrimeManager().Charge(targetId);
-            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*" + session.GetHabbo().Username + " charges " + targetClient.GetHabbo().Username + " with " + stars + " stars*", 0, 4));
+            int targetId = targetClient.GetHabbo().Id;
+            (int applied, int stars) = PlusEnvironment.GetRpCrimeManager().ChargeCrime(targetId, crime);
+
+            if (applied <= 0)
+            {
+                session.SendWhisper(targetClient.GetHabbo().Username + " has no active " + crime.Name + " charges.", 1);
+                return;
+            }
+
+            room.SendPacket(new ShoutComposer(
+                room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId,
+                "*charges " + targetClient.GetHabbo().Username + " with " + applied + "x " + crime.Name + " (" + stars + " stars)*",
+                0, 4, isRpAction: true));
         }
     }
 }

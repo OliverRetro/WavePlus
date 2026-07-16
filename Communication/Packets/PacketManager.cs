@@ -190,7 +190,7 @@ namespace Plus.Communication.Packets
                     }
 
                     //log.Fatal("Unhandled Error: " + e.Message + " - " + e.StackTrace);
-                    session.Disconnect();
+                    session.Disconnect(immediate: true);
                 }
             }
             catch (OperationCanceledException)

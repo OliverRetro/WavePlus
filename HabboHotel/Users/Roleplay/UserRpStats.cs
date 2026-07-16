@@ -146,6 +146,15 @@ namespace Plus.HabboHotel.Users
             if (DateTime.UtcNow < NextHungerTick)
                 return;
 
+            // Idle players don't burn hunger — you only get hungry while active. Push the next
+            // tick out a little so it resumes promptly once they wake up.
+            RoomUser idleCheck = habbo.CurrentRoom?.GetRoomUserManager()?.GetRoomUserByHabbo(habbo.Id);
+            if (idleCheck != null && idleCheck.IsAsleep)
+            {
+                NextHungerTick = DateTime.UtcNow.AddMinutes(1);
+                return;
+            }
+
             if (Hunger > 0)
             {
                 int loss = Random.Shared.Next(1, 6);

@@ -30,6 +30,7 @@ namespace Plus.HabboHotel.GameClients
         private Habbo _habbo;
         public string MachineId;
         private bool _disconnected;
+        private bool _ghost;
         private readonly IChannelHandlerContext _channel;
         public int PingCount { get; set; }
 
@@ -191,6 +192,10 @@ namespace Plus.HabboHotel.GameClients
 
         public void SendPacket(MessageComposer message)
         {
+            // A ghost (grace-window) client has no live socket — silently drop its packets.
+            if (_ghost)
+                return;
+
             _channel.WriteAndFlushAsync(message);
         }
 
@@ -209,10 +214,20 @@ namespace Plus.HabboHotel.GameClients
             return _habbo;
         }
 
-        public void Disconnect()
+
+        public bool Disconnect(bool immediate = false)
         {
             if (_disconnected)
-                return;
+                return false;
+
+            if (!immediate && _habbo != null &&
+                PlusEnvironment.GetDisconnectDelayManager() != null &&
+                PlusEnvironment.GetDisconnectDelayManager().Begin(this, _channel?.Channel?.Id))
+            {
+                _ghost = true;
+                PlusEnvironment.GetGame().GetClientManager().DropChannel(_channel?.Channel?.Id);
+                return true;
+            }
 
             _disconnected = true;
 
@@ -224,8 +239,6 @@ namespace Plus.HabboHotel.GameClients
                     {
                         using (WavePlusContext db = PlusEnvironment.GetDbContext())
                         {
-                            // NOTE: GetQueryString is a prebuilt multi-statement UPDATE (users + user_stats).
-                            // It's a parameterized FormattableString, so ExecuteSql binds every value safely.
                             db.Database.ExecuteSql(GetHabbo().GetQueryString);
                         }
                     }
@@ -243,6 +256,7 @@ namespace Plus.HabboHotel.GameClients
             }
 
             _channel?.CloseAsync();
+            return false;
         }
 
         public void Dispose()

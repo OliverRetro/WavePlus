@@ -1,6 +1,41 @@
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
+CREATE TABLE IF NOT EXISTS `room_item_stock` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `room_id` INT(11) NOT NULL,
+  `stock_type` VARCHAR(20) NOT NULL,
+  `item_id` INT(11) NOT NULL,
+  `amount` INT(11) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `room_item_stock_unique` (`room_id`, `stock_type`, `item_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT IGNORE INTO `server_settings` (`key`, `value`, `description`) VALUES
+  ('rp.bank.rooms', '', 'Semicolon-separated room ids where users may open a bank account.'),
+  ('rp.tazer.weapon.id', '5', 'rp_weapons id of the police tazer, issued on starting police work.'),
+  ('rp.police.station.rooms', '', 'Semicolon-separated room ids that recharge an on-duty officer''s tazer. Empty = the police corporation room.');
+ INSERT IGNORE INTO `server_settings` (`key`, `value`, `description`) VALUES
+    ('rp.bank.withdrawal.fee.atm',   '5', 'Withdrawal fee % charged at a physical ATM. Falls back to rp.bank.withdrawal.fee.default.'),
+    ('rp.bank.withdrawal.fee.phone', '5', 'Withdrawal fee % charged via the phone bank app. Falls back to rp.bank.withdrawal.fee.default.'),
+    ('rp.bank.deposit.fee.atm',      '0', 'Deposit fee % charged at a physical ATM. Falls back to rp.bank.deposit.fee.default.'),
+    ('rp.bank.deposit.fee.phone',    '0', 'Deposit fee % charged via the phone bank app. Falls back to rp.bank.deposit.fee.default.');
+	INSERT INTO `rp_weapons`
+  (`id`, `name`, `description`, `hit_message`, `critical_hit_message`, `minimum_damage`, `maximum_damage`, `critical_chance`, `critical_multiplier`, `effect_id`, `range`, `durability`, `image`, `stun_chance`, `rarity`)
+SELECT 5, 'Tazer', 'Police-issue tazer', '*tazes %username%, stunning them*', '*tazes %username%, stunning them*', 0, 0, 0, 1, 0, 2, 10, 'none.png', 100, 0
+WHERE NOT EXISTS (SELECT 1 FROM `rp_weapons` WHERE `id` = 5);
+
+-- ── Vest items (secondary slot) ─────────────────────────────────────────────
+INSERT INTO `rp_items` (`item_name`, `handitem_data`, `effect_data`, `base_price`, `attribute_effects`, `image_url`, `stack_limit`, `item_type`)
+SELECT 'Body Armour', '0', '0', 300, '{"vest": 1, "shield": 20, "vest_reduction_min": 1, "vest_reduction_max": 3, "vest_fail_chance": 20}', '', 1, 'secondary'
+WHERE NOT EXISTS (SELECT 1 FROM `rp_items` WHERE `item_name` = 'Body Armour');
+
+INSERT INTO `rp_items` (`item_name`, `handitem_data`, `effect_data`, `base_price`, `attribute_effects`, `image_url`, `stack_limit`, `item_type`)
+SELECT 'Suicide Vest', '0', '0', 500, '{"suicide_vest": 1, "explosion_min": 50, "explosion_max": 100}', '', 1, 'secondary'
+WHERE NOT EXISTS (SELECT 1 FROM `rp_items` WHERE `item_name` = 'Suicide Vest');
+
+UPDATE `server_settings` SET `value` = '2' WHERE `key` = 'rp.bank.deposit.fee.default';
+
 -- disable clothing validation for staff
 INSERT INTO `permissions` (`id`, `permission`, `description`) VALUES (53, 'clothing_no_validation', 'Doesn\'t validate sellable clothing.');
 INSERT INTO `permissions_rights` (`group_id`, `permission_id`) VALUES (9, 53);
@@ -16,6 +51,7 @@ INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_b
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_unlockall', 6);
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_wanted_list', 2);
 INSERT INTO `permissions_commands` (`command`) VALUES ('command_rp_bank');
+INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_bank_account', 1);
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_passive_mode', 1);
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_group_permissions', 6);
 INSERT INTO `permissions_commands` (`command`, `group_id`) VALUES ('command_rp_hire_anygroup', 6);
@@ -116,9 +152,12 @@ ADD COLUMN `jail_time_left` double NOT NULL DEFAULT 0;
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.hospital.room.id', '0', 'The hospital room.');
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('user.aggression_scheduler.tick', '5', 'The time (in minutes) users will get deducted aggression.');
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.bank.withdrawal.fee.default', '5', 'As percentage! :-) Used for ATMs.');
-INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.bank.deposit.fee.default', '5', 'As percentage! ATM usage.');
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.bank.deposit.fee.default', '0', 'As percentage! ATM usage. Deposits are free by default; only withdrawals are charged.');
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.bank.rooms', '', 'Semicolon-separated room ids where users may open a bank account.');
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.bank.account.opening.cost', '50', 'The cost for opening an account.');
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.police.corporation.id', '1', 'This is for police corporation (group id).');
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.tazer.weapon.id', '5', 'rp_weapons id of the police tazer, issued on starting police work.');
+INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.police.station.rooms', '', 'Semicolon-separated room ids that recharge an on-duty officer''s tazer. Empty = the police corporation room.');
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.ambulance.corporation.id', '0', 'Ambulance/EMS corporation group id. Set this to the hospital/EMS group.');
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.ambulance.heal.amount', '25', 'HP restored by the :heal command.');
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.ambulance.revive.health', '35', 'HP restored when an EMS revives a dead user.');
@@ -316,6 +355,8 @@ INSERT INTO `rp_weapons` VALUES (1, 'Bat', 'Basketball bat, duh', '*swings at %u
 INSERT INTO `rp_weapons` VALUES (2, 'Axe', 'An literal axe', '*swings at %username%, dealing %damage% damage*', '*lands a critical hit on %username%, dealing %damage% damage*', 7, 9, 0, 1, 0, 50, 50, 'none.png', 7, 0);
 INSERT INTO `rp_weapons` VALUES (3, 'Sword', 'Sword', '*swings at %username%, dealing %damage% damage*', '*lands a critical hit on %username%, dealing %damage% damage*', 12, 15, 50, 2, 162, 50, 50, 'none.png', 100, 1);
 INSERT INTO `rp_weapons` VALUES (4, 'Kunai', 'you throw these shits', '*throws Kunai at %username%, dealing %damage% damage*', '*lands a critical hit on %username%, dealing %damage% damage*', 50, 60, 10, 0, 0, 50, 3, 'none.png', 0, 0);
+-- Police-issue tazer: no damage, 100% stun, 10 charges, range 2 (double so diagonal tiles are reachable).
+INSERT INTO `rp_weapons` VALUES (5, 'Tazer', 'Police-issue tazer', '*tazes %username%, stunning them*', '*tazes %username%, stunning them*', 0, 0, 0, 1, 0, 2, 10, 'none.png', 100, 0);
 
 DROP TABLE IF EXISTS `user_rp_weapon_skins`;
 CREATE TABLE `user_rp_weapon_skins`  (
@@ -483,6 +524,17 @@ VALUES ('Riot Shield', '0', '0', 250, '{\"shield\": 100}', '', 1, 'secondary');
 INSERT INTO `rp_items` (`item_name`, `handitem_data`, `effect_data`, `base_price`, `attribute_effects`, `image_url`, `stack_limit`, `item_type`)
 VALUES ('Lockpick', '0', '0', 150, '{\"handpick\": 35, \"uses\": 1}', '', 1, 'consumable');
 
+-- Standard body-armour vest (secondary slot). `shield` is its durability (hits it survives);
+-- `vest_reduction_min`/`max` is the configurable flat damage removed from a non-fist hit;
+-- `vest_fail_chance` (0-100) is the chance a hit isn't reduced but still eats durability.
+INSERT INTO `rp_items` (`item_name`, `handitem_data`, `effect_data`, `base_price`, `attribute_effects`, `image_url`, `stack_limit`, `item_type`)
+VALUES ('Body Armour', '0', '0', 300, '{\"vest\": 1, \"shield\": 20, \"vest_reduction_min\": 1, \"vest_reduction_max\": 3, \"vest_fail_chance\": 20}', '', 1, 'secondary');
+
+-- Suicide vest (secondary slot). Double-click the equipped vest to detonate: 50-100 explosive
+-- damage across the surrounding 3x3 grid, guaranteed self knockout, and the vest is consumed.
+INSERT INTO `rp_items` (`item_name`, `handitem_data`, `effect_data`, `base_price`, `attribute_effects`, `image_url`, `stack_limit`, `item_type`)
+VALUES ('Suicide Vest', '0', '0', 500, '{\"suicide_vest\": 1, \"explosion_min\": 50, \"explosion_max\": 100}', '', 1, 'secondary');
+
 -- per-owned-item durability (shields) + which item is equipped in the secondary slot.
 ALTER TABLE `user_rp_items`
 ADD COLUMN `durability_left` int NOT NULL DEFAULT -1,
@@ -519,6 +571,7 @@ INSERT INTO `rp_crime_penalties` VALUES (3, 3, 15, 9);
 INSERT INTO `rp_crime_penalties` VALUES (4, 4, 20, 12);
 INSERT INTO `rp_crime_penalties` VALUES (5, 5, 50, 15);
 
+-- ----------------------------
 DROP TABLE IF EXISTS `rp_crimes`;
 CREATE TABLE `rp_crimes`  (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -529,11 +582,25 @@ CREATE TABLE `rp_crimes`  (
   `automatic_report` tinyint NOT NULL DEFAULT 0,
   `police_alert` tinyint NOT NULL DEFAULT 0,
   `note` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL DEFAULT '',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uniq_rp_crimes_tag`(`crime_tag` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 15 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
 
-INSERT INTO `rp_crimes` VALUES (1, 'murder', 'Murder', 1, 20, 1, 1, '');
-INSERT INTO `rp_crimes` VALUES (2, 'rob', 'Theft', 1, 10, 0, 0, '');
+-- ----------------------------
+-- Records of rp_crimes
+-- ----------------------------
+INSERT INTO `rp_crimes` VALUES (1, 'murder', 'Murder', 2, 20, 1, 1, '');
+INSERT INTO `rp_crimes` VALUES (2, 'rob', 'Robbery', 1, 10, 0, 0, '');
+INSERT INTO `rp_crimes` VALUES (3, 'execution', 'Execution', 1, 1, 0, 0, '');
+INSERT INTO `rp_crimes` VALUES (4, 'invasion', 'Invasion', 1, 1, 0, 0, '');
+INSERT INTO `rp_crimes` VALUES (5, 'mass_murder', 'Mass Murder', 1, 1, 0, 0, '');
+INSERT INTO `rp_crimes` VALUES (6, 'cop_murder', 'Cop Murder', 1, 1, 0, 0, '');
+INSERT INTO `rp_crimes` VALUES (7, 'logout', 'Logout', 1, 1, 0, 0, '');
+INSERT INTO `rp_crimes` VALUES (8, 'assault', 'Assault', 1, 1, 0, 0, '');
+INSERT INTO `rp_crimes` VALUES (9, '911_abuse', '911 Abuse', 1, 1, 0, 0, '');
+INSERT INTO `rp_crimes` VALUES (10, 'obstruction', 'Obstruction', 1, 1, 0, 0, '');
+INSERT INTO `rp_crimes` VALUES (11, 'cop_assault', 'Cop Assault', 1, 1, 0, 0, '');
+INSERT INTO `rp_crimes` VALUES (12, 'gang_homicide', 'Gang Homicide', 1, 1, 0, 0, '');
 
 -- crime logs are inserted by the server on disconnect/reload; give the id auto-increment.
 ALTER TABLE `rp_crime_log` MODIFY `id` int NOT NULL AUTO_INCREMENT;

@@ -21,7 +21,7 @@ namespace Plus.Communication.Packets.Incoming.Quests
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                db.UserQuests.Upsert(new UserQuest
+                db.UserQuests.Upsert(new UserQuestEntity
                 {
                     UserId = (uint)session.GetHabbo().Id,
                     QuestId = (uint)quest.Id

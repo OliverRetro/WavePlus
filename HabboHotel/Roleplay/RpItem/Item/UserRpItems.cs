@@ -120,14 +120,23 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             // Keep the item's grid slot so it returns to the same place when unequipped
             // (the slot is reserved while equipped — see RpInventory.BuildSlotView).
 
-            UserRpStats stats = habbo?.GetRpStats();
-            if (stats != null)
-                stats.Shield = item.EffectiveDurability;
+            // Vests (standard body armour / suicide vests) do NOT feed the shield pool — their
+            // durability lives on the item itself and is managed directly in combat.
+            if (!item.ItemData.IsVest && !item.ItemData.IsSuicideVest)
+            {
+                UserRpStats stats = habbo?.GetRpStats();
+                if (stats != null)
+                    stats.Shield = item.EffectiveDurability;
+            }
 
             MarkDirty();
             habbo?.TrySendUserStatsUpdate(true);
             return true;
         }
+
+        /// <summary>The equipped secondary that is a standard body-armour vest, if any.</summary>
+        public UserRpItem GetEquippedVest() =>
+            _items.Values.FirstOrDefault(x => x.Equipped && x.ItemData != null && x.ItemData.IsVest);
 
         /// <summary>Equip a primary item — this replaces (unequips) the active weapon.</summary>
         public bool EquipPrimaryItem(int userItemId, Habbo habbo)
@@ -173,6 +182,15 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             if (shield == null)
                 return;
 
+            // A vest keeps its durability on the item, not in the shield pool.
+            if (shield.ItemData != null && (shield.ItemData.IsVest || shield.ItemData.IsSuicideVest))
+            {
+                shield.Equipped = false;
+                MarkDirty();
+                habbo?.TrySendUserStatsUpdate(true);
+                return;
+            }
+
             UserRpStats stats = habbo?.GetRpStats();
             if (stats != null)
             {
@@ -193,6 +211,10 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
         {
             UserRpItem shield = GetEquippedShield();
             if (shield == null)
+                return;
+
+            // Vests don't participate in the shield pool — their durability is managed in combat.
+            if (shield.ItemData != null && (shield.ItemData.IsVest || shield.ItemData.IsSuicideVest))
                 return;
 
             UserRpStats stats = habbo?.GetRpStats();
@@ -230,6 +252,10 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             if (data.Has("handpick"))
                 return TryHandpick(habbo, userItem, data);
 
+            // Suicide vest: detonate for area damage when the equipped vest is used.
+            if (data.IsSuicideVest)
+                return DetonateSuicideVest(habbo, userItem);
+
             // give fine shyte
             if (stats != null)
                 ApplyStatEffects(habbo, stats, data, roomUser);
@@ -251,6 +277,68 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
 
             habbo.TrySendUserStatsUpdate(true);
             return true;
+        }
+
+        /// <summary>
+        /// Detonates a suicide vest: explosive damage across the 3x3 grid around the user, a
+        /// guaranteed self knockout, and the vest is consumed. Must be equipped to detonate.
+        /// </summary>
+        private bool DetonateSuicideVest(Habbo habbo, UserRpItem userItem)
+        {
+            if (!userItem.Equipped)
+            {
+                habbo.GetClient()?.SendWhisper("You need to equip the suicide vest first.", 1);
+                return false;
+            }
+
+            RpItemData data = userItem.ItemData;
+            PlusEnvironment.GetCombatManager().ApplyExplosion(habbo, data.ExplosionMin, data.ExplosionMax);
+
+            // The vest is destroyed once used.
+            Remove(userItem);
+            habbo.TrySendUserStatsUpdate(true);
+            return true;
+        }
+
+        /// <summary>
+        /// Applies a standard body-armour vest to an incoming non-fist hit: flat-reduces the damage
+        /// by a random configured amount (unless the vest fails its roll), always consuming one
+        /// point of durability. The vest breaks when its durability is exhausted.
+        /// </summary>
+        public int AbsorbWithVest(Habbo habbo, int incomingDamage, bool isFistAttack)
+        {
+            if (isFistAttack || incomingDamage <= 0)
+                return incomingDamage;
+
+            UserRpItem vest = GetEquippedVest();
+            if (vest?.ItemData == null)
+                return incomingDamage;
+
+            int current = vest.EffectiveDurability;
+            if (current <= 0)
+                return incomingDamage;
+
+            // Every qualifying hit costs the vest one durability, even if it fails to reduce.
+            vest.DurabilityLeft = current - 1;
+
+            int reduced = incomingDamage;
+            bool failed = Random.Shared.Next(0, 100) < vest.ItemData.VestFailChance;
+            if (!failed)
+            {
+                int reduction = Random.Shared.Next(vest.ItemData.VestReductionMin, vest.ItemData.VestReductionMax + 1);
+                reduced = Math.Max(0, incomingDamage - reduction);
+            }
+
+            if (vest.DurabilityLeft <= 0)
+            {
+                vest.Equipped = false;
+                Remove(vest);
+                habbo?.GetClient()?.SendWhisper("Your vest has been destroyed.", 1);
+            }
+
+            MarkDirty();
+            habbo?.TrySendUserStatsUpdate(true);
+            return reduced;
         }
 
         private bool TryHandpick(Habbo habbo, UserRpItem userItem, RpItemData data)

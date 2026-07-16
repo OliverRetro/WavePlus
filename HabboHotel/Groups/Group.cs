@@ -469,7 +469,7 @@ namespace Plus.HabboHotel.Groups
             {
                 if (role.IsNew)
                 {
-                    var entity = new Database.EF.Entities.GroupRole
+                    var entity = new Database.EF.Entities.GroupRoleEntity
                     {
                         GroupId = role.GroupId,
                         Level = role.Level,
@@ -525,7 +525,7 @@ namespace Plus.HabboHotel.Groups
                 if (!assignment.IsNew)
                     continue;
 
-                var entity = new Database.EF.Entities.GroupPermission
+                var entity = new Database.EF.Entities.GroupPermissionEntity
                 {
                     GroupId = assignment.GroupId,
                     LevelId = assignment.LevelId,
@@ -584,7 +584,7 @@ namespace Plus.HabboHotel.Groups
                         .SetProperty(g => g.GroupType, (short)Kind));
 
                     db.GroupMemberships.Where(m => m.GroupId == gid).ExecuteDelete();
-                    db.GroupMemberships.AddRange(_memberLevels.Select(kv => new Database.EF.Entities.GroupMembership
+                    db.GroupMemberships.AddRange(_memberLevels.Select(kv => new Database.EF.Entities.GroupMembershipEntity
                     {
                         GroupId = gid,
                         UserId = (uint)kv.Key,
@@ -592,13 +592,17 @@ namespace Plus.HabboHotel.Groups
                     }));
 
                     db.GroupRequests.Where(r => r.GroupId == gid).ExecuteDelete();
-                    db.GroupRequests.AddRange(_requests.Select(uid => new Database.EF.Entities.GroupRequest
-                    {
-                        GroupId = gid,
-                        UserId = (uint)uid
-                    }));
 
                     db.SaveChanges();
+
+                    // group_requests is a keyless entity (no PK), so EF cannot track/Add it. Insert
+                    // the (bounded) request set via raw SQL, mirroring the delete-all + re-insert above.
+                    foreach (int uid in _requests)
+                    {
+                        uint requestUserId = (uint)uid;
+                        db.Database.ExecuteSqlInterpolated(
+                            $"INSERT INTO `group_requests` (`group_id`, `user_id`) VALUES ({gid}, {requestUserId})");
+                    }
                 }
 
                 _dirty = false;

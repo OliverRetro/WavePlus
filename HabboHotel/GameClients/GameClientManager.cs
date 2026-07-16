@@ -44,6 +44,7 @@ namespace Plus.HabboHotel.GameClients
         {
             TestClientConnections();
             HandleTimeouts();
+            PlusEnvironment.GetDisconnectDelayManager()?.OnCycle();
         }
 
         public GameClient GetClientByUserId(int userId)
@@ -202,16 +203,72 @@ namespace Plus.HabboHotel.GameClients
             if (!TryGetClient(clientId, out GameClient client))
                 return;
 
-            client?.Disconnect();
-            client?.Dispose();
+            // A logged-in user enters the disconnect grace window rather than being torn down now
+            // (so they can't dodge combat/arrest by dropping). Keep the client object alive in the
+            // grace registry — only drop the dead channel mapping here; the real teardown runs when
+            // the window expires (or up-front on reconnect) via CompleteGhostDisconnect.
+            bool ghosted = client != null && client.Disconnect();
+            if (ghosted)
+            {
+                _clients.TryRemove(clientId, out _);
+                return;
+            }
 
+            client?.Dispose();
             _clients.TryRemove(clientId, out client);
+        }
+
+        /// <summary>
+        /// Runs the real teardown for a ghost whose grace window ended (or who was reclaimed on
+        /// reconnect): the full disconnect save, room-presence removal, and channel cleanup.
+        /// </summary>
+        public void CompleteGhostDisconnect(GameClient client, IChannelId channelId)
+        {
+            if (client == null)
+                return;
+
+            // Capture the room up-front: the heavy disconnect save below (RP stats, bank, crime
+            // flush, user row) can throw, and if it does before Habbo.Dispose runs the ghost's
+            // avatar would linger in the room forever. We remove it explicitly as a safety net.
+            Plus.HabboHotel.Users.Habbo habbo = client.GetHabbo();
+            Plus.HabboHotel.Rooms.Room room = habbo?.CurrentRoom;
+
+            client.Disconnect(immediate: true);
+
+            // If the normal teardown already pulled the user from the room this is a no-op
+            // (GetRoomUserByHabbo returns null); otherwise force the removal now. Runs BEFORE
+            // Dispose, which nulls the client's Habbo reference.
+            try
+            {
+                if (room != null && habbo != null && room.GetRoomUserManager()?.GetRoomUserByHabbo(habbo.Id) != null)
+                    room.GetRoomUserManager().RemoveUserFromRoom(client, false);
+            }
+            catch (Exception e)
+            {
+                ExceptionLogger.LogException(e);
+            }
+
+            client.Dispose();
+
+            if (channelId != null)
+                _clients.TryRemove(channelId, out _);
+        }
+
+        /// <summary>
+        /// Drops a channel from the live client map. Called the instant a client enters the
+        /// disconnect grace window so a ghost is never left in the map to be pinged or re-processed
+        /// (the socket-close path removed it, but the in-client logout path did not).
+        /// </summary>
+        public void DropChannel(IChannelId channelId)
+        {
+            if (channelId != null)
+                _clients.TryRemove(channelId, out _);
         }
 
         public void LogClonesOut(int userId)
         {
             GameClient client = GetClientByUserId(userId);
-            client?.Disconnect();
+            client?.Disconnect(immediate: true);
         }
 
         public void RegisterClient(GameClient client, int userId, string username)
