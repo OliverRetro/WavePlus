@@ -60,7 +60,7 @@ namespace Plus.HabboHotel.Permissions
                     _skins[skin.Id] = skin;
                 }
 
-                _weapons.Add(0, new Weapon(0, "Fists", "Basic hand attack", "*punches %username% with their fists, dealing %damage% damage*", "*lands a critical hit on %username%*, dealing %damage% damage.", 1, 3, 0, 1, 0, 1, 999999, 1, "fists.png"));
+                _weapons.Add(0, new Weapon(0, "Fists", "Basic hand attack", "*punches %username% with their fists, dealing %damage% damage*", "*lands a critical hit on %username%*, dealing %damage% damage.", 1, 3, 0, 1, 0, 1.5, 999999, 1, "fists.png"));
             }
 
             Log.Info($"[RP] Loaded {_weapons.Count} Weapons and {_skins.Count} Weapon Skins.");

@@ -20,6 +20,7 @@ public partial class RpShiftLogEntity
     [Column("credits_paid", TypeName = "int(11)")]
     public int CreditsPaid { get; set; }
 
-    [Column("shift_finished", TypeName = "datetime")]
-    public DateTime ShiftFinished { get; set; }
+    /// <summary>Unix timestamp (seconds) the shift finished.</summary>
+    [Column("shift_finished", TypeName = "int(11)")]
+    public int ShiftFinished { get; set; }
 }

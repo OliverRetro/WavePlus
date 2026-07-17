@@ -42,6 +42,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
                 return;
             }
 
+            if (targetHabbo.Id == session.GetHabbo().Id)
+            {
+                session.SendWhisper("You cannot promote yourself.", 1);
+                return;
+            }
+
             if (!group.IsMember(targetHabbo.Id))
             {
                 session.SendWhisper("That user is not a member of this group.", 1);
@@ -51,6 +57,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
             if (targetHabbo.Id == group.CreatorId)
             {
                 session.SendWhisper("You cannot promote the group owner.", 1);
+                return;
+            }
+
+            if (!GroupHierarchy.CanActOn(session, group, targetHabbo.Id))
+            {
+                session.SendWhisper("You cannot promote someone at a higher group level than your own.", 1);
                 return;
             }
 

@@ -7,6 +7,7 @@ using Plus.HabboHotel.Roleplay.Utilities;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
 using System;
+using System.Linq;
 
 namespace Plus.HabboHotel.Roleplay.Combat
 {
@@ -58,7 +59,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
             var weapon = activeWeapon?.WeaponData;
             WeaponSkin skin = attacker.GetRpWeaponSkins()?.GetEquippedSkinForWeapon(activeWeapon?.WeaponId ?? 0)?.SkinData;
 
-            int range = weapon?.Range ?? 1;
+            double range = weapon?.Range ?? 1.5;
 
             int dx = Math.Abs(attackerRoomUser.X - targetRoomUser.X);
             int dy = Math.Abs(attackerRoomUser.Y - targetRoomUser.Y);
@@ -151,17 +152,20 @@ namespace Plus.HabboHotel.Roleplay.Combat
             targetStats.DamageTaken += actualDamageDealt;
         }
 
+        /// <summary>Murder-family crime tags — exactly one of these applies to any given kill.</summary>
+        private static readonly string[] MurderTags = { "murder", "cop_murder", "gang_homicide" };
+
         /// <summary>
         /// Resolves and commits the murder-family crime for a kill. Exactly one of cop_murder /
-        /// gang_homicide / murder applies (they don't stack); mass_murder is added on top when the
-        /// victim had active charges at the time of death.
+        /// gang_homicide / murder applies (they don't stack); mass_murder is added on top whenever
+        /// the killer was already carrying a murder charge, whoever the new victim happens to be.
         /// </summary>
         private static void CommitKillCrimes(Habbo attacker, Habbo target)
         {
             var crimes = PlusEnvironment.GetRpCrimeManager();
 
-            // Checked before committing — reflects the victim's wanted state at time of death.
-            bool victimHadCharges = crimes.HasActiveCrimes(target.Id);
+            // Checked before committing this kill, so it reflects the attacker's *prior* murders.
+            bool alreadyMurderer = MurderTags.Any(tag => crimes.HasActiveCrime(attacker.Id, tag));
 
             string tag;
             if (PoliceManager.IsOnDutyPolice(target))
@@ -173,8 +177,8 @@ namespace Plus.HabboHotel.Roleplay.Combat
 
             crimes.Commit(attacker, tag, attacker.CurrentRoom);
 
-            // Killing someone who already had active charges is mass murder (an added charge).
-            if (victimHadCharges)
+            // A second murder while a murder charge is still active makes it a mass murder.
+            if (alreadyMurderer)
                 crimes.Commit(attacker, "mass_murder", attacker.CurrentRoom);
         }
 

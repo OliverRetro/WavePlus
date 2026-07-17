@@ -1,5 +1,3 @@
-using System;
-
 namespace Plus.HabboHotel.Groups
 {
     public class GroupRole
@@ -12,11 +10,12 @@ namespace Plus.HabboHotel.Groups
         public string ShiftCostume { get; private set; }
         public int ShiftDuration { get; private set; }
         public string ShiftMotto { get; private set; }
-        public DateTime CreatedAt { get; }
+        public int CreatedAt { get; }
+
         public bool IsNew { get; private set; }
         public bool Dirty { get; private set; }
 
-        public GroupRole(int id, int groupId, int level, string name, int shiftPay, string shiftCostume, int shiftDuration, string shiftMotto, DateTime createdAt, bool isNew = false)
+        public GroupRole(int id, int groupId, int level, string name, int shiftPay, string shiftCostume, int shiftDuration, string shiftMotto, int createdAt, bool isNew = false)
         {
             Id = id;
             GroupId = groupId;

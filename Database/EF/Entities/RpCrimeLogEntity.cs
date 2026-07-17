@@ -20,9 +20,9 @@ public partial class RpCrimeLogEntity
     [Column("user_id", TypeName = "int(11)")]
     public int UserId { get; set; }
 
-    [MaxLength(6)]
-    [Column("timestamp")]
-    public DateTime Timestamp { get; set; }
+    /// <summary>Unix timestamp (seconds) the crime was committed.</summary>
+    [Column("timestamp", TypeName = "int(11)")]
+    public int Timestamp { get; set; }
 
     [Column("expired", TypeName = "tinyint(4)")]
     public sbyte Expired { get; set; }

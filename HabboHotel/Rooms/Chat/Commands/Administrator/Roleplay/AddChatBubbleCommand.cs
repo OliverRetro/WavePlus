@@ -67,7 +67,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
                 {
                     ChatBubbleId = bubbleId,
                     UserId = targetClient.GetHabbo().Id,
-                    CreatedAt = DateTime.Now
+                    CreatedAt = (int)PlusEnvironment.GetUnixTimestamp()
                 });
                 db.SaveChanges();
             }

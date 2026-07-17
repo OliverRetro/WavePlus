@@ -29,9 +29,11 @@ public partial class GroupPermissionEntity
     [Column("permission_id", TypeName = "int(11)")]
     public int PermissionId { get; set; }
 
-    [Column("created_at", TypeName = "datetime")]
-    public DateTime CreatedAt { get; set; }
+    /// <summary>Unix timestamp (seconds) the assignment was created.</summary>
+    [Column("created_at", TypeName = "int(11)")]
+    public int CreatedAt { get; set; }
 
-    [Column("updated_at", TypeName = "datetime")]
-    public DateTime? UpdatedAt { get; set; }
+    /// <summary>Unix timestamp (seconds) the assignment was last changed, if ever.</summary>
+    [Column("updated_at", TypeName = "int(11)")]
+    public int? UpdatedAt { get; set; }
 }

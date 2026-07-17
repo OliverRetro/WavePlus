@@ -76,8 +76,8 @@ CREATE TABLE `group_roles`  (
   `shift_costume` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL DEFAULT '' COMMENT 'Shift-Costume (full) to replace users own clothes. Blank for no swap.',
   `shift_duration` smallint NULL DEFAULT 5 COMMENT 'The duration at which worker will be auto-rewarded. In minutes.',
   `shift_motto` varchar(40) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL DEFAULT '' COMMENT 'Replace users motto for the duration of shift? Blank for no swap.',
-  `created_at` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `updated_at` datetime NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  `created_at` int NOT NULL DEFAULT 0,
+  `updated_at` int NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `uniq_group_roles_group_level` (`group_id`,`level`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
@@ -123,8 +123,8 @@ CREATE TABLE `group_permissions`  (
   `group_id` int NOT NULL COMMENT 'groups.id',
   `level_id` int NOT NULL COMMENT 'groups_roles.level',
   `permission_id` int NOT NULL COMMENT 'group_permissiosn_keys.id',
-  `created_at` datetime NOT NULL,
-  `updated_at` datetime NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  `created_at` int NOT NULL DEFAULT 0,
+  `updated_at` int NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
 
@@ -388,7 +388,7 @@ CREATE TABLE `user_rp_bank`  (
   `id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
   `balance` int NOT NULL DEFAULT 0,
-  `account_opened` datetime(6) NOT NULL DEFAULT '0000-00-00 00:00:00.000000' ON UPDATE CURRENT_TIMESTAMP(6),
+  `account_opened` int NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
 
@@ -400,7 +400,7 @@ CREATE TABLE `user_rp_bank_logs`  (
   `action_type` varchar(32) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL DEFAULT 'DEPOSIT',
   `management_type` varchar(32) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL DEFAULT 'ATM',
   `fee_paid` int NOT NULL,
-  `timestamp` datetime(6) NOT NULL DEFAULT '0000-00-00 00:00:00.000000' ON UPDATE CURRENT_TIMESTAMP(6),
+  `timestamp` int NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
 
@@ -423,7 +423,7 @@ CREATE TABLE `user_chat_bubbles` (
   `id` int NOT NULL AUTO_INCREMENT,
   `chat_bubble_id` int NOT NULL,
   `user_id` int NOT NULL,
-  `created_at` datetime NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` int NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `uniq_user_bubble` (`user_id`, `chat_bubble_id`),
   KEY `idx_user_chat_bubbles_user_id` (`user_id`),
@@ -439,7 +439,7 @@ CREATE TABLE `rp_shift_logs` (
   `group_id` int NOT NULL,
   `user_id` int NOT NULL,
   `credits_paid` int NOT NULL DEFAULT 0,
-  `shift_finished` datetime NOT NULL,
+  `shift_finished` int NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE,
   KEY `idx_rp_shift_logs_group_user` (`group_id`, `user_id`),
   KEY `idx_rp_shift_logs_finished` (`shift_finished`)
@@ -551,7 +551,7 @@ CREATE TABLE `rp_crime_log`  (
   `id` int NOT NULL,
   `crime_id` int NOT NULL,
   `user_id` int NOT NULL,
-  `timestamp` datetime(6) NOT NULL,
+  `timestamp` int NOT NULL DEFAULT 0,
   `expired` tinyint NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;

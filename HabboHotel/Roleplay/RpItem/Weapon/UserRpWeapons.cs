@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Plus.HabboHotel.Permissions;
@@ -62,7 +63,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
             if (!_weaponManager.TryGetWeapon(baseWeaponId, out Weapon weapon))
                 return null;
 
-            int nextId = _weapons.Count == 0 ? -1 : _weapons.Keys.Min() - 1;
+            int nextId = _weapons.Count == 0 ? -1 : Math.Min(0, _weapons.Keys.Min()) - 1;
             UserWeapon userWeapon = new(nextId, _userId, baseWeaponId, weapon.Durability, weapon);
             _weapons[userWeapon.Id] = userWeapon;
             MarkDirty();

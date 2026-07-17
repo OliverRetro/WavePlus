@@ -1,5 +1,3 @@
-using System;
-
 namespace Plus.HabboHotel.Groups
 {
     public class GroupPermissionAssignment
@@ -8,10 +6,11 @@ namespace Plus.HabboHotel.Groups
         public int GroupId { get; }
         public int LevelId { get; }
         public int PermissionId { get; }
-        public DateTime CreatedAt { get; }
+        public int CreatedAt { get; }
+
         public bool IsNew { get; private set; }
 
-        public GroupPermissionAssignment(int id, int groupId, int levelId, int permissionId, DateTime createdAt, bool isNew = false)
+        public GroupPermissionAssignment(int id, int groupId, int levelId, int permissionId, int createdAt, bool isNew = false)
         {
             Id = id;
             GroupId = groupId;

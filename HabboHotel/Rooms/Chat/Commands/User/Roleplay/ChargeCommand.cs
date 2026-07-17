@@ -27,9 +27,6 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
             if (!RpCommandUtil.TryGetTarget(session, room, @params[1], out GameClient targetClient))
                 return;
 
-            if (!RpCommandUtil.RequireAdjacent(session, room, targetClient.GetHabbo(), "You need to be right next to the suspect to charge them."))
-                return;
-
             // Everything after the username is the (possibly multi-word) crime name.
             string crimeQuery = string.Join(" ", @params, 2, @params.Length - 2).Trim();
 
@@ -40,19 +37,23 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
                 return;
             }
 
-            int targetId = targetClient.GetHabbo().Id;
-            (int applied, int stars) = PlusEnvironment.GetRpCrimeManager().ChargeCrime(targetId, crime);
-
-            if (applied <= 0)
+            if (crime.AutoCharge)
             {
-                session.SendWhisper(targetClient.GetHabbo().Username + " has no active " + crime.Name + " charges.", 1);
+                session.SendWhisper(crime.Name + " is charged automatically when it's committed — you can only charge crimes that go unreported.", 1);
+                return;
+            }
+
+            int targetId = targetClient.GetHabbo().Id;
+            (bool applied, int stars) = PlusEnvironment.GetRpCrimeManager().ChargeCrime(targetId, crime);
+
+            if (!applied)
+            {
+                session.SendWhisper(targetClient.GetHabbo().Username + " has no active " + crime.Name + " charge.", 1);
                 return;
             }
 
             room.SendPacket(new ShoutComposer(
-                room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId,
-                "*charges " + targetClient.GetHabbo().Username + " with " + applied + "x " + crime.Name + " (" + stars + " stars)*",
-                0, 4, isRpAction: true));
+                room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*charges " + targetClient.GetHabbo().Username + " with " + crime.Name + " (" + stars + " stars)*", 0, 4, isRpAction: true));
         }
     }
 }

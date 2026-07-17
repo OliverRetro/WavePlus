@@ -40,7 +40,6 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Banking
             session.SendWhisper("Your bank account has been opened! Use :balance, :deposit and :withdraw at an ATM.", 1);
         }
 
-        /// <summary>Rooms configured as bank rooms via `rp.bank.rooms` (semicolon-separated ids).</summary>
         private static bool IsBankRoom(int roomId)
         {
             string raw = PlusEnvironment.GetSettingsManager().TryGetValue("rp.bank.rooms");

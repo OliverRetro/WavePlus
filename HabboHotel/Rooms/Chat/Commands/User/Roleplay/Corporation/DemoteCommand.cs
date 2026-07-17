@@ -54,6 +54,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
                 return;
             }
 
+            if (!GroupHierarchy.CanActOn(session, group, targetHabbo.Id))
+            {
+                session.SendWhisper("You cannot demote someone at a higher group level than your own.", 1);
+                return;
+            }
+
             if (!group.TryDemoteMember(targetHabbo.Id, out GroupRole nextRole))
             {
                 session.SendWhisper("That user is already at the lowest available role.", 1);

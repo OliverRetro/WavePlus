@@ -20,8 +20,9 @@ public partial class UserChatBubbleEntity
     [Column("user_id", TypeName = "int(11)")]
     public int UserId { get; set; }
 
-    [Column("created_at", TypeName = "datetime")]
-    public DateTime? CreatedAt { get; set; }
+    /// <summary>Unix timestamp (seconds) the bubble was granted.</summary>
+    [Column("created_at", TypeName = "int(11)")]
+    public int? CreatedAt { get; set; }
 
     [ForeignKey("UserId")]
     [InverseProperty("UserChatBubbles")]

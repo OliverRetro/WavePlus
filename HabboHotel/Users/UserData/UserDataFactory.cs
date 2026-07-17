@@ -49,6 +49,7 @@ namespace Plus.HabboHotel.Users.UserData
                     PlusEnvironment.GetDisconnectDelayManager().FinalizeNow(userId);
                 else
                     existing.Disconnect(immediate: true);
+                db.Entry(dUserInfo).Reload();
             }
 
             ConcurrentDictionary<string, UserAchievement> achievements = new();

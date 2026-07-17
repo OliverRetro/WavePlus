@@ -27,7 +27,8 @@ namespace Plus.HabboHotel.Roleplay.Corporation
 
         private readonly ConcurrentDictionary<(int, int), (int weekly, int total)> _countCache = new();
 
-        private readonly ConcurrentDictionary<int, List<(int groupId, int credits, DateTime finished)>> _pendingLogs = new();
+        /// <summary>Buffered shift payouts awaiting a flush; `finished` is a unix timestamp (seconds).</summary>
+        private readonly ConcurrentDictionary<int, List<(int groupId, int credits, int finished)>> _pendingLogs = new();
 
         public bool IsWorking(int userId) => _activeShifts.ContainsKey(userId);
 
@@ -84,8 +85,6 @@ namespace Plus.HabboHotel.Roleplay.Corporation
                 session.SendWhisper("You are already working!", 1);
                 return;
             }
-
-            //session.SendWhisper("Your role is: " + role.Name + ". Motto: " + role.ShiftMotto + ". Look " + role.ShiftCostume + ". Shift length: " + role.ShiftDuration + " minutes.", 1);
 
             ApplyShiftAppearance(habbo, role);
 
@@ -258,11 +257,6 @@ namespace Plus.HabboHotel.Roleplay.Corporation
             RpEffectService.Refresh(habbo);
         }
 
-        /// <summary>
-        /// Called when a working user leaves the room they're on shift in (summon, follow,
-        /// or simply walking out). The shift ends unless the user's corporation role carries
-        /// the `room_swap` permission, which lets that role roam between rooms while on shift.
-        /// </summary>
         public void HandleRoomExit(Habbo habbo, Rooms.Room room)
         {
             if (habbo == null || !_activeShifts.TryGetValue(habbo.Id, out ActiveShift shift))
@@ -324,7 +318,7 @@ namespace Plus.HabboHotel.Roleplay.Corporation
             if (settings != null && settings.AutoSalaryDeposit && account != null)
             {
                 account.SetBalance(account.Balance + amount);
-                account.AddLog(new Banking.UserRpBankLog(habbo.Id, amount, "DEPOSIT", "SALARY", 0, DateTime.Now));
+                account.AddLog(new Banking.UserRpBankLog(habbo.Id, amount, "DEPOSIT", "SALARY", 0, (int)PlusEnvironment.GetUnixTimestamp()));
                 PlusEnvironment.GetBankingManager().Save(habbo);
                 return;
             }
@@ -350,7 +344,7 @@ namespace Plus.HabboHotel.Roleplay.Corporation
         {
             var logs = _pendingLogs.GetOrAdd(userId, _ => []);
             lock (logs)
-                logs.Add((groupId, credits, DateTime.Now));
+                logs.Add((groupId, credits, (int)PlusEnvironment.GetUnixTimestamp()));
         }
 
         private void IncrementCountCache(int groupId, int userId)
@@ -380,7 +374,7 @@ namespace Plus.HabboHotel.Roleplay.Corporation
                     .Where(x => x.GroupId == groupId && x.UserId == userId)
                     .Select(x => x.ShiftFinished)
                     .ToList()
-                    .Count(IsCurrentWeek);
+                    .Count(ts => IsCurrentWeek(DateTimeOffset.FromUnixTimeSeconds(ts).LocalDateTime));
             }
             catch { }
 
@@ -392,7 +386,7 @@ namespace Plus.HabboHotel.Roleplay.Corporation
             if (!_pendingLogs.TryRemove(userId, out var logs))
                 return;
 
-            List<(int groupId, int credits, DateTime finished)> snapshot;
+            List<(int groupId, int credits, int finished)> snapshot;
             lock (logs)
                 snapshot = [.. logs];
 

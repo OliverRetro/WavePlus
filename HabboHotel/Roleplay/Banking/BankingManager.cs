@@ -1,5 +1,5 @@
 using Plus.Communication.Packets.Outgoing.Inventory.Purse;
-using Plus.Communication.Packets.Outgoing.Roleplay;
+using Plus.Core;
 using Plus.Database.EF;
 using Plus.Database.EF.Entities;
 using Plus.HabboHotel.Users;
@@ -14,18 +14,8 @@ namespace Plus.HabboHotel.Roleplay.Banking
     {
         private const int RecentLogLimit = 25;
 
-        /// <summary>
-        /// Activity-point currency type the bank balance is published under, so the client purse
-        /// (and the phone/ATM "Current Balance") can display it. Keep in sync with the Nitro client
-        /// (PhoneBankApp BANK_CURRENCY_ID / ATMView).
-        /// </summary>
         public const int BankCurrencyType = 200;
 
-        /// <summary>
-        /// Resolves the fee percentage for a transaction. <paramref name="kind"/> is "deposit" or
-        /// "withdrawal"; <paramref name="managementType"/> is the source ("ATM" vs "PHONE"). Prefers the
-        /// source-specific setting (rp.bank.{kind}.fee.{atm|phone}) and falls back to rp.bank.{kind}.fee.default.
-        /// </summary>
         public static int ResolveFeePercent(string kind, string managementType)
         {
             string source = string.Equals(managementType, "PHONE", StringComparison.OrdinalIgnoreCase) ? "phone" : "atm";
@@ -38,7 +28,6 @@ namespace Plus.HabboHotel.Roleplay.Banking
             return int.TryParse(settings.TryGetValue($"rp.bank.{kind}.fee.default"), out int def) ? def : 0;
         }
 
-        /// <summary>Publishes the user's bank balance to the client purse as currency type 200.</summary>
         public void SendBankCurrency(Habbo habbo)
         {
             if (habbo?.GetClient() == null)
@@ -48,9 +37,6 @@ namespace Plus.HabboHotel.Roleplay.Banking
             habbo.GetClient().SendPacket(new HabboActivityPointNotificationComposer(balance, 0, BankCurrencyType));
         }
 
-        /// <summary>
-        /// Sends both the ATM (6006) and Phone (6007) bank snapshots to a user.
-        /// </summary>
         public void SendBankSnapshot(Habbo habbo)
         {
             if (habbo?.GetClient() == null)
@@ -102,21 +88,49 @@ namespace Plus.HabboHotel.Roleplay.Banking
             if (habbo.Credits < cost)
                 return false;
 
+            int opened = (int)PlusEnvironment.GetUnixTimestamp();
+
+            // The row has to land before the user gets an in-memory account: an account that exists
+            // only in memory makes every later balance write a no-op UPDATE, so the user appears to
+            // have opened an account, loses the fee, and finds no account again after a relog.
+            try
+            {
+                using WavePlusContext db = PlusEnvironment.GetDbContext();
+
+                var existing = db.UserRpBanks.Where(b => b.UserId == habbo.Id)
+                    .Select(b => new { b.Balance, b.AccountOpened })
+                    .FirstOrDefault();
+
+                if (existing != null)
+                {
+                    // A row from an earlier attempt is already there — adopt it instead of charging again.
+                    UserRpBankAccount recovered = new UserRpBankAccount(habbo.Id, existing.Balance, existing.AccountOpened);
+                    recovered.MarkSaved();
+                    habbo.SetBankAccount(recovered);
+                    SendBankCurrency(habbo);
+                    return true;
+                }
+
+                db.UserRpBanks.Add(new UserRpBankEntity
+                {
+                    UserId = habbo.Id,
+                    Balance = 0,
+                    AccountOpened = opened
+                });
+                db.SaveChanges();
+            }
+            catch (Exception e)
+            {
+                ExceptionLogger.LogException(e);
+                return false;
+            }
+
             habbo.Credits -= cost;
             habbo.GetClient()?.SendPacket(new CreditBalanceComposer(habbo.Credits));
 
-            UserRpBankAccount account = new UserRpBankAccount(habbo.Id, 0, DateTime.UtcNow);
+            UserRpBankAccount account = new UserRpBankAccount(habbo.Id, 0, opened);
             account.MarkSaved();
             habbo.SetBankAccount(account);
-
-            using WavePlusContext db = PlusEnvironment.GetDbContext();
-            db.UserRpBanks.Add(new UserRpBankEntity
-            {
-                UserId = habbo.Id,
-                Balance = 0,
-                AccountOpened = account.AccountOpened
-            });
-            db.SaveChanges();
 
             SendBankCurrency(habbo);
             return true;
@@ -155,7 +169,7 @@ namespace Plus.HabboHotel.Roleplay.Banking
 
             UserRpBankAccount account = habbo.GetBankAccount();
             account.SetBalance(account.Balance + netAmount);
-            account.AddLog(new UserRpBankLog(habbo.Id, amount, "DEPOSIT", managementType, fee, DateTime.UtcNow));
+            account.AddLog(new UserRpBankLog(habbo.Id, amount, "DEPOSIT", managementType, fee, (int)PlusEnvironment.GetUnixTimestamp()));
             SendBankCurrency(habbo);
 
             return new BankTransactionResult(true, fee, netAmount);
@@ -179,7 +193,7 @@ namespace Plus.HabboHotel.Roleplay.Banking
                 return new BankTransactionResult(false, 0, 0);
 
             account.SetBalance(account.Balance - amount);
-            account.AddLog(new UserRpBankLog(habbo.Id, amount, "WITHDRAWAL", managementType, fee, DateTime.UtcNow));
+            account.AddLog(new UserRpBankLog(habbo.Id, amount, "WITHDRAWAL", managementType, fee, (int)PlusEnvironment.GetUnixTimestamp()));
             SendBankCurrency(habbo);
 
             habbo.Credits += netAmount;
@@ -194,28 +208,52 @@ namespace Plus.HabboHotel.Roleplay.Banking
             if (account == null)
                 return;
 
-            using WavePlusContext db = PlusEnvironment.GetDbContext();
-
-            if (account.Dirty)
+            try
             {
-                db.UserRpBanks.Where(b => b.UserId == habbo.Id)
-                    .ExecuteUpdate(s => s.SetProperty(b => b.Balance, account.Balance));
-                account.MarkSaved();
-            }
+                using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-            if (account.PendingLogs.Count > 0)
-            {
-                db.UserRpBankLogs.AddRange(account.PendingLogs.Select(log => new Plus.Database.EF.Entities.UserRpBankLogEntity
+                if (account.Dirty)
                 {
-                    UserId = log.UserId,
-                    Amount = log.Amount,
-                    ActionType = log.ActionType,
-                    ManagementType = log.ManagementType,
-                    FeePaid = log.FeePaid,
-                    Timestamp = log.Timestamp
-                }));
-                db.SaveChanges();
-                account.PendingLogs.Clear();
+                    int balance = account.Balance;
+                    int rows = db.UserRpBanks.Where(b => b.UserId == habbo.Id)
+                        .ExecuteUpdate(s => s.SetProperty(b => b.Balance, balance));
+
+                    if (rows == 0)
+                    {
+                        // No row to update — insert one rather than dropping the balance.
+                        db.UserRpBanks.Add(new UserRpBankEntity
+                        {
+                            UserId = habbo.Id,
+                            Balance = balance,
+                            AccountOpened = account.AccountOpened
+                        });
+                        db.SaveChanges();
+                    }
+
+                    account.MarkSaved();
+                }
+
+                // Snapshot first: a transaction landing mid-save must not have its log discarded.
+                List<UserRpBankLog> logs = account.PendingLogs.ToList();
+                if (logs.Count > 0)
+                {
+                    db.UserRpBankLogs.AddRange(logs.Select(log => new Plus.Database.EF.Entities.UserRpBankLogEntity
+                    {
+                        UserId = log.UserId,
+                        Amount = log.Amount,
+                        ActionType = log.ActionType,
+                        ManagementType = log.ManagementType,
+                        FeePaid = log.FeePaid,
+                        Timestamp = log.Timestamp
+                    }));
+                    db.SaveChanges();
+                    account.PendingLogs.RemoveRange(0, logs.Count);
+                }
+            }
+            catch (Exception e)
+            {
+                // Left dirty on purpose — the next save cycle retries it.
+                ExceptionLogger.LogException(e);
             }
         }
 

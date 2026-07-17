@@ -12,12 +12,12 @@
         public int CriticalChance { get; set; }
         public double CriticalMultiplier { get; set; }
         public int Effect { get; set; }
-        public int Range { get; set; }
+        public double Range { get; set; }
         public int Durability { get; set; }
         public int StunChance { get; set; }
         public string Image { get; set; }
 
-        public Weapon(int id, string name, string description, string hitMessage, string criticalHitMessage, int minimumDamage, int maximumDamage, int criticalChance, double criticalMultiplier, int effect, int range, int durability, int stunChance, string image)
+        public Weapon(int id, string name, string description, string hitMessage, string criticalHitMessage, int minimumDamage, int maximumDamage, int criticalChance, double criticalMultiplier, int effect, double range, int durability, int stunChance, string image)
         {
             Id = id;
             Name = name;

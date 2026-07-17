@@ -1,10 +1,11 @@
-using System;
-using System.Collections.Concurrent;
 using DotNetty.Transport.Channels;
+using MySqlX.XDevAPI;
 using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.Core;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
+using System;
+using System.Collections.Concurrent;
 
 namespace Plus.HabboHotel.GameClients
 {
@@ -79,8 +80,9 @@ namespace Plus.HabboHotel.GameClients
                 RoomUser roomUser = room?.GetRoomUserManager()?.GetRoomUserByHabbo(habbo.Id);
                 if (roomUser != null && !announcedRecently)
                 {
+                    roomUser.ApplyEffect(13);
                     _lastAnnounce[habbo.Id] = now;
-                    room.SendPacket(new ShoutComposer(roomUser.VirtualId, "*disconnecting in " + GraceSeconds + " seconds*", 0, 0, isRpAction: true));
+                    room.SendPacket(new ShoutComposer(roomUser.VirtualId, "*disconnecting in " + GraceSeconds + " seconds*", 0, habbo.CustomBubbleId, isRpAction: true));
                 }
             }
             catch (Exception e)

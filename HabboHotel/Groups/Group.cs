@@ -145,11 +145,16 @@ namespace Plus.HabboHotel.Groups
             }
         }
 
-        public List<int> GetMembers => _memberLevels.Where(x => x.Value == 1).Select(x => x.Key).ToList();
+        public List<int> GetMembers => _memberLevels.Where(x => x.Value == 1 && !IsHiddenFromLists(x.Value)).Select(x => x.Key).ToList();
 
         public List<int> GetRequests => _requests.ToList();
 
-        public List<int> GetAdministrators => _memberLevels.Where(x => x.Key == CreatorId || x.Value > 1).Select(x => x.Key).ToList();
+        public List<int> GetAdministrators => _memberLevels.Where(x => (x.Key == CreatorId || x.Value > 1) && !IsHiddenFromLists(x.Value)).Select(x => x.Key).ToList();
+
+        private bool IsHiddenFromLists(int level)
+        {
+            return Kind == GroupKind.Corporation && level == 0;
+        }
 
         public ICollection<GroupRole> GetRoles => _roles.Values.OrderBy(x => x.Level).ToList();
 
@@ -171,11 +176,11 @@ namespace Plus.HabboHotel.Groups
         {
             get
             {
-                return _memberLevels.Keys.ToList();
+                return _memberLevels.Where(x => !IsHiddenFromLists(x.Value)).Select(x => x.Key).ToList();
             }
         }
 
-        public int MemberCount => _memberLevels.Count;
+        public int MemberCount => _memberLevels.Count(x => !IsHiddenFromLists(x.Value));
 
         public int RequestCount => _requests.Count;
 
@@ -256,13 +261,29 @@ namespace Plus.HabboHotel.Groups
             if (_permissions.ContainsKey(assignmentKey))
                 return true;
 
-            _permissions[assignmentKey] = new GroupPermissionAssignment(0, Id, levelId, permissionId, DateTime.UtcNow, true);
+            _permissions[assignmentKey] = new GroupPermissionAssignment(0, Id, levelId, permissionId, (int)PlusEnvironment.GetUnixTimestamp(), true);
             return true;
         }
 
         public int GetMemberLevel(int id)
         {
             return _memberLevels.TryGetValue(id, out int level) ? level : -1;
+        }
+
+        public int GetRank(int userId)
+        {
+            if (userId == CreatorId)
+                return int.MaxValue;
+
+            if (!_memberLevels.TryGetValue(userId, out int level))
+                return -1;
+
+            return level == 0 ? int.MaxValue : level;
+        }
+
+        public bool TargetOutranks(int actorId, int targetId)
+        {
+            return GetRank(targetId) > GetRank(actorId);
         }
 
         public string GetMemberRoleName(int id)
@@ -304,7 +325,7 @@ namespace Plus.HabboHotel.Groups
         /// </summary>
         private GroupRole GetOwnerRole()
         {
-            return _ownerRole ??= new GroupRole(0, Id, 0, "Owner", 0, string.Empty, 5, string.Empty, DateTime.UtcNow);
+            return _ownerRole ??= new GroupRole(0, Id, 0, "Owner", 0, string.Empty, 5, string.Empty, (int)PlusEnvironment.GetUnixTimestamp());
         }
 
         public void MakeAdmin(int id)
@@ -385,6 +406,23 @@ namespace Plus.HabboHotel.Groups
 
             _memberLevels.TryRemove(id, out _);
             MarkDirty();
+
+            ClearEmployment(id);
+        }
+
+        private void ClearEmployment(int userId)
+        {
+            if (!GroupManager.IsWorkableKind(Kind))
+                return;
+
+            Users.Habbo habbo = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(userId)?.GetHabbo();
+            if (habbo == null || habbo.CorporationId != Id)
+                return;
+
+            habbo.CorporationId = 0;
+
+            if (PlusEnvironment.GetGame().GetShiftManager().IsWorkingFor(userId, Id))
+                PlusEnvironment.GetGame().GetShiftManager().InterruptShift(habbo, habbo.CurrentRoom);
         }
 
         public void HandleRequest(int id, bool accepted)
@@ -427,7 +465,7 @@ namespace Plus.HabboHotel.Groups
             int level = _roles.Keys.DefaultIfEmpty(0).Max() + 1;
             NormalizeRoleValues(ref shiftPay, ref shiftCostume, ref shiftDuration, ref shiftMotto);
 
-            GroupRole role = new GroupRole(0, Id, level, name, shiftPay, shiftCostume, shiftDuration, shiftMotto, DateTime.UtcNow, true);
+            GroupRole role = new GroupRole(0, Id, level, name, shiftPay, shiftCostume, shiftDuration, shiftMotto, (int)PlusEnvironment.GetUnixTimestamp(), true);
             _roles[level] = role;
 
             if (saveImmediately)

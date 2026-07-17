@@ -1,6 +1,7 @@
 ﻿using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Roleplay.RpItem.Weapon;
 using Plus.HabboHotel.Roleplay.Skill;
+using System;
 using System.Linq;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
@@ -49,7 +50,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
                 if (userSkins.Skins.Any(x => x.SkinId == skin.Id))
                     continue;
 
-                int nextId = userSkins.Skins.Any() ? userSkins.Skins.Min(x => x.Id) - 1 : -1;
+                // Unsaved skins must carry a negative placeholder id — SaveRpWeaponSkins treats any
+                // id > 0 as an existing row to update. Min() over already-persisted (positive) ids
+                // would hand out positive ids that collide with, or point at, rows we never inserted.
+                int nextId = userSkins.Skins.Any() ? Math.Min(0, userSkins.Skins.Min(x => x.Id)) - 1 : -1;
                 userSkins.AddSkin(new UserWeaponSkin(nextId, session.GetHabbo().Id, skin.Id, false, skin));
                 added++;
             }

@@ -54,7 +54,7 @@ namespace Plus.Communication.Packets.Outgoing.Roleplay
                 packet.WriteInteger(-1); // to_user_id (not tracked)
                 packet.WriteInteger(-1); // room_id (not tracked)
                 packet.WriteString(log.ManagementType ?? ""); // description
-                packet.WriteString(new DateTimeOffset(log.Timestamp.ToUniversalTime()).ToUnixTimeMilliseconds().ToString(CultureInfo.InvariantCulture));
+                packet.WriteString((log.Timestamp * 1000L).ToString(CultureInfo.InvariantCulture));
             }
         }
     }

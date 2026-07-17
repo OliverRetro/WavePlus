@@ -712,7 +712,9 @@ namespace Plus.HabboHotel.Users
             CurrentRoom.GetGameMap().GameMap[targetX, targetY] = 1;
 
             roomUser.SetPos(targetX, targetY, HomeRoomData.z);
-            roomUser.SetRot(HomeRoomData.rotation, false);
+
+            roomUser.RotBody = HomeRoomData.rotation;
+            roomUser.RotHead = HomeRoomData.rotation;
             roomUser.UpdateNeeded = true;
             CurrentRoom.GetRoomUserManager().UpdateUserStatus(roomUser, false);
 
@@ -885,6 +887,62 @@ namespace Plus.HabboHotel.Users
             SaveRpItems();
             SaveRpWeaponSkins();
             SaveBank();
+            SaveUserRow();
+        }
+
+        public void SaveUserRow()
+        {
+            try
+            {
+                // The dead respawn at the hospital — don't pin them to where they died.
+                if (GetRpStats()?.IsDead != true)
+                    CaptureHomeRoomData();
+
+                string homeRoomData = SerializeHomeRoomData();
+                bool friendBarState = FriendBarStateUtility.GetInt(FriendBarState) == 1;
+                short bubble = (short)CustomBubbleId;
+
+                using WavePlusContext db = PlusEnvironment.GetDbContext();
+
+                db.Users.Where(u => u.Id == Id)
+                    .ExecuteUpdate(s => s
+                        .SetProperty(u => u.ActivityPoints, Duckets)
+                        .SetProperty(u => u.Credits, Credits)
+                        .SetProperty(u => u.VipPoints, Diamonds)
+                        .SetProperty(u => u.HomeRoom, HomeRoom)
+                        .SetProperty(u => u.HomeRoomData, homeRoomData)
+                        .SetProperty(u => u.GotwPoints, GotwPoints)
+                        .SetProperty(u => u.TimeMuted, TimeMuted)
+                        .SetProperty(u => u.FriendBarState, friendBarState)
+                        .SetProperty(u => u.Bubble, bubble));
+
+                if (_habboStats == null)
+                    return;
+
+                // Recomputed from SessionStart against the loaded base each time, so running this
+                // every cycle stays idempotent rather than compounding.
+                int onlineTime = (int)(PlusEnvironment.GetUnixTimestamp() - SessionStart + _habboStats.OnlineTime);
+                uint questId = (uint)_habboStats.QuestId;
+                db.UserStats.Where(s => s.Id == Id)
+                    .ExecuteUpdate(s => s
+                        .SetProperty(x => x.RoomVisits, _habboStats.RoomVisits)
+                        .SetProperty(x => x.OnlineTime, onlineTime)
+                        .SetProperty(x => x.Respect, _habboStats.Respect)
+                        .SetProperty(x => x.RespectGiven, _habboStats.RespectGiven)
+                        .SetProperty(x => x.GiftsGiven, _habboStats.GiftsGiven)
+                        .SetProperty(x => x.GiftsReceived, _habboStats.GiftsReceived)
+                        .SetProperty(x => x.DailyRespectPoints, _habboStats.DailyRespectPoints)
+                        .SetProperty(x => x.DailyPetRespectPoints, _habboStats.DailyPetRespectPoints)
+                        .SetProperty(x => x.AchievementScore, _habboStats.AchievementPoints)
+                        .SetProperty(x => x.QuestId, questId)
+                        .SetProperty(x => x.QuestProgress, _habboStats.QuestProgress)
+                        .SetProperty(x => x.Groupid, _habboStats.FavouriteGroupId)
+                        .SetProperty(x => x.ForumPosts, _habboStats.ForumPosts));
+            }
+            catch (Exception e)
+            {
+                ExceptionLogger.LogException(e);
+            }
         }
 
         public void SaveRpSkills()
@@ -1031,13 +1089,15 @@ namespace Plus.HabboHotel.Users
 
                 var inserted = new List<(UserWeaponSkin Src, UserRpWeaponSkinEntity Row)>();
 
-                foreach (UserWeaponSkin skin in _rpWeaponSkins.Skins)
+                foreach (UserWeaponSkin skin in _rpWeaponSkins.Skins.ToList())
                 {
                     if (skin.Id > 0)
                     {
-                        var row = new UserRpWeaponSkinEntity { Id = skin.Id, Equipped = skin.Equipped ? 1 : 0 };
-                        db.UserRpWeaponSkins.Attach(row);
-                        db.Entry(row).Property(s => s.Equipped).IsModified = true;
+                        // ExecuteUpdate rather than Attach: a row that has since been deleted just
+                        // updates nothing, instead of failing the whole batch with a concurrency error.
+                        int equipped = skin.Equipped ? 1 : 0;
+                        db.UserRpWeaponSkins.Where(s => s.Id == skin.Id)
+                            .ExecuteUpdate(s => s.SetProperty(x => x.Equipped, equipped));
                         continue;
                     }
 
@@ -1233,40 +1293,10 @@ namespace Plus.HabboHotel.Users
                 using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 {
                     int lastOnline = (int)PlusEnvironment.GetUnixTimestamp();
-                    string homeRoomData = SerializeHomeRoomData();
-                    bool friendBarState = FriendBarStateUtility.GetInt(FriendBarState) == 1;
-                    short bubble = (short)CustomBubbleId;
                     db.Users.Where(u => u.Id == Id)
                         .ExecuteUpdate(s => s
                             .SetProperty(u => u.Online, "0")
-                            .SetProperty(u => u.LastOnline, lastOnline)
-                            .SetProperty(u => u.ActivityPoints, Duckets)
-                            .SetProperty(u => u.Credits, Credits)
-                            .SetProperty(u => u.VipPoints, Diamonds)
-                            .SetProperty(u => u.HomeRoom, HomeRoom)
-                            .SetProperty(u => u.HomeRoomData, homeRoomData)
-                            .SetProperty(u => u.GotwPoints, GotwPoints)
-                            .SetProperty(u => u.TimeMuted, TimeMuted)
-                            .SetProperty(u => u.FriendBarState, friendBarState)
-                            .SetProperty(u => u.Bubble, bubble));
-
-                    int onlineTime = (int)(PlusEnvironment.GetUnixTimestamp() - SessionStart + _habboStats.OnlineTime);
-                    uint questId = (uint)_habboStats.QuestId;
-                    db.UserStats.Where(s => s.Id == Id)
-                        .ExecuteUpdate(s => s
-                            .SetProperty(x => x.RoomVisits, _habboStats.RoomVisits)
-                            .SetProperty(x => x.OnlineTime, onlineTime)
-                            .SetProperty(x => x.Respect, _habboStats.Respect)
-                            .SetProperty(x => x.RespectGiven, _habboStats.RespectGiven)
-                            .SetProperty(x => x.GiftsGiven, _habboStats.GiftsGiven)
-                            .SetProperty(x => x.GiftsReceived, _habboStats.GiftsReceived)
-                            .SetProperty(x => x.DailyRespectPoints, _habboStats.DailyRespectPoints)
-                            .SetProperty(x => x.DailyPetRespectPoints, _habboStats.DailyPetRespectPoints)
-                            .SetProperty(x => x.AchievementScore, _habboStats.AchievementPoints)
-                            .SetProperty(x => x.QuestId, questId)
-                            .SetProperty(x => x.QuestProgress, _habboStats.QuestProgress)
-                            .SetProperty(x => x.Groupid, _habboStats.FavouriteGroupId)
-                            .SetProperty(x => x.ForumPosts, _habboStats.ForumPosts));
+                            .SetProperty(u => u.LastOnline, lastOnline));
 
                     if (GetPermissions().HasRight("mod_tickets"))
                     {

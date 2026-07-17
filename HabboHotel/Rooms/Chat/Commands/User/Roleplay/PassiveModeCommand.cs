@@ -1,4 +1,5 @@
-﻿using Plus.HabboHotel.GameClients;
+﻿using Plus.Communication.Packets.Outgoing.Rooms.Chat;
+using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Roleplay.Utilities;
 using Plus.HabboHotel.Users;
 using System;
@@ -41,7 +42,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
             }
 
             PendingToggles[habbo.Id] = 0;
-            session.SendWhisper($"Stand still for {TriggerDelaySeconds} seconds to toggle passive mode.", 1);
+            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*begins swap between passive mode*", 0, 4, isRpAction: true));
 
             _ = CompleteToggleAsync(habbo.Id, session, room.Id);
         }
@@ -75,7 +76,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
             // Resolve the effect (passive shows 1057, disabling clears it — unless staff/weapon).
             RpEffectService.Refresh(habbo);
 
-            session.SendWhisper($"Passive mode is now {(stats.PassiveMode ? "enabled" : "disabled")}.", 1);
+            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, $"*passive mode is now {(stats.PassiveMode ? "enabled" : "disabled")}*", 0, 4, isRpAction: true));
         }
 
         public static void CancelPendingToggle(GameClient client)

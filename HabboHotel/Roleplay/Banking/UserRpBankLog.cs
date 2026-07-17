@@ -1,5 +1,3 @@
-using System;
-
 namespace Plus.HabboHotel.Roleplay.Banking
 {
     public class UserRpBankLog
@@ -9,9 +7,9 @@ namespace Plus.HabboHotel.Roleplay.Banking
         public string ActionType { get; }
         public string ManagementType { get; }
         public int FeePaid { get; }
-        public DateTime Timestamp { get; }
+        public int Timestamp { get; }
 
-        public UserRpBankLog(int userId, int amount, string actionType, string managementType, int feePaid, DateTime timestamp)
+        public UserRpBankLog(int userId, int amount, string actionType, string managementType, int feePaid, int timestamp)
         {
             UserId = userId;
             Amount = amount;

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace Plus.HabboHotel.Roleplay.Banking
@@ -7,11 +6,12 @@ namespace Plus.HabboHotel.Roleplay.Banking
     {
         public int UserId { get; }
         public int Balance { get; private set; }
-        public DateTime AccountOpened { get; }
+        public int AccountOpened { get; }
+
         public bool Dirty { get; private set; }
         public List<UserRpBankLog> PendingLogs { get; }
 
-        public UserRpBankAccount(int userId, int balance, DateTime accountOpened)
+        public UserRpBankAccount(int userId, int balance, int accountOpened)
         {
             UserId = userId;
             Balance = balance;

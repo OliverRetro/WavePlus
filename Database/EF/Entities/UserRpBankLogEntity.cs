@@ -32,7 +32,7 @@ public partial class UserRpBankLogEntity
     [Column("fee_paid", TypeName = "int(11)")]
     public int FeePaid { get; set; }
 
-    [MaxLength(6)]
-    [Column("timestamp")]
-    public DateTime Timestamp { get; set; }
+    /// <summary>Unix timestamp (seconds) the transaction happened.</summary>
+    [Column("timestamp", TypeName = "int(11)")]
+    public int Timestamp { get; set; }
 }

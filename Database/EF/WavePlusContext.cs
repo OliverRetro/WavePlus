@@ -557,9 +557,6 @@ public partial class WavePlusContext(DbContextOptions<WavePlusContext> options) 
             entity.Property(e => e.GroupId).HasComment("groups.id");
             entity.Property(e => e.LevelId).HasComment("groups_roles.level");
             entity.Property(e => e.PermissionId).HasComment("group_permissiosn_keys.id");
-            entity.Property(e => e.UpdatedAt)
-                .ValueGeneratedOnAddOrUpdate()
-                .HasDefaultValueSql("'NULL'");
         });
 
         modelBuilder.Entity<GroupPermissionKeyEntity>(entity =>
@@ -573,7 +570,6 @@ public partial class WavePlusContext(DbContextOptions<WavePlusContext> options) 
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("'''0000-00-00 00:00:00'''");
             entity.Property(e => e.GroupId).HasComment("GroupEntity's ID.");
             entity.Property(e => e.Level)
                 .HasDefaultValueSql("'1'")
@@ -591,9 +587,6 @@ public partial class WavePlusContext(DbContextOptions<WavePlusContext> options) 
                 .HasDefaultValueSql("''''''")
                 .HasComment("Replace users motto for the duration of shift? Blank for no swap.");
             entity.Property(e => e.ShiftPay).HasComment("Credits paid via intervals.");
-            entity.Property(e => e.UpdatedAt)
-                .ValueGeneratedOnAddOrUpdate()
-                .HasDefaultValueSql("'NULL'");
         });
 
         modelBuilder.Entity<GroupsItemEntity>(entity =>
@@ -1096,8 +1089,6 @@ public partial class WavePlusContext(DbContextOptions<WavePlusContext> options) 
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("'current_timestamp()'");
-
             entity.HasOne(d => d.User).WithMany(p => p.UserChatBubbles)
                 .HasPrincipalKey(p => p.Id)
                 .HasForeignKey(d => d.UserId)
@@ -1163,10 +1154,6 @@ public partial class WavePlusContext(DbContextOptions<WavePlusContext> options) 
         modelBuilder.Entity<UserRpBankEntity>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
-
-            entity.Property(e => e.AccountOpened)
-                .ValueGeneratedOnAddOrUpdate()
-                .HasDefaultValueSql("'''0000-00-00 00:00:00.000000'''");
         });
 
         modelBuilder.Entity<UserRpSettingEntity>(entity =>
@@ -1185,9 +1172,6 @@ public partial class WavePlusContext(DbContextOptions<WavePlusContext> options) 
 
             entity.Property(e => e.ActionType).HasDefaultValueSql("'''DEPOSIT'''");
             entity.Property(e => e.ManagementType).HasDefaultValueSql("'''ATM'''");
-            entity.Property(e => e.Timestamp)
-                .ValueGeneratedOnAddOrUpdate()
-                .HasDefaultValueSql("'''0000-00-00 00:00:00.000000'''");
         });
 
         modelBuilder.Entity<UserRpItemEntity>(entity =>

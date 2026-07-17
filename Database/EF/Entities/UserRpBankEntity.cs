@@ -19,7 +19,7 @@ public partial class UserRpBankEntity
     [Column("balance", TypeName = "int(11)")]
     public int Balance { get; set; }
 
-    [MaxLength(6)]
-    [Column("account_opened")]
-    public DateTime AccountOpened { get; set; }
+    /// <summary>Unix timestamp (seconds) the account was opened.</summary>
+    [Column("account_opened", TypeName = "int(11)")]
+    public int AccountOpened { get; set; }
 }

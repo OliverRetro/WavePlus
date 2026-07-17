@@ -47,7 +47,6 @@ namespace Plus.HabboHotel.Roleplay.Crime
                     row.CrimeName,
                     row.Severity,
                     row.TimeActive,
-                    row.AutomaticReport == 1,
                     row.PoliceAlert == 1,
                     row.Note);
 
@@ -81,7 +80,6 @@ namespace Plus.HabboHotel.Roleplay.Crime
             return best;
         }
 
-        /// <summary>Records a crime committed by the offender, alerting police if configured.</summary>
         public void Commit(Habbo offender, string crimeTag, Rooms.Room room)
         {
             if (offender == null)
@@ -97,34 +95,62 @@ namespace Plus.HabboHotel.Roleplay.Crime
             rec.Look = offender.Look;
             rec.LastCrime = now;
 
-            PendingCrimeLog log = new() { CrimeId = crime.Id, Timestamp = now, Expired = false };
-            _logBuffer.GetOrAdd(offender.Id, _ => new List<PendingCrimeLog>()).Add(log);
+            PendingCrimeLog log = new() { CrimeId = crime.Id, Timestamp = (int)PlusEnvironment.GetUnixTimestamp(), Expired = false };
+            _logBuffer.GetOrAdd(offender.Id, _ => []).Add(log);
 
+            DateTime expiresAt = now.AddMinutes(Math.Max(1, crime.TimeActiveMinutes));
+
+            Prune(rec);
             lock (rec.Crimes)
             {
-                rec.Crimes.Add(new ActiveCrime
+                ActiveCrime existing = rec.Crimes.FirstOrDefault(c => c.CrimeId == crime.Id);
+                if (existing != null)
                 {
-                    CrimeId = crime.Id,
-                    Severity = crime.Severity,
-                    // Auto-reported crimes are instantly visible (and livefed) — hidden crimes
-                    // stay invisible until a police officer runs `:charge <user> <crime>`.
-                    AutoReported = crime.AutomaticReport,
-                    Revealed = false,
-                    CommittedAt = now,
-                    ExpiresAt = now.AddMinutes(Math.Max(1, crime.TimeActiveMinutes)),
-                    Log = log
-                });
+                    // Already wanted for this crime — reset its clock and let the newest log entry
+                    // own the expiry flag, but don't award another set of stars.
+                    existing.CommittedAt = now;
+                    existing.ExpiresAt = expiresAt;
+                    existing.Log = log;
+                }
+                else if (crime.AutoCharge || !rec.Charged)
+                {
+                    rec.Crimes.Add(new ActiveCrime
+                    {
+                        CrimeId = crime.Id,
+                        Severity = crime.Severity,
+                        AutoCharged = crime.AutoCharge,
+                        Revealed = false,
+                        CommittedAt = now,
+                        ExpiresAt = expiresAt,
+                        Log = log
+                    });
+                }
+                // else: a new manual crime piled on after they were charged — logged above, but it
+                // never joins the record, so no officer can charge it and it earns no stars.
+
+                if (crime.AutoCharge)
+                    rec.Charged = true;
             }
 
-            if (crime.PoliceAlert)
-                AlertPolice(offender, crime, room);
+            if (!crime.AutoCharge)
+                return;
 
-            // Only auto-reported crimes are announced publicly on the livefeed.
-            if (crime.AutomaticReport)
-            {
-                string stars = crime.Severity > 0 ? " " + new string('⭐', Math.Min(5, crime.Severity)) : "";
-                LiveFeedService.LiveFeed("[AUTO CHARGE] 🚨 " + LiveFeedService.Name(offender.Username, "green") + " committed " + crime.Name + stars);
-            }
+            AlertPolice(offender, crime, room);
+
+            string stars = crime.Severity > 0 ? " " + new string('⭐', Math.Min(5, crime.Severity)) : "";
+            LiveFeedService.LiveFeed("[AUTO CHARGE] 🚨 " + LiveFeedService.Name(offender.Username, "green") + " committed " + crime.Name + stars);
+        }
+
+        /// <summary>True when the offender currently has an active (unexpired) charge for this crime.</summary>
+        public bool HasActiveCrime(int userId, string crimeTag)
+        {
+            RpCrime crime = GetByTag(crimeTag);
+            if (crime == null || !_wanted.TryGetValue(userId, out UserWantedRecord rec))
+                return false;
+
+            Prune(rec);
+            lock (rec.Crimes)
+                return rec.Crimes.Any(c => c.CrimeId == crime.Id);
         }
 
         /// <summary>
@@ -148,31 +174,28 @@ namespace Plus.HabboHotel.Roleplay.Crime
         }
 
         /// <summary>
-        /// Charges a suspect with a specific crime: reveals every still-active instance of that
-        /// crime (adjusting their visible stars), and flags the record as charged so they can be
-        /// cuffed. Returns how many instances were newly revealed, and the resulting visible stars.
+        /// Charges a suspect with a specific manual crime: reveals their active (hidden) instance of
+        /// it so its stars become visible, and flags the record as charged so they can be cuffed.
+        /// Returns whether a charge was applied, and the resulting visible stars.
         /// </summary>
-        public (int applied, int stars) ChargeCrime(int userId, RpCrime crime)
+        public (bool applied, int stars) ChargeCrime(int userId, RpCrime crime)
         {
-            if (crime == null || !_wanted.TryGetValue(userId, out UserWantedRecord rec))
-                return (0, 0);
+            // Auto-charge crimes charge themselves the moment they're committed; there is nothing
+            // left for an officer to apply by hand.
+            if (crime == null || crime.AutoCharge || !_wanted.TryGetValue(userId, out UserWantedRecord rec))
+                return (false, 0);
 
             Prune(rec);
-            int applied = 0;
+            bool applied = false;
             lock (rec.Crimes)
             {
-                foreach (ActiveCrime c in rec.Crimes)
+                ActiveCrime active = rec.Crimes.FirstOrDefault(c => c.CrimeId == crime.Id);
+                if (active != null)
                 {
-                    if (c.CrimeId != crime.Id)
-                        continue;
-
-                    // Count every active instance of this crime; reveal any still hidden.
-                    c.Revealed = true;
-                    applied++;
-                }
-
-                if (applied > 0)
+                    active.Revealed = true;
                     rec.Charged = true;
+                    applied = true;
+                }
             }
 
             return (applied, GetVisibleStars(userId));
@@ -193,7 +216,7 @@ namespace Plus.HabboHotel.Roleplay.Crime
             }
         }
 
-        /// <summary>Stars publicly visible on the wanted list (auto-reported or revealed).</summary>
+        /// <summary>Stars publicly visible on the wanted list (auto-charged or revealed).</summary>
         public int GetVisibleStars(int userId)
         {
             if (!_wanted.TryGetValue(userId, out UserWantedRecord rec))
@@ -202,7 +225,7 @@ namespace Plus.HabboHotel.Roleplay.Crime
             Prune(rec);
             int stars;
             lock (rec.Crimes)
-                stars = rec.Crimes.Where(c => c.AutoReported || c.Revealed).Sum(c => c.Severity);
+                stars = rec.Crimes.Where(c => c.AutoCharged || c.Revealed).Sum(c => c.Severity);
             return Math.Min(MaxStars, stars);
         }
 
@@ -312,6 +335,11 @@ namespace Plus.HabboHotel.Roleplay.Crime
                         rec.Crimes.RemoveAt(i);
                     }
                 }
+
+                // Everything they were charged for has expired — they're out of the system, so a
+                // fresh crime can be charged again. Without this the flag would stick forever.
+                if (rec.Crimes.Count == 0)
+                    rec.Charged = false;
             }
         }
 
@@ -356,7 +384,7 @@ namespace Plus.HabboHotel.Roleplay.Crime
         {
             public int CrimeId;
             public int Severity;
-            public bool AutoReported;
+            public bool AutoCharged;
             public bool Revealed;
             public DateTime CommittedAt;
             public DateTime ExpiresAt;
@@ -366,7 +394,10 @@ namespace Plus.HabboHotel.Roleplay.Crime
         private sealed class PendingCrimeLog
         {
             public int CrimeId;
-            public DateTime Timestamp;
+
+            /// <summary>Unix timestamp (seconds) the crime was committed.</summary>
+            public int Timestamp;
+
             public bool Expired;
         }
 
