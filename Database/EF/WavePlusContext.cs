@@ -817,6 +817,8 @@ public partial class WavePlusContext(DbContextOptions<WavePlusContext> options) 
 
             entity.Property(e => e.Name).HasDefaultValueSql("''''''");
             entity.Property(e => e.RequiredRight).HasDefaultValueSql("''''''");
+            entity.Property(e => e.Url).HasDefaultValueSql("''''''");
+            entity.Property(e => e.FontColor).HasDefaultValueSql("'#000000'");
         });
 
         modelBuilder.Entity<RoomFilterEntity>(entity =>

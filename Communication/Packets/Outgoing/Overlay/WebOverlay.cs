@@ -2,6 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Roleplay.Macros;
+using Plus.HabboHotel.Roleplay.RpItem.Weapon;
+using Plus.HabboHotel.Roleplay.Skill;
+using Plus.HabboHotel.Rooms.Chat.Styles;
 using Plus.HabboHotel.Users;
 
 namespace Plus.Communication.Packets.Outgoing.Overlay
@@ -110,6 +113,123 @@ namespace Plus.Communication.Packets.Outgoing.Overlay
                 // The client greys out / blocks "auto salary" unless the user owns a bank account.
                 hasBankAccount = habbo.GetBankAccount() != null
             });
+        }
+
+        public static void SendMyItems(GameClient session)
+        {
+            Habbo habbo = session?.GetHabbo();
+            if (habbo == null) return;
+
+            Send(session, "my_items", new
+            {
+                username = habbo.Username,
+                look = habbo.Look,
+                maxEquippedSkills = UserRpSkills.MaxEquippedSkills,
+                equippedSkillCount = habbo.GetRpSkills()?.EquippedCount() ?? 0,
+                skills = BuildSkills(habbo),
+                bubbles = BuildBubbles(habbo),
+                skins = BuildSkins(habbo)
+            });
+        }
+
+        // Every skill is listed whether or not the user has unlocked it — an unlocked-less skill
+        // just reports tier 0 and canEquip=false, which the client renders greyed out.
+        private static object[] BuildSkills(Habbo habbo)
+        {
+            UserRpSkills userSkills = habbo.GetRpSkills();
+            if (userSkills == null)
+                return new object[0];
+
+            return PlusEnvironment.GetSkillManager().GetSkills()
+                .OrderBy(skill => skill.Id)
+                .Select(skill =>
+                {
+                    int tier = userSkills.GetLevel(skill.Id);
+                    int progress = userSkills.GetProgress(skill.Id);
+                    bool unlocked = tier > 0;
+                    bool equipped = userSkills.IsEquipped(skill.Id);
+
+                    // Progress toward the next tier, so the client can draw a bar. A maxed skill
+                    // reports its final threshold for both, leaving the bar full.
+                    SkillLevel next = skill.Levels.Values.OrderBy(x => x.Level)
+                        .FirstOrDefault(x => x.RequiredProgress > progress);
+                    int currentThreshold = skill.Levels.Values.Where(x => x.Level == tier)
+                        .Select(x => x.RequiredProgress).FirstOrDefault();
+
+                    return (object)new
+                    {
+                        id = skill.Id,
+                        name = skill.Name,
+                        description = skill.Description,
+                        badgeCode = skill.BadgeCode ?? "",
+                        tier,
+                        maxTier = skill.Levels.Count == 0 ? 0 : skill.Levels.Values.Max(x => x.Level),
+                        progress,
+                        currentThreshold,
+                        nextThreshold = next?.RequiredProgress ?? currentThreshold,
+                        unlocked,
+                        equipped,
+                        // Equipping is blocked while locked, or once the 4-skill limit is reached.
+                        canEquip = unlocked && (equipped || userSkills.CanEquipMoreSkills())
+                    };
+                })
+                .ToArray();
+        }
+
+        private static object[] BuildBubbles(Habbo habbo)
+        {
+            ChatStyleManager styles = PlusEnvironment.GetGame().GetChatManager().GetChatStyles();
+            List<object> bubbles = new();
+
+            foreach (int bubbleId in habbo.GetOwnedChatBubbleIds().Distinct().OrderBy(x => x))
+            {
+                if (!styles.TryGetStyle(bubbleId, out ChatStyle style))
+                    continue;
+
+                // Rank-gated bubbles disappear from the list if the user loses the right.
+                if (!string.IsNullOrEmpty(style.RequiredRight) && !habbo.GetPermissions().HasRight(style.RequiredRight))
+                    continue;
+
+                bubbles.Add(new
+                {
+                    id = style.Id,
+                    name = string.IsNullOrWhiteSpace(style.Name) ? "Bubble " + style.Id : style.Name,
+                    url = style.Url ?? "",
+                    fontColor = string.IsNullOrWhiteSpace(style.FontColor) ? "#000000" : style.FontColor,
+                    equipped = habbo.CustomBubbleId == style.Id
+                });
+            }
+
+            return bubbles.ToArray();
+        }
+
+        // The user's owned weapon skins. Only one skin per weapon can be equipped at a time.
+        private static object[] BuildSkins(Habbo habbo)
+        {
+            UserRpWeaponSkins userSkins = habbo.GetRpWeaponSkins();
+            if (userSkins == null)
+                return new object[0];
+
+            return userSkins.Skins
+                .Where(userSkin => userSkin.SkinData != null)
+                .OrderBy(userSkin => userSkin.SkinData.WeaponId)
+                .ThenBy(userSkin => userSkin.SkinData.Name)
+                .Select(userSkin =>
+                {
+                    Weapon weapon = PlusEnvironment.GetWeaponManager().GetWeaponById(userSkin.SkinData.WeaponId);
+                    return (object)new
+                    {
+                        id = userSkin.Id,
+                        skinId = userSkin.SkinId,
+                        weaponId = userSkin.SkinData.WeaponId,
+                        name = userSkin.SkinData.Name,
+                        weaponName = weapon?.Name ?? "",
+                        image = weapon?.Image ?? "",
+                        rarity = userSkin.SkinData.Rarity,
+                        equipped = userSkin.Equipped
+                    };
+                })
+                .ToArray();
         }
     }
 }

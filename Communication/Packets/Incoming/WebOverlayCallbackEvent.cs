@@ -4,13 +4,16 @@ using System.Linq;
 using System.Text.Json;
 using Plus.Communication.Packets.Outgoing.Overlay;
 using Plus.Communication.Packets.Outgoing.Roleplay;
+using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Roleplay.Macros;
 using Plus.HabboHotel.Roleplay.RpItem;
 using Plus.HabboHotel.Roleplay.RpItem.Item;
 using Plus.HabboHotel.Roleplay.RpItem.Weapon;
+using Plus.HabboHotel.Roleplay.Skill;
 using Plus.HabboHotel.Roleplay.TargetLock;
 using Plus.HabboHotel.Rooms;
+using Plus.HabboHotel.Rooms.Chat.Styles;
 using Plus.HabboHotel.Users;
 using Plus.Utilities;
 
@@ -160,6 +163,24 @@ namespace Plus.Communication.Packets.Incoming
                     session.SendPacket(new WantedListComposer());
                     break;
 
+                // ── My Items ────────────────────────────────────────────
+                case "open_my_items":
+                case "request_my_items":
+                    WebOverlay.SendMyItems(session);
+                    break;
+
+                case "toggle_skill":
+                    ToggleSkill(data, session);
+                    break;
+
+                case "equip_bubble":
+                    EquipBubble(data, session);
+                    break;
+
+                case "toggle_weapon_skin":
+                    ToggleWeaponSkin(data, session);
+                    break;
+
                 // The user clicked the lock/unlock toggle on their current target.
                 case "lock_target":
                     {
@@ -271,6 +292,124 @@ namespace Plus.Communication.Packets.Incoming
 
             // Echo the authoritative state back (covers vetoed toggles like auto-salary).
             WebOverlay.SendSettings(session);
+        }
+
+        // Equip/unequip a skill from the My Items panel. Habbo.ToggleSkill() enforces the
+        // "unlocked + max 4 equipped" rules and carries the skill-7 health handling, so the
+        // overlay gets exactly the same behaviour as the :toggleskill command.
+        private static void ToggleSkill(JsonElement data, GameClient session)
+        {
+            if (!TryGetInt(data, "id", out int skillId))
+                return;
+
+            Habbo habbo = session.GetHabbo();
+            if (habbo?.GetRpSkills() == null)
+                return;
+
+            if (habbo.ToggleSkill(skillId))
+            {
+                habbo.SaveRpSkills();
+
+                Skill skill = PlusEnvironment.GetSkillManager().GetSkillById(skillId);
+                if (skill != null)
+                    session.SendWhisper($"{skill.Name} is now {(habbo.GetRpSkills().IsEquipped(skillId) ? "equipped" : "unequipped")}.", 1);
+            }
+            else
+            {
+                session.SendWhisper("Skill couldn't be toggled. Please note you need to have the skill unlocked and the limit is " +
+                    UserRpSkills.MaxEquippedSkills + ".", 1);
+            }
+
+            // Always refresh — the panel must snap back if the toggle was rejected.
+            WebOverlay.SendMyItems(session);
+        }
+
+        // Equip an owned chat bubble (id 0 = back to the default bubble).
+        private static void EquipBubble(JsonElement data, GameClient session)
+        {
+            if (!TryGetInt(data, "id", out int bubbleId))
+                return;
+
+            Habbo habbo = session.GetHabbo();
+            if (habbo == null)
+                return;
+
+            if (!habbo.HasChatBubble(bubbleId))
+            {
+                session.SendWhisper("You do not own that chat bubble.", 1);
+                WebOverlay.SendMyItems(session);
+                return;
+            }
+
+            // Id 0 clears any custom bubble. It has a room_chat_styles row for the overlay's
+            // preview, but skip the checks anyway so a misconfigured row can never leave someone
+            // stuck on a bubble with no way back to the default. Matches :bubble.
+            if (bubbleId != 0)
+            {
+                if (!PlusEnvironment.GetGame().GetChatManager().GetChatStyles().TryGetStyle(bubbleId, out ChatStyle style))
+                {
+                    session.SendWhisper("That chat bubble does not exist.", 1);
+                    WebOverlay.SendMyItems(session);
+                    return;
+                }
+
+                if (!string.IsNullOrEmpty(style.RequiredRight) && !habbo.GetPermissions().HasRight(style.RequiredRight))
+                {
+                    session.SendWhisper("You cannot use this bubble due to a rank requirement, sorry!", 1);
+                    WebOverlay.SendMyItems(session);
+                    return;
+                }
+            }
+
+            habbo.CustomBubbleId = bubbleId;
+
+            // Mirror onto the live room user so the next line of chat uses it immediately.
+            RoomUser roomUser = habbo.CurrentRoom?.GetRoomUserManager()?.GetRoomUserByHabbo(habbo.Id);
+            if (roomUser != null)
+                roomUser.LastBubble = bubbleId;
+
+            WebOverlay.SendMyItems(session);
+        }
+
+        // Equip/unequip an owned weapon skin. Mirrors the :weaponskin command, including
+        // re-applying the effect when the skin belongs to the currently active weapon.
+        private static void ToggleWeaponSkin(JsonElement data, GameClient session)
+        {
+            if (!TryGetInt(data, "id", out int userSkinId))
+                return;
+
+            Habbo habbo = session.GetHabbo();
+            UserRpWeaponSkins weaponSkins = habbo?.GetRpWeaponSkins();
+            UserWeaponSkin userSkin = weaponSkins?.GetSkin(userSkinId);
+            if (userSkin == null)
+            {
+                session.SendWhisper("You do not own that skin.", 1);
+                WebOverlay.SendMyItems(session);
+                return;
+            }
+
+            if (!weaponSkins.ToggleSkin(userSkinId))
+            {
+                session.SendWhisper("That skin could not be toggled.", 1);
+                WebOverlay.SendMyItems(session);
+                return;
+            }
+
+            bool equipped = userSkin.Equipped;
+            UserWeapon activeWeapon = habbo.GetRpStats()?.ActiveWeapon();
+            if (activeWeapon?.WeaponData != null && activeWeapon.WeaponId == userSkin.SkinData.WeaponId)
+                habbo.Effects().ApplyEffect(equipped ? userSkin.SkinData.EffectId : activeWeapon.WeaponData.Effect);
+
+            // The shout is room-scoped; equipping from the overlay while roomless is still allowed.
+            RoomUser roomUser = habbo.CurrentRoom?.GetRoomUserManager()?.GetRoomUserByHabbo(habbo.Id);
+            if (roomUser != null)
+            {
+                habbo.CurrentRoom.SendPacket(new ShoutComposer(roomUser.VirtualId,
+                    (equipped ? "*equips the " : "*unequips the ") + userSkin.SkinData.Name + " skin*",
+                    0, habbo.CustomBubbleId, isRpAction: true));
+            }
+
+            WebOverlay.SendMyItems(session);
         }
 
         private static void SendMacroList(GameClient session)

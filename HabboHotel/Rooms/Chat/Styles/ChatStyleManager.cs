@@ -24,14 +24,14 @@ namespace Plus.HabboHotel.Rooms.Chat.Styles
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
             {
-                var rows = db.RoomChatStyles.Select(s => new { s.Id, s.Name, s.RequiredRight }).ToList();
+                var rows = db.RoomChatStyles.Select(s => new { s.Id, s.Name, s.RequiredRight, s.Url, s.FontColor }).ToList();
 
                 foreach (var row in rows)
                 {
                     try
                     {
                         if (!_styles.ContainsKey(row.Id))
-                            _styles.Add(row.Id, new ChatStyle(row.Id, row.Name, row.RequiredRight));
+                            _styles.Add(row.Id, new ChatStyle(row.Id, row.Name, row.RequiredRight, row.Url, row.FontColor));
                     }
                     catch (Exception ex)
                     {
@@ -46,6 +46,11 @@ namespace Plus.HabboHotel.Rooms.Chat.Styles
         public bool TryGetStyle(int id, out ChatStyle style)
         {
             return _styles.TryGetValue(id, out style);
+        }
+
+        public ICollection<ChatStyle> GetStyles()
+        {
+            return _styles.Values;
         }
     }
 }

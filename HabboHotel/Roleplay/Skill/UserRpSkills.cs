@@ -7,6 +7,8 @@ namespace Plus.HabboHotel.Roleplay.Skill
 {
     public class UserRpSkills
     {
+        public const int MaxEquippedSkills = 4;
+
         private readonly Dictionary<int, UserSkillData> _skills;
         private readonly SkillManager _skillManager;
 
@@ -80,7 +82,7 @@ namespace Plus.HabboHotel.Roleplay.Skill
 
         public bool CanEquipMoreSkills()
         {
-            return EquippedCount() < 4;
+            return EquippedCount() < MaxEquippedSkills;
         }
 
         public int GetLevelByProgressCategory(string progressCategory)

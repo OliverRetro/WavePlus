@@ -17,4 +17,12 @@ public partial class RoomChatStyleEntity
     [StringLength(25)]
     [Column("required_right")]
     public string RequiredRight { get; set; }
+
+    [StringLength(255)]
+    [Column("url")]
+    public string Url { get; set; }
+
+    [StringLength(25)]
+    [Column("font_color")]
+    public string FontColor { get; set; }
 }
