@@ -1,4 +1,5 @@
 using Plus.Communication.Packets.Outgoing.Inventory.Purse;
+using Plus.Communication.Packets.Outgoing.Overlay;
 using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
@@ -61,7 +62,7 @@ namespace Plus.HabboHotel.Roleplay.Trash
             if (!_activeSearches.TryRemove(userId, out ActiveTrashSearch search))
                 return;
 
-            UnlockUser(search.UserId);
+            CancelInteractionTimer(search.UserId);
             ResetItemState(search);
         }
 
@@ -122,7 +123,7 @@ namespace Plus.HabboHotel.Roleplay.Trash
                 return false;
             }
 
-            int duration = GetDurationSeconds();
+            int duration = GetDurationSeconds(habbo);
             ActiveTrashSearch activeSearch = new ActiveTrashSearch
             {
                 UserId = habbo.Id,
@@ -137,12 +138,9 @@ namespace Plus.HabboHotel.Roleplay.Trash
                 return false;
             }
 
-            roomUser.CanWalk = false;
-            roomUser.ClearMovement(true);
-            // Canonical movement freeze (honoured by RoomUser.MoveTo via IsMovementFrozen), so the
-            // user is pinned for the whole search regardless of how movement is initiated. The small
-            // buffer guarantees it outlives the search tick; UnlockUser clears it on completion/cancel.
-            roomUser.TimedFreezeUntilUtc = DateTime.UtcNow.AddSeconds(duration + 1);
+            // Searching no longer pins the user in place — they stay free to walk while the
+            // interaction timer runs.
+            WebOverlay.SendInteractionTimer(session, "Dumpster diving finished in %seconds% seconds", duration);
 
             UserRpStats stats = habbo.GetRpStats();
             if (stats != null)
@@ -197,8 +195,6 @@ namespace Plus.HabboHotel.Roleplay.Trash
             Habbo habbo = client?.GetHabbo();
             if (habbo == null)
                 return;
-
-            UnlockUser(search.UserId);
 
             Room room = habbo.CurrentRoom;
             RoomUser roomUser = room.GetRoomUserManager().GetRoomUserByHabbo(habbo.Id);
@@ -356,20 +352,12 @@ namespace Plus.HabboHotel.Roleplay.Trash
             item.UpdateState(false, true);
         }
 
-        private static void UnlockUser(int userId)
+        /// <summary>Closes the overlay timer when a search ends before its natural finish.</summary>
+        private static void CancelInteractionTimer(int userId)
         {
             GameClient client = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(userId);
-            RoomUser roomUser = client?.GetHabbo()?.CurrentRoom?.GetRoomUserManager().GetRoomUserByHabbo(userId);
-            if (roomUser == null)
-                return;
-
-            // Do not override police cuffs.
-            if (PlusEnvironment.GetPoliceManager()?.IsCuffed(userId) == true)
-                return;
-
-            roomUser.CanWalk = true;
-            roomUser.TimedFreezeUntilUtc = DateTime.MinValue;
-            roomUser.UpdateNeeded = true;
+            if (client != null)
+                WebOverlay.CancelInteractionTimer(client);
         }
 
         public static bool IsTrashBin(Item item)
@@ -410,7 +398,20 @@ namespace Plus.HabboHotel.Roleplay.Trash
             return Math.Abs(user.X - item.GetX) + Math.Abs(user.Y - item.GetY) <= range;
         }
 
-        public static int GetDurationSeconds() => Math.Max(1, GetSettingInt("rp.trash.search.duration.seconds", 5));
+        /// <summary>
+        /// How long a trash search takes for this user. Base is 20s (overridable via
+        /// rp.trash.search.duration.seconds); a trained scavenger works faster. Keep any future
+        /// per-user modifiers here so the timer the client is shown always matches the tick.
+        /// </summary>
+        public static int GetDurationSeconds(Habbo habbo)
+        {
+            int duration = Math.Max(1, GetSettingInt("rp.trash.search.duration.seconds", 20));
+
+            int scavengeLevel = habbo?.GetRpSkills()?.GetLevelByProgressCategory("Scavenge") ?? 0;
+            duration -= scavengeLevel * 2;
+
+            return Math.Max(3, duration);
+        }
 
         public static int GetUserCooldownSeconds(Habbo habbo)
         {

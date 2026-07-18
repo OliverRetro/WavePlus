@@ -68,6 +68,50 @@ namespace Plus.Communication.Packets.Outgoing.Overlay
             });
         }
 
+        public static void SendInteractionTimer(GameClient session, string label, int seconds)
+        {
+            if (session == null || seconds <= 0)
+                return;
+
+            Send(session, "interaction_timer", new
+            {
+                label = label ?? "",
+                seconds
+            });
+        }
+
+        public static void CancelInteractionTimer(GameClient session)
+        {
+            Send(session, "interaction_timer_cancel", new { });
+        }
+
+        private const string DefaultGroupBadgeUrl = "https://waverp.online/habbo-imaging/badge/%badge%.png";
+
+        public static string GetGroupBadgeUrl(string badge)
+        {
+            if (string.IsNullOrEmpty(badge))
+                return "";
+
+            string template = PlusEnvironment.GetConfig().Data.TryGetValue("group.badge.url", out string configured) && !string.IsNullOrWhiteSpace(configured)
+                ? configured
+                : DefaultGroupBadgeUrl;
+
+            return template.Replace("%badge%", badge);
+        }
+
+        public static void SendGroupInvite(GameClient session, int inviteId, string sender, string groupName, int groupId, string badge)
+        {
+            Send(session, "group_invite", new
+            {
+                inviteId,
+                sender = sender ?? "",
+                groupName = groupName ?? "",
+                groupId,
+                badge = badge ?? "",
+                badgeUrl = GetGroupBadgeUrl(badge)
+            });
+        }
+
         public static void SendOnline(GameClient session, bool online)
         {
             Send(session, "online", new { online });

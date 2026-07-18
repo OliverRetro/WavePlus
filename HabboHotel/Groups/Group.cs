@@ -591,15 +591,6 @@ namespace Plus.HabboHotel.Groups
         /// <summary>Read-only snapshot of member id → level, for the Redis mirror.</summary>
         public IReadOnlyDictionary<int, int> MemberLevelsSnapshot => new Dictionary<int, int>(_memberLevels);
 
-        /// <summary>
-        /// Persists the group to the database. Called by GroupManager.SaveAll on the 15-minute
-        /// world-save timer (and at shutdown) — NOT on individual mutations. Flushes roles and
-        /// permissions via their existing dirty-tracked savers, and, when metadata or the member/
-        /// request sets changed, rewrites the group row plus a full resync of the (bounded) member
-        /// and request sets. group_memberships has an identity PK with no unique (user_id,group_id)
-        /// key, so delete-all + re-insert is the safe way to mirror the in-memory set. Finally
-        /// refreshes the Redis mirror.
-        /// </summary>
         public void Flush()
         {
             SaveRoles();

@@ -16,15 +16,13 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
             if (user == null)
                 return;
 
-            if (user.IsSitting)
-            {
+            session.SendWhisper("Oops, cannot lay down here - try elsewhere!", 1);
+            if (user.IsSitting && !session.GetHabbo().GetRpStats().IsDead) {
                 user.Statusses.Remove("sit");
                 user.Z += 0.35;
                 user.IsSitting = false;
                 user.UpdateNeeded = true;
-            }
-            else if (user.IsLying)
-            {
+            } else if (user.IsLying && !session.GetHabbo().GetRpStats().IsDead) {
                 user.Statusses.Remove("lay");
                 user.Z += 0.35;
                 user.IsLying = false;

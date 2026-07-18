@@ -59,15 +59,9 @@ namespace Plus.HabboHotel.Roleplay.Combat
             var weapon = activeWeapon?.WeaponData;
             WeaponSkin skin = attacker.GetRpWeaponSkins()?.GetEquippedSkinForWeapon(activeWeapon?.WeaponId ?? 0)?.SkinData;
 
-            double range = weapon?.Range ?? 1.5;
+            double range = weapon?.Range ?? RpProximity.AdjacentRange;
 
-            int dx = Math.Abs(attackerRoomUser.X - targetRoomUser.X);
-            int dy = Math.Abs(attackerRoomUser.Y - targetRoomUser.Y);
-
-            double distance = Math.Sqrt(dx * dx + dy * dy);
-            bool inRange = (dx + dy) <= range;
-
-            if (!inRange)
+            if (!RpProximity.IsWithinRange(attackerRoomUser, targetRoomUser, range))
             {
                 attacker.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, "*swings at " + target.Username + ", but misses*", 0, 29, isRpAction: true));
                 return;

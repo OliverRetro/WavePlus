@@ -594,13 +594,18 @@ namespace Plus.HabboHotel.Users
             return _rpStats?.Aggression ?? 0;
         }
 
-        public void ResetAggressionTimer()
+        public int GetAggressionDuration()
         {
             int aggressionDuration = 30;
             if (PlusEnvironment.GetGame().GetSubscriptionManager().TryGetSubscriptionData(VipRank, out SubscriptionData subData))
                 aggressionDuration = Math.Max(0, aggressionDuration - subData.StaticAggression);
 
-            StartAggressionTimer(aggressionDuration);
+            return aggressionDuration;
+        }
+
+        public void ResetAggressionTimer()
+        {
+            StartAggressionTimer(GetAggressionDuration());
         }
 
         public void ClearAggressionTimer()
@@ -1264,6 +1269,7 @@ namespace Plus.HabboHotel.Users
             // Drop cached web-overlay macros + target lock state.
             PlusEnvironment.GetGame().GetMacroManager().Unload(Id);
             TargetLockService.Clear(Id);
+            GroupInviteService.Clear(Id);
             PlusEnvironment.GetPoliceManager()?.OnDisconnect(this);
             PlusEnvironment.GetJailManager()?.OnDisconnect(this);
             PlusEnvironment.GetTrashSearchManager()?.Cancel(Id);
@@ -1415,8 +1421,11 @@ namespace Plus.HabboHotel.Users
                     if ((_rpStats?.Aggression ?? 0) <= 0)
                     {
                         ClearAggressionTimer();
+                        TrySendUserStatsUpdate(true);
                         return;
                     }
+
+                    TrySendUserStatsUpdate(true);
 
                     await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
                 }

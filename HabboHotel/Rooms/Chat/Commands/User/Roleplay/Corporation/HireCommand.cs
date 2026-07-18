@@ -1,13 +1,8 @@
-using Plus.Communication.Packets.Outgoing.Groups;
 using Plus.Communication.Packets.Outgoing.Rooms.Chat;
-using Plus.Communication.Packets.Outgoing.Users;
-using Microsoft.EntityFrameworkCore;
-using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
 using Plus.HabboHotel.Roleplay.Utilities;
 using Plus.HabboHotel.Users;
-using System.Linq;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
 {
@@ -18,7 +13,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
 
         public string Parameters => "%username%";
 
-        public string Description => "Accept a pending group member request.";
+        public string Description => "Invite a user to join this group.";
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
@@ -46,9 +41,9 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
                 return;
             }
 
-            if (!group.HasRequest(targetHabbo.Id))
+            if (group.IsMember(targetHabbo.Id))
             {
-                session.SendWhisper("That user does not have a pending request for this group.", 1);
+                session.SendWhisper("That user is already a member of this group.", 1);
                 return;
             }
 
@@ -58,45 +53,34 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
                 return;
             }
 
-            if (targetHabbo.GetStats().FavouriteGroupId == 0 && (group.Kind == GroupKind.Gang || group.Kind == GroupKind.Cartel || group.Kind == GroupKind.Mafia))
+            // If they already applied there's nothing to ask — just accept their request.
+            if (group.HasRequest(targetHabbo.Id))
             {
-                targetHabbo.GetStats().FavouriteGroupId = group.Id;
-                int gid = targetHabbo.GetStats().FavouriteGroupId;
-                int uid = targetHabbo.Id;
-                using WavePlusContext db = PlusEnvironment.GetDbContext();
-                db.UserStats.Where(x => x.Id == uid).ExecuteUpdate(s => s.SetProperty(x => x.Groupid, gid));
-
-                if (targetHabbo.InRoom && targetHabbo.CurrentRoom != null)
-                {
-                    targetHabbo.CurrentRoom.SendPacket(new RefreshFavouriteGroupComposer(targetHabbo.Id));
-                    targetHabbo.CurrentRoom.SendPacket(new HabboGroupBadgesComposer(group));
-
-                    RoomUser user = targetHabbo.CurrentRoom.GetRoomUserManager()
-                        .GetRoomUserByHabbo(targetHabbo.Id);
-                    if (user != null)
-                        targetHabbo.CurrentRoom.SendPacket(new UpdateFavouriteGroupComposer(group, user.VirtualId));
-                }
-                else
-                    session.SendPacket(new RefreshFavouriteGroupComposer(targetHabbo.Id));
+                GroupInviteService.Hire(session, group, targetClient, targetHabbo);
+                Shout(session, room, "*hired " + targetHabbo.Username + " to " + group.Name + "*");
+                return;
             }
 
-            group.HandleRequest(targetHabbo.Id, true);
-
-            if (GroupManager.IsWorkableKind(group.Kind))
+            // Otherwise raise the invite popup in their overlay — they have to be online.
+            if (targetClient == null)
             {
-                targetHabbo.CorporationId = group.Id;
-                // Achievement: got hired into a corporation/business.
-                PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(targetClient, "ACH_Hired", 1);
+                session.SendWhisper("That user is offline, so they can't be invited right now.", 1);
+                return;
             }
 
-            // Achievement: joined a gang.
-            if (group.Kind == GroupKind.Gang)
-                PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(targetClient, "ACH_JoinGang", 1);
+            if (!GroupInviteService.Invite(session, group, targetClient))
+                return;
 
-            session.SendPacket(new GroupMemberUpdatedComposer(group, targetHabbo, 4));
-            session.SendPacket(new GroupInfoComposer(group, targetClient));
-            LiveFeedService.LiveFeed(LiveFeedService.Name(session.GetHabbo().Username, "green") + " hired " + LiveFeedService.Name(targetHabbo.Username, "lightblue") + " to <b>" + group.Name + "</b>");
-            room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*hired " + targetHabbo.Username + " to " + group.Name + "*", 0, session.GetHabbo().CustomBubbleId, isRpAction: true));
+            session.SendWhisper("Invited " + targetHabbo.Username + " to " + group.Name + ". Waiting for them to accept.", 1);
+            Shout(session, room, GroupInviteService.InviteShout(group, targetHabbo.Username));
+        }
+
+        /// <summary>Shouts an RP action from the hirer. No-ops if they aren't in the room.</summary>
+        private static void Shout(GameClient session, Room room, string message)
+        {
+            RoomUser user = room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id);
+            if (user != null)
+                room.SendPacket(new ShoutComposer(user.VirtualId, message, 0, session.GetHabbo().CustomBubbleId, isRpAction: true));
         }
     }
 }

@@ -76,6 +76,9 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
                 return;
             }
 
+            if (!RpCommandUtil.RequireAdjacent(session, room, targetClient.GetHabbo(), "You need to be beside the user to rob them."))
+                return;
+
             session.GetHabbo().LastRobTime = now + 90;
             PlusEnvironment.GetCombatManager().RobUser(session.GetHabbo(), targetClient.GetHabbo(), room, targetClient.GetHabbo().GetRpStats().IsDead ? 100 : 50);
         }

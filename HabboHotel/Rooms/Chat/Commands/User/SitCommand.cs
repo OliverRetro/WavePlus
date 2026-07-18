@@ -22,8 +22,9 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
             if (user == null)
                 return;
 
-            if (user.Statusses.ContainsKey("lie") || user.IsLying || user.RidingHorse || user.IsWalking)
+            if (user.Statusses.ContainsKey("lie") || user.IsLying || user.RidingHorse || user.IsWalking || session.GetHabbo().GetRpStats().IsDead) {
                 return;
+            }
 
             if (!user.Statusses.ContainsKey("sit"))
             {

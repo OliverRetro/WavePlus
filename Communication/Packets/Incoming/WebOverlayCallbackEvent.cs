@@ -12,6 +12,7 @@ using Plus.HabboHotel.Roleplay.RpItem.Item;
 using Plus.HabboHotel.Roleplay.RpItem.Weapon;
 using Plus.HabboHotel.Roleplay.Skill;
 using Plus.HabboHotel.Roleplay.TargetLock;
+using Plus.HabboHotel.Roleplay.Utilities;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Rooms.Chat.Styles;
 using Plus.HabboHotel.Users;
@@ -161,6 +162,12 @@ namespace Plus.Communication.Packets.Incoming
 
                 case "open_wanted":
                     session.SendPacket(new WantedListComposer());
+                    break;
+
+                // Accept/decline of a :hire group invite popup.
+                case "group_invite_response":
+                    if (TryGetInt(data, "inviteId", out int inviteId))
+                        GroupInviteService.Respond(session, inviteId, GetBool(data, "accepted"));
                     break;
 
                 // ── My Items ────────────────────────────────────────────

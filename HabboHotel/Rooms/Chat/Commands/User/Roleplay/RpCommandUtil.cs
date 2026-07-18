@@ -1,5 +1,5 @@
-using System;
 using Plus.HabboHotel.GameClients;
+using Plus.HabboHotel.Roleplay.Utilities;
 using Plus.HabboHotel.Users;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
@@ -45,7 +45,9 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
             if (ua == null || ub == null)
                 return false;
 
-            return Math.Abs(ua.X - ub.X) + Math.Abs(ua.Y - ub.Y) <= 1.5;
+            // Shares combat's reach rules, so cuffing/arresting a diagonally adjacent suspect
+            // works exactly like swinging at them does — including while either party is walking.
+            return RpProximity.IsWithinRange(ua, ub, RpProximity.AdjacentRange);
         }
 
         public static bool RequireAdjacent(GameClient session, Room room, Habbo target, string message)

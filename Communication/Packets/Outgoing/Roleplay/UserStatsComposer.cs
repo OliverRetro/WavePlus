@@ -45,10 +45,14 @@ namespace Plus.Communication.Packets.Outgoing.Quests
             message.WriteString(habbo.Look);
             message.WriteInteger(rpStats.Health);
             message.WriteInteger(UserRpStats.GetMaxHealth(habbo));
-            message.WriteInteger(rpStats.Shield);
-            message.WriteInteger(100); // Max shield, hardcoded for now
             message.WriteInteger(rpStats.Energy);
+            message.WriteInteger(UserRpStats.GetMaxEnergy(habbo)); // Max shield, hardcoded for now
+            message.WriteInteger(rpStats.Shield);
             message.WriteInteger(100); // Max energy, hardcoded for now
+            message.WriteInteger(rpStats.Hunger);
+            message.WriteInteger(UserRpStats.GetMaxHunger(habbo));
+            message.WriteInteger(habbo.GetAggressionSecondsRemaining());
+            message.WriteInteger(habbo.GetAggressionDuration());
         }
     }
 }
