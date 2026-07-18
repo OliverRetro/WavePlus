@@ -35,7 +35,10 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
                         row.ImageUrl,
                         row.AttributeEffects,
                         row.StackLimit,
-                        row.ItemType ?? "consumable"
+                        row.ItemType ?? "consumable",
+                        row.Rarity,
+                        row.Bubble ?? string.Empty,
+                        row.Clothing ?? string.Empty
                     );
 
                     _items[item.Id] = item;

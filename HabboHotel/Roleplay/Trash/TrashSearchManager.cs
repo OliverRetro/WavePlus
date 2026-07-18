@@ -285,6 +285,11 @@ namespace Plus.HabboHotel.Roleplay.Trash
                 return false;
 
             habbo.SaveRpItems();
+
+            // Live-refresh an open inventory panel with the found item(s).
+            if (habbo.GetClient() != null)
+                Plus.Communication.Packets.Incoming.WebOverlayCallbackEvent.RefreshInventory(habbo.GetClient());
+
             rewardText = given == 1 ? $"a {itemData.Name}" : $"{given}x {itemData.Name}";
             return true;
         }

@@ -38,7 +38,8 @@ namespace Plus.HabboHotel.Permissions
                         row.Range,
                         row.Durability,
                         row.StunChance,
-                        row.Image
+                        row.Image,
+                        row.Rarity
                     );
 
                     _weapons.Add(weapon.Id, weapon);

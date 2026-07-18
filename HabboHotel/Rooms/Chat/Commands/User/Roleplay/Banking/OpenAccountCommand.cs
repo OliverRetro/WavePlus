@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Plus.HabboHotel.GameClients;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Banking

@@ -31,7 +31,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             Equipped = equipped;
         }
 
-        /// <summary>Effective shield durability — falls back to the item's max when uninitialised.</summary>
-        public int EffectiveDurability => DurabilityLeft < 0 ? ItemData?.MaxShield ?? 0 : DurabilityLeft;
+        /// <summary>Effective durability — falls back to the item's max (shield pool or vest hits) when uninitialised.</summary>
+        public int EffectiveDurability => DurabilityLeft < 0 ? ItemData?.MaxDurability ?? 0 : DurabilityLeft;
     }
 }

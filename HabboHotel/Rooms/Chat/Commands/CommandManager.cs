@@ -295,6 +295,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             Register(new InvCommand());
             Register(new DisbandItemCommand());
             Register(new GiveItemCommand());
+            Register(new GiveWeaponCommand());
             Register(new RpUpdateCommand());
         }
 

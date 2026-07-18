@@ -42,4 +42,23 @@ public partial class RpItemEntity
     [StringLength(32)]
     [Column("item_type")]
     public string ItemType { get; set; }
+
+    /// <summary>Rarity 1-5 driving the inventory glow (1 common .. 5 legendary).</summary>
+    [Column("rarity", TypeName = "smallint(6)")]
+    public short Rarity { get; set; }
+
+    /// <summary>Optional shout executed on consume, formatted "text;bubbleId". Empty = none.</summary>
+    [Required]
+    [StringLength(255)]
+    [Column("bubble")]
+    public string Bubble { get; set; }
+
+    /// <summary>
+    /// Optional figure override applied while the item is equipped (restored on unequip).
+    /// Supports the shift-costume format: a full/partial figure, or gendered
+    /// "m|figure;f|figure". Empty = no clothing swap.
+    /// </summary>
+    [Required]
+    [Column("clothing")]
+    public string Clothing { get; set; }
 }

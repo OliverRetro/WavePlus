@@ -205,7 +205,7 @@ namespace Plus.HabboHotel.Rooms
 
         public List<Room> GetPopularRooms(int category, int amount = 50)
         {
-            return _rooms.Values.Where(x => x.UsersNow > 0 && x.Access != RoomAccess.Invisible).OrderByDescending(x => x.UsersNow).Take(amount).ToList();
+            return _rooms.Values.Where(x => x.Access != RoomAccess.Invisible).OrderByDescending(x => x.UsersNow).Take(amount).ToList();
         }
 
         public List<Room> GetRecommendedRooms(int amount = 50, int currentRoomId = 0)

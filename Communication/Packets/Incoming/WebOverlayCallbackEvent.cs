@@ -425,7 +425,21 @@ namespace Plus.Communication.Packets.Incoming
             WebOverlay.SendMacroSet(session, manager.GetSelected(userId), manager.IsEnabled(userId));
         }
 
-        private static void OpenInventory(GameClient session)
+        private static void OpenInventory(GameClient session) => SendInventory(session, true);
+
+        /// <summary>
+        /// Pushes the current inventory to an already-open panel without forcing it open (open:false).
+        /// Called when items are received or durability changes so a live panel refreshes.
+        /// </summary>
+        internal static void RefreshInventory(GameClient session)
+        {
+            if (session?.GetHabbo() == null)
+                return;
+
+            SendInventory(session, false);
+        }
+
+        private static void SendInventory(GameClient session, bool open)
         {
             Habbo habbo = session.GetHabbo();
             if (habbo == null)
@@ -434,13 +448,16 @@ namespace Plus.Communication.Packets.Incoming
             // Keep the equipped shield's stored durability in sync with the live stat.
             habbo.GetRpItems()?.SyncEquippedShield(habbo);
 
+            // Passive mode is surfaced so the overlay can grey out / block equipping combat gear.
+            bool passive = habbo.GetRpStats()?.PassiveMode == true;
+
             List<object> items = new();
 
             // Primary equipped slot (0): a primary item if one is equipped, otherwise the weapon.
             UserRpItem equippedPrimary = habbo.GetRpItems()?.GetEquippedPrimaryItem();
             if (equippedPrimary?.ItemData != null)
             {
-                bool hasBar = equippedPrimary.ItemData.MaxShield > 0;
+                bool hasBar = equippedPrimary.ItemData.MaxDurability > 0;
                 items.Add(new
                 {
                     id = equippedPrimary.Id,
@@ -450,7 +467,8 @@ namespace Plus.Communication.Packets.Incoming
                     equippedSlot = 0,
                     image = equippedPrimary.ItemData.ImageUrl ?? "",
                     weapon = hasBar,
-                    health = hasBar ? (int)Math.Round(100.0 * equippedPrimary.EffectiveDurability / Math.Max(1, equippedPrimary.ItemData.MaxShield)) : 100
+                    rarity = equippedPrimary.ItemData.Rarity,
+                    health = hasBar ? (int)Math.Round(100.0 * equippedPrimary.EffectiveDurability / Math.Max(1, equippedPrimary.ItemData.MaxDurability)) : 100
                 });
             }
             else
@@ -469,6 +487,8 @@ namespace Plus.Communication.Packets.Incoming
                         equippedSlot = 0,
                         image = weapon.WeaponData.Image ?? "",
                         weapon = true,
+                        passiveBlock = true,
+                        rarity = (int)weapon.WeaponData.Rarity,
                         health = weapon.WeaponData.Durability <= 0 ? 100
                             : (int)Math.Round(100.0 * weapon.DurabilityLeft / weapon.WeaponData.Durability)
                     });
@@ -479,7 +499,9 @@ namespace Plus.Communication.Packets.Incoming
             UserRpItem equippedShield = habbo.GetRpItems()?.GetEquippedShield();
             if (equippedShield?.ItemData != null)
             {
-                int maxShield = Math.Max(1, equippedShield.ItemData.MaxShield);
+                // A suicide vest is single-use — it has no durability, so it renders no bar.
+                bool isSuicide = equippedShield.ItemData.IsSuicideVest;
+                int maxShield = Math.Max(1, equippedShield.ItemData.MaxDurability);
                 items.Add(new
                 {
                     id = equippedShield.Id,
@@ -488,9 +510,12 @@ namespace Plus.Communication.Packets.Incoming
                     equipped = true,
                     equippedSlot = 1,
                     image = equippedShield.ItemData.ImageUrl ?? "",
-                    weapon = true,
-                    shield = true,
-                    health = (int)Math.Round(100.0 * equippedShield.EffectiveDurability / maxShield)
+                    weapon = !isSuicide,
+                    shield = !isSuicide,
+                    suicide = isSuicide,
+                    passiveBlock = isSuicide || equippedShield.ItemData.BlockedWhilePassive,
+                    rarity = equippedShield.ItemData.Rarity,
+                    health = isSuicide ? 100 : (int)Math.Round(100.0 * equippedShield.EffectiveDurability / maxShield)
                 });
             }
 
@@ -518,6 +543,9 @@ namespace Plus.Communication.Packets.Incoming
                         equipped = false,
                         image = w.WeaponData?.Image ?? "",
                         weapon = true,
+                        canEquip = true,
+                        passiveBlock = true,
+                        rarity = w.WeaponData?.Rarity ?? 0,
                         slot,
                         health = w.WeaponData == null || w.WeaponData.Durability <= 0 ? 100
                             : (int)Math.Round(100.0 * w.DurabilityLeft / w.WeaponData.Durability)
@@ -529,9 +557,10 @@ namespace Plus.Communication.Packets.Incoming
                 // Lock the resolved position (see weapon branch above).
                 habbo.GetRpItems()?.SetSlot(rep.Id, slot);
                 bool isSecondary = entry.Kind == "secondary";
-                bool hasBar = rep.ItemData != null && rep.ItemData.MaxShield > 0;
+                bool isPrimary = entry.Kind == "primary";
+                bool hasBar = rep.ItemData != null && rep.ItemData.MaxDurability > 0;
                 int health = hasBar
-                    ? (int)Math.Round(100.0 * rep.EffectiveDurability / Math.Max(1, rep.ItemData.MaxShield))
+                    ? (int)Math.Round(100.0 * rep.EffectiveDurability / Math.Max(1, rep.ItemData.MaxDurability))
                     : 100;
 
                 items.Add(new
@@ -543,6 +572,11 @@ namespace Plus.Communication.Packets.Incoming
                     image = rep.ItemData?.ImageUrl ?? "",
                     weapon = hasBar, // shields / durability items render a bar
                     shield = isSecondary,
+                    // Tells the overlay whether this item may be dropped on an equip slot.
+                    canEquip = isSecondary || isPrimary,
+                    suicide = rep.ItemData?.IsSuicideVest ?? false,
+                    passiveBlock = rep.ItemData?.BlockedWhilePassive ?? false,
+                    rarity = rep.ItemData?.Rarity ?? 1,
                     slot,
                     count = entry.Count,
                     stackLimit = rep.ItemData?.StackLimit ?? 1,
@@ -551,7 +585,7 @@ namespace Plus.Communication.Packets.Incoming
                 });
             }
 
-            WebOverlay.Send(session, "inventory", new { items });
+            WebOverlay.Send(session, "inventory", new { items, open, passive });
         }
 
         // Unequip the active weapon — it returns to the grid, so it needs a free slot.
@@ -588,14 +622,9 @@ namespace Plus.Communication.Packets.Incoming
                 return;
             }
 
-            // Double-clicking an equipped suicide vest detonates it instead of unequipping.
-            if (equippedSecondary.ItemData != null && equippedSecondary.ItemData.IsSuicideVest)
-            {
-                items.Use(equippedSecondary.Id, habbo);
-                OpenInventory(session);
-                return;
-            }
-
+            // Unequipping (drag out / take off) NEVER detonates — a suicide vest is only triggered
+            // by an explicit use (double-click), handled via UseItem. This lets it be dragged away
+            // safely instead of blowing up the moment it's touched.
             if (RpInventory.UsedSlots(habbo, 10) >= 10)
             {
                 session.SendWhisper("You don't have a free inventory slot — disband something first.", 1);
@@ -612,7 +641,10 @@ namespace Plus.Communication.Packets.Incoming
             if (!TryGetInt(data, "userWeaponId", out int userWeaponId))
                 return;
 
-            RpWeaponService.Equip(session, userWeaponId, out _);
+            // Pre-emptively surface the rejection reason (passive / cuffed / on-duty) so the
+            // player is told why the weapon didn't equip instead of it silently snapping back.
+            if (!RpWeaponService.Equip(session, userWeaponId, out string error) && !string.IsNullOrEmpty(error))
+                session.SendWhisper(error, 1);
             OpenInventory(session);
         }
 
@@ -670,8 +702,17 @@ namespace Plus.Communication.Packets.Incoming
 
             UserRpItem equippedShieldBefore = items.GetEquippedShield();
 
+            // A weapon is identified by kind/userWeaponId — handle it first so the synthetic
+            // negative display id (which never matches a real item) can't send us down the item
+            // path and silently no-op. This is what let equipped weapons be trashed but not the
+            // brand-new grid ones.
+            bool isWeapon = GetString(data, "kind") == "weapon";
+            if (isWeapon && TryGetInt(data, "userWeaponId", out int weaponId))
+            {
+                habbo.GetRpWeapons()?.RemoveWeapon(weaponId);
+            }
             // Prefer an explicit list of ids (a stack); fall back to a single id.
-            if (data.ValueKind == JsonValueKind.Object && data.TryGetProperty("ids", out JsonElement idsEl) && idsEl.ValueKind == JsonValueKind.Array)
+            else if (data.ValueKind == JsonValueKind.Object && data.TryGetProperty("ids", out JsonElement idsEl) && idsEl.ValueKind == JsonValueKind.Array)
             {
                 foreach (JsonElement e in idsEl.EnumerateArray())
                 {
@@ -702,6 +743,9 @@ namespace Plus.Communication.Packets.Incoming
                     habbo.TrySendUserStatsUpdate(true);
                 }
             }
+
+            // Disbanding an equipped clothing item must restore the wearer's real figure.
+            RpItemClothingService.Refresh(habbo);
 
             habbo.SaveRpItems();
             habbo.SaveRpWeapons();

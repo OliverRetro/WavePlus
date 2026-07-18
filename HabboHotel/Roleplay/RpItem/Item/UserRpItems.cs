@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Plus.Communication.Packets.Incoming;
+using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.HabboHotel.Roleplay.Utilities;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
@@ -111,6 +113,12 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             if (item == null || item.ItemData == null || !item.ItemData.IsSecondary)
                 return false;
 
+            if (item.ItemData.BlockedWhilePassive && habbo?.GetRpStats()?.PassiveMode == true)
+            {
+                habbo.GetClient()?.SendWhisper($"You can't equip {item.ItemData.Name} while passive!", 1);
+                return false;
+            }
+
             // Only replace other secondary items — leave the primary slot untouched.
             foreach (UserRpItem other in _items.Values)
                 if (other.ItemData != null && other.ItemData.IsSecondary)
@@ -119,6 +127,9 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             item.Equipped = true;
             // Keep the item's grid slot so it returns to the same place when unequipped
             // (the slot is reserved while equipped — see RpInventory.BuildSlotView).
+
+            // Swap in the item's clothing figure (if any) while it's worn.
+            RpItemClothingService.Refresh(habbo);
 
             // Vests (standard body armour / suicide vests) do NOT feed the shield pool — their
             // durability lives on the item itself and is managed directly in combat.
@@ -145,6 +156,12 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             if (item == null || item.ItemData == null || !item.ItemData.IsPrimary)
                 return false;
 
+            if (item.ItemData.BlockedWhilePassive && habbo?.GetRpStats()?.PassiveMode == true)
+            {
+                habbo.GetClient()?.SendWhisper($"You can't equip {item.ItemData.Name} while passive!", 1);
+                return false;
+            }
+
             foreach (UserRpItem other in _items.Values)
                 if (other.ItemData != null && other.ItemData.IsPrimary)
                     other.Equipped = false;
@@ -158,6 +175,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
 
             MarkDirty();
             RpEffectService.Refresh(habbo);
+            RpItemClothingService.Refresh(habbo);
             habbo?.TrySendUserStatsUpdate(true);
             return true;
         }
@@ -172,6 +190,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             item.Equipped = false;
             MarkDirty();
             RpEffectService.Refresh(habbo);
+            RpItemClothingService.Refresh(habbo);
             habbo?.TrySendUserStatsUpdate(true);
         }
 
@@ -187,6 +206,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             {
                 shield.Equipped = false;
                 MarkDirty();
+                RpItemClothingService.Refresh(habbo);
                 habbo?.TrySendUserStatsUpdate(true);
                 return;
             }
@@ -200,6 +220,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
 
             shield.Equipped = false;
             MarkDirty();
+            RpItemClothingService.Refresh(habbo);
             habbo?.TrySendUserStatsUpdate(true);
         }
 
@@ -226,6 +247,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             {
                 shield.Equipped = false;
                 Remove(shield);
+                RpItemClothingService.Refresh(habbo);
             }
             MarkDirty();
         }
@@ -248,6 +270,14 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             Room room = habbo.CurrentRoom;
             RoomUser roomUser = room?.GetRoomUserManager().GetRoomUserByHabbo(habbo.Id);
 
+            // Generic passive gate: any item flagged with the "passive" attribute can't be used
+            // while the owner is in passive mode (aggressive items — suicide vest, etc.).
+            if (data != null && data.BlockedWhilePassive && stats != null && stats.PassiveMode)
+            {
+                habbo.GetClient()?.SendWhisper($"You can't use {data.Name} while passive!", 1);
+                return false;
+            }
+
             // Lockpick: attempt to break free of cuffs instead of the usual consumable effects.
             if (data.Has("handpick"))
                 return TryHandpick(habbo, userItem, data);
@@ -255,6 +285,9 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             // Suicide vest: detonate for area damage when the equipped vest is used.
             if (data.IsSuicideVest)
                 return DetonateSuicideVest(habbo, userItem);
+
+            // Consume shout ("text;bubbleId") fires the moment the item is used.
+            EmitConsumeBubble(habbo, roomUser, data);
 
             // give fine shyte
             if (stats != null)
@@ -276,13 +309,14 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             ConsumeUse(userItem);
 
             habbo.TrySendUserStatsUpdate(true);
+
+            // Live-refresh an open inventory panel (use count / durability / removal).
+            if (habbo.GetClient() != null)
+                Plus.Communication.Packets.Incoming.WebOverlayCallbackEvent.RefreshInventory(habbo.GetClient());
+
             return true;
         }
 
-        /// <summary>
-        /// Detonates a suicide vest: explosive damage across the 3x3 grid around the user, a
-        /// guaranteed self knockout, and the vest is consumed. Must be equipped to detonate.
-        /// </summary>
         private bool DetonateSuicideVest(Habbo habbo, UserRpItem userItem)
         {
             if (!userItem.Equipped)
@@ -291,20 +325,31 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
                 return false;
             }
 
+            // Passive gate is enforced generically in Use() via the "passive" attribute.
+            UserRpStats stats = habbo.GetRpStats();
             RpItemData data = userItem.ItemData;
+            RoomUser roomUser = habbo.CurrentRoom?.GetRoomUserManager()?.GetRoomUserByHabbo(habbo.Id);
+
+            // Show the vest's activation effect/handitem the instant it's triggered.
+            if (roomUser != null && (data.HanditemData != 0 || data.EffectData != 0))
+                roomUser.ApplyTimedItemConsumption(TimeSpan.FromMilliseconds(data.ConsumptionDurationMs), data.EffectData, data.HanditemData);
+
+            EmitConsumeBubble(habbo, roomUser, data);
+
+            // The bomber is dropped to 0 HP; ApplyExplosion resolves the self knockout + blast.
+            if (stats != null)
+                stats.Health = 0;
+
             PlusEnvironment.GetCombatManager().ApplyExplosion(habbo, data.ExplosionMin, data.ExplosionMax);
 
-            // The vest is destroyed once used.
+            // The vest is destroyed once used (single use, no durability).
             Remove(userItem);
+            // Restore the wearer's real figure now the clothing-bearing vest is gone.
+            RpItemClothingService.Refresh(habbo);
             habbo.TrySendUserStatsUpdate(true);
             return true;
         }
 
-        /// <summary>
-        /// Applies a standard body-armour vest to an incoming non-fist hit: flat-reduces the damage
-        /// by a random configured amount (unless the vest fails its roll), always consuming one
-        /// point of durability. The vest breaks when its durability is exhausted.
-        /// </summary>
         public int AbsorbWithVest(Habbo habbo, int incomingDamage, bool isFistAttack)
         {
             if (isFistAttack || incomingDamage <= 0)
@@ -333,11 +378,16 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             {
                 vest.Equipped = false;
                 Remove(vest);
+                RpItemClothingService.Refresh(habbo);
                 habbo?.GetClient()?.SendWhisper("Your vest has been destroyed.", 1);
             }
 
             MarkDirty();
             habbo?.TrySendUserStatsUpdate(true);
+
+            if (habbo?.GetClient() != null)
+                WebOverlayCallbackEvent.RefreshInventory(habbo.GetClient());
+
             return reduced;
         }
 
@@ -379,6 +429,15 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
 
             habbo.TrySendUserStatsUpdate(true);
             return true;
+        }
+
+        /// <summary>Fires the item's optional consume shout ("text;bubbleId") into the room.</summary>
+        private static void EmitConsumeBubble(Habbo habbo, RoomUser roomUser, RpItemData data)
+        {
+            if (data == null || !data.HasBubble || roomUser == null || habbo?.CurrentRoom == null)
+                return;
+
+            habbo.CurrentRoom.SendPacket(new ShoutComposer(roomUser.VirtualId, data.BubbleText, 0, data.BubbleId, isRpAction: true));
         }
 
         private static void ApplyStatEffects(Habbo habbo, UserRpStats stats, RpItemData data, RoomUser roomUser)

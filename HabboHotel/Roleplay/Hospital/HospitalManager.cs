@@ -178,6 +178,9 @@ namespace Plus.HabboHotel.Roleplay.Hospital
             if (releaseTime <= 0)
                 return;
 
+            if (habbo.CurrentRoom == null || habbo.CurrentRoom.RoomId != GetHospitalRoomId())
+                return;
+
             int maxHealth = UserRpStats.GetMaxHealth(habbo);
             double now = PlusEnvironment.GetUnixTimestamp();
             double totalDuration = Math.Max(1, releaseTime - stats.HospitalHealStartTime);

@@ -244,7 +244,11 @@ namespace Plus.HabboHotel.Roleplay.Combat
                 if (victim == null || victimStats == null || victimStats.IsDead)
                     continue;
 
-                ApplyBlastDamage(victim, ru, victimStats, Random.Shared.Next(minDamage, maxDamage + 1));
+                // Passive players are immune to the blast.
+                if (victimStats.PassiveMode)
+                    continue;
+
+                ApplyBlastDamage(victim, ru, victimStats, Random.Shared.Next(minDamage, maxDamage + 1), source.Username);
             }
 
             room.SendPacket(new ShoutComposer(sourceUser.VirtualId, "*detonates a suicide vest!*", 0, 29, isRpAction: true));
@@ -256,7 +260,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
                 UserRpStats.Kill(source, sourceUser);
         }
 
-        private static void ApplyBlastDamage(Habbo victim, RoomUser victimUser, UserRpStats victimStats, int totalDamage)
+        private static void ApplyBlastDamage(Habbo victim, RoomUser victimUser, UserRpStats victimStats, int totalDamage, string triggeredBy)
         {
             int shieldBefore = victimStats.Shield;
             int healthBefore = victimStats.Health;
@@ -267,10 +271,13 @@ namespace Plus.HabboHotel.Roleplay.Combat
             if (damageToHealth > 0)
                 victimStats.Health -= damageToHealth;
 
+            // Everyone caught in the blast announces the hit.
+            victim.CurrentRoom?.SendPacket(new ShoutComposer(victimUser.VirtualId, "*took " + totalDamage + " explosive damage*", 0, 29, isRpAction: true));
+
             if (lethal)
             {
                 victimStats.Health = 0;
-                LiveFeedService.LiveFeed("💥 " + LiveFeedService.Name(victim.Username, "red") + " was caught in the blast");
+                LiveFeedService.LiveFeed("💥 " + LiveFeedService.Name(victim.Username, "red") + " was caught in a blast by " + LiveFeedService.Name(triggeredBy, "green"));
                 UserRpStats.Kill(victim, victimUser);
             }
 

@@ -1,4 +1,5 @@
-﻿using Plus.Communication.Packets.Outgoing.Rooms.Chat;
+﻿using Plus.Communication.Packets.Outgoing.Roleplay;
+using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.Communication.Packets.Outgoing.Rooms.Engine;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items.Wired;
@@ -52,6 +53,11 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
 
             if (session.GetHabbo().GetRpStats()?.IsDead != true)
                 session.GetHabbo().ApplyHomeRoomData();
+
+            // Re-assert the user's persisted click-through preference on every room entry —
+            // the client resets it per room, so a login/goto would otherwise drop the setting.
+            if (session.GetHabbo().ClickThrough)
+                session.SendPacket(new GuideSessionPartnerIsPlayingComposer(true));
 
             PlusEnvironment.GetGame().GetBotManager().TryHandleTaxiArrival(session);
 

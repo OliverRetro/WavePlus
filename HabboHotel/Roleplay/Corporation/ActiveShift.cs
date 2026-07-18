@@ -8,6 +8,7 @@ namespace Plus.HabboHotel.Roleplay.Corporation
         public int ShiftDurationMinutes { get; }
         public int TicksRemaining { get; set; }
         public int BonusCredits { get; private set; }
+        public string CostumeFigure { get; set; }
 
         public ActiveShift(int userId, int groupId, int shiftPay, int shiftDurationMinutes)
         {

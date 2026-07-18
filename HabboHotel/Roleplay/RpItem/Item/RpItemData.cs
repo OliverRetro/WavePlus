@@ -22,10 +22,20 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
         public const int BaseHungerTickMinutes = 10;
 
         public int Id { get; }
+
+        /// <summary>Item name</summary>
         public string Name { get; }
+
+        /// <summary>Momentary handitem given when used</summary>
         public int HanditemData { get; }
+
+        /// <summary>Momentary effect given when used</summary>
         public int EffectData { get; }
+
+        /// <summary>Reference price for corporations</summary>
         public int BasePrice { get; }
+
+        /// <summary>Image loaded on UI</summary>
         public string ImageUrl { get; }
 
         /// <summary>How many owned copies stack into a single inventory slot. 1 = never stacks.</summary>
@@ -34,10 +44,26 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
         /// <summary>Category of the item: "consumable" (default), "shield", etc.</summary>
         public string ItemType { get; }
 
+        /// <summary>Rarity 1-5 (1 common .. 5 legendary) driving the inventory glow.</summary>
+        public int Rarity { get; }
+
+        /// <summary>Shout text executed when the item is consumed (empty = none).</summary>
+        public string BubbleText { get; }
+
+        /// <summary>Chat-bubble style id used for the consume shout.</summary>
+        public int BubbleId { get; }
+
+        /// <summary>Figure override applied while equipped (shift-costume format). Empty = none.</summary>
+        public string Clothing { get; }
+
+        /// <summary>Bool for clothes/summary>
+        public bool HasClothing => !string.IsNullOrWhiteSpace(Clothing);
+
         private readonly Dictionary<string, double> _attributes;
 
-        public RpItemData(int id, string name, int handitemData, int effectData, int basePrice, string imageUrl, string attributeJson, int stackLimit = 1, string itemType = "consumable")
+        public RpItemData(int id, string name, int handitemData, int effectData, int basePrice, string imageUrl, string attributeJson, int stackLimit = 1, string itemType = "consumable", int rarity = 1, string bubble = "", string clothing = "")
         {
+            Clothing = clothing ?? string.Empty;
             Id = id;
             Name = name;
             HanditemData = handitemData;
@@ -46,7 +72,25 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             ImageUrl = imageUrl;
             StackLimit = stackLimit < 1 ? 1 : stackLimit;
             ItemType = string.IsNullOrWhiteSpace(itemType) ? "consumable" : itemType;
+            Rarity = rarity < 1 ? 1 : (rarity > 5 ? 5 : rarity);
+            (BubbleText, BubbleId) = ParseBubble(bubble);
             _attributes = ParseAttributes(attributeJson);
+        }
+
+        public bool HasBubble => !string.IsNullOrWhiteSpace(BubbleText);
+
+        private static (string text, int bubbleId) ParseBubble(string raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw))
+                return (string.Empty, 0);
+
+            int sep = raw.LastIndexOf(';');
+            if (sep < 0)
+                return (raw.Trim(), 0);
+
+            string text = raw.Substring(0, sep).Trim();
+            string idPart = raw.Substring(sep + 1).Trim();
+            return (text, int.TryParse(idPart, out int bubbleId) ? bubbleId : 0);
         }
 
         /// <summary>
@@ -77,8 +121,23 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
         /// <summary>A body-armour vest: a secondary item that flat-reduces incoming non-fist damage.</summary>
         public bool IsVest => Has("vest");
 
+        /// <summary>
+        /// Hits a standard vest can absorb before it breaks. Read from `vest_durability`, then the
+        /// legacy `shield` attribute, defaulting to 20 so a vest always has durability to spend.
+        /// </summary>
+        public int MaxVestDurability => GetInt("vest_durability", GetInt("shield", 20));
+
+        /// <summary>Unified max durability for the item's inventory bar (vest hits or shield pool).</summary>
+        public int MaxDurability => IsVest ? MaxVestDurability : MaxShield;
+
         /// <summary>A suicide vest: a secondary item that detonates for area damage when used.</summary>
         public bool IsSuicideVest => Has("suicide_vest");
+
+        /// <summary>
+        /// True when this item can't be used while the owner is in passive mode (any item whose
+        /// attribute JSON carries a "passive" flag — e.g. aggressive items like the suicide vest).
+        /// </summary>
+        public bool BlockedWhilePassive => Has("passive");
 
         /// <summary>Minimum flat damage a standard vest removes from a non-fist hit.</summary>
         public int VestReductionMin => GetInt("vest_reduction_min", 1);

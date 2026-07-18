@@ -1,5 +1,4 @@
 using DotNetty.Transport.Channels;
-using MySqlX.XDevAPI;
 using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.Core;
 using Plus.HabboHotel.Rooms;
@@ -9,25 +8,10 @@ using System.Collections.Concurrent;
 
 namespace Plus.HabboHotel.GameClients
 {
-    /// <summary>
-    /// Delays a user's real logout by a grace window. When a socket drops (or the user logs out),
-    /// instead of tearing the session down immediately we keep the avatar in the room as a "ghost":
-    /// still fully present and attackable/killable, but with no live client behind it. If nobody
-    /// reconnects before the window expires we run the real teardown; if the user reconnects first
-    /// the ghost is finalized up-front (persisting the cached state) so the fresh login loads it.
-    ///
-    /// This stops players from instantly disconnecting to dodge combat, arrest, robbery, etc.
-    /// </summary>
     public class DisconnectDelayManager
     {
-        /// <summary>How long (seconds) a disconnected user lingers before the real teardown runs.</summary>
         public const int GraceSeconds = 10;
 
-        /// <summary>
-        /// Window (seconds) within which we won't re-announce a disconnect for the same user. Wider
-        /// than the grace window so a reconnect-flap on browser close (auto-reconnect finalizing one
-        /// ghost then the real close spawning another, seconds apart) only shouts once.
-        /// </summary>
         private const int AnnounceCooldownSeconds = 45;
 
         private sealed class PendingDisconnect

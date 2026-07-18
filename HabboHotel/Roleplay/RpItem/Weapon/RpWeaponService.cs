@@ -40,16 +40,16 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
                 return false;
             }
 
+            if (weaponId != 0 && habbo.GetRpStats()?.PassiveMode == true)
+            {
+                error = "A pacifist does not fight. Try disabling passive mode, before combat!";
+                return false;
+            }
+
             UserRpWeapons weapons = habbo.GetRpWeapons();
             if (weapons == null || !weapons.SetActiveWeaponId(weaponId))
             {
                 error = "You don't have that weapon.";
-                return false;
-            }
-
-            if (habbo.GetRpStats()?.PassiveMode == true)
-            {
-                error = "A pacifist does not fight. Try disabling passive mode, before combat!";
                 return false;
             }
 

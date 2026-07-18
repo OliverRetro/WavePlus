@@ -41,6 +41,7 @@ using System.Threading.Tasks;
 using Plus.HabboHotel.Roleplay.TargetLock;
 using Plus.Communication.Packets.Outgoing.Quests;
 using UserRpItem = Plus.HabboHotel.Roleplay.RpItem.Item.UserRpItem;
+using Plus.HabboHotel.Roleplay.Utilities;
 
 namespace Plus.HabboHotel.Users
 {
@@ -1255,16 +1256,18 @@ namespace Plus.HabboHotel.Users
             if (_disconnected)
                 return;
 
+            RpItemClothingService.RestoreOnLogout(this);
+
             // End any active work shift: pay accrued bonus, restore look/motto, flush logs.
             PlusEnvironment.GetGame().GetShiftManager().OnDisconnect(this);
 
             // Drop cached web-overlay macros + target lock state.
             PlusEnvironment.GetGame().GetMacroManager().Unload(Id);
-            Plus.HabboHotel.Roleplay.TargetLock.TargetLockService.Clear(Id);
+            TargetLockService.Clear(Id);
             PlusEnvironment.GetPoliceManager()?.OnDisconnect(this);
             PlusEnvironment.GetJailManager()?.OnDisconnect(this);
             PlusEnvironment.GetTrashSearchManager()?.Cancel(Id);
-            Plus.HabboHotel.Roleplay.Utilities.FurnitureAchievementService.Forget(Id);
+            FurnitureAchievementService.Forget(Id);
 
             // Persist any buffered crime logs (the wanted cache itself is never saved).
             PlusEnvironment.GetRpCrimeManager().FlushLogs(Id);

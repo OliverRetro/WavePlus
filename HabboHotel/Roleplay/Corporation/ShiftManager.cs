@@ -9,6 +9,7 @@ using Plus.HabboHotel.Groups;
 using Group = Plus.HabboHotel.Groups.Group;
 using GroupRole = Plus.HabboHotel.Groups.GroupRole;
 using Plus.HabboHotel.Roleplay.Police;
+using Plus.HabboHotel.Roleplay.RpItem.Item;
 using Plus.HabboHotel.Roleplay.RpItem.Weapon;
 using Plus.HabboHotel.Roleplay.Utilities;
 using Plus.HabboHotel.Rooms;
@@ -86,12 +87,18 @@ namespace Plus.HabboHotel.Roleplay.Corporation
                 return;
             }
 
-            ApplyShiftAppearance(habbo, role);
+            string costumeFigure = ApplyShiftAppearance(habbo, role);
 
             // Going on shift forcibly unequips any weapon (staff/corp policy).
             habbo.GetRpWeapons()?.SetActiveWeaponId(0);
 
-            _activeShifts[habbo.Id] = new ActiveShift(habbo.Id, group.Id, role.ShiftPay, role.ShiftDuration);
+            _activeShifts[habbo.Id] = new ActiveShift(habbo.Id, group.Id, role.ShiftPay, role.ShiftDuration)
+            {
+                CostumeFigure = costumeFigure
+            };
+
+            // An equipped clothing item outranks the work costume — re-layer it on top.
+            RpItemClothingService.Refresh(habbo);
 
             // Refresh the avatar effect (e.g. apply the staff effect, drop the weapon effect).
             RpEffectService.Refresh(habbo);
@@ -138,19 +145,20 @@ namespace Plus.HabboHotel.Roleplay.Corporation
             InterruptShift(habbo, room);
         }
 
-        private static void ApplyShiftAppearance(Habbo habbo, GroupRole role)
+        private static string ApplyShiftAppearance(Habbo habbo, GroupRole role)
         {
             // Always snapshot the current motto/look first — even when the role has no costume
             // or motto — so stopping work restores exactly what the user was wearing rather
-            // than a stale value left over from a previous shift.
+            // than a stale value left over from a previous shift. When a clothing item is worn,
+            // the real figure is its snapshot, not the item-overridden habbo.Look.
             habbo.OldMotto = habbo.Motto;
-            habbo.OldLook = habbo.Look;
+            habbo.OldLook = RpItemClothingService.GetBaseLook(habbo) ?? habbo.Look;
 
             if (!string.IsNullOrEmpty(role.ShiftMotto))
                 habbo.Motto = role.ShiftMotto;
 
             if (string.IsNullOrEmpty(role.ShiftCostume))
-                return;
+                return null;
 
             string gender = habbo.Gender.ToLower();
             string figureString = role.ShiftCostume;
@@ -182,11 +190,13 @@ namespace Plus.HabboHotel.Roleplay.Corporation
             }
 
             if (string.IsNullOrWhiteSpace(selectedFigure))
-                return;
+                return null;
 
             Dictionary<string, string> lookParts = [];
 
-            foreach (string part in habbo.Look.Split('.'))
+            // Build from the true own look (OldLook), not habbo.Look, so a worn clothing item
+            // never leaks into the costume figure.
+            foreach (string part in habbo.OldLook.Split('.'))
             {
                 if (string.IsNullOrWhiteSpace(part))
                     continue;
@@ -211,6 +221,21 @@ namespace Plus.HabboHotel.Roleplay.Corporation
             }
 
             habbo.Look = string.Join(".", lookParts.Values);
+            return selectedFigure;
+        }
+
+        public bool ReapplyCostume(Habbo habbo)
+        {
+            if (habbo == null || !_activeShifts.TryGetValue(habbo.Id, out ActiveShift shift)
+                || string.IsNullOrWhiteSpace(shift.CostumeFigure))
+                return false;
+
+            habbo.Look = RpItemClothingService.MergeFigure(habbo.Look, shift.CostumeFigure);
+
+            RoomUser roomUser = habbo.CurrentRoom?.GetRoomUserManager()?.GetRoomUserByHabbo(habbo.Id);
+            if (roomUser != null)
+                habbo.CurrentRoom.SendPacket(new UserChangeComposer(roomUser, false));
+            return true;
         }
 
         public void Tick(Habbo habbo)
@@ -338,6 +363,9 @@ namespace Plus.HabboHotel.Roleplay.Corporation
             RoomUser roomUser = room.GetRoomUserManager().GetRoomUserByHabbo(habbo.Id);
             if (roomUser != null)
                 room.SendPacket(new UserChangeComposer(roomUser, false));
+
+            // A clothing item still worn after the shift ends stays on top of the restored look.
+            RpItemClothingService.Refresh(habbo);
         }
 
         private void AddPendingLog(int userId, int groupId, int credits)

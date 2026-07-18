@@ -58,6 +58,9 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 
             targetClient.GetHabbo().SaveRpItems();
 
+            // Live-refresh the recipient's inventory panel if they have it open.
+            Plus.Communication.Packets.Incoming.WebOverlayCallbackEvent.RefreshInventory(targetClient);
+
             session.SendWhisper($"Gave {item.ItemData.Name} (#{item.Id}) to {targetClient.GetHabbo().Username}.", 1);
         }
     }
