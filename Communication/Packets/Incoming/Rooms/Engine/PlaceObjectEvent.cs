@@ -21,7 +21,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
                 return;
 
             string rawData = packet.PopString();
-            var data = rawData.Split(' ');
+            var data = rawData.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
             if (!int.TryParse(data[0], out int itemId))
                 return;

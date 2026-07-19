@@ -5,12 +5,6 @@ using Plus.HabboHotel.Users;
 
 namespace Plus.HabboHotel.Roleplay.TargetLock
 {
-    /// <summary>
-    /// Tracks each user's current clicked/locked RP target.
-    /// 
-    /// Locking is intentionally in-memory only. This keeps combat responsive and avoids
-    /// writing target state to the database on every click/swing.
-    /// </summary>
     public static class TargetLockService
     {
         private sealed class TargetState
@@ -143,6 +137,21 @@ namespace Plus.HabboHotel.Roleplay.TargetLock
             SendComposer(requester, target.Username, true);
             requester.TrySendUserStatsUpdate(true);
             return true;
+        }
+
+        public static void RestoreLock(Habbo requester)
+        {
+            if (requester == null || !IsLocked(requester.Id))
+                return;
+
+            // Only meaningful when the locked target is in the room we just entered otherwise the lock stays parked until they meet again.
+            Habbo target = GetTarget(requester);
+
+            if (target == null)
+                return;
+
+            SendComposer(requester, target.Username, true);
+            requester.TrySendUserStatsUpdate(true);
         }
 
         public static void ReleaseLock(Habbo requester, bool clearTarget)

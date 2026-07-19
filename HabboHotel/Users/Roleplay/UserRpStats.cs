@@ -42,6 +42,7 @@ namespace Plus.HabboHotel.Users
         /// <summary>Seconds of jail time left, banked while the user is offline (sentence pauses).</summary>
         public double JailTimeLeft { get; set; }
         public DateTime NextHungerTick { get; set; }
+        public bool IsGodMode { get; set; }
 
         public UserRpStats(int userId, int health, int shield, int energy, int hunger, int experience, int knockouts, int deaths, int arrested, int escapes, int damageDealt, int damageTaken, int attacks, int attacked, int knowledge, int strength, bool isDead, double hospitalReleaseTime, double hospitalHealStartTime, int hospitalHealthStart, int aggression, bool passiveMode, int robberies, int robbed, bool isCuffed = false, double jailReleaseTime = 0, bool jailPending = false, int jailStars = 0, string jailRevertLook = "", int jailRoomId = 0, double jailTimeLeft = 0)
         {
@@ -77,6 +78,8 @@ namespace Plus.HabboHotel.Users
             JailRevertLook = jailRevertLook ?? "";
             JailRoomId = jailRoomId;
             JailTimeLeft = jailTimeLeft;
+
+            IsGodMode = false;
 
             NextHungerTick = DateTime.UtcNow.AddMinutes(10);
         }
@@ -149,20 +152,17 @@ namespace Plus.HabboHotel.Users
             // Idle players don't burn hunger — you only get hungry while active. Push the next
             // tick out a little so it resumes promptly once they wake up.
             RoomUser idleCheck = habbo.CurrentRoom?.GetRoomUserManager()?.GetRoomUserByHabbo(habbo.Id);
-            if (idleCheck != null && idleCheck.IsAsleep)
+            if (idleCheck != null && idleCheck.IsAsleep || habbo.GetRpStats().IsGodMode)
             {
                 NextHungerTick = DateTime.UtcNow.AddMinutes(1);
                 return;
             }
 
-            if (Hunger > 0)
-            {
+            if (Hunger > 0) {
                 int loss = Random.Shared.Next(1, 6);
                 Hunger = Math.Max(0, Hunger - loss);
                 NextHungerTick = DateTime.UtcNow.AddMinutes(10);
-            }
-            else
-            {
+            } else {
                 int damage = Random.Shared.Next(5, 51);
                 Health = Math.Max(0, Health - damage);
                 NextHungerTick = DateTime.UtcNow.AddMinutes(1);

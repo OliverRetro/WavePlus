@@ -21,6 +21,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Fun
             if (user.FastWalking)
                 user.FastWalking = false;
 
+            // Mirror onto the habbo so the mode survives room swaps.
+            session.GetHabbo().SuperFastWalkingEnabled = user.SuperFastWalking;
+            session.GetHabbo().FastWalkingEnabled = user.FastWalking;
+
             session.SendWhisper("Walking mode updated.");
         }
     }

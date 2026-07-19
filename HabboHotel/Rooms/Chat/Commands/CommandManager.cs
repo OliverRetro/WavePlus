@@ -120,6 +120,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
 
         private void RegisterRoleplay()
         {
+            Register(new MassChatCommand());
+            Register(new GodModeCommand());
             Register(new LiveFeedTestCommand());
             Register(new StopWorkCommand());
             Register(new StartWorkCommand());

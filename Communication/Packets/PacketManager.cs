@@ -125,6 +125,17 @@ namespace Plus.Communication.Packets
             RegisterGameCenter();
             RegisterNames();
             RegisterRoleplay();
+            RegisterCamera();
+        }
+
+        private void RegisterCamera()
+        {
+            _incomingPackets.Add(ClientPacketHeader.GetCameraPriceEvent, new Incoming.Camera.GetCameraPriceEvent());
+            _incomingPackets.Add(ClientPacketHeader.RenderRoomEvent, new Incoming.Camera.RenderRoomEvent());
+            _incomingPackets.Add(ClientPacketHeader.SetRoomThumbnailMessageEvent, new Incoming.Camera.RenderRoomThumbnailEvent());
+            _incomingPackets.Add(ClientPacketHeader.PurchasePhotoEvent, new Incoming.Camera.PurchasePhotoEvent());
+            _incomingPackets.Add(ClientPacketHeader.PublishPhotoEvent, new Incoming.Camera.PublishPhotoEvent());
+            _incomingPackets.Add(ClientPacketHeader.RequestMyPhotosMessageEvent, new Incoming.Camera.RequestMyPhotosEvent());
         }
 
         private void RegisterRoleplay()

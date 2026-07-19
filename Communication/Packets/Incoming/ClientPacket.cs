@@ -35,5 +35,15 @@ namespace Plus.Communication.Packets.Incoming
         {
             return _buffer.ReadableBytes;
         }
+
+        public byte[] PopBytes(int count)
+        {
+            if (count < 0 || count > _buffer.ReadableBytes)
+                return null;
+
+            byte[] data = new byte[count];
+            _buffer.ReadBytes(data);
+            return data;
+        }
     }
 }

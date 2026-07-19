@@ -13,6 +13,7 @@
         public const int OfferItemMessageComposer = 6002;
         public const int OpenAtmMessageComposer = 6001;
         public const int TargetLockMessageComposer = 6000;
+        public const int MyPhotosMessageComposer = 6010;
 
         // credit to Keorich##1440 for the headers for Production-201611291003-338511768
         public const int UserNftChatStylesMessageComposer = 6100;
@@ -315,6 +316,7 @@
         public const int CameraPhotoPurchaseOkComposer = 2783; // PRODUCTION-201611291003-338511768
         public const int CameraPriceComposer = 3878; // PRODUCTION-201611291003-338511768
         public const int SendRoomThumbnailAlertMessageComposer = 3595; // PRODUCTION-201611291003-338511768
+        public const int CameraPublishStatusMessageComposer = 2057; // matches Nitro IncomingHeader.CAMERA_PUBLISH_STATUS
 
         // Nux Alerts
         public const int NuxAlertMessageComposer = 2023; // PRODUCTION-201611291003-338511768

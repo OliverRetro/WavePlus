@@ -319,8 +319,12 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
 
         private bool DetonateSuicideVest(Habbo habbo, UserRpItem userItem)
         {
-            if (!userItem.Equipped)
-            {
+            if (habbo.GetRpStats().IsDead) {
+                habbo.GetClient()?.SendWhisper("A dead person cannot die twice.", 1);
+                return false;
+            }
+
+            if (!userItem.Equipped) {
                 habbo.GetClient()?.SendWhisper("You need to equip the suicide vest first.", 1);
                 return false;
             }
@@ -337,8 +341,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             EmitConsumeBubble(habbo, roomUser, data);
 
             // The bomber is dropped to 0 HP; ApplyExplosion resolves the self knockout + blast.
-            if (stats != null)
-                stats.Health = 0;
+            stats?.Health = 0;
 
             PlusEnvironment.GetCombatManager().ApplyExplosion(habbo, data.ExplosionMin, data.ExplosionMax);
 

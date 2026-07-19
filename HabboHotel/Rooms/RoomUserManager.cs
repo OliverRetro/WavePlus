@@ -8,6 +8,7 @@ using Plus.Database.EF;
 using Microsoft.EntityFrameworkCore;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
+using Plus.HabboHotel.Roleplay.TargetLock;
 using Plus.HabboHotel.Roleplay.Utilities;
 using Plus.HabboHotel.Rooms.AI;
 using Plus.HabboHotel.Rooms.Games.Teams;
@@ -292,6 +293,13 @@ namespace Plus.HabboHotel.Rooms
             user.UpdateNeeded = true;
 
             RpEffectService.Refresh(session.GetHabbo());
+
+            // Carry session state that lives on the habbo rather than the (per-room)
+            // room user: walking mode and the locked RP target.
+            user.FastWalking = session.GetHabbo().FastWalkingEnabled;
+            user.SuperFastWalking = session.GetHabbo().SuperFastWalkingEnabled;
+
+            TargetLockService.RestoreLock(session.GetHabbo());
 
             foreach (RoomUser bot in _bots.Values.ToList())
             {

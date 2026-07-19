@@ -7,6 +7,7 @@ using Plus.HabboHotel.Achievements;
 using Plus.HabboHotel.Badges;
 using Plus.HabboHotel.Bots;
 using Plus.HabboHotel.Cache;
+using Plus.HabboHotel.Camera;
 using Plus.HabboHotel.Catalog;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Games;
@@ -54,6 +55,7 @@ namespace Plus.HabboHotel
         private readonly SubscriptionManager _subscriptionManager;
         private readonly ShiftManager _shiftManager;
         private readonly MacroManager _macroManager;
+        private readonly CameraManager _cameraManager;
         private readonly PersistenceScheduler _persistenceScheduler;
 
         private bool _cycleEnded;
@@ -139,6 +141,8 @@ namespace Plus.HabboHotel
             _shiftManager = new ShiftManager();
 
             _macroManager = new MacroManager();
+
+            _cameraManager = new CameraManager();
 
             _persistenceScheduler = new PersistenceScheduler();
             PersistenceRegistry.RegisterAll(_persistenceScheduler);
@@ -240,6 +244,11 @@ namespace Plus.HabboHotel
         public ItemDataManager GetItemManager()
         {
             return _itemDataManager;
+        }
+
+        public CameraManager GetCameraManager()
+        {
+            return _cameraManager;
         }
 
         public RoomManager GetRoomManager()

@@ -208,10 +208,6 @@ namespace Plus.HabboHotel.Roleplay.Combat
             return false;
         }
 
-        /// <summary>
-        /// Detonates a suicide vest: deals random explosive damage to everyone on the 8 tiles
-        /// surrounding the source (the 3x3 grid), then always knocks the source out.
-        /// </summary>
         public void ApplyExplosion(Habbo source, int minDamage, int maxDamage)
         {
             if (source == null)
@@ -239,10 +235,10 @@ namespace Plus.HabboHotel.Roleplay.Combat
                     continue;
 
                 // Passive players are immune to the blast.
-                if (victimStats.PassiveMode)
+                if (victimStats.PassiveMode || victimStats.IsGodMode)
                     continue;
 
-                ApplyBlastDamage(victim, ru, victimStats, Random.Shared.Next(minDamage, maxDamage + 1), source.Username);
+                ApplyBlastDamage(victim, ru, victimStats, Random.Shared.Next(minDamage, maxDamage + 1), source);
             }
 
             room.SendPacket(new ShoutComposer(sourceUser.VirtualId, "*detonates a suicide vest!*", 0, 29, isRpAction: true));
@@ -254,7 +250,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
                 UserRpStats.Kill(source, sourceUser);
         }
 
-        private static void ApplyBlastDamage(Habbo victim, RoomUser victimUser, UserRpStats victimStats, int totalDamage, string triggeredBy)
+        private static void ApplyBlastDamage(Habbo victim, RoomUser victimUser, UserRpStats victimStats, int totalDamage, Habbo triggeredBy)
         {
             int shieldBefore = victimStats.Shield;
             int healthBefore = victimStats.Health;
@@ -262,16 +258,19 @@ namespace Plus.HabboHotel.Roleplay.Combat
             bool lethal = damageToHealth >= healthBefore && healthBefore > 0;
 
             victimStats.Shield = Math.Max(0, victimStats.Shield - totalDamage);
+            victimStats.DamageTaken += totalDamage;
+            triggeredBy.GetRpStats().DamageDealt += totalDamage;
+
             if (damageToHealth > 0)
                 victimStats.Health -= damageToHealth;
 
             // Everyone caught in the blast announces the hit.
             victim.CurrentRoom?.SendPacket(new ShoutComposer(victimUser.VirtualId, "*took " + totalDamage + " explosive damage*", 0, 29, isRpAction: true));
 
-            if (lethal)
-            {
+            if (lethal) {
                 victimStats.Health = 0;
-                LiveFeedService.LiveFeed("💥 " + LiveFeedService.Name(victim.Username, "red") + " was caught in a blast by " + LiveFeedService.Name(triggeredBy, "green"));
+                triggeredBy.GetRpStats().Knockouts += 1;
+                LiveFeedService.LiveFeed("💥 " + LiveFeedService.Name(victim.Username, "red") + " was caught in a blast by " + LiveFeedService.Name(triggeredBy.Username, "green"), "red");
                 UserRpStats.Kill(victim, victimUser);
             }
 
@@ -299,11 +298,6 @@ namespace Plus.HabboHotel.Roleplay.Combat
             };
         }
 
-        /// <summary>
-        /// Fires the tazer: consumes one charge and stuns the target for the full stun duration
-        /// with 100% reliability. When empty the tazer isn't destroyed — the officer must recharge
-        /// it at the police station.
-        /// </summary>
         private void HandleTazer(Habbo attacker, Habbo target, UserRpStats attackerStats, RoomUser attackerRoomUser, RoomUser targetRoomUser)
         {
             UserWeapon tazer = attacker.GetRpWeapons()?.GetActiveWeapon();

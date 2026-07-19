@@ -134,6 +134,12 @@ namespace Plus.HabboHotel.Users
         public bool RoomAuthOk { get; set; }
         public int CurrentRoomId { get; set; }
 
+        // Walking mode set by :fastwalk / :superfastwalk. RoomUser is rebuilt on every
+        // room entry, so the chosen mode is held here and re-applied on arrival.
+        // Temporary fastwalk (RP items, police escorts) deliberately stays room-local.
+        public bool FastWalkingEnabled { get; set; }
+        public bool SuperFastWalkingEnabled { get; set; }
+
         // Advertising reporting system.
         public bool HasSpoken { get; set; }
         public double LastAdvertiseReport { get; set; }

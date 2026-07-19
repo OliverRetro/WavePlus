@@ -2,7 +2,7 @@
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Users;
 
-namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Fun
+namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
 {
     internal class GlobalHealCommand : IChatCommand
     {

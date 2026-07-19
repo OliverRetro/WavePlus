@@ -45,6 +45,10 @@ public partial class WavePlusContext(DbContextOptions<WavePlusContext> options) 
 
     public virtual DbSet<CatalogVoucherEntity> CatalogVouchers { get; set; }
 
+    public virtual DbSet<CameraPhotoEntity> CameraPhotos { get; set; }
+
+    public virtual DbSet<CameraWebEntity> CameraWeb { get; set; }
+
     public virtual DbSet<ChatlogEntity> Chatlogs { get; set; }
 
     public virtual DbSet<ChatlogsConsoleEntity> ChatlogsConsoles { get; set; }
@@ -243,6 +247,16 @@ public partial class WavePlusContext(DbContextOptions<WavePlusContext> options) 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<CameraPhotoEntity>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+        });
+
+        modelBuilder.Entity<CameraWebEntity>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+        });
+
         modelBuilder.Entity<AchievementEntity>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
@@ -778,7 +792,7 @@ public partial class WavePlusContext(DbContextOptions<WavePlusContext> options) 
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.AllowHidewall).HasDefaultValueSql("'1'");
+            entity.Property(e => e.AllowHidewall).HasDefaultValueSql("'0'");
             entity.Property(e => e.BanSettings).HasDefaultValueSql("'1'");
             entity.Property(e => e.Caption).HasDefaultValueSql("'''RoomEntity'''");
             entity.Property(e => e.ChatHearingDistance).HasDefaultValueSql("'14'");

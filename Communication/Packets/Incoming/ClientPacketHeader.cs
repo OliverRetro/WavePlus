@@ -5,6 +5,7 @@
         // wave
         // Roleplay custom incoming packets
         public const int RequestWantedListMessageEvent = 6008;
+        public const int RequestMyPhotosMessageEvent = 6011;
         public const int RequestBankDataMessageEvent = 3325;
         public const int RequestWearingBadgesMessageEvent = 3326;
 
@@ -315,7 +316,7 @@
         public const int RoomNucsAlerta = 1299; // PRODUCTION-201611291003-338511768
 
         public const int PurchasePhotoEvent = 2408; // PRODUCTION-201611291003-338511768
-        public const int PublishPhotoEvent = 3959; // PRODUCTION-201611291003-338511768
+        public const int PublishPhotoEvent = 2068; // matches Nitro OutgoingHeader.PUBLISH_PHOTO
         public const int GetCameraPriceEvent = 796; // PRODUCTION-201611291003-338511768
         public const int ReportCameraPhotoEvent = 2492; // PRODUCTION-201611291003-338511768
         public const int SetRoomThumbnailMessageEvent = 1982; // PRODUCTION-201611291003-338511768

@@ -187,7 +187,9 @@ ALTER TABLE rooms
 MODIFY room_blocking_disabled TINYINT(1) NOT NULL DEFAULT 0;
 
 ALTER TABLE rooms 
-MODIFY allow_hidewall TINYINT(1) NOT NULL DEFAULT 1;
+MODIFY allow_hidewall TINYINT(1) NOT NULL DEFAULT 0;
+
+UPDATE rooms SET allow_hidewall = 0;
 
 ALTER TABLE rooms 
 MODIFY mute_settings TINYINT(1) NOT NULL DEFAULT 1;
