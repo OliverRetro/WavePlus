@@ -30,6 +30,13 @@ namespace Plus.HabboHotel.Rooms
         private ConcurrentDictionary<int, RoomUser> _bots;
         private ConcurrentDictionary<int, RoomUser> _pets;
 
+        // O(1) lookup for the hottest query in the emulator (every walk click, chat line and
+        // combat action resolves a habbo id to its room user). Human users only.
+        private ConcurrentDictionary<int, RoomUser> _usersByHabboId = new();
+
+        /// <summary>Milliseconds between walking steps — the classic Habbo tile cadence.</summary>
+        private const int StepIntervalMs = 500;
+
         private int _primaryPrivateUserId;
         private int _secondaryPrivateUserId;
 
@@ -143,7 +150,7 @@ namespace Plus.HabboHotel.Rooms
 
         public RoomUser GetUserForSquare(int x, int y)
         {
-            return _room.GetGameMap().GetRoomUsers(new Point(x, y)).FirstOrDefault();
+            return _room.GetGameMap().GetFirstUserForSquare(new Point(x, y));
         }
 
         public bool AddAvatarToRoom(GameClient session)
@@ -181,6 +188,8 @@ namespace Plus.HabboHotel.Rooms
             session.GetHabbo().CurrentRoomId = _room.RoomId;
             if (!_users.TryAdd(personalId, user))
                 return false;
+
+            _usersByHabboId[user.HabboId] = user;
 
             DynamicRoomModel model = _room.GetGameMap().Model;
             if (model == null)
@@ -401,27 +410,10 @@ namespace Plus.HabboHotel.Rooms
                     if (session.GetHabbo().GetMessenger() != null)
                         session.GetHabbo().GetMessenger().OnStatusChanged(true);
 
-                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                    {
-                        uint roomId = (uint)_room.RoomId;
-                        uint userId = (uint)session.GetHabbo().Id;
-                        double exitTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-
-                        // ORDER BY exit_timestamp DESC LIMIT 1: update only the most recent matching visit.
-                        int visitId = db.UserRoomvisits
-                            .Where(v => v.RoomId == roomId && v.UserId == userId)
-                            .OrderByDescending(v => v.ExitTimestamp)
-                            .Select(v => v.Id)
-                            .FirstOrDefault();
-                        if (visitId != 0)
-                            db.UserRoomvisits.Where(v => v.Id == visitId)
-                                .ExecuteUpdate(s => s.SetProperty(v => v.ExitTimestamp, exitTimestamp));
-
-                        int roomIdInt = _room.RoomId;
-                        int usersNow = _room.UsersNow;
-                        db.Rooms.Where(r => r.Id == roomIdInt)
-                            .ExecuteUpdate(s => s.SetProperty(r => r.UsersNow, usersNow));
-                    }
+                    // Exit-stamp the visit in the write-behind buffer and let the persistence
+                    // scheduler mirror users_now — leaving a room no longer touches MySQL on
+                    // the packet thread (previously three queries per exit).
+                    Plus.Core.Persistence.RoomVisitBuffer.OnExit(session.GetHabbo().Id);
 
                     user.Dispose();
                 }
@@ -520,6 +512,11 @@ namespace Plus.HabboHotel.Rooms
             {
             }
 
+            // Only unmap the habbo id if it still points at this instance — a rejoin may have
+            // already replaced the mapping with the fresh room user.
+            if (!user.IsBot && _usersByHabboId.TryGetValue(user.HabboId, out RoomUser mapped) && ReferenceEquals(mapped, user))
+                _usersByHabboId.TryRemove(user.HabboId, out _);
+
             user.InternalRoomId = -1;
             OnRemove(user);
         }
@@ -549,14 +546,10 @@ namespace Plus.HabboHotel.Rooms
 
         public void UpdateUserCount(int count)
         {
+            // In-memory only. rooms.users_now is mirrored to MySQL every 60s by the
+            // persistence scheduler (and zeroed on unload/shutdown) — the old code wrote to
+            // the database every time the head-count changed in any loaded room.
             UserCount = count;
-
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
-                int roomId = _room.RoomId;
-                db.Rooms.Where(r => r.Id == roomId)
-                    .ExecuteUpdate(s => s.SetProperty(r => r.UsersNow, count));
-            }
         }
 
         public RoomUser GetRoomUserByVirtualId(int virtualId)
@@ -568,7 +561,10 @@ namespace Plus.HabboHotel.Rooms
 
         public RoomUser GetRoomUserByHabbo(int id)
         {
-            return GetUserList().FirstOrDefault(x => x != null && x.GetClient() != null && x.GetClient().GetHabbo() != null && x.GetClient().GetHabbo().Id == id);
+            if (_usersByHabboId != null && _usersByHabboId.TryGetValue(id, out RoomUser user))
+                return user;
+
+            return null;
         }
 
         public List<RoomUser> GetRoomUsers()
@@ -694,22 +690,25 @@ namespace Plus.HabboHotel.Rooms
 
         public void SerializeStatusUpdates()
         {
-            List<RoomUser> users = new();
+            // Called every 50ms movement tick, so it stays allocation-free until there is
+            // actually something to send.
             ICollection<RoomUser> roomUsers = GetUserList();
 
             if (roomUsers == null)
                 return;
 
-            foreach (RoomUser user in roomUsers.ToList())
+            List<RoomUser> users = null;
+
+            foreach (RoomUser user in roomUsers)
             {
-                if (user == null || !user.UpdateNeeded || users.Contains(user))
+                if (user == null || !user.UpdateNeeded)
                     continue;
 
                 user.UpdateNeeded = false;
-                users.Add(user);
+                (users ??= []).Add(user);
             }
 
-            if (users.Count > 0)
+            if (users != null)
                 _room.SendPacket(new UserUpdateComposer(users));
         }
 
@@ -739,9 +738,10 @@ namespace Plus.HabboHotel.Rooms
             return true;
         }
 
-        public void OnCycle()
+        public void OnCycle(bool fullCycle)
         {
             int userCounter = 0;
+            long nowMs = PlusEnvironment.Now();
 
             try
             {
@@ -752,71 +752,80 @@ namespace Plus.HabboHotel.Rooms
                     if (user == null)
                         continue;
 
-                    if (!IsValid(user))
-                    {
-                        if (user.GetClient() != null)
-                            RemoveUserFromRoom(user.GetClient(), false);
-                        else
-                            RemoveRoomUser(user);
-                    }
-
-                    if (user.NeedsAutoKick && !ToRemove.Contains(user))
-                    {
-                        ToRemove.Add(user);
-                        continue;
-                    }
-
                     bool updated = false;
-                    user.IdleTime++;
-                    user.HandleSpamTicks();
-                    if (!user.IsBot && !user.IsAsleep && user.IdleTime >= 600)
-                    {
-                        user.IsAsleep = true;
-                        _room.SendPacket(new SleepComposer(user.VirtualId, true));
-
-                        // Going idle ends any active work shift.
-                        if (user.GetClient()?.GetHabbo() != null)
-                            PlusEnvironment.GetGame().GetShiftManager().InterruptShift(user.GetClient().GetHabbo(), _room);
-                    }
-
-                    if (user.CarryItemId > 0)
-                    {
-                        user.CarryTimer--;
-                        if (user.CarryTimer <= 0)
-                            user.CarryItem(0);
-                    }
-
-                    // A gesture temporarily cleared this user's avatar effect; once the countdown
-                    // elapses (and they aren't dancing, which suppresses effects on purpose),
-                    // re-apply whatever effect they had on.
-                    if (user.EffectReapplyTimer > 0)
-                    {
-                        user.EffectReapplyTimer--;
-                        if (user.EffectReapplyTimer <= 0 && !user.IsDancing)
-                        {
-                            int effect = user.GetClient()?.GetHabbo()?.Effects()?.CurrentEffect ?? 0;
-                            if (effect > 0)
-                                _room.SendPacket(new Plus.Communication.Packets.Outgoing.Rooms.Avatar.AvatarEffectComposer(user.VirtualId, effect));
-                        }
-                    }
-
-                    if (_room.GotFreeze())
-                        _room.GetFreeze().CycleUser(user);
-
                     bool invalidStep = false;
 
-                    if (user.IsRolling)
+                    // Housekeeping (idle/carry/spam timers, autokick, freeze, rollers) stays on
+                    // the classic 500ms cadence; only movement runs on the fast 50ms ticks.
+                    if (fullCycle)
                     {
-                        if (user.RollerDelay <= 0)
+                        if (!IsValid(user))
                         {
-                            UpdateUserStatus(user, false);
-                            user.IsRolling = false;
+                            if (user.GetClient() != null)
+                                RemoveUserFromRoom(user.GetClient(), false);
+                            else
+                                RemoveRoomUser(user);
                         }
-                        else
-                            user.RollerDelay--;
+
+                        if (user.NeedsAutoKick && !ToRemove.Contains(user))
+                        {
+                            ToRemove.Add(user);
+                            continue;
+                        }
+
+                        user.IdleTime++;
+                        user.HandleSpamTicks();
+                        if (!user.IsBot && !user.IsAsleep && user.IdleTime >= 600)
+                        {
+                            user.IsAsleep = true;
+                            _room.SendPacket(new SleepComposer(user.VirtualId, true));
+
+                            // Going idle ends any active work shift.
+                            if (user.GetClient()?.GetHabbo() != null)
+                                PlusEnvironment.GetGame().GetShiftManager().InterruptShift(user.GetClient().GetHabbo(), _room);
+                        }
+
+                        if (user.CarryItemId > 0)
+                        {
+                            user.CarryTimer--;
+                            if (user.CarryTimer <= 0)
+                                user.CarryItem(0);
+                        }
+
+                        // A gesture temporarily cleared this user's avatar effect; once the countdown
+                        // elapses (and they aren't dancing, which suppresses effects on purpose),
+                        // re-apply whatever effect they had on.
+                        if (user.EffectReapplyTimer > 0)
+                        {
+                            user.EffectReapplyTimer--;
+                            if (user.EffectReapplyTimer <= 0 && !user.IsDancing)
+                            {
+                                int effect = user.GetClient()?.GetHabbo()?.Effects()?.CurrentEffect ?? 0;
+                                if (effect > 0)
+                                    _room.SendPacket(new Plus.Communication.Packets.Outgoing.Rooms.Avatar.AvatarEffectComposer(user.VirtualId, effect));
+                            }
+                        }
+
+                        if (_room.GotFreeze())
+                            _room.GetFreeze().CycleUser(user);
+
+                        if (user.IsRolling)
+                        {
+                            if (user.RollerDelay <= 0)
+                            {
+                                UpdateUserStatus(user, false);
+                                user.IsRolling = false;
+                            }
+                            else
+                                user.RollerDelay--;
+                        }
                     }
 
-                    if (user.SetStep)
+                    // Per-user step gate: a fresh click starts walking within one 50ms tick, but
+                    // consecutive steps keep the 500ms-per-tile pace the client animates at.
+                    bool canStep = nowMs >= user.NextStepMs;
+
+                    if (canStep && user.SetStep)
                     {
                         if (_room.GetGameMap().IsValidStep2(user, new Vector2D(user.X, user.Y), new Vector2D(user.SetX, user.SetY), (user.GoalX == user.SetX && user.GoalY == user.SetY), user.AllowOverride))
                         {
@@ -852,12 +861,20 @@ namespace Plus.HabboHotel.Rooms
                                 }
                             }
 
+                            // Whether this commit ends the walk on this tile. Decided HERE, inside the
+                            // cycle, so arrow teleports fire deterministically — the old async check of
+                            // IsWalking raced the cycle thread and made walk-on teleports a coin flip.
+                            // Note: a pending recalc does NOT veto this — xmouse users spam-click their
+                            // destination, which re-flags PathRecalcNeeded with the SAME goal; as long
+                            // as the goal is this tile, arriving here ends the walk.
+                            bool endOfWalk = user.GoalX == user.X && user.GoalY == user.Y;
+
                             List<Item> Items = _room.GetGameMap().GetCoordinatedItems(new Point(user.X, user.Y));
                             foreach (Item item in Items.ToList())
                             {
                                 item.UserWalksOnFurni(user);
 
-                                if (!user.IsBot && item.GetBaseItem()?.InteractionType == InteractionType.Arrow)
+                                if (!user.IsBot && endOfWalk && item.GetBaseItem()?.InteractionType == InteractionType.Arrow)
                                     Plus.HabboHotel.Items.Interactor.InteractorArrowTeleport.BeginDelayedTeleport(user, item);
                             }
 
@@ -869,7 +886,7 @@ namespace Plus.HabboHotel.Rooms
                         user.SetStep = false;
                     }
 
-                    if (user.PathRecalcNeeded)
+                    if (canStep && user.PathRecalcNeeded)
                     {
                         if (user.Path.Count > 1)
                             user.Path.Clear();
@@ -890,7 +907,7 @@ namespace Plus.HabboHotel.Rooms
                         }
                     }
 
-                    if (user.IsWalking && !user.Freezed)
+                    if (canStep && user.IsWalking && !user.Freezed)
                     {
                         if (invalidStep || (user.PathStep >= user.Path.Count) || (user.GoalX == user.X && user.GoalY == user.Y)) //No path found, or reached goal (:
                         {
@@ -1012,6 +1029,7 @@ namespace Plus.HabboHotel.Rooms
                                 user.SetX = nextX;
                                 user.SetY = nextY;
                                 user.SetZ = nextZ;
+                                user.NextStepMs = nowMs + StepIntervalMs;
                                 UpdateUserEffect(user, user.SetX, user.SetY);
 
                                 updated = true;
@@ -1028,6 +1046,9 @@ namespace Plus.HabboHotel.Rooms
                                         horse.SetX = nextX;
                                         horse.SetY = nextY;
                                         horse.SetZ = nextZ;
+                                        // Pace the horse like its rider so the fast movement tick
+                                        // doesn't commit the step (and strip "mv") after 50ms.
+                                        horse.NextStepMs = nowMs + StepIntervalMs;
                                     }
                                 }
 
@@ -1048,7 +1069,7 @@ namespace Plus.HabboHotel.Rooms
                         if (!user.RidingHorse)
                             user.UpdateNeeded = true;
                     }
-                    else
+                    else if (canStep)
                     {
                         if (user.Statusses.ContainsKey("mv"))
                         {
@@ -1067,17 +1088,20 @@ namespace Plus.HabboHotel.Rooms
                         }
                     }
 
-                    if (user.RidingHorse)
-                        user.ApplyEffect(77);
-
-                    if (user.IsBot && user.BotAI != null)
-                        user.BotAI.OnTimerTick();
-                    else
-                        userCounter++;
-
-                    if (!updated)
+                    if (fullCycle)
                     {
-                        UpdateUserEffect(user, user.X, user.Y);
+                        if (user.RidingHorse)
+                            user.ApplyEffect(77);
+
+                        if (user.IsBot && user.BotAI != null)
+                            user.BotAI.OnTimerTick();
+                        else
+                            userCounter++;
+
+                        if (!updated)
+                        {
+                            UpdateUserEffect(user, user.X, user.Y);
+                        }
                     }
                 }
 
@@ -1087,19 +1111,22 @@ namespace Plus.HabboHotel.Rooms
                 // escort into an unanimated teleport.
                 PlusEnvironment.GetPoliceManager()?.SyncEscorts(_room);
 
-                foreach (RoomUser toRemove in ToRemove.ToList())
+                if (fullCycle)
                 {
-                    GameClient client = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(toRemove.HabboId);
-                    if (client != null)
+                    foreach (RoomUser toRemove in ToRemove.ToList())
                     {
-                        RemoveUserFromRoom(client, true);
+                        GameClient client = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(toRemove.HabboId);
+                        if (client != null)
+                        {
+                            RemoveUserFromRoom(client, true);
+                        }
+                        else
+                            RemoveRoomUser(toRemove);
                     }
-                    else
-                        RemoveRoomUser(toRemove);
-                }
 
-                if (UserCount != userCounter)
-                    UpdateUserCount(userCounter);
+                    if (UserCount != userCounter)
+                        UpdateUserCount(userCounter);
+                }
             }
             catch (Exception e)
             {
@@ -1472,6 +1499,7 @@ namespace Plus.HabboHotel.Rooms
             _users.Clear();
             _pets.Clear();
             _bots.Clear();
+            _usersByHabboId.Clear();
 
             UserCount = 0;
             PetCount = 0;
@@ -1479,6 +1507,7 @@ namespace Plus.HabboHotel.Rooms
             _users = null;
             _pets = null;
             _bots = null;
+            _usersByHabboId = null;
             _room = null;
         }
     }

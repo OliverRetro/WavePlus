@@ -1281,6 +1281,14 @@ namespace Plus.HabboHotel.Users
             PlusEnvironment.GetTrashSearchManager()?.Cancel(Id);
             FurnitureAchievementService.Forget(Id);
 
+            // Drop any half-finished arrow teleport state so the static maps can't accumulate
+            // entries for users who logged out mid-transit.
+            Plus.HabboHotel.Items.Interactor.InteractorArrowTeleport.CancelDelayedTeleport(Id);
+            Plus.HabboHotel.Items.Interactor.InteractorArrowTeleport.ClearArrivalData(Id);
+
+            // Close out the current room-visit record if one is still open.
+            Plus.Core.Persistence.RoomVisitBuffer.OnExit(Id);
+
             // Persist any buffered crime logs (the wanted cache itself is never saved).
             PlusEnvironment.GetRpCrimeManager().FlushLogs(Id);
 
@@ -1654,24 +1662,17 @@ namespace Plus.HabboHotel.Users
             // stops. We must push FurnitureAliases proactively on every room entry so that the
             // client always receives it and triggers GetRoomEntryData in response.
             GetClient().SendPacket(new FurnitureAliasesComposer());
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
-                db.UserRoomvisits.Add(new UserRoomvisitEntity
-                {
-                    UserId = (uint)GetClient().GetHabbo().Id,
-                    RoomId = (uint)GetClient().GetHabbo().CurrentRoomId,
-                    EntryTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-                    ExitTimestamp = 0,
-                    Hour = DateTime.Now.Hour,
-                    Minute = DateTime.Now.Minute
-                });
-                db.SaveChanges();
-            }
+
+            // Buffered (write-behind) — room entry no longer runs a synchronous INSERT.
+            Plus.Core.Persistence.RoomVisitBuffer.OnEnter(GetClient().GetHabbo().Id, GetClient().GetHabbo().CurrentRoomId);
 
             if (room.OwnerId != Id)
             {
                 GetClient().GetHabbo().GetStats().RoomVisits += 1;
-                PlusEnvironment.GetGame().GetAchievementManager().ProgressAchievement(GetClient(), "ACH_RoomEntry", 1);
+
+                // Batched: room hopping is frequent enough that the synchronous achievement
+                // write was measurable under load.
+                PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(GetClient(), "ACH_RoomEntry", 1);
             }
             return true;
         }

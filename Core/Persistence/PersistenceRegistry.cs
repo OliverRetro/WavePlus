@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Plus.Core.Cache;
@@ -23,11 +24,15 @@ namespace Plus.Core.Persistence
             scheduler.RegisterWorldSaver("room-items", SaveLoadedRoomItems);
             scheduler.RegisterWorldSaver("bots", SaveLoadedRoomBots);
             scheduler.RegisterWorldSaver("room-stock", () => PlusEnvironment.GetRoomStockManager().Save());
+            // Included in the world savers so the shutdown FlushAll() drains it too.
+            scheduler.RegisterWorldSaver("room-visits", RoomVisitBuffer.Flush);
 
             // 60 second saver
             scheduler.RegisterMirror("user-mirror", MirrorOnlineUsers);
             scheduler.RegisterMirror("public-rooms", PublicRoomCache.MirrorAll);
             scheduler.RegisterMirror("groups", GroupCache.MirrorAll);
+            scheduler.RegisterMirror("room-visits", RoomVisitBuffer.Flush);
+            scheduler.RegisterMirror("room-usercounts", PersistRoomUserCounts);
         }
 
         private static void SaveOnlineUserData()
@@ -50,6 +55,33 @@ namespace Plus.Core.Persistence
                 Habbo habbo = client?.GetHabbo();
                 if (habbo != null)
                     RpStatsCache.MirrorAll(habbo);
+            }
+        }
+
+        /// <summary>
+        /// Mirrors rooms.users_now for loaded rooms whose head-count changed since the last
+        /// mirror. Replaces the old per-join/per-leave synchronous UPDATE.
+        /// </summary>
+        private static void PersistRoomUserCounts()
+        {
+            List<Room> dirty = null;
+            foreach (Room room in PlusEnvironment.GetGame().GetRoomManager().GetRooms())
+            {
+                if (room != null && room.UsersNow != room.LastPersistedUsersNow)
+                    (dirty ??= []).Add(room);
+            }
+
+            if (dirty == null)
+                return;
+
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            foreach (Room room in dirty)
+            {
+                int roomId = room.Id;
+                int usersNow = room.UsersNow;
+                db.Rooms.Where(r => r.Id == roomId)
+                    .ExecuteUpdate(s => s.SetProperty(r => r.UsersNow, usersNow));
+                room.LastPersistedUsersNow = usersNow;
             }
         }
 

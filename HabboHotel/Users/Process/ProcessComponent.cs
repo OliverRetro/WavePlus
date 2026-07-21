@@ -143,8 +143,10 @@ namespace Plus.HabboHotel.Users.Process
                 #endregion
 
 
+                // Batched: with thousands of users online, one synchronous achievement write
+                // per user per minute was a constant background load on MySQL.
                 if (_player.GetClient() != null)
-                    PlusEnvironment.GetGame().GetAchievementManager().ProgressAchievement(_player.GetClient(), "ACH_AllTimeHotelPresence", 1);
+                    PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(_player.GetClient(), "ACH_AllTimeHotelPresence", 1);
 
                 _player.CheckCreditsTimer();
                 _player.CheckBankSaveTimer();

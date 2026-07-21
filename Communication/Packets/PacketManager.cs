@@ -158,13 +158,15 @@ namespace Plus.Communication.Packets
                 return;
             }
 
-            //            if (System.Diagnostics.Debugger.IsAttached)
-            //            {
-            if (_packetNames.ContainsKey(packet.Id))
-                Log.Debug("Handled Packet: [" + packet.Id + "] " + _packetNames[packet.Id]);
-            else
-                Log.Debug("Handled Packet: [" + packet.Id + "] UnnamedPacketEvent");
-            //            }
+            // Guarded so the per-packet name lookup + string concatenation (this is the single
+            // hottest code path in the server) only happens when debug logging is actually on.
+            if (Log.IsDebugEnabled)
+            {
+                if (_packetNames.TryGetValue(packet.Id, out string packetName))
+                    Log.Debug("Handled Packet: [" + packet.Id + "] " + packetName);
+                else
+                    Log.Debug("Handled Packet: [" + packet.Id + "] UnnamedPacketEvent");
+            }
             if (!IgnoreTasks)
 #pragma warning disable CS0162
                 ExecutePacketAsync(session, packet, pak);

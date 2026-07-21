@@ -54,6 +54,12 @@ public partial class RpWeaponEntity
     [Column("range", TypeName = "int(11)")]
     public int Range { get; set; }
 
+    /// <summary>
+    /// 1 = the weapon can hit diagonally-positioned targets; 0 = cardinal directions only.
+    /// </summary>
+    [Column("allow_diagonal", TypeName = "tinyint(1)")]
+    public bool AllowDiagonal { get; set; }
+
     [Column("durability", TypeName = "int(11)")]
     public int Durability { get; set; }
 

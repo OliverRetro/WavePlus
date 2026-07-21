@@ -954,6 +954,7 @@ public partial class WavePlusContext(DbContextOptions<WavePlusContext> options) 
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
+            entity.Property(e => e.AllowDiagonal).HasDefaultValueSql("'1'");
             entity.Property(e => e.CriticalChance)
                 .HasDefaultValueSql("'10'")
                 .HasComment("As %. For instance 50% is 50-50 on hitting it, without Skill boosts.");

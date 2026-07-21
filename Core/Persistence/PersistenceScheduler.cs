@@ -103,7 +103,10 @@ namespace Plus.Core.Persistence
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"Persistence {label} saver '{name}' failed: {ex.Message}");
+                    // Include the inner exception: provider wrappers (e.g. the MySQL provider's
+                    // "configure your entity type accordingly") hide the real cause otherwise.
+                    string detail = ex.InnerException != null ? $"{ex.Message} -> {ex.InnerException.Message}" : ex.Message;
+                    Log.Error($"Persistence {label} saver '{name}' failed: {detail}", ex);
                 }
             }
         }

@@ -8,7 +8,6 @@ namespace Plus.HabboHotel.Items.Interactor
 {
     public class InteractorArrowTeleport : IFurniInteractor
     {
-        private const double TriggerDelaySeconds = 0.001;
         private static readonly ConcurrentDictionary<int, int> PendingTeleports = new();
         private static readonly ConcurrentDictionary<int, ArrowTeleportArrivalData> PendingArrivals = new();
 
@@ -78,6 +77,24 @@ namespace Plus.HabboHotel.Items.Interactor
 
         public void OnTrigger(GameClient session, Item item, int request, bool hasRights)
         {
+            // Clicking the arrow now works like clicking a teleporter: walk to it, or fire it
+            // when already standing on it (previously this was a no-op, so clicks on the arrow
+            // did nothing at all).
+            if (item == null || item.GetRoom() == null || session?.GetHabbo() == null)
+                return;
+
+            RoomUser user = item.GetRoom().GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id);
+            if (user == null)
+                return;
+
+            if (user.X == item.GetX && user.Y == item.GetY)
+            {
+                BeginDelayedTeleport(user, item);
+            }
+            else if (user.CanWalk)
+            {
+                user.MoveTo(item.GetX, item.GetY);
+            }
         }
 
         public void OnWiredTrigger(Item item)
@@ -146,35 +163,46 @@ namespace Plus.HabboHotel.Items.Interactor
             userHabbo.PrepareRoom(teleRoomId, string.Empty);
         }
 
+        /// <summary>
+        /// Queues the teleport for a user who has finished their walk on the arrow tile (the
+        /// room cycle decides that — see RoomUserManager) or clicked the arrow while standing
+        /// on it. The actual room switch runs off-thread so a cross-room load never stalls the
+        /// room cycle. The old version also checked <c>user.IsWalking</c> after a 1ms delay,
+        /// which raced the cycle thread and randomly swallowed the teleport.
+        /// </summary>
         public static void BeginDelayedTeleport(RoomUser user, Item item)
         {
-            if (user?.GetClient()?.GetHabbo() == null)
+            if (user?.GetClient()?.GetHabbo() == null || item == null)
                 return;
 
             int userId = user.GetClient().GetHabbo().Id;
             PendingTeleports[userId] = item.Id;
-            _ = CompleteDelayedTeleportAsync(userId, item.Id);
+            _ = Task.Run(() => CompleteDelayedTeleport(userId, item.Id));
         }
 
-        private static async Task CompleteDelayedTeleportAsync(int userId, int itemId)
+        private static void CompleteDelayedTeleport(int userId, int itemId)
         {
-            await Task.Delay(TimeSpan.FromSeconds(TriggerDelaySeconds));
+            try
+            {
+                // A newer walk target cancels the pending teleport (MoveTo → CancelDelayedTeleport).
+                if (!PendingTeleports.TryRemove(userId, out int pendingItemId) || pendingItemId != itemId)
+                    return;
 
-            if (!PendingTeleports.TryGetValue(userId, out int pendingItemId) || pendingItemId != itemId)
-                return;
+                GameClient client = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(userId);
+                RoomUser user = client?.GetHabbo()?.CurrentRoom?.GetRoomUserManager().GetRoomUserByHabbo(userId);
+                if (user == null)
+                    return;
 
-            PendingTeleports.TryRemove(userId, out _);
+                Item item = client.GetHabbo().CurrentRoom?.GetRoomItemHandler().GetItem(itemId);
+                if (item == null || user.X != item.GetX || user.Y != item.GetY)
+                    return;
 
-            GameClient client = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(userId);
-            RoomUser user = client?.GetHabbo()?.CurrentRoom?.GetRoomUserManager().GetRoomUserByHabbo(userId);
-            if (user == null || user.IsWalking)
-                return;
-
-            Item item = client.GetHabbo().CurrentRoom?.GetRoomItemHandler().GetItem(itemId);
-            if (item == null || user.Coordinate != item.Coordinate)
-                return;
-
-            TriggerInstantTeleport(user, item);
+                TriggerInstantTeleport(user, item);
+            }
+            catch (Exception e)
+            {
+                Plus.Core.ExceptionLogger.LogException(e);
+            }
         }
 
         public static void CancelDelayedTeleport(int userId)

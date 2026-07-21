@@ -59,9 +59,12 @@ namespace Plus.HabboHotel.Roleplay.Combat
             var weapon = activeWeapon?.WeaponData;
             WeaponSkin skin = attacker.GetRpWeaponSkins()?.GetEquippedSkinForWeapon(activeWeapon?.WeaponId ?? 0)?.SkinData;
 
-            double range = weapon?.Range ?? RpProximity.AdjacentRange;
+            // Tile-based reach: range 1 = same/adjacent tile, range 2 adds one tile of gap.
+            // Fists (no weapon) are range 1 and may hit diagonally.
+            int range = weapon?.Range ?? 1;
+            bool allowDiagonal = weapon?.AllowDiagonal ?? true;
 
-            if (!RpProximity.IsWithinRange(attackerRoomUser, targetRoomUser, range))
+            if (!RpProximity.IsWithinWeaponRange(attackerRoomUser, targetRoomUser, range, allowDiagonal))
             {
                 attacker.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, "*swings at " + target.Username + ", but misses*", 0, 29, isRpAction: true));
                 return;

@@ -35,7 +35,9 @@ namespace Plus.HabboHotel.Rooms
             try
             {
                 TimeSpan sinceLastTime = DateTime.Now - _cycleLastExecution;
-                if (sinceLastTime.TotalMilliseconds >= 500)
+                // 50ms tick: rooms process movement/status every tick, and internally fall back
+                // to the classic 500ms cadence for items/wired/timers (see Room.ProcessRoom).
+                if (sinceLastTime.TotalMilliseconds >= 50)
                 {
                     _cycleLastExecution = DateTime.Now;
                     foreach (Room room in _rooms.Values)
@@ -51,7 +53,9 @@ namespace Plus.HabboHotel.Rooms
                         else
                         {
                             room.IsLagging++;
-                            if (room.IsLagging >= 30)
+                            // 300 consecutive busy 50ms ticks ≈ 15s of continuous stall — the same
+                            // tolerance the old 30 × 500ms check gave.
+                            if (room.IsLagging >= 300)
                             {
                                 room.IsCrashed = true;
                                 UnloadRoom(room.Id);

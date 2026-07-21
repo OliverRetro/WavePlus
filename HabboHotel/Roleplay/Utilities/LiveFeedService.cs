@@ -13,6 +13,10 @@ namespace Plus.HabboHotel.Roleplay.Utilities
 {
     public static class LiveFeedService
     {
+        // One shared client: a new HttpClient per webhook call leaks sockets (TIME_WAIT
+        // exhaustion) under kill/crime spam.
+        private static readonly HttpClient WebhookClient = new();
+
         public static void LiveFeed(string message, string type = "blue")
         {
             if (message == null) throw new ArgumentNullException(nameof(message));
@@ -41,7 +45,9 @@ namespace Plus.HabboHotel.Roleplay.Utilities
             };
 
             string json = JsonConvert.SerializeObject(entry);
-            redis.ListPush("livefeed", json);
+            // Fire-and-forget: a Redis hiccup must never stall the game thread that emitted
+            // the feed event (kills/crimes come from the room cycle).
+            redis.ListPushFireAndForget("livefeed", json);
         }
 
         private static void BubbleAlert(string message, string type)
@@ -100,8 +106,6 @@ namespace Plus.HabboHotel.Roleplay.Utilities
                 string webhookUrl = "https://discord.com/api/webhooks/1522299501128192031/pz-zpxt761N6BshyiZ3_50G1nXNkgHRZS2FE3SpRCpOIhyKFOe3IqFRL1x_kDLn90B6f";
                 string markdown = ConvertHtmlToDiscordMarkdown(message);
 
-                using var client = new HttpClient();
-
                 int embedColor = type.ToLower() switch
                 {
                     "blue" => 0x03A9F4,
@@ -146,7 +150,7 @@ namespace Plus.HabboHotel.Roleplay.Utilities
 
                 string json = JsonConvert.SerializeObject(payload);
 
-                await client.PostAsync(webhookUrl, new StringContent(json, Encoding.UTF8, "application/json"));
+                await WebhookClient.PostAsync(webhookUrl, new StringContent(json, Encoding.UTF8, "application/json"));
             }
             catch (Exception ex)
             {

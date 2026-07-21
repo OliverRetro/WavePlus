@@ -67,6 +67,13 @@ namespace Plus.HabboHotel.Rooms
         public bool Unloaded { get; set; }
         public int IdleTime { get; set; }
 
+        /// <summary>Last users_now value mirrored to MySQL (see PersistenceRegistry).</summary>
+        public int LastPersistedUsersNow = -1;
+
+        // Timestamp (unix ms) of the last full 500ms cycle. ProcessRoom now runs every 50ms
+        // for responsive movement; everything else (items, wired, timers) stays on 500ms.
+        private long _lastFullCycleMs;
+
         public Room(RoomData data)
             : base(data)
         {
@@ -103,7 +110,25 @@ namespace Plus.HabboHotel.Rooms
 
         public List<string> WordFilterList { get; set; }
 
-        public int UserCount => _roomUserManager.GetRoomUsers().Count;
+        public int UserCount
+        {
+            get
+            {
+                // Allocation-free live head-count (the old version built a new list per call).
+                RoomUserManager manager = _roomUserManager;
+                if (manager == null)
+                    return 0;
+
+                int count = 0;
+                foreach (RoomUser user in manager.GetUserList())
+                {
+                    if (user != null && !user.IsBot)
+                        count++;
+                }
+
+                return count;
+            }
+        }
 
         public int RoomId => Id;
 
@@ -198,11 +223,21 @@ namespace Plus.HabboHotel.Rooms
             uint roomKey = (uint)RoomId;
             var bots = db.Bots.Where(b => b.RoomId == roomKey && b.AiType != "pet").ToList();
 
+            if (bots.Count == 0)
+                return;
+
+            // One speech query for the whole room instead of one per bot (N+1 on room load).
+            var botIds = bots.Select(b => b.Id).ToList();
+            var speechesByBot = db.BotsSpeeches.Where(s => botIds.Contains(s.BotId))
+                .Select(s => new { s.BotId, s.Text }).ToList()
+                .GroupBy(s => s.BotId)
+                .ToDictionary(g => g.Key, g => g.Select(s => s.Text).ToList());
+
             foreach (var bot in bots)
             {
-                List<RandomSpeech> speeches = [.. db.BotsSpeeches.Where(s => s.BotId == bot.Id)
-                    .Select(s => s.Text).ToList()
-                    .Select(t => new RandomSpeech(t, (int)bot.Id))];
+                List<RandomSpeech> speeches = speechesByBot.TryGetValue(bot.Id, out var texts)
+                    ? [.. texts.Select(t => new RandomSpeech(t, (int)bot.Id))]
+                    : [];
 
                 _roomUserManager.DeployBot(new RoomBot((int)bot.Id, (int)bot.RoomId, bot.AiType, bot.WalkMode, bot.Name, bot.Motto, bot.Look, bot.X, bot.Y, bot.Z, bot.Rotation, 0, 0, 0, 0, ref speeches, bot.Gender, 0, (int)bot.UserId, Convert.ToBoolean(bot.AutomaticChat), bot.SpeakingInterval, PlusEnvironment.EnumToBool(bot.MixSentences), bot.ChatBubble, bot.EffectId), null);
             }
@@ -215,12 +250,19 @@ namespace Plus.HabboHotel.Rooms
             var pets = db.Bots.Where(b => b.RoomId == roomKey && b.AiType == "pet")
                 .Select(b => new { b.Id, b.UserId, b.RoomId, b.Name, b.X, b.Y, b.Z }).ToList();
 
+            if (pets.Count == 0)
+                return;
+
+            // One pet-data query for the whole room instead of one per pet (N+1 on room load).
+            var petIds = pets.Select(p => p.Id).ToList();
+            var petData = db.BotsPetdata.Where(p => petIds.Contains(p.Id))
+                .Select(p => new { p.Id, p.Type, p.Race, p.Color, p.Experience, p.Energy, p.Nutrition, p.Respect, p.Createstamp, p.HaveSaddle, p.AnyoneRide, p.Hairdye, p.Pethair, p.GnomeClothing })
+                .ToList()
+                .ToDictionary(p => p.Id);
+
             foreach (var row in pets)
             {
-                var mRow = db.BotsPetdata.Where(p => p.Id == row.Id)
-                    .Select(p => new { p.Type, p.Race, p.Color, p.Experience, p.Energy, p.Nutrition, p.Respect, p.Createstamp, p.HaveSaddle, p.AnyoneRide, p.Hairdye, p.Pethair, p.GnomeClothing })
-                    .FirstOrDefault();
-                if (mRow == null)
+                if (!petData.TryGetValue(row.Id, out var mRow))
                     continue;
 
                 Pet pet = new((int)row.Id, (int)row.UserId, (int)row.RoomId, row.Name, (int)(mRow.Type ?? 0), mRow.Race,
@@ -364,53 +406,65 @@ namespace Plus.HabboHotel.Rooms
 
             try
             {
-                if (GetRoomUserManager().GetRoomUsers().Count == 0)
-                    IdleTime++;
-                else if (IdleTime > 0)
-                    IdleTime = 0;
+                long nowMs = PlusEnvironment.Now();
+                bool fullCycle = nowMs - _lastFullCycleMs >= 500;
+                if (fullCycle)
+                    _lastFullCycleMs = nowMs;
 
-                if (HasActivePromotion && Promotion.HasExpired)
+                if (fullCycle)
                 {
-                    EndPromotion();
-                }
+                    if (GetRoomUserManager().UserCount == 0)
+                        IdleTime++;
+                    else if (IdleTime > 0)
+                        IdleTime = 0;
 
-                if (IdleTime >= 60 && !HasActivePromotion && !IsPublic)
-                {
-                    PlusEnvironment.GetGame().GetRoomManager().UnloadRoom(Id);
-                    return;
+                    if (HasActivePromotion && Promotion.HasExpired)
+                    {
+                        EndPromotion();
+                    }
+
+                    if (IdleTime >= 60 && !HasActivePromotion && !IsPublic)
+                    {
+                        PlusEnvironment.GetGame().GetRoomManager().UnloadRoom(Id);
+                        return;
+                    }
+
+                    try
+                    {
+                        GetRoomItemHandler().OnCycle();
+                    }
+                    catch (Exception e)
+                    {
+                        ExceptionLogger.LogException(e);
+                    }
                 }
 
                 try
                 {
-                    GetRoomItemHandler().OnCycle();
+                    GetRoomUserManager().OnCycle(fullCycle);
                 }
                 catch (Exception e)
                 {
                     ExceptionLogger.LogException(e);
                 }
 
-                try
+                if (fullCycle)
                 {
-                    GetRoomUserManager().OnCycle();
-                }
-                catch (Exception e)
-                {
-                    ExceptionLogger.LogException(e);
-                }
-
-                try
-                {
-                    Roleplay.Utilities.FurnitureAchievementService.Tick(this);
-                }
-                catch (Exception e)
-                {
-                    ExceptionLogger.LogException(e);
+                    try
+                    {
+                        Roleplay.Utilities.FurnitureAchievementService.Tick(this);
+                    }
+                    catch (Exception e)
+                    {
+                        ExceptionLogger.LogException(e);
+                    }
                 }
 
                 #region Status Updates
 
                 try
                 {
+                    // Runs on every 50ms tick so freshly-issued steps reach clients immediately.
                     GetRoomUserManager().SerializeStatusUpdates();
                 }
                 catch (Exception e)
@@ -420,26 +474,29 @@ namespace Plus.HabboHotel.Rooms
 
                 #endregion
 
-                #region Game Item Cycle
+                if (fullCycle)
+                {
+                    #region Game Item Cycle
 
-                try
-                {
-                    _gameItemHandler?.OnCycle();
-                }
-                catch (Exception e)
-                {
-                    ExceptionLogger.LogException(e);
-                }
+                    try
+                    {
+                        _gameItemHandler?.OnCycle();
+                    }
+                    catch (Exception e)
+                    {
+                        ExceptionLogger.LogException(e);
+                    }
 
-                #endregion
+                    #endregion
 
-                try
-                {
-                    GetWired().OnCycle();
-                }
-                catch (Exception e)
-                {
-                    ExceptionLogger.LogException(e);
+                    try
+                    {
+                        GetWired().OnCycle();
+                    }
+                    catch (Exception e)
+                    {
+                        ExceptionLogger.LogException(e);
+                    }
                 }
             }
             catch (Exception e)
@@ -505,12 +562,15 @@ namespace Plus.HabboHotel.Rooms
             session.SendPacket(new HeightMapComposer(room));
             session.SendPacket(new FloorHeightMapComposer(GetGameMap().Model.GetRelativeHeightmap(), GetGameMap().StaticModel.WallHeight));
 
-            foreach (RoomUser user in _roomUserManager.GetUserList().ToList())
+            // One batched UsersComposer for the whole room instead of one packet per avatar —
+            // on a 100-user room this trims the entry burst by ~99 packets.
+            List<RoomUser> visibleUsers = [.. _roomUserManager.GetUserList().Where(u => u != null)];
+            session.SendPacket(new UsersComposer(visibleUsers));
+
+            foreach (RoomUser user in visibleUsers)
             {
                 if (user == null)
                     continue;
-
-                session.SendPacket(new UsersComposer(user));
 
                 if (user.IsBot && user.BotData.DanceId > 0)
                     session.SendPacket(new DanceComposer(user.VirtualId, user.BotData.DanceId));
@@ -610,12 +670,13 @@ namespace Plus.HabboHotel.Rooms
 
             try
             {
-                List<RoomUser> users = [.. _roomUserManager.GetUserList()];
-
-                if (_roomUserManager == null)
+                RoomUserManager manager = _roomUserManager;
+                if (manager == null)
                     return;
 
-                foreach (RoomUser user in users)
+                // Enumerating the concurrent dictionary directly is snapshot-safe; the old
+                // code allocated a fresh list copy for every single broadcast packet.
+                foreach (RoomUser user in manager.GetUserList())
                 {
                     if (user == null || user.IsBot)
                         continue;
@@ -642,12 +703,11 @@ namespace Plus.HabboHotel.Rooms
 
             try
             {
-                List<RoomUser> users = [.. _roomUserManager.GetUserList()];
-
-                if (_roomUserManager == null)
+                RoomUserManager manager = _roomUserManager;
+                if (manager == null)
                     return;
 
-                foreach (RoomUser user in users)
+                foreach (RoomUser user in manager.GetUserList())
                 {
                     if (user == null || user.IsBot)
                         continue;
@@ -666,7 +726,7 @@ namespace Plus.HabboHotel.Rooms
 
         public void BroadcastPacket(List<MessageComposer> packets)
         {
-            foreach (RoomUser user in _roomUserManager.GetUserList().ToList())
+            foreach (RoomUser user in _roomUserManager.GetUserList())
             {
                 if (user == null || user.IsBot)
                     continue;

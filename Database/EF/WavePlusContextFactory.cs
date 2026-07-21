@@ -26,7 +26,15 @@ namespace Plus.Database.EF
             };
 
             _options = new DbContextOptionsBuilder<WavePlusContext>()
-                .UseMySQL(builder.ConnectionString)
+                // MaxBatchSize(1): Oracle's MySql.EntityFrameworkCore provider throws
+                // "Could not save changes. Please configure your entity type accordingly."
+                // when a single SaveChanges batches a multi-row INSERT into a table whose key
+                // is AUTO_INCREMENT (it can't read the generated ids back across the batch).
+                // Every append-only buffer here — chatlogs, LogBuffer, RoomVisitBuffer — hits
+                // this. Emitting one INSERT per row (each with its own LAST_INSERT_ID) is the
+                // path the provider handles correctly. ExecuteUpdate/ExecuteDelete, which the
+                // app's hot writes use, are not affected by batch sizing.
+                .UseMySQL(builder.ConnectionString, o => o.MaxBatchSize(1))
                 .Options;
         }
 

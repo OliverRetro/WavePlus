@@ -1,4 +1,6 @@
-﻿namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
+﻿using System;
+
+namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
 {
     public class Weapon
     {
@@ -12,13 +14,22 @@
         public int CriticalChance { get; set; }
         public double CriticalMultiplier { get; set; }
         public int Effect { get; set; }
-        public double Range { get; set; }
+
+        /// <summary>
+        /// Reach in tiles (Chebyshev rings): 1 = same/adjacent tile, 2 = one tile of gap
+        /// between attacker and target, and so on.
+        /// </summary>
+        public int Range { get; set; }
+
+        /// <summary>When false, the target must be on the same row or column as the attacker.</summary>
+        public bool AllowDiagonal { get; set; }
+
         public int Durability { get; set; }
         public int StunChance { get; set; }
         public string Image { get; set; }
         public int Rarity { get; set; }
 
-        public Weapon(int id, string name, string description, string hitMessage, string criticalHitMessage, int minimumDamage, int maximumDamage, int criticalChance, double criticalMultiplier, int effect, double range, int durability, int stunChance, string image, int rarity = 0)
+        public Weapon(int id, string name, string description, string hitMessage, string criticalHitMessage, int minimumDamage, int maximumDamage, int criticalChance, double criticalMultiplier, int effect, int range, int durability, int stunChance, string image, int rarity = 0, bool allowDiagonal = true)
         {
             Rarity = rarity;
             Id = id;
@@ -31,7 +42,8 @@
             CriticalChance = criticalChance;
             CriticalMultiplier = criticalMultiplier;
             Effect = effect;
-            Range = range;
+            Range = Math.Max(1, range);
+            AllowDiagonal = allowDiagonal;
             Durability = durability;
             StunChance = stunChance;
             Image = image;

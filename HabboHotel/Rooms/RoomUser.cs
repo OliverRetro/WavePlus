@@ -58,6 +58,10 @@ namespace Plus.HabboHotel.Rooms
         public List<Vector2D> Path = new();
         public bool PathRecalcNeeded;
         public int PathStep = 1;
+        // Earliest time (unix ms) this user may take their next walking step. The room's
+        // movement loop runs every 50ms so clicks register almost instantly, but actual
+        // steps stay on the classic 500ms-per-tile cadence via this gate.
+        public long NextStepMs;
         public Pet PetData;
 
         public int PrevTime;

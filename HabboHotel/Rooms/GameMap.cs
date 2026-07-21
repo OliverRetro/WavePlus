@@ -94,6 +94,18 @@ namespace Plus.HabboHotel.Rooms
             return false;
         }
 
+        /// <summary>First user on the tile without snapshotting the whole list (hot path).</summary>
+        public RoomUser GetFirstUserForSquare(Point coord)
+        {
+            if (_userMap.TryGetValue(coord, out List<RoomUser> users))
+            {
+                lock (users)
+                    return users.Count > 0 ? users[0] : null;
+            }
+
+            return null;
+        }
+
         public List<RoomUser> GetRoomUsers(Point coord)
         {
             // Return a snapshot so callers on IO threads can enumerate/index safely while the
@@ -1008,16 +1020,15 @@ namespace Plus.HabboHotel.Rooms
             if (_room.RoomBlockingEnabled == 0 && SquareHasUsers(to.X, to.Y))
                 return false;
 
-            List<Item> items = _room.GetGameMap().GetAllRoomItemForSquare(to.X, to.Y);
-            if (items.Count > 0)
+            // This runs for every neighbour probe of every pathfind, so the (allocating) item
+            // lookup is deferred until the tile-state check actually fails — a guild gate on a
+            // blocked square is the only thing that can rescue the step.
+            byte state = GameMap[to.X, to.Y];
+            if (state == 3 && !endOfPath || state == 0 || state == 2 && !endOfPath)
             {
-                bool hasGroupGate = items.Any(x => x != null && x.GetBaseItem().InteractionType == InteractionType.GuildGate);
-                if (hasGroupGate)
-                    return true;
+                List<Item> items = GetAllRoomItemForSquare(to.X, to.Y);
+                return items.Any(x => x != null && x.GetBaseItem().InteractionType == InteractionType.GuildGate);
             }
-
-            if (GameMap[to.X, to.Y] == 3 && !endOfPath || GameMap[to.X, to.Y] == 0 || GameMap[to.X, to.Y] == 2 && !endOfPath)
-                return false;
 
             if (!roller)
             {
@@ -1208,11 +1219,11 @@ namespace Plus.HabboHotel.Rooms
             if (input == null || input.Count == 0)
                 return new List<Item>();
 
-            List<Item> items = new();
+            List<Item> items = new(input.Count);
 
             lock (input)
             {
-                foreach (int id in input.ToList())
+                foreach (int id in input)
                 {
                     Item item = _room.GetRoomItemHandler().GetItem(id);
                     if (item != null && !items.Contains(item))
@@ -1220,7 +1231,7 @@ namespace Plus.HabboHotel.Rooms
                 }
             }
 
-            return items.ToList();
+            return items;
         }
 
         public List<Item> GetRoomItemForSquare(int pX, int pY, double minZ)

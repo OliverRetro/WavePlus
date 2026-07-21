@@ -156,6 +156,26 @@ namespace Plus.Core
         }
 
         /// <summary>
+        /// Appends to a Redis list without waiting for the reply, so callers on game/room
+        /// threads never block on a slow Redis. Failures trip the breaker like the sync path.
+        /// </summary>
+        public void ListPushFireAndForget(string key, string value)
+        {
+            if (!Ready())
+                return;
+
+            try
+            {
+                _database.ListRightPush(key, value, flags: CommandFlags.FireAndForget);
+                MarkHealthy();
+            }
+            catch (Exception ex)
+            {
+                TripBreaker(ex);
+            }
+        }
+
+        /// <summary>
         /// Stores an object as JSON. JSON keeps the cached value readable via redis-cli
         /// (GET key) while still round-tripping to strongly-typed C#. Returns false when
         /// Redis is unavailable so callers can fall back to the database.

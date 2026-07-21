@@ -47,7 +47,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 
             // Shares combat's reach rules, so cuffing/arresting a diagonally adjacent suspect
             // works exactly like swinging at them does — including while either party is walking.
-            return RpProximity.IsWithinRange(ua, ub, RpProximity.AdjacentRange);
+            return RpProximity.IsWithinWeaponRange(ua, ub, 1, allowDiagonal: true);
         }
 
         public static bool RequireAdjacent(GameClient session, Room room, Habbo target, string message)

@@ -24,6 +24,8 @@ public partial class ChatlogEntity
     [Column("message", TypeName = "text")]
     public string Message { get; set; }
 
+    // The `timestamp` column is `double NOT NULL` in the schema; mapping it as int (the
+    // scaffolded type) both truncated the value and mismatched ChatLogEntry.Timestamp (double).
     [Column("timestamp")]
     public double Timestamp { get; set; }
 }

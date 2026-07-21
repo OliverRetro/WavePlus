@@ -94,10 +94,22 @@ namespace Plus.HabboHotel.GameClients
 
         public void OnCycle()
         {
+            double now = PlusEnvironment.GetUnixTimestamp();
+
+            // Prune stale announce cooldowns — the map otherwise grows one entry per user who
+            // ever ghost-disconnected, for the lifetime of the process.
+            if (!_lastAnnounce.IsEmpty)
+            {
+                foreach (var kv in _lastAnnounce)
+                {
+                    if (now - kv.Value > AnnounceCooldownSeconds * 4)
+                        _lastAnnounce.TryRemove(kv.Key, out _);
+                }
+            }
+
             if (_pending.IsEmpty)
                 return;
 
-            double now = PlusEnvironment.GetUnixTimestamp();
             foreach (var kv in _pending)
             {
                 if (kv.Value.ExpiryUnix <= now)
