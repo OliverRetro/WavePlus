@@ -1,4 +1,4 @@
-using Plus.Communication.Packets.Outgoing.Notifications;
+using Plus.Communication.Packets.Outgoing.Overlay;
 using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
@@ -15,6 +15,7 @@ using Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay;
 using Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Banking;
 using Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation;
 using Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Police;
+using Plus.HabboHotel.Users;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,16 +45,36 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
         private readonly Dictionary<string, IChatCommand> _commands = new();
 
         /// <summary>
+        /// Class name -> category, filled in by <see cref="Register"/> from whichever Register*
+        /// block is running. The registration blocks already partition the commands exactly the
+        /// way the overlay wants to show them, so the category is derived rather than stored in
+        /// the database — a command therefore cannot be added without getting a category, and
+        /// the two can never drift apart.
+        /// </summary>
+        private readonly Dictionary<string, string> _categoryByCommand = new(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>Category assigned to anything registered while it is set. See the constructor.</summary>
+        private string _registeringCategory = CommandCategory.General;
+
+        /// <summary>
         /// The default initializer for the CommandManager
         /// </summary>
         public CommandManager(string prefix)
         {
             _prefix = prefix;
 
+            _registeringCategory = CommandCategory.Roleplay;
             RegisterRoleplay();
+
+            _registeringCategory = CommandCategory.Vip;
             RegisterVip();
+
+            // General commands are available to everyone and so only ever appear under "All".
+            _registeringCategory = CommandCategory.General;
             RegisterUser();
             RegisterEvents();
+
+            _registeringCategory = CommandCategory.Staff;
             RegisterModerator();
             RegisterAdministrator();
         }
@@ -74,20 +95,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
 
             if (message == _prefix + "commands")
             {
-                StringBuilder list = new();
-                list.Append("This is the list of commands you have available:\n");
-                foreach (var cmdList in _commands.ToList())
-                {
-                    if (!string.IsNullOrEmpty(cmdList.Value.PermissionRequired) || !string.IsNullOrEmpty(cmdList.Value.GroupPermissionRequired))
-                    {
-                        if (!CanExecuteCommand(session, cmdList.Key.ToLower(), cmdList.Value))
-                            continue;
-                    }
-
-                    list.Append(":" + cmdList.Key + " " + cmdList.Value.Parameters + " - " + cmdList.Value.Description + "\n");
-                }
-
-                session.SendPacket(new MotdNotificationComposer(list.ToString()));
+                SendCommandList(session);
                 return true;
             }
 
@@ -136,8 +144,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             Register(new EquipWeaponCommand());
             Register(new ToggleWeaponSkinCommand());
             Register(new UnlockEverythingCommand());
-            Register(new AddStockCommand());
+            Register(new AddRoomStockCommand());
+            Register(new AddItemStockCommand());
             Register(new StockCommand());
+            Register(new OfferCommand());
             Register(new DemoteCommand());
             Register(new PromoteCommand());
             Register(new FireCommand());
@@ -152,10 +162,15 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             Register(new PardonCommand());
             Register(new HireCommand());
             Register(new SuperHireCommand());
+            Register(new SuperPromoteCommand());
+            Register(new SuperDemoteCommand());
+            Register(new SuperFireCommand());
+            Register(new GInviteCommand());
             Register(new GroupPermissionsCommand());
             Register(new HitCommand());
             Register(new LockTargetCommand());
             Register(new UnlockTargetCommand());
+            Register(new PingCommand());
             Register(new ToggleSkillCommand());
             Register(new BuildHeightCommand());
             Register(new SuicideCommand());
@@ -172,6 +187,102 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
         private void RegisterVip()
         {
             Register(new SuperPullCommand());
+        }
+
+        /// <summary>
+        /// Pushes the categorised command list to the gaz-js overlay. Only commands the user can
+        /// actually run are included, and a category is only offered when they qualify for it.
+        /// </summary>
+        public void SendCommandList(GameClient session)
+        {
+            Habbo habbo = session?.GetHabbo();
+            if (habbo == null)
+                return;
+
+            // Aliases point at shared singletons, so grouping by instance collapses every trigger
+            // for a command into one entry instead of repeating it once per key.
+            Dictionary<IChatCommand, List<string>> aliases = new();
+            foreach (KeyValuePair<string, IChatCommand> pair in _commands)
+            {
+                if (!aliases.TryGetValue(pair.Value, out List<string> keys))
+                    aliases[pair.Value] = keys = new List<string>();
+
+                keys.Add(pair.Key);
+            }
+
+            List<(string Name, object Payload)> commands = new();
+            foreach (KeyValuePair<IChatCommand, List<string>> pair in aliases)
+            {
+                IChatCommand command = pair.Key;
+
+                if (!_categoryByCommand.TryGetValue(command.GetType().Name, out string category))
+                    category = CommandCategory.General;
+
+                if (!CanSeeCategory(habbo, category))
+                    continue;
+
+                if ((!string.IsNullOrEmpty(command.PermissionRequired) || !string.IsNullOrEmpty(command.GroupPermissionRequired))
+                    && !CanExecuteCommand(session, string.Empty, command))
+                    continue;
+
+                // Shortest alias wins as the display name (ties broken alphabetically so the
+                // choice is stable between calls); the rest are listed as alternatives.
+                List<string> keys = pair.Value
+                    .OrderBy(x => x.Length)
+                    .ThenBy(x => x, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+                string name = _prefix + keys[0];
+
+                commands.Add((name, new
+                {
+                    name,
+                    aliases = keys.Skip(1).Select(x => _prefix + x).ToArray(),
+                    description = command.Description ?? "",
+                    usage = string.IsNullOrWhiteSpace(command.Parameters)
+                        ? name
+                        : name + " " + command.Parameters,
+                    category,
+                    access = category
+                }));
+            }
+
+            WebOverlay.Send(session, "commands", new
+            {
+                categories = VisibleCategories(habbo),
+                commands = commands
+                    .OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
+                    .Select(x => x.Payload)
+                    .ToArray()
+            });
+        }
+
+        /// <summary>
+        /// Tab order for the overlay. "All" and "Roleplay" are always offered; VIP unlocks above
+        /// subscription rank 1 and Staff above rank 3.
+        /// </summary>
+        private static string[] VisibleCategories(Habbo habbo)
+        {
+            List<string> categories = new() { "All", CommandCategory.Roleplay };
+
+            if (habbo.VipRank > 1)
+                categories.Add(CommandCategory.Vip);
+
+            if (habbo.Rank > 3)
+                categories.Add(CommandCategory.Staff);
+
+            return categories.ToArray();
+        }
+
+        private static bool CanSeeCategory(Habbo habbo, string category)
+        {
+            if (category == CommandCategory.Vip)
+                return habbo.VipRank > 1;
+
+            if (category == CommandCategory.Staff)
+                return habbo.Rank > 3;
+
+            return true;
         }
 
         private static bool CanExecuteCommand(GameClient session, string commandKey, IChatCommand command)
@@ -325,6 +436,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
                 return;
 
             _registry[command.GetType().Name] = command;
+            _categoryByCommand[command.GetType().Name] = _registeringCategory;
         }
 
         /// <summary>

@@ -54,9 +54,9 @@ namespace Plus.Communication.Packets.Incoming.Moderation
             session.SendPacket(new ModeratorUserChatlogComposer(data, chatlogs));
         }
 
-        private List<ChatLogEntry> GetChatlogs(RoomData roomData, double timeEnter, double timeExit)
+        public List<ChatLogEntry> GetChatlogs(RoomData roomData, double timeEnter, double timeExit)
         {
-            List<ChatLogEntry> chats = new();
+            List<ChatLogEntry> chats = [];
 
             uint rid = (uint)roomData.Id;
             using (WavePlusContext db = PlusEnvironment.GetDbContext())

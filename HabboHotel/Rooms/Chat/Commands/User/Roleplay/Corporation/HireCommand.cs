@@ -75,7 +75,6 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
             Shout(session, room, GroupInviteService.InviteShout(group, targetHabbo.Username));
         }
 
-        /// <summary>Shouts an RP action from the hirer. No-ops if they aren't in the room.</summary>
         private static void Shout(GameClient session, Room room, string message)
         {
             RoomUser user = room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id);

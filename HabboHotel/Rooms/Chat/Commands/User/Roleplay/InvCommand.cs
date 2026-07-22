@@ -6,15 +6,12 @@ using Plus.HabboHotel.Roleplay.RpItem.Weapon;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 {
-    /// <summary>
-    /// `:inv N` — use the item shown in inventory slot N (1-10), matching the overlay grid.
-    /// </summary>
     internal class InvCommand : IChatCommand
     {
         // The overlay shows 10 regular item slots.
         private const int SlotCount = 10;
 
-        public string PermissionRequired => "command_rp_use_item";
+        public string PermissionRequired => "command_rp_invslot";
 
         public string Parameters => "%slot%";
 

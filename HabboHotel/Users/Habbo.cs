@@ -42,6 +42,7 @@ using Plus.HabboHotel.Roleplay.TargetLock;
 using Plus.Communication.Packets.Outgoing.Quests;
 using UserRpItem = Plus.HabboHotel.Roleplay.RpItem.Item.UserRpItem;
 using Plus.HabboHotel.Roleplay.Utilities;
+using Plus.HabboHotel.Users.Roleplay;
 
 namespace Plus.HabboHotel.Users
 {
@@ -1276,6 +1277,7 @@ namespace Plus.HabboHotel.Users
             PlusEnvironment.GetGame().GetMacroManager().Unload(Id);
             TargetLockService.Clear(Id);
             GroupInviteService.Clear(Id);
+            Plus.HabboHotel.Roleplay.Stock.RpOfferService.Clear(Id);
             PlusEnvironment.GetPoliceManager()?.OnDisconnect(this);
             PlusEnvironment.GetJailManager()?.OnDisconnect(this);
             PlusEnvironment.GetTrashSearchManager()?.Cancel(Id);

@@ -41,7 +41,10 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
         /// <summary>How many owned copies stack into a single inventory slot. 1 = never stacks.</summary>
         public int StackLimit { get; }
 
-        /// <summary>Category of the item: "consumable" (default), "shield", etc.</summary>
+        /// <summary>
+        /// Category of the item. One of "none", "primary", "secondary" or "consumable"
+        /// (the default). Anything unrecognised still behaves as a consumable.
+        /// </summary>
         public string ItemType { get; }
 
         /// <summary>Rarity 1-5 (1 common .. 5 legendary) driving the inventory glow.</summary>
@@ -98,6 +101,13 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
         /// </summary>
         public int MaxUses => GetInt("uses", 1);
 
+        /// <summary>
+        /// An inert item: it occupies no equip slot and cannot be used. For pure flavour/junk
+        /// items that would otherwise fall through to the consumable path and silently burn a
+        /// use doing nothing.
+        /// </summary>
+        public bool IsNone => string.Equals(ItemType, "none", StringComparison.OrdinalIgnoreCase);
+
         /// <summary>Equips to the primary slot (replaces the weapon while equipped).</summary>
         public bool IsPrimary => string.Equals(ItemType, "primary", StringComparison.OrdinalIgnoreCase);
 
@@ -111,6 +121,19 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
 
         /// <summary>Any item that occupies an equipped slot (primary or secondary).</summary>
         public bool IsEquippable => IsPrimary || IsSecondary;
+
+        /// <summary>
+        /// Consumed on use. Defined by exclusion rather than by an exact string match so that an
+        /// unrecognised item_type keeps behaving as it always has.
+        /// </summary>
+        public bool IsConsumable => !IsNone && !IsEquippable;
+
+        /// <summary>
+        /// Whether a dead owner may still use this item. Off unless the attribute JSON carries
+        /// `"zombie": 1` — dead users are otherwise blocked from every item, since things like
+        /// healing yourself back up from the grave leave the RP state inconsistent.
+        /// </summary>
+        public bool UsableWhileDead => GetInt("zombie", 0) > 0;
 
         /// <summary>Back-compat alias: the secondary slot behaves as a shield (durability + shield stat).</summary>
         public bool IsShield => IsSecondary;

@@ -2,8 +2,6 @@
 using System.Linq;
 using Plus.Communication.Packets.Outgoing.Groups;
 using Plus.Communication.Packets.Outgoing.Rooms.Permissions;
-using Microsoft.EntityFrameworkCore;
-using Plus.Database.EF;
 using Plus.HabboHotel.Cache.Type;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
@@ -27,6 +25,11 @@ namespace Plus.Communication.Packets.Incoming.Groups
                 return;
             }
 
+            // Captured before the removal, because DeleteMember now clears the badge itself and
+            // the check below would otherwise always read as false.
+            bool senderLostBadge = userId == session.GetHabbo().Id
+                && session.GetHabbo().GetStats().FavouriteGroupId == groupId;
+
             if (group.IsMember(userId))
                 group.DeleteMember(userId);
 
@@ -44,20 +47,13 @@ namespace Plus.Communication.Packets.Incoming.Groups
                     user.RemoveStatus("flatctrl 1");
                     user.UpdateNeeded = true;
 
-                    if (user.GetClient() != null)
-                        user.GetClient().SendPacket(new YouAreControllerComposer(0));
+                    user.GetClient()?.SendPacket(new YouAreControllerComposer(0));
                 }
             }
 
             session.SendPacket(new GroupInfoComposer(group, session));
-            if (session.GetHabbo().GetStats().FavouriteGroupId == groupId)
+            if (senderLostBadge)
             {
-                session.GetHabbo().GetStats().FavouriteGroupId = 0;
-                using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                {
-                    db.UserStats.Where(x => x.Id == userId).ExecuteUpdate(s => s.SetProperty(x => x.Groupid, 0));
-                }
-
                 if (group.AdminOnlyDeco == 0)
                 {
                     if (!PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(group.RoomId, out Room room))
@@ -73,19 +69,6 @@ namespace Plus.Communication.Packets.Incoming.Groups
                             user.GetClient().SendPacket(new YouAreControllerComposer(0));
                     }
                 }
-
-                if (session.GetHabbo().InRoom && session.GetHabbo().CurrentRoom != null)
-                {
-                    RoomUser user = session.GetHabbo().CurrentRoom.GetRoomUserManager()
-                        .GetRoomUserByHabbo(session.GetHabbo().Id);
-                    if (user != null)
-                        session.GetHabbo().CurrentRoom
-                            .SendPacket(new UpdateFavouriteGroupComposer(group, user.VirtualId));
-                    session.GetHabbo().CurrentRoom
-                        .SendPacket(new RefreshFavouriteGroupComposer(session.GetHabbo().Id));
-                }
-                else
-                    session.SendPacket(new RefreshFavouriteGroupComposer(session.GetHabbo().Id));
             }
 
             if (group.CreatorId == session.GetHabbo().Id || group.IsAdmin(session.GetHabbo().Id))
@@ -109,7 +92,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
                 if (group.IsMember(userId))
                     group.DeleteMember(userId);
 
-                List<UserCache> members = new();
+                List<UserCache> members = [];
                 List<int> memberIds = group.GetAllMembers;
                 foreach (int id in memberIds.ToList())
                 {
@@ -125,7 +108,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
                 int finishIndex = 14 < members.Count ? 14 : members.Count;
                 int membersCount = members.Count;
 
-                session.SendPacket(new GroupMembersComposer(group, members.Take(finishIndex).ToList(), membersCount, 1,
+                session.SendPacket(new GroupMembersComposer(group, [.. members.Take(finishIndex)], membersCount, 1,
                     (group.CreatorId == session.GetHabbo().Id || group.IsAdmin(session.GetHabbo().Id)), 0, ""));
             }
         }

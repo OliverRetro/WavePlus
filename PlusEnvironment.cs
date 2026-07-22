@@ -346,41 +346,31 @@ namespace Plus
             try
             {
                 GameClient client = GetGame().GetClientManager().GetClientByUserId(userId);
-                if (client != null)
+                Habbo online = client?.GetHabbo();
+
+                if (online != null && online.Id > 0)
                 {
-                    Habbo user = client.GetHabbo();
-                    if (user != null && user.Id > 0)
-                    {
-                        if (UsersCached.ContainsKey(userId))
-                            UsersCached.TryRemove(userId, out user);
-                        return user;
-                    }
-                }
-                else
-                {
-                    try
-                    {
-                        if (UsersCached.ContainsKey(userId))
-                            return UsersCached[userId];
-                        UserData data = UserDataFactory.GetUserData(userId);
-                        Habbo generated = data?.User;
-                        if (generated != null)
-                        {
-                            generated.InitInformation(data);
-                            UsersCached.TryAdd(userId, generated);
-                            return generated;
-                        }
-                    }
-                    catch
-                    {
-                        return null;
-                    }
+                    UsersCached.TryRemove(userId, out _);
+                    return online;
                 }
 
-                return null;
+                if (UsersCached.TryGetValue(userId, out Habbo cached))
+                    return cached;
+
+                UserData data = UserDataFactory.GetUserData(userId);
+                Habbo generated = data?.User;
+                if (generated == null)
+                    return null;
+
+                generated.InitInformation(data);
+                UsersCached.TryAdd(userId, generated);
+                return generated;
             }
-            catch
+            catch (Exception e)
             {
+                // Swallowing this silently is why the failure only ever surfaced as "an error
+                // occurred while finding that user's profile" with nothing to go on.
+                ExceptionLogger.LogException(e);
                 return null;
             }
         }

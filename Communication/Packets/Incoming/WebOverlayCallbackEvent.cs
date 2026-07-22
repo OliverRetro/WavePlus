@@ -11,11 +11,13 @@ using Plus.HabboHotel.Roleplay.RpItem;
 using Plus.HabboHotel.Roleplay.RpItem.Item;
 using Plus.HabboHotel.Roleplay.RpItem.Weapon;
 using Plus.HabboHotel.Roleplay.Skill;
+using Plus.HabboHotel.Roleplay.Stock;
 using Plus.HabboHotel.Roleplay.TargetLock;
 using Plus.HabboHotel.Roleplay.Utilities;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Rooms.Chat.Styles;
 using Plus.HabboHotel.Users;
+using Plus.HabboHotel.Users.Roleplay;
 using Plus.Utilities;
 
 namespace Plus.Communication.Packets.Incoming
@@ -162,6 +164,15 @@ namespace Plus.Communication.Packets.Incoming
 
                 case "open_wanted":
                     session.SendPacket(new WantedListComposer());
+                    break;
+
+                // A line bought from the :offer / stock_vendor buy window.
+                case "buy_stock":
+                    BuyStock(data, session);
+                    break;
+
+                case "close_offer":
+                    RpOfferService.Clear(session.GetHabbo().Id);
                     break;
 
                 // Accept/decline of a :hire group invite popup.
@@ -446,6 +457,28 @@ namespace Plus.Communication.Packets.Incoming
             SendInventory(session, false);
         }
 
+        /// <summary>
+        /// Why the overlay should grey an icon out, or "" when the item is usable. Deliberately
+        /// mirrors the gates in <see cref="UserRpItems.Use"/> — the icon and the server have to
+        /// agree, or the user clicks something that looks fine and gets a refusal whisper.
+        /// </summary>
+        private static string ItemBlockReason(RpItemData data, bool dead, bool passive)
+        {
+            if (data == null)
+                return "";
+
+            if (data.IsNone)
+                return "inert";
+
+            if (dead && !data.UsableWhileDead)
+                return "dead";
+
+            if (passive && data.BlockedWhilePassive)
+                return "passive";
+
+            return "";
+        }
+
         private static void SendInventory(GameClient session, bool open)
         {
             Habbo habbo = session.GetHabbo();
@@ -457,6 +490,7 @@ namespace Plus.Communication.Packets.Incoming
 
             // Passive mode is surfaced so the overlay can grey out / block equipping combat gear.
             bool passive = habbo.GetRpStats()?.PassiveMode == true;
+            bool dead = habbo.GetRpStats()?.IsDead == true;
 
             List<object> items = new();
 
@@ -475,6 +509,7 @@ namespace Plus.Communication.Packets.Incoming
                     image = equippedPrimary.ItemData.ImageUrl ?? "",
                     weapon = hasBar,
                     rarity = equippedPrimary.ItemData.Rarity,
+                    blockedReason = ItemBlockReason(equippedPrimary.ItemData, dead, passive),
                     health = hasBar ? (int)Math.Round(100.0 * equippedPrimary.EffectiveDurability / Math.Max(1, equippedPrimary.ItemData.MaxDurability)) : 100
                 });
             }
@@ -495,6 +530,8 @@ namespace Plus.Communication.Packets.Incoming
                         image = weapon.WeaponData.Image ?? "",
                         weapon = true,
                         passiveBlock = true,
+                        // Weapons aren't RP items, so the reason is derived from state alone.
+                        blockedReason = dead ? "dead" : (passive ? "passive" : ""),
                         rarity = (int)weapon.WeaponData.Rarity,
                         health = weapon.WeaponData.Durability <= 0 ? 100
                             : (int)Math.Round(100.0 * weapon.DurabilityLeft / weapon.WeaponData.Durability)
@@ -521,6 +558,7 @@ namespace Plus.Communication.Packets.Incoming
                     shield = !isSuicide,
                     suicide = isSuicide,
                     passiveBlock = isSuicide || equippedShield.ItemData.BlockedWhilePassive,
+                    blockedReason = ItemBlockReason(equippedShield.ItemData, dead, passive),
                     rarity = equippedShield.ItemData.Rarity,
                     health = isSuicide ? 100 : (int)Math.Round(100.0 * equippedShield.EffectiveDurability / maxShield)
                 });
@@ -552,6 +590,7 @@ namespace Plus.Communication.Packets.Incoming
                         weapon = true,
                         canEquip = true,
                         passiveBlock = true,
+                        blockedReason = dead ? "dead" : (passive ? "passive" : ""),
                         rarity = w.WeaponData?.Rarity ?? 0,
                         slot,
                         health = w.WeaponData == null || w.WeaponData.Durability <= 0 ? 100
@@ -583,6 +622,7 @@ namespace Plus.Communication.Packets.Incoming
                     canEquip = isSecondary || isPrimary,
                     suicide = rep.ItemData?.IsSuicideVest ?? false,
                     passiveBlock = rep.ItemData?.BlockedWhilePassive ?? false,
+                    blockedReason = ItemBlockReason(rep.ItemData, dead, passive),
                     rarity = rep.ItemData?.Rarity ?? 1,
                     slot,
                     count = entry.Count,
@@ -592,7 +632,7 @@ namespace Plus.Communication.Packets.Incoming
                 });
             }
 
-            WebOverlay.Send(session, "inventory", new { items, open, passive });
+            WebOverlay.Send(session, "inventory", new { items, open, passive, dead });
         }
 
         // Unequip the active weapon — it returns to the grid, so it needs a free slot.
@@ -898,6 +938,24 @@ namespace Plus.Communication.Packets.Incoming
 
             PlusEnvironment.GetGame().GetMacroManager().DeleteMacro(session.GetHabbo().Id, id);
             SendMacroList(session);
+        }
+
+        /// <summary>
+        /// One line bought from the buy window. Everything here is untrusted — RpOfferService
+        /// re-derives the price, the stock and the buyer's space rather than believing any of it.
+        /// </summary>
+        private static void BuyStock(JsonElement data, GameClient session)
+        {
+            if (!TryGetInt(data, "offerId", out int offerId) ||
+                !TryGetInt(data, "itemId", out int itemId) ||
+                !TryGetInt(data, "amount", out int amount))
+                return;
+
+            string stockType = GetString(data, "stockType");
+            if (string.IsNullOrEmpty(stockType))
+                return;
+
+            RpOfferService.HandlePurchase(session, offerId, stockType, itemId, amount);
         }
 
         private static string GetString(JsonElement data, string key)

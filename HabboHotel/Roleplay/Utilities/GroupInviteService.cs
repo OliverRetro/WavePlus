@@ -14,11 +14,6 @@ using System.Linq;
 
 namespace Plus.HabboHotel.Roleplay.Utilities
 {
-    /// <summary>
-    /// Tracks outstanding "join my group" invites raised by :hire and performs the actual
-    /// membership insert once the target accepts. Invites live in memory only — they are
-    /// meaningless across a restart, and both parties have to be online anyway.
-    /// </summary>
     public static class GroupInviteService
     {
         /// <summary>How long an invite stays answerable before it silently lapses.</summary>
@@ -41,10 +36,6 @@ namespace Plus.HabboHotel.Roleplay.Utilities
         private static readonly ConcurrentDictionary<int, PendingInvite> _pending = new();
         private static int _nextId = 0;
 
-        /// <summary>
-        /// Pushes an invite popup to <paramref name="target"/>. Returns false (with the reason
-        /// whispered to the sender) when the invite can't be raised.
-        /// </summary>
         public static bool Invite(GameClient senderSession, Group group, GameClient targetClient)
         {
             Habbo sender = senderSession?.GetHabbo();
@@ -58,7 +49,7 @@ namespace Plus.HabboHotel.Roleplay.Utilities
                 return false;
             }
 
-            PendingInvite invite = new PendingInvite
+            PendingInvite invite = new()
             {
                 Id = System.Threading.Interlocked.Increment(ref _nextId),
                 GroupId = group.Id,
@@ -74,7 +65,6 @@ namespace Plus.HabboHotel.Roleplay.Utilities
             return true;
         }
 
-        /// <summary>Handles the accept/decline coming back from the overlay.</summary>
         public static void Respond(GameClient targetClient, int inviteId, bool accepted)
         {
             Habbo target = targetClient?.GetHabbo();
@@ -122,10 +112,6 @@ namespace Plus.HabboHotel.Roleplay.Utilities
             ShoutFrom(target, AcceptShout(group));
         }
 
-        /// <summary>
-        /// Inserts the membership and fires all the follow-up packets/achievements. Shared by
-        /// the invite-accept path and by :hire's fast path for an already-pending request.
-        /// </summary>
         public static void Hire(GameClient senderSession, Group group, GameClient targetClient, Habbo target)
         {
             if (group == null || target == null)

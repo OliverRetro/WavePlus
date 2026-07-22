@@ -6,6 +6,7 @@ using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.HabboHotel.Roleplay.Utilities;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
+using Plus.HabboHotel.Users.Roleplay;
 
 namespace Plus.HabboHotel.Roleplay.RpItem.Item
 {
@@ -113,6 +114,9 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             if (item == null || item.ItemData == null || !item.ItemData.IsSecondary)
                 return false;
 
+            if (IsBlockedByDeath(habbo, item.ItemData))
+                return false;
+
             if (item.ItemData.BlockedWhilePassive && habbo?.GetRpStats()?.PassiveMode == true)
             {
                 habbo.GetClient()?.SendWhisper($"You can't equip {item.ItemData.Name} while passive!", 1);
@@ -154,6 +158,9 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
         {
             UserRpItem item = GetItem(userItemId);
             if (item == null || item.ItemData == null || !item.ItemData.IsPrimary)
+                return false;
+
+            if (IsBlockedByDeath(habbo, item.ItemData))
                 return false;
 
             if (item.ItemData.BlockedWhilePassive && habbo?.GetRpStats()?.PassiveMode == true)
@@ -252,6 +259,19 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             MarkDirty();
         }
 
+        /// <summary>
+        /// Whether death blocks this item, whispering the reason. Covers equipping as well as
+        /// using — strapping on a vest from the grave produces the same inconsistent state.
+        /// </summary>
+        private static bool IsBlockedByDeath(Habbo habbo, RpItemData data)
+        {
+            if (data == null || data.UsableWhileDead || habbo?.GetRpStats()?.IsDead != true)
+                return false;
+
+            habbo.GetClient()?.SendWhisper("You're dead — you can't use that.", 1);
+            return true;
+        }
+
         /// <summary>Count of distinct stackable item-ids the user owns (for stack limits).</summary>
         public int DistinctStackCount() =>
             _items.Values.Where(x => !x.Equipped).Select(x => x.ItemId).Distinct().Count();
@@ -266,13 +286,30 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
                 return false;
 
             RpItemData data = userItem.ItemData;
+            if (data == null)
+                return false;
+
             UserRpStats stats = habbo.GetRpStats();
             Room room = habbo.CurrentRoom;
             RoomUser roomUser = room?.GetRoomUserManager().GetRoomUserByHabbo(habbo.Id);
 
+            // Inert items do nothing at all. Without this they fall through to the consumable
+            // path below, which burns a use and destroys the item for no effect.
+            if (data.IsNone)
+            {
+                habbo.GetClient()?.SendWhisper($"{data.Name} isn't something you can use.", 1);
+                return false;
+            }
+
+            // Death gate: everything is off limits while dead unless the item opts in with
+            // "zombie": 1. Healing yourself up from the grave left health, IsDead and the
+            // hospital timer disagreeing with each other.
+            if (IsBlockedByDeath(habbo, data))
+                return false;
+
             // Generic passive gate: any item flagged with the "passive" attribute can't be used
             // while the owner is in passive mode (aggressive items — suicide vest, etc.).
-            if (data != null && data.BlockedWhilePassive && stats != null && stats.PassiveMode)
+            if (data.BlockedWhilePassive && stats != null && stats.PassiveMode)
             {
                 habbo.GetClient()?.SendWhisper($"You can't use {data.Name} while passive!", 1);
                 return false;

@@ -5,6 +5,7 @@ using Plus.Communication.Packets.Outgoing.Rooms.Engine;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
+using Plus.HabboHotel.Users.Roleplay;
 
 namespace Plus.HabboHotel.Roleplay.Police
 {

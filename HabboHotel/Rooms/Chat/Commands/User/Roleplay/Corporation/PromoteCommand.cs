@@ -62,11 +62,23 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
 
             if (!GroupHierarchy.CanActOn(session, group, targetHabbo.Id))
             {
-                session.SendWhisper("You cannot promote someone at a higher group level than your own.", 1);
+                session.SendWhisper("You cannot promote someone at the same or a higher group level than your own.", 1);
                 return;
             }
 
-            if (!group.TryPromoteMember(targetHabbo.Id, out GroupRole nextRole))
+            if (!group.TryPeekPromotion(targetHabbo.Id, out GroupRole nextRole))
+            {
+                session.SendWhisper("That user is already at the highest available role.", 1);
+                return;
+            }
+
+            if (!GroupHierarchy.CanAssignLevel(session, group, nextRole.Level))
+            {
+                session.SendWhisper("You cannot promote anyone into a role at or above your own.", 1);
+                return;
+            }
+
+            if (!group.TryPromoteMember(targetHabbo.Id, out nextRole))
             {
                 session.SendWhisper("That user is already at the highest available role.", 1);
                 return;

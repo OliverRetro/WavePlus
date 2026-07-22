@@ -1,5 +1,6 @@
 ﻿using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Users;
+using Plus.HabboHotel.Users.Roleplay;
 
 namespace Plus.Communication.Packets.Outgoing.Quests
 {

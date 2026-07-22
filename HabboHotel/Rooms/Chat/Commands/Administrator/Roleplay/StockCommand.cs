@@ -1,19 +1,17 @@
 using System.Collections.Generic;
 using System.Text;
 using Plus.HabboHotel.GameClients;
-using Plus.HabboHotel.Roleplay.RpItem.Item;
-using Plus.HabboHotel.Roleplay.RpItem.Weapon;
 using Plus.HabboHotel.Roleplay.Stock;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 {
     internal class StockCommand : IChatCommand
     {
-        public string PermissionRequired => "command_rp_add_stock";
+        public string PermissionRequired => "command_rp_add_item_stock";
 
         public string Parameters => "";
 
-        public string Description => "Show what this room currently has in stock.";
+        public string Description => "Show what this room and its vendors currently have in stock.";
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
@@ -23,32 +21,45 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
                 return;
             }
 
-            List<(string StockType, int ItemId, int Amount)> stock = PlusEnvironment.GetRoomStockManager().GetRoomStock(room.Id);
+            RoomStockManager stocks = PlusEnvironment.GetRoomStockManager();
 
-            if (stock.Count == 0)
+            List<(string StockType, int ItemId, int Amount, int Price)> roomStock =
+                stocks.GetRoomStock(room.Id, RoomStockManager.RoomScope);
+            List<int> vendors = stocks.GetStockedFurniIds(room.Id);
+
+            if (roomStock.Count == 0 && vendors.Count == 0)
             {
-                session.SendWhisper("This room has no stock. Add some with :addstock.", 1);
+                session.SendWhisper("This room has no stock. Add some with :addroomstock or :additemstock.", 1);
                 return;
             }
 
             StringBuilder message = new();
             message.AppendLine($"Stock in {room.Name}:");
 
-            foreach ((string stockType, int itemId, int amount) in stock)
-                message.AppendLine($"{Describe(stockType, itemId)} ({stockType} #{itemId}): {amount}");
+            message.AppendLine();
+            message.AppendLine("-- Room pool (sold via :offer) --");
+            if (roomStock.Count == 0)
+                message.AppendLine("(empty)");
+            else
+                Append(message, roomStock);
+
+            foreach (int furniId in vendors)
+            {
+                message.AppendLine();
+                message.AppendLine($"-- Vendor #{furniId} --");
+                Append(message, stocks.GetRoomStock(room.Id, furniId));
+            }
 
             session.SendNotification(message.ToString());
         }
 
-        private static string Describe(string stockType, int itemId)
+        private static void Append(StringBuilder message, List<(string StockType, int ItemId, int Amount, int Price)> stock)
         {
-            if (stockType == StockType.RpItem && PlusEnvironment.GetRpItemManager().TryGetItem(itemId, out RpItemData item))
-                return item.Name;
-
-            if (stockType == StockType.RpWeapon && PlusEnvironment.GetWeaponManager().TryGetWeapon(itemId, out Weapon weapon))
-                return weapon.Name;
-
-            return $"#{itemId}";
+            foreach ((string stockType, int itemId, int amount, int price) in stock)
+            {
+                StockCommandUtil.TryDescribe(stockType, itemId, out string name);
+                message.AppendLine($"{name ?? "#" + itemId} ({stockType} #{itemId}): {amount} @ {price} credits");
+            }
         }
     }
 }

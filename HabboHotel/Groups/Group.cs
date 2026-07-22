@@ -138,7 +138,7 @@ namespace Plus.HabboHotel.Groups
 
             foreach (var row in permissions)
             {
-                GroupPermissionAssignment assignment = new GroupPermissionAssignment(
+                GroupPermissionAssignment assignment = new(
                     row.Id, row.GroupId, row.LevelId, row.PermissionId, row.CreatedAt);
 
                 _permissions[BuildPermissionKey(assignment.LevelId, assignment.PermissionId)] = assignment;
@@ -348,7 +348,7 @@ namespace Plus.HabboHotel.Groups
             UpdateMemberLevel(userId, 1);
         }
 
-        public bool TryPromoteMember(int userId, out GroupRole nextRole)
+        public bool TryPeekPromotion(int userId, out GroupRole nextRole)
         {
             nextRole = null;
 
@@ -360,7 +360,12 @@ namespace Plus.HabboHotel.Groups
                 .OrderBy(role => role.Level)
                 .FirstOrDefault();
 
-            if (nextRole == null)
+            return nextRole != null;
+        }
+
+        public bool TryPromoteMember(int userId, out GroupRole nextRole)
+        {
+            if (!TryPeekPromotion(userId, out nextRole))
                 return false;
 
             UpdateMemberLevel(userId, nextRole.Level);
@@ -408,6 +413,35 @@ namespace Plus.HabboHotel.Groups
             MarkDirty();
 
             ClearEmployment(id);
+            ClearFavourite(id);
+        }
+
+        private void ClearFavourite(int userId)
+        {
+            int groupId = Id;
+
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
+            {
+                db.UserStats.Where(u => u.Id == userId && u.Groupid == groupId)
+                    .ExecuteUpdate(s => s.SetProperty(u => u.Groupid, 0));
+            }
+
+            Users.Habbo habbo = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(userId)?.GetHabbo();
+            if (habbo?.GetStats() == null || habbo.GetStats().FavouriteGroupId != groupId)
+                return;
+
+            habbo.GetStats().FavouriteGroupId = 0;
+
+            if (habbo.InRoom && habbo.CurrentRoom != null)
+            {
+                RoomUser user = habbo.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(userId);
+                if (user != null)
+                    habbo.CurrentRoom.SendPacket(new Communication.Packets.Outgoing.Groups.UpdateFavouriteGroupComposer(this, user.VirtualId));
+
+                habbo.CurrentRoom.SendPacket(new Communication.Packets.Outgoing.Groups.RefreshFavouriteGroupComposer(userId));
+            }
+            else
+                habbo.GetClient()?.SendPacket(new Communication.Packets.Outgoing.Groups.RefreshFavouriteGroupComposer(userId));
         }
 
         private void ClearEmployment(int userId)
@@ -430,8 +464,7 @@ namespace Plus.HabboHotel.Groups
             if (accepted)
                 _memberLevels[id] = 1;
 
-            if (_requests.Contains(id))
-                _requests.Remove(id);
+            _requests.Remove(id);
 
             MarkDirty();
         }
@@ -465,7 +498,7 @@ namespace Plus.HabboHotel.Groups
             int level = _roles.Keys.DefaultIfEmpty(0).Max() + 1;
             NormalizeRoleValues(ref shiftPay, ref shiftCostume, ref shiftDuration, ref shiftMotto);
 
-            GroupRole role = new GroupRole(0, Id, level, name, shiftPay, shiftCostume, shiftDuration, shiftMotto, (int)PlusEnvironment.GetUnixTimestamp(), true);
+            GroupRole role = new(0, Id, level, name, shiftPay, shiftCostume, shiftDuration, shiftMotto, (int)PlusEnvironment.GetUnixTimestamp(), true);
             _roles[level] = role;
 
             if (saveImmediately)

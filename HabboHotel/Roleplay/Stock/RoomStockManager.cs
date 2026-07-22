@@ -12,14 +12,17 @@ namespace Plus.HabboHotel.Roleplay.Stock
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(RoomStockManager));
 
+        public const int RoomScope = 0;
+
         private sealed class StockEntry
         {
             public int RowId;
             public int Amount;
+            public int Price;
         }
 
-        private readonly Dictionary<(int RoomId, string StockType, int ItemId), StockEntry> _stock = new();
-        private readonly HashSet<(int RoomId, string StockType, int ItemId)> _dirty = [];
+        private readonly Dictionary<(int RoomId, int FurniId, string StockType, int ItemId), StockEntry> _stock = new();
+        private readonly HashSet<(int RoomId, int FurniId, string StockType, int ItemId)> _dirty = [];
         private readonly object _sync = new();
 
         public void Init()
@@ -32,78 +35,97 @@ namespace Plus.HabboHotel.Roleplay.Stock
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
 
                 foreach (RoomItemStockEntity row in db.RoomItemStocks.AsNoTracking().ToList())
-                    _stock[(row.RoomId, row.StockType, row.ItemId)] = new StockEntry { RowId = row.Id, Amount = row.Amount };
+                {
+                    _stock[(row.RoomId, row.FurniId, row.StockType, row.ItemId)] =
+                        new StockEntry { RowId = row.Id, Amount = row.Amount, Price = row.Price };
+                }
 
                 Log.Info($"[RP] Loaded {_stock.Count} room stock entries.");
             }
         }
 
-        public int GetStock(int roomId, string stockType, int itemId)
+        public int GetStock(int roomId, string stockType, int itemId, int furniId = RoomScope)
         {
             lock (_sync)
-                return _stock.TryGetValue((roomId, stockType, itemId), out StockEntry entry) ? entry.Amount : 0;
+                return _stock.TryGetValue((roomId, furniId, stockType, itemId), out StockEntry entry) ? entry.Amount : 0;
         }
 
-        /// <summary>Every stocked id in a room, including entries that have run down to zero.</summary>
-        public List<(string StockType, int ItemId, int Amount)> GetRoomStock(int roomId)
+        public int GetPrice(int roomId, string stockType, int itemId, int furniId = RoomScope)
+        {
+            lock (_sync)
+                return _stock.TryGetValue((roomId, furniId, stockType, itemId), out StockEntry entry) ? entry.Price : 0;
+        }
+
+        public List<(string StockType, int ItemId, int Amount, int Price)> GetRoomStock(int roomId, int furniId = RoomScope)
         {
             lock (_sync)
             {
-                return _stock.Where(kv => kv.Key.RoomId == roomId)
-                    .Select(kv => (kv.Key.StockType, kv.Key.ItemId, kv.Value.Amount))
-                    .OrderBy(s => s.StockType).ThenBy(s => s.ItemId)
-                    .ToList();
+                return [.. _stock.Where(kv => kv.Key.RoomId == roomId && kv.Key.FurniId == furniId)
+                    .Select(kv => (kv.Key.StockType, kv.Key.ItemId, kv.Value.Amount, kv.Value.Price))
+                    .OrderBy(s => s.StockType).ThenBy(s => s.ItemId)];
             }
         }
 
-        /// <summary>Adds (or removes, with a negative amount) stock. Returns the resulting amount, never below zero.</summary>
-        public int AddStock(int roomId, string stockType, int itemId, int amount)
+        public List<int> GetStockedFurniIds(int roomId)
         {
             lock (_sync)
             {
-                var key = (roomId, stockType, itemId);
+                return _stock.Keys.Where(k => k.RoomId == roomId && k.FurniId != RoomScope)
+                    .Select(k => k.FurniId).Distinct().OrderBy(x => x).ToList();
+            }
+        }
 
-                if (!_stock.TryGetValue(key, out StockEntry entry))
-                {
-                    entry = new StockEntry();
-                    _stock[key] = entry;
-                }
+        public int AddStock(int roomId, string stockType, int itemId, int amount, int furniId = RoomScope, int? price = null)
+        {
+            lock (_sync)
+            {
+                StockEntry entry = GetOrCreate(roomId, furniId, stockType, itemId);
 
                 entry.Amount = Math.Max(0, entry.Amount + amount);
-                _dirty.Add(key);
+                if (price.HasValue)
+                    entry.Price = Math.Max(0, price.Value);
+
+                _dirty.Add((roomId, furniId, stockType, itemId));
                 return entry.Amount;
             }
         }
 
-        public void SetStock(int roomId, string stockType, int itemId, int amount)
+        public void SetStock(int roomId, string stockType, int itemId, int amount, int furniId = RoomScope, int? price = null)
         {
             lock (_sync)
             {
-                var key = (roomId, stockType, itemId);
-
-                if (!_stock.TryGetValue(key, out StockEntry entry))
-                {
-                    entry = new StockEntry();
-                    _stock[key] = entry;
-                }
+                StockEntry entry = GetOrCreate(roomId, furniId, stockType, itemId);
 
                 entry.Amount = Math.Max(0, amount);
-                _dirty.Add(key);
+                if (price.HasValue)
+                    entry.Price = Math.Max(0, price.Value);
+
+                _dirty.Add((roomId, furniId, stockType, itemId));
+            }
+        }
+        public void ClearFurniStock(int roomId, int furniId)
+        {
+            if (furniId == RoomScope)
+                return;
+
+            lock (_sync)
+            {
+                foreach (var key in _stock.Keys.Where(k => k.RoomId == roomId && k.FurniId == furniId).ToList())
+                {
+                    _stock[key].Amount = 0;
+                    _dirty.Add(key);
+                }
             }
         }
 
-        /// <summary>
-        /// Takes <paramref name="amount"/> off the room's stock, all or nothing. This is the call a
-        /// sale goes through: false means the room has run out and the sale must not happen.
-        /// </summary>
-        public bool TryConsume(int roomId, string stockType, int itemId, int amount = 1)
+        public bool TryConsume(int roomId, string stockType, int itemId, int amount = 1, int furniId = RoomScope)
         {
             if (amount <= 0)
                 return false;
 
             lock (_sync)
             {
-                var key = (roomId, stockType, itemId);
+                var key = (roomId, furniId, stockType, itemId);
 
                 if (!_stock.TryGetValue(key, out StockEntry entry) || entry.Amount < amount)
                     return false;
@@ -114,10 +136,22 @@ namespace Plus.HabboHotel.Roleplay.Stock
             }
         }
 
-        /// <summary>Writes every dirty entry to the database. Registered as a world saver.</summary>
+        private StockEntry GetOrCreate(int roomId, int furniId, string stockType, int itemId)
+        {
+            var key = (roomId, furniId, stockType, itemId);
+
+            if (!_stock.TryGetValue(key, out StockEntry entry))
+            {
+                entry = new StockEntry();
+                _stock[key] = entry;
+            }
+
+            return entry;
+        }
+
         public void Save()
         {
-            List<((int RoomId, string StockType, int ItemId) Key, StockEntry Entry)> pending;
+            List<((int RoomId, int FurniId, string StockType, int ItemId) Key, StockEntry Entry)> pending;
 
             lock (_sync)
             {
@@ -132,22 +166,26 @@ namespace Plus.HabboHotel.Roleplay.Stock
             {
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-                foreach (((int roomId, string stockType, int itemId) key, StockEntry entry) in pending)
+                foreach (((int roomId, int furniId, string stockType, int itemId) key, StockEntry entry) in pending)
                 {
                     if (entry.RowId > 0)
                     {
-                        int rowId = entry.RowId, amount = entry.Amount;
+                        int rowId = entry.RowId, amount = entry.Amount, price = entry.Price;
                         db.RoomItemStocks.Where(s => s.Id == rowId)
-                            .ExecuteUpdate(s => s.SetProperty(r => r.Amount, amount));
+                            .ExecuteUpdate(s => s
+                                .SetProperty(r => r.Amount, amount)
+                                .SetProperty(r => r.Price, price));
                         continue;
                     }
 
                     RoomItemStockEntity row = new()
                     {
                         RoomId = key.roomId,
+                        FurniId = key.furniId,
                         StockType = key.stockType,
                         ItemId = key.itemId,
-                        Amount = entry.Amount
+                        Amount = entry.Amount,
+                        Price = entry.Price
                     };
 
                     db.RoomItemStocks.Add(row);

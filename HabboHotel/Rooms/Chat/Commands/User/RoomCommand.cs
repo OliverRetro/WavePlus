@@ -9,7 +9,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
 {
     internal class RoomCommand : IChatCommand
     {
-        public string PermissionRequired => "command_room";
+        public string PermissionRequired => "command_room_configuration";
 
         public string Parameters => "push/pull/enables/respect";
 

@@ -33,6 +33,7 @@ namespace Plus.HabboHotel.GameClients
         private bool _ghost;
         private readonly IChannelHandlerContext _channel;
         public int PingCount { get; set; }
+        public long PingRequestedAt { get; set; }
 
         public GameClient(IChannelHandlerContext context)
         {
@@ -115,10 +116,8 @@ namespace Plus.HabboHotel.GameClients
                         {
                             int habboId = _habbo.Id;
                             string machineId = MachineId;
-                            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                            {
-                                db.Users.Where(u => u.Id == habboId).ExecuteUpdate(s => s.SetProperty(u => u.MachineId, machineId));
-                            }
+                            using WavePlusContext db = PlusEnvironment.GetDbContext();
+                            db.Users.Where(u => u.Id == habboId).ExecuteUpdate(s => s.SetProperty(u => u.MachineId, machineId));
                         }
 
                         _habbo.MachineId = MachineId;
@@ -237,10 +236,8 @@ namespace Plus.HabboHotel.GameClients
                 {
                     try
                     {
-                        using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                        {
-                            db.Database.ExecuteSql(GetHabbo().GetQueryString);
-                        }
+                        using WavePlusContext db = PlusEnvironment.GetDbContext();
+                        db.Database.ExecuteSql(GetHabbo().GetQueryString);
                     }
                     catch (Exception e)
                     {

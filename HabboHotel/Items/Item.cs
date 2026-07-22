@@ -445,6 +445,9 @@ namespace Plus.HabboHotel.Items
                     case InteractionType.Bank:
                         return new InteractorBank();
 
+                    case InteractionType.StockVendor:
+                        return new InteractorStockVendor();
+
                     case InteractionType.None:
                     default:
                         return new InteractorGenericSwitch();

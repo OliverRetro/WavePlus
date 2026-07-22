@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Plus.Database.EF.Entities;
 
 [Table("room_item_stock")]
-[Index("RoomId", "StockType", "ItemId", Name = "room_item_stock_unique", IsUnique = true)]
+[Index("RoomId", "FurniId", "StockType", "ItemId", Name = "room_item_stock_unique", IsUnique = true)]
 public partial class RoomItemStockEntity
 {
     [Key]
@@ -14,6 +14,9 @@ public partial class RoomItemStockEntity
 
     [Column("room_id", TypeName = "int(11)")]
     public int RoomId { get; set; }
+
+    [Column("furni_id", TypeName = "int(11)")]
+    public int FurniId { get; set; }
 
     [Required]
     [StringLength(20)]
@@ -25,4 +28,8 @@ public partial class RoomItemStockEntity
 
     [Column("amount", TypeName = "int(11)")]
     public int Amount { get; set; }
+
+    // Credits charged per unit. 0 means the entry is free.
+    [Column("price", TypeName = "int(11)")]
+    public int Price { get; set; }
 }

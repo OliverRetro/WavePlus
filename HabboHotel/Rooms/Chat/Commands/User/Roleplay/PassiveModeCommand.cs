@@ -1,4 +1,5 @@
-﻿using Plus.Communication.Packets.Outgoing.Rooms.Chat;
+﻿using Plus.Communication.Packets.Outgoing.Overlay;
+using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Roleplay.Utilities;
 using Plus.HabboHotel.Users;
@@ -42,6 +43,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
             }
 
             PendingToggles[habbo.Id] = 0;
+            WebOverlay.SendInteractionTimer(session, "Toggling passive mode in %seconds% seconds", TriggerDelaySeconds);
             room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*begins swap between passive mode*", 0, 4, isRpAction: true));
 
             _ = CompleteToggleAsync(habbo.Id, session, room.Id);
@@ -59,15 +61,26 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
             Habbo habbo = session?.GetHabbo();
             Room room = habbo?.CurrentRoom;
             if (habbo == null || room == null || room.Id != roomId)
+            {
+                WebOverlay.CancelInteractionTimer(session);
                 return;
+            }
 
             RoomUser roomUser = room.GetRoomUserManager().GetRoomUserByHabbo(userId);
             if (roomUser == null || roomUser.IsWalking || roomUser.X != roomUser.GoalX || roomUser.Y != roomUser.GoalY)
+            {
+                // Walked off mid-countdown. CancelPendingToggle only fires on a deliberate move,
+                // so this path has to clear the bar itself or it would sit there at 0.
+                WebOverlay.CancelInteractionTimer(session);
                 return;
+            }
 
             var stats = habbo.GetRpStats();
             if (stats == null)
+            {
+                WebOverlay.CancelInteractionTimer(session);
                 return;
+            }
 
             stats.PassiveMode = !stats.PassiveMode;
             if (stats.PassiveMode)
@@ -75,6 +88,9 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 
             // Resolve the effect (passive shows 1057, disabling clears it — unless staff/weapon).
             RpEffectService.Refresh(habbo);
+
+            // Passive changes which items are usable, so the open inventory has to re-grey.
+            Plus.Communication.Packets.Incoming.WebOverlayCallbackEvent.RefreshInventory(session);
 
             room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, $"*passive mode is now {(stats.PassiveMode ? "enabled" : "disabled")}*", 0, 4, isRpAction: true));
         }
@@ -88,6 +104,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
                 return;
 
             client.SendWhisper(("Passive mode toggling has been canceled."), 1);
+            WebOverlay.CancelInteractionTimer(client);
             PendingToggles.TryRemove(client.GetHabbo().Id, out _);
         }
     }

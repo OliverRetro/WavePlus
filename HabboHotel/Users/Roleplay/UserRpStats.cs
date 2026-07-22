@@ -3,7 +3,7 @@ using Plus.HabboHotel.Roleplay.Utilities;
 using Plus.HabboHotel.Rooms;
 using System;
 
-namespace Plus.HabboHotel.Users
+namespace Plus.HabboHotel.Users.Roleplay
 {
     public class UserRpStats
     {

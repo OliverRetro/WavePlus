@@ -4,6 +4,7 @@ using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Roleplay.Police;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
+using Plus.HabboHotel.Users.Roleplay;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;

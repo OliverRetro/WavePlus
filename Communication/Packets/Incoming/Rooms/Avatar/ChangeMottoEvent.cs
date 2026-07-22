@@ -14,6 +14,10 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Avatar
     {
         public void Parse(GameClient session, ClientPacket packet)
         {
+            // failsafe for packetloggers
+            if (!session.GetHabbo().GetPermissions().HasRight("mod_tool"))
+                return;
+
             if (session.GetHabbo().TimeMuted > 0)
             {
                 session.SendNotification("Oops, you're currently muted - you cannot change your motto.");

@@ -6,6 +6,7 @@ using Plus.HabboHotel.Roleplay.RpItem.Weapon;
 using Plus.HabboHotel.Roleplay.Utilities;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
+using Plus.HabboHotel.Users.Roleplay;
 using System;
 using System.Linq;
 
@@ -322,7 +323,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
             attackerStats.Attacks++;
         }
 
-        private void StunUser(RoomUser targetRoomUser)
+        private static void StunUser(RoomUser targetRoomUser)
         {
             if (targetRoomUser == null)
                 return;
@@ -338,12 +339,10 @@ namespace Plus.HabboHotel.Roleplay.Combat
 
             message = message.Replace("%attacker%", attackerUsername).Replace("%username%", targetUsername).Replace("%damage%", damage.ToString());
 
-            // The client folds the attacker's name into the RP-action bubble ("*Attacker: ...*"),
-            // so the message text is left bare here — no username prefix baked in.
             return message;
         }
 
-        public void RobUser(Habbo attacker, Habbo target, Room room, int percentage)
+        public void RobUser(Habbo attacker, Habbo target, Room room)
         {
             if (attacker == null || target == null || room == null)
                 return;
@@ -357,18 +356,18 @@ namespace Plus.HabboHotel.Roleplay.Combat
             // take away energy
             attackerStats.InteractionEnergy();
 
-            // the chance of success
-            if (UserRpStats.GetRobberyChance(attacker) < Random.Shared.Next(0, 100) || target.Credits <= 0)
+            bool alwaysSucceeds = targetStats.IsDead;
+
+            if (target.Credits <= 0 || (!alwaysSucceeds && UserRpStats.GetRobberyChance(attacker) < Random.Shared.Next(0, 100)))
             {
                 attacker.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, "*attempts to rob " + target.Username + ", but fails*", 0, 6, isRpAction: true));
                 return;
             }
 
-            int amountToSteal = (int)Math.Round(target.Credits * (percentage / 100.0));
+            int amountToSteal = Random.Shared.Next(1, target.Credits + 1);
 
-            // stolen credits are added to the attacker and removed from the target
-            attacker.Credits = attacker.Credits + amountToSteal;
-            target.Credits = target.Credits - amountToSteal;
+            attacker.Credits += amountToSteal;
+            target.Credits -= amountToSteal;
 
             // packets
             target.GetClient().SendPacket(new CreditBalanceComposer(target.Credits));

@@ -2,6 +2,7 @@ using System.Linq;
 using Plus.HabboHotel.Roleplay.RpItem.Item;
 using Plus.HabboHotel.Roleplay.RpItem.Weapon;
 using Plus.HabboHotel.Users;
+using Plus.HabboHotel.Users.Roleplay;
 
 namespace Plus.Core.Cache
 {

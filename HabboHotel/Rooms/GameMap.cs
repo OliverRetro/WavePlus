@@ -1291,6 +1291,32 @@ namespace Plus.HabboHotel.Rooms
             return MapGotUser(new Point(x, y));
         }
 
+        /// <summary>
+        /// Occupancy check that ignores one user. Needed because the map marker only moves when
+        /// a step commits: a walking user is still registered on the tile they are leaving, so
+        /// asking "is my own current tile occupied?" would otherwise always answer yes and block
+        /// them from turning back.
+        /// </summary>
+        public bool SquareHasUsers(int x, int y, RoomUser excluding)
+        {
+            if (excluding == null)
+                return SquareHasUsers(x, y);
+
+            if (!_userMap.TryGetValue(new Point(x, y), out List<RoomUser> users))
+                return false;
+
+            lock (users)
+            {
+                foreach (RoomUser occupant in users)
+                {
+                    if (occupant != null && occupant.VirtualId != excluding.VirtualId)
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
         public static bool TilesTouching(int x1, int y1, int x2, int y2)
         {
             if (!(Math.Abs(x1 - x2) > 1 || Math.Abs(y1 - y2) > 1))

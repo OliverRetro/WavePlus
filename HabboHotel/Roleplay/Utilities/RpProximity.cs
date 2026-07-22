@@ -9,10 +9,15 @@ namespace Plus.HabboHotel.Roleplay.Utilities
         /// Tile-based weapon reach check used by combat.
         ///
         /// Both users may be mid-step when the attack packet lands (the client renders them
-        /// between their committed tile and the tile they are stepping onto), so BOTH tiles of
-        /// each moving user count as valid positions. This is what fixes the "walking
-        /// side-by-side / criss-cross swings miss" problem: the hit registers if ANY visible
-        /// combination of positions is in reach.
+        /// between their committed tile and the tile they are stepping onto), so each user is
+        /// evaluated at both the tile they are leaving and the tile they are entering. This is
+        /// what fixes the "walking side-by-side / criss-cross swings miss" problem.
+        ///
+        /// The two users are compared PHASE BY PHASE - before-step against before-step, and
+        /// after-step against after-step - never as a full cross product. Testing every
+        /// combination would pit the attacker's next tile against the target's previous tile,
+        /// two positions that never exist at the same instant, which silently stretched reach
+        /// by an extra tile (and two, diagonally) whenever both parties were walking.
         ///
         /// Range semantics (Chebyshev rings):
         ///   range 1 → same tile ("inside" the target) or any adjacent tile,
@@ -28,46 +33,34 @@ namespace Plus.HabboHotel.Roleplay.Utilities
             if (range < 1)
                 range = 1;
 
-            Span<(int X, int Y)> attackerTiles = stackalloc (int, int)[2];
-            Span<(int X, int Y)> targetTiles = stackalloc (int, int)[2];
+            // Phase 0 = the tile each user currently occupies.
+            // Phase 1 = the tile they are stepping onto (identical to phase 0 when standing still).
+            (int X, int Y) attackerFrom = (attacker.X, attacker.Y);
+            (int X, int Y) targetFrom = (target.X, target.Y);
 
-            int attackerCount = CandidateTiles(attacker, attackerTiles);
-            int targetCount = CandidateTiles(target, targetTiles);
+            (int X, int Y) attackerTo = StepTile(attacker);
+            (int X, int Y) targetTo = StepTile(target);
 
-            for (int i = 0; i < attackerCount; i++)
-            {
-                for (int j = 0; j < targetCount; j++)
-                {
-                    int dx = Math.Abs(attackerTiles[i].X - targetTiles[j].X);
-                    int dy = Math.Abs(attackerTiles[i].Y - targetTiles[j].Y);
-
-                    // Standing on the exact same tile always counts, whatever the weapon.
-                    if (dx == 0 && dy == 0)
-                        return true;
-
-                    if (Math.Max(dx, dy) > range)
-                        continue;
-
-                    if (allowDiagonal || dx == 0 || dy == 0)
-                        return true;
-                }
-            }
-
-            return false;
+            return InRange(attackerFrom, targetFrom, range, allowDiagonal)
+                || InRange(attackerTo, targetTo, range, allowDiagonal);
         }
 
-        /// <summary>Writes the user's committed tile and (when mid-step) their step target tile.</summary>
-        private static int CandidateTiles(RoomUser user, Span<(int X, int Y)> tiles)
+        private static bool InRange((int X, int Y) a, (int X, int Y) b, int range, bool allowDiagonal)
         {
-            tiles[0] = (user.X, user.Y);
+            int dx = Math.Abs(a.X - b.X);
+            int dy = Math.Abs(a.Y - b.Y);
 
-            if (user.SetStep && (user.SetX != user.X || user.SetY != user.Y))
-            {
-                tiles[1] = (user.SetX, user.SetY);
-                return 2;
-            }
+            // Standing on the exact same tile always counts, whatever the weapon.
+            if (dx == 0 && dy == 0)
+                return true;
 
-            return 1;
+            if (Math.Max(dx, dy) > range)
+                return false;
+
+            return allowDiagonal || dx == 0 || dy == 0;
         }
+
+        private static (int X, int Y) StepTile(RoomUser user) =>
+            user.SetStep ? (user.SetX, user.SetY) : (user.X, user.Y);
     }
 }

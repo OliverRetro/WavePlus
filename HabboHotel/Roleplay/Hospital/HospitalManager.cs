@@ -7,6 +7,7 @@ using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
+using Plus.HabboHotel.Users.Roleplay;
 
 namespace Plus.HabboHotel.Roleplay.Hospital
 {
@@ -70,6 +71,10 @@ namespace Plus.HabboHotel.Roleplay.Hospital
                 targetUser.Lay();
             target.CurrentRoom?.GetRoomUserManager().UpdateUserStatus(targetUser, false);
             target.SaveRpStats();
+
+            // Death changes which items are usable, so the open inventory has to re-grey.
+            if (target.GetClient() != null)
+                Plus.Communication.Packets.Incoming.WebOverlayCallbackEvent.RefreshInventory(target.GetClient());
         }
 
         public void SkipBleedout(Habbo habbo)
@@ -92,6 +97,10 @@ namespace Plus.HabboHotel.Roleplay.Hospital
             stats.HospitalHealStartTime = 0;
             stats.HospitalHealthStart = 0;
             stats.NextPassiveHospitalHealTick = 0;
+
+            // Back among the living — un-grey the inventory.
+            if (habbo.GetClient() != null)
+                Plus.Communication.Packets.Incoming.WebOverlayCallbackEvent.RefreshInventory(habbo.GetClient());
 
             _deadUsers.TryRemove(habbo.Id, out _);
             _bleedoutUsers.TryRemove(habbo.Id, out _);
@@ -203,6 +212,10 @@ namespace Plus.HabboHotel.Roleplay.Hospital
 
             Discharge(habbo);
             habbo.SaveRpStats();
+
+            // Discharged — un-grey the inventory.
+            if (habbo.GetClient() != null)
+                Plus.Communication.Packets.Incoming.WebOverlayCallbackEvent.RefreshInventory(habbo.GetClient());
         }
 
         private void HandlePassiveHospitalHeal(Habbo habbo)

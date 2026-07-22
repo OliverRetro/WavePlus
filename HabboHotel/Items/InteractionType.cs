@@ -119,7 +119,8 @@
         TrashBin,
         TaxiPole,
         Atm,
-        Bank
+        Bank,
+        StockVendor
     }
 
     public static class InteractionTypes
@@ -360,6 +361,8 @@
                     return InteractionType.Atm;
                 case "bank":
                     return InteractionType.Bank;
+                case "stock_vendor":
+                    return InteractionType.StockVendor;
                 case "pet":
                     return InteractionType.Pet;
                 default:

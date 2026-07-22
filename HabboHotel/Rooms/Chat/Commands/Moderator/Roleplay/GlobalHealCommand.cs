@@ -1,6 +1,6 @@
 ﻿using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.HabboHotel.GameClients;
-using Plus.HabboHotel.Users;
+using Plus.HabboHotel.Users.Roleplay;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
 {

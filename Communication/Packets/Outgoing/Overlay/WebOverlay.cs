@@ -6,6 +6,7 @@ using Plus.HabboHotel.Roleplay.RpItem.Weapon;
 using Plus.HabboHotel.Roleplay.Skill;
 using Plus.HabboHotel.Rooms.Chat.Styles;
 using Plus.HabboHotel.Users;
+using Plus.HabboHotel.Users.Roleplay;
 
 namespace Plus.Communication.Packets.Outgoing.Overlay
 {

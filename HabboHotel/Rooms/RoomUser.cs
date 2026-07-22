@@ -490,7 +490,10 @@ namespace Plus.HabboHotel.Rooms
 
             // Only refuse an occupied destination when room blocking is active. When the room
             // allows walk-through (RoomBlockingEnabled != 0) users may target/stand on the same tile.
-            if ((GetRoom().GetGameMap().SquareHasUsers(pX, pY) && !pOverride && GetRoom().RoomBlockingEnabled == 0) || IsMovementFrozen)
+            // Excluding ourselves matters for the one-tile reversal: mid-step we are still
+            // registered on the tile we're walking away from, so a plain occupancy check would
+            // refuse the click to walk back onto it.
+            if ((GetRoom().GetGameMap().SquareHasUsers(pX, pY, this) && !pOverride && GetRoom().RoomBlockingEnabled == 0) || IsMovementFrozen)
                 return;
 
             UnIdle();
