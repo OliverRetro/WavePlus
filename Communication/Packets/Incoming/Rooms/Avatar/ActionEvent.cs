@@ -27,8 +27,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Avatar
             // A gesture (wave, blow kiss, laugh...) temporarily clears the avatar effect so the
             // animation is visible. Remember it and re-apply it a couple of cycles later, once the
             // gesture has played out, instead of leaving the user effect-less.
-            if (session.GetHabbo().Effects().CurrentEffect > 0)
-            {
+            if (session.GetHabbo().Effects().CurrentEffect > 0) {
                 room.SendPacket(new AvatarEffectComposer(user.VirtualId, 0));
                 user.EffectReapplyTimer = 2;
             }

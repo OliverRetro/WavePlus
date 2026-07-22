@@ -23,17 +23,14 @@ namespace Plus.HabboHotel.LandingView
             if (_promotionItems.Count > 0)
                 _promotionItems.Clear();
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 var rows = db.ServerLandings.OrderByDescending(s => s.Id)
                     .Select(s => new { s.Id, s.Title, s.Text, s.ButtonText, s.ButtonType, s.ButtonLink, s.ImageLink })
                     .ToList();
-                foreach (var row in rows)
-                {
+                foreach (var row in rows) {
                     _promotionItems.Add(row.Id, new Promotion(row.Id, row.Title, row.Text, row.ButtonText, Convert.ToInt32(row.ButtonType), row.ButtonLink, row.ImageLink));
                 }
             }
-
 
             Log.Info("Landing View Manager -> LOADED");
         }

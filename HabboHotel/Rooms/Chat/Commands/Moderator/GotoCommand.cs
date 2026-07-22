@@ -14,20 +14,17 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length == 1)
-            {
+            if (@params.Length == 1) {
                 session.SendWhisper("You must specify a room id!");
                 return;
             }
 
-            if (!int.TryParse(@params[1], out int roomId))
-            {
+            if (!int.TryParse(@params[1], out int roomId)) {
                 session.SendWhisper("You must enter a valid room ID");
                 return;
             }
 
-            if (!RoomFactory.TryGetData(roomId, out RoomData data))
-            {
+            if (!RoomFactory.TryGetData(roomId, out RoomData data)) {
                 session.SendWhisper("This room does not exist!");
                 return;
             }

@@ -34,8 +34,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Chat
 
             Habbo target = ResolveTarget(session, handle);
 
-            if (target == null)
-            {
+            if (target == null) {
                 session.SendWhisper(
                     string.Equals(handle, TargetPlaceholder, StringComparison.OrdinalIgnoreCase)
                         ? "You aren't targeting anyone - click a player or lock a target first."
@@ -43,8 +42,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Chat
                 return true;
             }
 
-            if (target.Id == session.GetHabbo().Id)
-            {
+            if (target.Id == session.GetHabbo().Id) {
                 session.SendWhisper("You can't whisper yourself.", 1);
                 return true;
             }
@@ -52,16 +50,14 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Chat
             Room targetRoom = target.CurrentRoom;
             RoomUser targetUser = targetRoom?.GetRoomUserManager().GetRoomUserByHabbo(target.Id);
 
-            if (targetUser == null || targetUser.IsBot || targetUser.GetClient()?.GetHabbo() == null)
-            {
+            if (targetUser == null || targetUser.IsBot || targetUser.GetClient()?.GetHabbo() == null) {
                 session.SendWhisper(target.Username + " isn't in a room right now.", 1);
                 return true;
             }
 
             Habbo targetHabbo = targetUser.GetClient().GetHabbo();
 
-            if (!targetHabbo.ReceiveWhispers && !session.GetHabbo().GetPermissions().HasRight("room_whisper_override"))
-            {
+            if (!targetHabbo.ReceiveWhispers && !session.GetHabbo().GetPermissions().HasRight("room_whisper_override")) {
                 session.SendWhisper("Oops, this user has their whispers disabled!", 1);
                 return true;
             }

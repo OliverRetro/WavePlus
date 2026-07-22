@@ -23,16 +23,14 @@ namespace Plus.Communication.Packets.Incoming.Avatar
             using WavePlusContext db = PlusEnvironment.GetDbContext();
             bool exists = db.UserWardrobes.Any(w => w.UserId == uid && w.SlotId == slot);
 
-            if (exists)
-            {
+            if (exists) {
                 db.UserWardrobes
                     .Where(w => w.UserId == uid && w.SlotId == slot)
                     .ExecuteUpdate(s => s
                         .SetProperty(x => x.Look, look)
                         .SetProperty(x => x.Gender, genderUpper));
             }
-            else
-            {
+            else {
                 db.UserWardrobes.Add(new UserWardrobeEntity
                 {
                     UserId = uid,

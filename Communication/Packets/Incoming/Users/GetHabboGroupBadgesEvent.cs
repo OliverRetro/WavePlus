@@ -19,8 +19,7 @@ namespace Plus.Communication.Packets.Incoming.Users
                 return;
 
             Dictionary<int, string> badges = new();
-            foreach (RoomUser user in room.GetRoomUserManager().GetRoomUsers().ToList())
-            {
+            foreach (RoomUser user in room.GetRoomUserManager().GetRoomUsers().ToList()) {
                 if (user.IsBot || user.IsPet || user.GetClient() == null || user.GetClient().GetHabbo() == null)
                     continue;
 
@@ -34,10 +33,8 @@ namespace Plus.Communication.Packets.Incoming.Users
                     badges.Add(group.Id, group.Badge);
             }
 
-            if (session.GetHabbo().GetStats().FavouriteGroupId > 0)
-            {
-                if (PlusEnvironment.GetGame().GetGroupManager().TryGetGroup(session.GetHabbo().GetStats().FavouriteGroupId, out Group group))
-                {
+            if (session.GetHabbo().GetStats().FavouriteGroupId > 0) {
+                if (PlusEnvironment.GetGame().GetGroupManager().TryGetGroup(session.GetHabbo().GetStats().FavouriteGroupId, out Group group)) {
                     if (!badges.ContainsKey(group.Id))
                         badges.Add(group.Id, group.Badge);
                 }

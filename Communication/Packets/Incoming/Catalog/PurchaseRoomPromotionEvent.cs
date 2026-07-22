@@ -33,15 +33,13 @@ namespace Plus.Communication.Packets.Incoming.Catalog
 
             if (data.Promotion == null)
                 data.Promotion = new RoomPromotion(name, desc, categoryId);
-            else
-            {
+            else {
                 data.Promotion.Name = name;
                 data.Promotion.Description = desc;
                 data.Promotion.TimestampExpires += 7200;
             }
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.RoomPromotions.Upsert(new Plus.Database.EF.Entities.RoomPromotionEntity
                 {
                     RoomId = roomId,

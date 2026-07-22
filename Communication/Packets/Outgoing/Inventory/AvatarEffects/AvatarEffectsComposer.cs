@@ -17,8 +17,7 @@ namespace Plus.Communication.Packets.Outgoing.Inventory.AvatarEffects
         {
             packet.WriteInteger(Effects.Count);
 
-            foreach (AvatarEffect effect in Effects)
-            {
+            foreach (AvatarEffect effect in Effects) {
                 packet.WriteInteger(effect.SpriteId); //Effect Id
                 packet.WriteInteger(0); //Type, 0 = Hand, 1 = Full
                 packet.WriteInteger((int)effect.Duration);

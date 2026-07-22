@@ -57,10 +57,8 @@ namespace Plus.HabboHotel.Groups
             var groupItems = db.GroupsItems.Where(g => g.Enabled == "1")
                 .Select(g => new { g.Id, g.Type, g.Firstvalue, g.Secondvalue }).ToList();
 
-            foreach (var groupItem in groupItems)
-            {
-                switch (groupItem.Type)
-                {
+            foreach (var groupItem in groupItems) {
+                switch (groupItem.Type) {
                     case "base":
                         _bases.Add(new GroupBadgeParts(groupItem.Id, groupItem.Firstvalue, groupItem.Secondvalue));
                         break;
@@ -85,8 +83,7 @@ namespace Plus.HabboHotel.Groups
 
             var permissionKeys = db.GroupPermissionKeys
                 .Select(k => new { k.Id, k.Name, k.Key, k.Description, k.TypeSpecific }).ToList();
-            foreach (var row in permissionKeys)
-            {
+            foreach (var row in permissionKeys) {
                 GroupPermissionKey permissionKey = new GroupPermissionKey(row.Id, row.Name, row.Key, row.Description, row.TypeSpecific);
 
                 _permissionKeys[permissionKey.Id] = permissionKey;
@@ -98,8 +95,7 @@ namespace Plus.HabboHotel.Groups
         {
             Init();
 
-            foreach (Group group in _groups.Values)
-            {
+            foreach (Group group in _groups.Values) {
                 group.InitRoles();
                 group.InitPermissions();
             }
@@ -112,8 +108,7 @@ namespace Plus.HabboHotel.Groups
             if (_groups.ContainsKey(id))
                 return _groups.TryGetValue(id, out group);
 
-            lock (_groupLoadingSync)
-            {
+            lock (_groupLoadingSync) {
                 if (_groups.ContainsKey(id))
                     return _groups.TryGetValue(id, out group);
 
@@ -121,8 +116,7 @@ namespace Plus.HabboHotel.Groups
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
                 var r = db.Groups.FirstOrDefault(x => x.Id == gid);
 
-                if (r != null)
-                {
+                if (r != null) {
                     group = new Group((int)r.Id, r.Name, r.Desc, r.Badge, (int)r.RoomId, (int)r.OwnerId, r.Created, Convert.ToInt32(r.State), r.GroupType, r.Colour1, r.Colour2, Convert.ToInt32(r.Admindeco), Convert.ToInt32(r.ForumEnabled) == 1);
                     _groups.TryAdd(group.Id, group);
                     return true;
@@ -206,17 +200,13 @@ namespace Plus.HabboHotel.Groups
 
         public string GetColourCode(int id, bool colourOne)
         {
-            if (colourOne)
-            {
-                if (_symbolColours.ContainsKey(id))
-                {
+            if (colourOne) {
+                if (_symbolColours.ContainsKey(id)) {
                     return _symbolColours[id].Colour;
                 }
             }
-            else
-            {
-                if (_backgroundColours.ContainsKey(id))
-                {
+            else {
+                if (_backgroundColours.ContainsKey(id)) {
                     return _backgroundColours[id].Colour;
                 }
             }
@@ -238,10 +228,8 @@ namespace Plus.HabboHotel.Groups
         public bool TryGetWorkGroupForUser(int userId, out Group workGroup)
         {
             workGroup = null;
-            foreach (Group group in GetGroupsForUser(userId))
-            {
-                if (group != null && IsWorkableKind(group.Kind))
-                {
+            foreach (Group group in GetGroupsForUser(userId)) {
+                if (group != null && IsWorkableKind(group.Kind)) {
                     workGroup = group;
                     return true;
                 }
@@ -257,8 +245,7 @@ namespace Plus.HabboHotel.Groups
 
             // Loaded groups are the authoritative (cached) source: membership changes are deferred
             // to the 15-minute DB flush, so the DB alone would be stale for recent joins/leaves.
-            foreach (Group group in _groups.Values)
-            {
+            foreach (Group group in _groups.Values) {
                 if (group.IsMember(userId) && seen.Add(group.Id))
                     groups.Add(group);
             }
@@ -266,13 +253,11 @@ namespace Plus.HabboHotel.Groups
             // Fall back to the DB only for groups not currently loaded (last-flushed membership).
             uint uid = (uint)userId;
             List<int> ids;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 ids = db.GroupMemberships.Where(m => m.UserId == uid).Select(m => (int)m.GroupId).ToList();
             }
 
-            foreach (int gid in ids)
-            {
+            foreach (int gid in ids) {
                 if (_groups.ContainsKey(gid))
                     continue; // already handled authoritatively above
 

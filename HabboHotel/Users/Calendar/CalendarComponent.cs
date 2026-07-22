@@ -35,11 +35,9 @@ namespace Plus.HabboHotel.Users.Calendar
                 _openedBoxes.Clear();
 
             int playerId = player.Id;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 var boxes = db.user_xmas15_calendars.Where(c => c.UserId == playerId).Select(c => new { c.Status, c.Day }).ToList();
-                foreach (var box in boxes)
-                {
+                foreach (var box in boxes) {
                     if (box.Status == 0)
                         _lateBoxes.Add(box.Day);
                     else

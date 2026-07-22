@@ -12,8 +12,7 @@ namespace Plus.Communication.Packets.Outgoing.Inventory.Achievements
         public override void Compose(ServerPacket packet)
         {
             packet.WriteInteger(Achievements.Count);
-            foreach (Achievement achievement in Achievements)
-            {
+            foreach (Achievement achievement in Achievements) {
                 UserAchievement userData = Habbo.GetAchievementData(achievement.GroupName);
                 int totalLevels = achievement.Levels.Count;
                 int currentLevel = userData != null ? userData.Level : 0; // levels fully achieved

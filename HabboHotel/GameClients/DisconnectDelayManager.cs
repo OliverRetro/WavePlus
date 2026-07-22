@@ -42,35 +42,29 @@ namespace Plus.HabboHotel.GameClients
             if (!_pending.TryAdd(habbo.Id, pending))
                 return true;
 
-            try
-            {
-                if (PlusEnvironment.GetPoliceManager()?.IsEscorted(habbo.Id) == true)
-                {
+            try {
+                if (PlusEnvironment.GetPoliceManager()?.IsEscorted(habbo.Id) == true) {
                     PlusEnvironment.GetPoliceManager().StopEscort(habbo.Id);
                     PlusEnvironment.GetRpCrimeManager()?.Commit(habbo, "logout", habbo.CurrentRoom);
                 }
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
 
-            try
-            {
+            try {
                 double now = PlusEnvironment.GetUnixTimestamp();
                 bool announcedRecently = _lastAnnounce.TryGetValue(habbo.Id, out double last) && (now - last) < AnnounceCooldownSeconds;
 
                 Room room = habbo.CurrentRoom;
                 RoomUser roomUser = room?.GetRoomUserManager()?.GetRoomUserByHabbo(habbo.Id);
-                if (roomUser != null && !announcedRecently)
-                {
+                if (roomUser != null && !announcedRecently) {
                     roomUser.ApplyEffect(13);
                     _lastAnnounce[habbo.Id] = now;
                     room.SendPacket(new ShoutComposer(roomUser.VirtualId, "*disconnecting in " + GraceSeconds + " seconds*", 0, habbo.CustomBubbleId, isRpAction: true));
                 }
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
 
@@ -82,12 +76,10 @@ namespace Plus.HabboHotel.GameClients
             if (!_pending.TryRemove(userId, out PendingDisconnect pending))
                 return;
 
-            try
-            {
+            try {
                 PlusEnvironment.GetGame().GetClientManager().CompleteGhostDisconnect(pending.Client, pending.ChannelId);
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
         }
@@ -98,10 +90,8 @@ namespace Plus.HabboHotel.GameClients
 
             // Prune stale announce cooldowns — the map otherwise grows one entry per user who
             // ever ghost-disconnected, for the lifetime of the process.
-            if (!_lastAnnounce.IsEmpty)
-            {
-                foreach (var kv in _lastAnnounce)
-                {
+            if (!_lastAnnounce.IsEmpty) {
+                foreach (var kv in _lastAnnounce) {
                     if (now - kv.Value > AnnounceCooldownSeconds * 4)
                         _lastAnnounce.TryRemove(kv.Key, out _);
                 }
@@ -110,8 +100,7 @@ namespace Plus.HabboHotel.GameClients
             if (_pending.IsEmpty)
                 return;
 
-            foreach (var kv in _pending)
-            {
+            foreach (var kv in _pending) {
                 if (kv.Value.ExpiryUnix <= now)
                     FinalizeNow(kv.Key);
             }

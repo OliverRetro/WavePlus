@@ -28,8 +28,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
                 return;
 
             string decorationKey = string.Empty;
-            switch (item.GetBaseItem().InteractionType)
-            {
+            switch (item.GetBaseItem().InteractionType) {
                 case InteractionType.Floor:
                     decorationKey = "floor";
                     break;
@@ -43,8 +42,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
                     break;
             }
 
-            switch (decorationKey)
-            {
+            switch (decorationKey) {
                 case "floor":
                     room.Floor = item.ExtraData;
 
@@ -69,10 +67,8 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
             int rid = room.RoomId;
             uint itemDbId = (uint)item.Id;
             string extraData = item.ExtraData;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
-                switch (decorationKey)
-                {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
+                switch (decorationKey) {
                     case "floor":
                         db.Rooms.Where(r => r.Id == rid).ExecuteUpdate(s => s.SetProperty(r => r.Floor, extraData));
                         break;

@@ -26,13 +26,11 @@ namespace Plus.Communication.Encryption.Crypto.Prng
             i = 0;
             j = 0;
 
-            for (i = 0; i < PoolSize; ++i)
-            {
+            for (i = 0; i < PoolSize; ++i) {
                 bytes[i] = (byte)i;
             }
 
-            for (i = 0; i < PoolSize; ++i)
-            {
+            for (i = 0; i < PoolSize; ++i) {
                 j = (j + bytes[i] + key[i % key.Length]) & (PoolSize - 1);
                 Swap(i, j);
             }
@@ -56,8 +54,7 @@ namespace Plus.Communication.Encryption.Crypto.Prng
 
         public void Encrypt(ref byte[] src)
         {
-            for (int k = 0; k < src.Length; k++)
-            {
+            for (int k = 0; k < src.Length; k++) {
                 src[k] ^= Next();
             }
         }

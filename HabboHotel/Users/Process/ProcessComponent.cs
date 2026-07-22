@@ -70,13 +70,11 @@ namespace Plus.HabboHotel.Users.Process
         /// <param name="state"></param>
         public void Run(object state)
         {
-            try
-            {
+            try {
                 if (_disabled)
                     return;
 
-                if (_timerRunning)
-                {
+                if (_timerRunning) {
                     _timerLagging = true;
                     Log.Warn("<Player " + _player.Id + "> Server can't keep up, Player timer is lagging behind.");
                     return;
@@ -106,8 +104,7 @@ namespace Plus.HabboHotel.Users.Process
 
                 #region Respect checking
 
-                if (_player.GetStats().RespectsTimestamp != DateTime.Today.ToString("MM/dd"))
-                {
+                if (_player.GetStats().RespectsTimestamp != DateTime.Today.ToString("MM/dd")) {
                     _player.GetStats().RespectsTimestamp = DateTime.Today.ToString("MM/dd");
                     int dailyPoints = (_player.Rank == 1 && _player.VipRank == 0 ? 10 : _player.VipRank == 1 ? 15 : 20);
                     string respectsTimestamp = DateTime.Today.ToString("MM/dd");
@@ -121,8 +118,7 @@ namespace Plus.HabboHotel.Users.Process
                     _player.GetStats().DailyRespectPoints = (_player.Rank == 1 && _player.VipRank == 0 ? 10 : _player.VipRank == 1 ? 15 : 20);
                     _player.GetStats().DailyPetRespectPoints = (_player.Rank == 1 && _player.VipRank == 0 ? 10 : _player.VipRank == 1 ? 15 : 20);
 
-                    if (_player.GetClient() != null)
-                    {
+                    if (_player.GetClient() != null) {
                         _player.GetClient().SendPacket(new UserObjectComposer(_player));
                     }
                 }
@@ -141,7 +137,6 @@ namespace Plus.HabboHotel.Users.Process
                     _player.ClothingUpdateWarnings = 0;
 
                 #endregion
-
 
                 // Batched: with thousands of users online, one synchronous achievement write
                 // per user per minute was a constant background load on MySQL.
@@ -165,8 +160,7 @@ namespace Plus.HabboHotel.Users.Process
 
                 _resetEvent.Set();
             }
-            catch
-            {
+            catch {
             }
         }
 
@@ -176,24 +170,20 @@ namespace Plus.HabboHotel.Users.Process
         public void Dispose()
         {
             // Wait until any processing is complete first.
-            try
-            {
+            try {
                 _resetEvent.WaitOne(TimeSpan.FromMinutes(5));
             }
-            catch
-            {
+            catch {
             } // give up
 
             // Set the timer to disabled
             _disabled = true;
 
             // Dispose the timer to disable it.
-            try
-            {
+            try {
                 _timer?.Dispose();
             }
-            catch
-            {
+            catch {
             }
 
             // Remove reference to the timer.

@@ -367,7 +367,6 @@
         public const int GroupForumReadThreadMessageComposer = 509; // PRODUCTION-201611291003-338511768
         public const int GroupForumDataMessageComposer = 3011; // PRODUCTION-201611291003-338511768
 
-
         // test
         public const int EpicPopupFrameComposer = 3945; // PRODUCTION-201611291003-338511768
         public const int CostumNotificationComposer = 909; // PRODUCTION-201611291003-338511768
@@ -379,27 +378,22 @@
         public const int DailyQuestComposer = 1878; // PRODUCTION-201611291003-338511768
         public const int DebugConsole = 3284; // PRODUCTION-201611291003-338511768
 
-
         // freeze 
         public const int FreezeLifesComposer = 2324; // PRODUCTION-201611291003-338511768
-
 
         //MysticBox
         public const int MysticBoxStartOpenComposer = 3201; // PRODUCTION-201611291003-338511768
         public const int MysticBoxPrizeComposer = 3712; // PRODUCTION-201611291003-338511768
         public const int MysticBoxCloseComposer = 596; // PRODUCTION-201611291003-338511768
 
-
         //EffectsListAdd
         public const int EffectsListAddComposer = 2867; // PRODUCTION-201611291003-338511768
         public const int EffectsListEffectEnableComposer = 1959; // PRODUCTION-201611291003-338511768
         public const int EffectsListRemoveComposer = 2228; // PRODUCTION-201611291003-338511768
 
-
         public const int FurniMaticNoRoomError = 3433; // PRODUCTION-201611291003-338511768
         public const int FurniMaticReceiveItem = 468; // PRODUCTION-201611291003-338511768
         public const int FurniMaticRewardsComposer = 3164; // PRODUCTION-201611291003-338511768
-
 
         public const int NuxItemListComposer = 3575; // PRODUCTION-201611291003-338511768
         public const int NuxSuggestFreeGiftsMessageComposer = 3639; // PRODUCTION-201611291003-338511768

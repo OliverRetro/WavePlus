@@ -27,11 +27,9 @@ namespace Plus.HabboHotel.Items
         {
             int linkId = GetLinkedTele(teleId);
 
-            if (linkId == 0)
-            {
+            if (linkId == 0) {
                 return false;
             }
-
 
             Item item = pRoom.GetRoomItemHandler().GetItem(linkId);
             if (item != null && (item.GetBaseItem().InteractionType == InteractionType.Teleport || item.GetBaseItem().InteractionType == InteractionType.Arrow))
@@ -39,8 +37,7 @@ namespace Plus.HabboHotel.Items
 
             int roomId = GetTeleRoomId(linkId, pRoom);
 
-            if (roomId == 0)
-            {
+            if (roomId == 0) {
                 return false;
             }
 

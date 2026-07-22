@@ -12,8 +12,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni.YouTubeTelevisions
             int itemId = packet.PopInt();
             string videoId = packet.PopString();
 
-            foreach (TelevisionItem tele in PlusEnvironment.GetGame().GetTelevisionManager().TelevisionList.ToList())
-            {
+            foreach (TelevisionItem tele in PlusEnvironment.GetGame().GetTelevisionManager().TelevisionList.ToList()) {
                 if (tele.YouTubeId != videoId)
                     continue;
 

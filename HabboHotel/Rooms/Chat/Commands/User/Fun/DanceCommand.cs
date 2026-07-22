@@ -17,16 +17,13 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Fun
             if (thisUser == null)
                 return;
 
-            if (@params.Length == 1)
-            {
+            if (@params.Length == 1) {
                 session.SendWhisper("Please enter an ID of a dance.");
                 return;
             }
 
-            if (int.TryParse(@params[1], out int danceId))
-            {
-                if (danceId > 4 || danceId < 0)
-                {
+            if (int.TryParse(@params[1], out int danceId)) {
+                if (danceId > 4 || danceId < 0) {
                     session.SendWhisper("The dance ID must be between 0 and 4!");
                     return;
                 }

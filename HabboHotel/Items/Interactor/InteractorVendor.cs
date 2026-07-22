@@ -11,12 +11,10 @@ namespace Plus.HabboHotel.Items.Interactor
             item.ExtraData = "0";
             item.UpdateNeeded = true;
 
-            if (item.InteractingUser > 0)
-            {
+            if (item.InteractingUser > 0) {
                 RoomUser user = item.GetRoom().GetRoomUserManager().GetRoomUserByHabbo(item.InteractingUser);
 
-                if (user != null)
-                {
+                if (user != null) {
                     user.CanWalk = true;
                 }
             }
@@ -26,12 +24,10 @@ namespace Plus.HabboHotel.Items.Interactor
         {
             item.ExtraData = "0";
 
-            if (item.InteractingUser > 0)
-            {
+            if (item.InteractingUser > 0) {
                 RoomUser user = item.GetRoom().GetRoomUserManager().GetRoomUserByHabbo(item.InteractingUser);
 
-                if (user != null)
-                {
+                if (user != null) {
                     user.CanWalk = true;
                 }
             }
@@ -40,17 +36,14 @@ namespace Plus.HabboHotel.Items.Interactor
         public void OnTrigger(GameClient session, Item item, int request, bool hasRights)
         {
             if (item.ExtraData != "1" && item.GetBaseItem().VendingIds.Count >= 1 && item.InteractingUser == 0 &&
-                session != null)
-            {
+                session != null) {
                 RoomUser user = item.GetRoom().GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id);
 
-                if (user == null)
-                {
+                if (user == null) {
                     return;
                 }
 
-                if (!Gamemap.TilesTouching(user.X, user.Y, item.GetX, item.GetY))
-                {
+                if (!Gamemap.TilesTouching(user.X, user.Y, item.GetX, item.GetY)) {
                     user.MoveTo(item.SquareInFront);
                     return;
                 }

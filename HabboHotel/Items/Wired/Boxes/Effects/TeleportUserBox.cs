@@ -53,8 +53,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
                 SetItems.Clear();
 
             int furniCount = packet.PopInt();
-            for (int i = 0; i < furniCount; i++)
-            {
+            for (int i = 0; i < furniCount; i++) {
                 Item selectedItem = Instance.GetRoomItemHandler().GetItem(packet.PopInt());
                 if (selectedItem != null)
                     SetItems.TryAdd(selectedItem.Id, selectedItem);
@@ -65,15 +64,13 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
 
         public bool OnCycle()
         {
-            if (_queue.Count == 0 || SetItems.Count == 0)
-            {
+            if (_queue.Count == 0 || SetItems.Count == 0) {
                 _queue.Clear();
                 TickCount = Delay;
                 return true;
             }
 
-            while (_queue.Count > 0)
-            {
+            while (_queue.Count > 0) {
                 Habbo player = (Habbo)_queue.Dequeue();
                 if (player == null || player.CurrentRoom != Instance)
                     continue;
@@ -126,8 +123,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
             if (item == null)
                 return;
 
-            if (!Instance.GetRoomItemHandler().GetFloor.Contains(item))
-            {
+            if (!Instance.GetRoomItemHandler().GetFloor.Contains(item)) {
                 SetItems.TryRemove(item.Id, out item);
 
                 if (items.Contains(item))

@@ -25,8 +25,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
 
             int groupCost = Convert.ToInt32(PlusEnvironment.GetSettingsManager().TryGetValue("catalog.group.purchase.cost"));
 
-            if (session.GetHabbo().Credits < groupCost)
-            {
+            if (session.GetHabbo().Credits < groupCost) {
                 session.SendPacket(new BroadcastMessageAlertComposer("A group costs " + groupCost + " credits! You only have " + session.GetHabbo().Credits + "!"));
 
                 return;
@@ -42,8 +41,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
 
             int baseValue = 1;
 
-            while (baseValue < count)
-            {
+            while (baseValue < count) {
                 // Safety check
                 if (packet == null)
                     return;
@@ -57,8 +55,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
                 baseValue += 3;
             }
 
-            if (!PlusEnvironment.GetGame().GetGroupManager().TryCreateGroup(session.GetHabbo(), name, description, roomId, badge, mainColour, secondaryColour, out Group group))
-            {
+            if (!PlusEnvironment.GetGame().GetGroupManager().TryCreateGroup(session.GetHabbo(), name, description, roomId, badge, mainColour, secondaryColour, out Group group)) {
                 session.SendNotification("An error occured whilst trying to create this group.");
                 return;
             }

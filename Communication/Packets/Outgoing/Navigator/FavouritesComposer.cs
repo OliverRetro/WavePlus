@@ -17,8 +17,7 @@ namespace Plus.Communication.Packets.Outgoing.Navigator
             packet.WriteInteger(50);
             packet.WriteInteger(FavouriteIds.Count);
 
-            foreach (int id in FavouriteIds.ToArray())
-            {
+            foreach (int id in FavouriteIds.ToArray()) {
                 packet.WriteInteger(id);
             }
         }

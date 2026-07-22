@@ -9,12 +9,10 @@ namespace Plus.Communication.Packets.Outgoing
         public ServerPacket WriteMessage(IByteBuffer buf)
         {
             ServerPacket packet = new(Id, buf);
-            try
-            {
+            try {
                 Compose(packet);
             }
-            finally
-            {
+            finally {
                 Dispose();
             }
 

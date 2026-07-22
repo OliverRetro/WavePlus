@@ -23,8 +23,7 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Furni.Wired
             packet.WriteInteger(5);
 
             packet.WriteInteger(WiredItem.SetItems.Count);
-            foreach (Item item in WiredItem.SetItems.Values.ToList())
-            {
+            foreach (Item item in WiredItem.SetItems.Values.ToList()) {
                 packet.WriteInteger(item.Id);
             }
 
@@ -33,18 +32,15 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Furni.Wired
             packet.WriteString(WiredItem.StringData);
 
             packet.WriteInteger(WiredItem is IWiredCycle ? 1 : 0);
-            if (WiredItem is IWiredCycle cycle)
-            {
+            if (WiredItem is IWiredCycle cycle) {
                 packet.WriteInteger(cycle.Delay);
             }
 
             packet.WriteInteger(0);
             packet.WriteInteger(WiredBoxTypeUtility.GetWiredId(WiredItem.Type));
             packet.WriteInteger(BlockedItems.Count());
-            if (BlockedItems.Count() > 0)
-            {
-                foreach (int itemId in BlockedItems.ToList())
-                {
+            if (BlockedItems.Count() > 0) {
+                foreach (int itemId in BlockedItems.ToList()) {
                     packet.WriteInteger(itemId);
                 }
             }

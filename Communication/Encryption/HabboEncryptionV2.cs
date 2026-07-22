@@ -19,15 +19,13 @@ namespace Plus.Communication.Encryption
 
         private static string GetRsaStringEncrypted(string message)
         {
-            try
-            {
+            try {
                 byte[] m = Encoding.Default.GetBytes(message);
                 byte[] c = Rsa.Sign(m);
 
                 return Converter.BytesToHexString(c);
             }
-            catch
-            {
+            catch {
                 return "0";
             }
         }
@@ -52,15 +50,13 @@ namespace Plus.Communication.Encryption
 
         public static BigInteger CalculateDiffieHellmanSharedKey(string publicKey)
         {
-            try
-            {
+            try {
                 byte[] cbytes = Converter.HexStringToBytes(publicKey);
                 byte[] publicKeyBytes = Rsa.Verify(cbytes);
                 string publicKeyString = Encoding.Default.GetString(publicKeyBytes);
                 return DiffieHellman.CalculateSharedKey(new BigInteger(publicKeyString, 10));
             }
-            catch
-            {
+            catch {
                 return 0;
             }
         }

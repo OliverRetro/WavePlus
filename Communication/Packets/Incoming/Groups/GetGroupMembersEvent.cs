@@ -28,8 +28,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
 
             List<UserCache> members = PlusEnvironment.GetGame().GetCacheManager().GenerateUsers(ids);
 
-            if (!string.IsNullOrWhiteSpace(searchVal))
-            {
+            if (!string.IsNullOrWhiteSpace(searchVal)) {
                 members = members.Where(x => x.Username.StartsWith(searchVal)).ToList();
             }
 

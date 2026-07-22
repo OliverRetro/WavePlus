@@ -26,13 +26,11 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Settings
                 return;
 
             List<Item> itemsToRemove = new();
-            foreach (Item item in room.GetRoomItemHandler().GetWallAndFloor.ToList())
-            {
+            foreach (Item item in room.GetRoomItemHandler().GetWallAndFloor.ToList()) {
                 if (item == null)
                     continue;
 
-                if (item.GetBaseItem().InteractionType == InteractionType.Moodlight)
-                {
+                if (item.GetBaseItem().InteractionType == InteractionType.Moodlight) {
                     uint moodItemId = (uint)item.Id;
                     using (WavePlusContext db = PlusEnvironment.GetDbContext())
                         db.RoomItemsMoodlights.Where(m => m.ItemId == moodItemId).ExecuteDelete();
@@ -41,8 +39,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Settings
                 itemsToRemove.Add(item);
             }
 
-            foreach (Item item in itemsToRemove)
-            {
+            foreach (Item item in itemsToRemove) {
                 GameClient targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(item.UserId);
                 if (targetClient != null && targetClient.GetHabbo() != null) //Again, do we have an active client?
                 {
@@ -62,8 +59,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Settings
             PlusEnvironment.GetGame().GetRoomManager().UnloadRoom(room.Id);
 
             uint roomIdU = (uint)roomId;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.UserRoomvisits.Where(v => v.RoomId == roomIdU).ExecuteDelete();
                 db.Rooms.Where(r => r.Id == roomId).ExecuteDelete();
                 db.UserFavorites.Where(f => f.RoomId == roomIdU).ExecuteDelete();

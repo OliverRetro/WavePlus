@@ -86,8 +86,7 @@ namespace Plus.HabboHotel.Users.Roleplay
 
         public static int GetMaxHealth(Habbo habbo)
         {
-            if (habbo?.GetRpSkills() == null)
-            {
+            if (habbo?.GetRpSkills() == null) {
                 return 100;
             }
 
@@ -102,8 +101,7 @@ namespace Plus.HabboHotel.Users.Roleplay
 
         public static int GetMaxHunger(Habbo habbo)
         {
-            if (habbo?.GetRpSkills() == null)
-            {
+            if (habbo?.GetRpSkills() == null) {
                 return 25;
             }
 
@@ -118,8 +116,7 @@ namespace Plus.HabboHotel.Users.Roleplay
 
         public static int GetMaxEnergy(Habbo habbo)
         {
-            if (habbo?.GetRpSkills() == null)
-            {
+            if (habbo?.GetRpSkills() == null) {
                 return 100;
             }
 
@@ -152,8 +149,7 @@ namespace Plus.HabboHotel.Users.Roleplay
             // Idle players don't burn hunger — you only get hungry while active. Push the next
             // tick out a little so it resumes promptly once they wake up.
             RoomUser idleCheck = habbo.CurrentRoom?.GetRoomUserManager()?.GetRoomUserByHabbo(habbo.Id);
-            if (idleCheck != null && idleCheck.IsAsleep || habbo.GetRpStats().IsGodMode)
-            {
+            if (idleCheck != null && idleCheck.IsAsleep || habbo.GetRpStats().IsGodMode) {
                 NextHungerTick = DateTime.UtcNow.AddMinutes(1);
                 return;
             }
@@ -162,13 +158,13 @@ namespace Plus.HabboHotel.Users.Roleplay
                 int loss = Random.Shared.Next(1, 6);
                 Hunger = Math.Max(0, Hunger - loss);
                 NextHungerTick = DateTime.UtcNow.AddMinutes(10);
-            } else {
+            }
+            else {
                 int damage = Random.Shared.Next(5, 51);
                 Health = Math.Max(0, Health - damage);
                 NextHungerTick = DateTime.UtcNow.AddMinutes(1);
 
-                if (Health <= 0 && !IsDead)
-                {
+                if (Health <= 0 && !IsDead) {
                     Room room = habbo.CurrentRoom;
                     RoomUser roomUser = room?.GetRoomUserManager().GetRoomUserByHabbo(habbo.Id);
                     if (roomUser != null)
@@ -188,8 +184,7 @@ namespace Plus.HabboHotel.Users.Roleplay
 
         public static int GetRobberyChance(Habbo habbo)
         {
-            if (habbo?.GetRpSkills() == null)
-            {
+            if (habbo?.GetRpSkills() == null) {
                 return 50;
             }
 
@@ -209,8 +204,7 @@ namespace Plus.HabboHotel.Users.Roleplay
 
         public static int GetScavengerBoost(Habbo habbo)
         {
-            if (habbo?.GetRpSkills() == null)
-            {
+            if (habbo?.GetRpSkills() == null) {
                 return 1;
             }
 

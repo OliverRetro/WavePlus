@@ -18,11 +18,9 @@ namespace Plus.HabboHotel.Catalog.Clothing
             if (_clothing.Count > 0)
                 _clothing.Clear();
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 var rows = db.CatalogClothings.Select(c => new { c.Id, c.ClothingName, c.ClothingParts }).ToList();
-                foreach (var row in rows)
-                {
+                foreach (var row in rows) {
                     _clothing.Add(row.Id, new ClothingItem(row.Id, row.ClothingName, row.ClothingParts));
                 }
             }

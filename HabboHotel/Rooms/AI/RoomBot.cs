@@ -25,7 +25,6 @@ namespace Plus.HabboHotel.Rooms.AI
         public int RoomId;
         public int Rot;
 
-
         public string WalkingMode;
 
         public int X;
@@ -102,8 +101,7 @@ namespace Plus.HabboHotel.Rooms.AI
         public void LoadRandomSpeech(List<RandomSpeech> speeches)
         {
             RandomSpeech = new List<RandomSpeech>();
-            foreach (RandomSpeech speech in speeches)
-            {
+            foreach (RandomSpeech speech in speeches) {
                 if (speech.BotId == BotId)
                     RandomSpeech.Add(speech);
             }
@@ -124,8 +122,7 @@ namespace Plus.HabboHotel.Rooms.AI
 
         public BotAI GenerateBotAI(int virtualId)
         {
-            switch (AiType)
-            {
+            switch (AiType) {
                 case BotAIType.Pet:
                     return new PetBot(virtualId);
                 case BotAIType.Generic:

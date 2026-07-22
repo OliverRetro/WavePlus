@@ -31,13 +31,11 @@ namespace Plus.HabboHotel.Rooms.Games
         {
             Random rnd = new();
 
-            foreach (Item item in _banzaiPyramids.Values.ToList())
-            {
+            foreach (Item item in _banzaiPyramids.Values.ToList()) {
                 if (item == null)
                     continue;
 
-                if (item.InteractionCountHelper == 0 && item.ExtraData == "1")
-                {
+                if (item.InteractionCountHelper == 0 && item.ExtraData == "1") {
                     _room.GetGameMap().RemoveFromMap(item, false);
                     item.InteractionCountHelper = 1;
                 }
@@ -46,18 +44,14 @@ namespace Plus.HabboHotel.Rooms.Games
                     item.ExtraData = "0";
 
                 int randomNumber = rnd.Next(0, 30);
-                if (randomNumber == 15)
-                {
-                    if (item.ExtraData == "0")
-                    {
+                if (randomNumber == 15) {
+                    if (item.ExtraData == "0") {
                         item.ExtraData = "1";
                         item.UpdateState();
                         _room.GetGameMap().RemoveFromMap(item, false);
                     }
-                    else
-                    {
-                        if (_room.GetGameMap().ItemCanBePlaced(item.GetX, item.GetY))
-                        {
+                    else {
+                        if (_room.GetGameMap().ItemCanBePlaced(item.GetX, item.GetY)) {
                             item.ExtraData = "0";
                             item.UpdateState();
                             _room.GetGameMap().AddItemToMap(item);
@@ -105,13 +99,11 @@ namespace Plus.HabboHotel.Rooms.Games
             if (count == 0)
                 return;
 
-            foreach (Item i in items.ToList())
-            {
+            foreach (Item i in items.ToList()) {
                 if (i == null)
                     continue;
 
-                if (countAmount == countID)
-                {
+                if (countAmount == countID) {
                     i.ExtraData = "1";
                     i.UpdateNeeded = true;
 

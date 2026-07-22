@@ -18,11 +18,9 @@ namespace Plus.HabboHotel.Permissions
         {
             _skills.Clear();
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 // Load skills
-                foreach (var row in db.RpSkills.AsNoTracking().ToList())
-                {
+                foreach (var row in db.RpSkills.AsNoTracking().ToList()) {
                     var skill = new Skill(
                         row.Id,
                         row.Name,
@@ -35,8 +33,7 @@ namespace Plus.HabboHotel.Permissions
                 }
 
                 // Load level requirements
-                foreach (var row in db.RpSkillsLevels.AsNoTracking().ToList())
-                {
+                foreach (var row in db.RpSkillsLevels.AsNoTracking().ToList()) {
                     int skillId = row.SkillId;
 
                     if (!_skills.TryGetValue(skillId, out Skill skill))

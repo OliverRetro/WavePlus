@@ -16,15 +16,13 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length < 3)
-            {
+            if (@params.Length < 3) {
                 session.SendWhisper("Usage: :giveweapon <username> <weapon name>", 1);
                 return;
             }
 
             GameClient targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(@params[1]);
-            if (targetClient?.GetHabbo() == null)
-            {
+            if (targetClient?.GetHabbo() == null) {
                 session.SendWhisper("That user could not be found.", 1);
                 return;
             }
@@ -32,8 +30,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
             // Everything after the username is the weapon name — fuse it back together so names
             // with spaces ("Combat Knife") work.
             string weaponName = string.Join(" ", @params.Skip(2)).Trim();
-            if (string.IsNullOrWhiteSpace(weaponName))
-            {
+            if (string.IsNullOrWhiteSpace(weaponName)) {
                 session.SendWhisper("Please enter a weapon name.", 1);
                 return;
             }
@@ -42,16 +39,14 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
             Weapon weapon = weaponManager.GetWeapons()
                 .FirstOrDefault(w => w.Id != 0 && string.Equals(w.Name, weaponName, StringComparison.OrdinalIgnoreCase));
 
-            if (weapon == null)
-            {
+            if (weapon == null) {
                 session.SendWhisper($"No weapon named \"{weaponName}\" exists.", 1);
                 return;
             }
 
             var targetHabbo = targetClient.GetHabbo();
             UserWeapon given = targetHabbo.GetRpWeapons()?.AddWeapon(weapon.Id);
-            if (given == null)
-            {
+            if (given == null) {
                 session.SendWhisper("That weapon could not be given.", 1);
                 return;
             }

@@ -22,8 +22,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
             if (!room.CheckRights(session, true))
                 return;
 
-            if (PlusEnvironment.GetSettingsManager().TryGetValue("room.item.exchangeables.enabled") != "1")
-            {
+            if (PlusEnvironment.GetSettingsManager().TryGetValue("room.item.exchangeables.enabled") != "1") {
                 session.SendNotification("The hotel managers have temporarilly disabled exchanging!");
                 return;
             }
@@ -35,18 +34,15 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
             if (exchange.Data.InteractionType != InteractionType.Exchange)
                 return;
 
-
             int value = exchange.Data.BehaviourData;
 
-            if (value > 0)
-            {
+            if (value > 0) {
                 session.GetHabbo().Credits += value;
                 session.SendPacket(new CreditBalanceComposer(session.GetHabbo().Credits));
             }
 
             uint exchangeId = (uint)exchange.Id;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.Items.Where(i => i.Id == exchangeId).ExecuteDelete();
             }
 

@@ -63,8 +63,7 @@ namespace Plus.Core.Persistence
 
         public static void Flush()
         {
-            try
-            {
+            try {
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
                 bool dirty = false;
 
@@ -76,8 +75,7 @@ namespace Plus.Core.Persistence
                 if (dirty)
                     db.SaveChanges();
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 Log.Error($"LogBuffer flush failed: {ex.Message}");
             }
         }

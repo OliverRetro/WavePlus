@@ -59,8 +59,7 @@ namespace Plus.HabboHotel.Roleplay.Skill
             int progress = GetProgress(skillId);
             int highestLevel = 0;
 
-            foreach (SkillLevel level in skill.Levels.Values.OrderBy(x => x.Level))
-            {
+            foreach (SkillLevel level in skill.Levels.Values.OrderBy(x => x.Level)) {
                 if (progress < level.RequiredProgress)
                     break;
 
@@ -142,8 +141,7 @@ namespace Plus.HabboHotel.Roleplay.Skill
             if (!HasUnlockedSkill(skillId))
                 return false;
 
-            if (IsEquipped(skillId))
-            {
+            if (IsEquipped(skillId)) {
                 SetEquipped(skillId, false);
                 return true;
             }

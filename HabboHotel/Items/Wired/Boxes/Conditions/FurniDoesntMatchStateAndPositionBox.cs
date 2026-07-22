@@ -41,8 +41,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Conditions
             string unknown2 = packet.PopString();
 
             int furniCount = packet.PopInt();
-            for (int i = 0; i < furniCount; i++)
-            {
+            for (int i = 0; i < furniCount; i++) {
                 Item selectedItem = Instance.GetRoomItemHandler().GetItem(packet.PopInt());
                 if (selectedItem != null)
                     SetItems.TryAdd(selectedItem.Id, selectedItem);
@@ -59,13 +58,11 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Conditions
             if (string.IsNullOrEmpty(StringData) || StringData == "0;0;0" || SetItems.Count == 0)
                 return false;
 
-            foreach (Item item in SetItems.Values.ToList())
-            {
+            foreach (Item item in SetItems.Values.ToList()) {
                 if (!Instance.GetRoomItemHandler().GetFloor.Contains(item))
                     continue;
 
-                foreach (string I in ItemsData.Split(';'))
-                {
+                foreach (string I in ItemsData.Split(';')) {
                     if (string.IsNullOrEmpty(I))
                         continue;
 

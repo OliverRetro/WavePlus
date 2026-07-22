@@ -23,8 +23,7 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Settings
             packet.WriteInteger(((Room.Model.MapSizeX * Room.Model.MapSizeY) > 100) ? 50 : 25);
 
             packet.WriteInteger(Room.Tags.Count);
-            foreach (string tag in Room.Tags.ToArray())
-            {
+            foreach (string tag in Room.Tags.ToArray()) {
                 packet.WriteString(tag);
             }
 

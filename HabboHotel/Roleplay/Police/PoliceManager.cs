@@ -119,8 +119,7 @@ namespace Plus.HabboHotel.Roleplay.Police
             if (target == null)
                 return;
 
-            if (_states.TryRemove(target.Id, out PoliceState state))
-            {
+            if (_states.TryRemove(target.Id, out PoliceState state)) {
                 RestoreLook(target, state.OriginalLook);
                 ApplyFastwalk(target, false);
                 ApplyFrozen(target, false);
@@ -184,8 +183,7 @@ namespace Plus.HabboHotel.Roleplay.Police
 
         public void StopEscort(int targetId)
         {
-            if (_states.TryGetValue(targetId, out PoliceState state))
-            {
+            if (_states.TryGetValue(targetId, out PoliceState state)) {
                 state.EscortedBy = 0;
                 GameClient client = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(targetId);
                 if (client?.GetHabbo() != null)
@@ -203,17 +201,14 @@ namespace Plus.HabboHotel.Roleplay.Police
             if (habbo == null)
                 return;
 
-            if (_states.TryRemove(habbo.Id, out PoliceState ownState))
-            {
+            if (_states.TryRemove(habbo.Id, out PoliceState ownState)) {
                 UserRpStats stats = habbo.GetRpStats();
-                if (stats != null)
-                {
+                if (stats != null) {
                     stats.IsCuffed = ownState.Cuffed;
                     stats.JailRevertLook = ownState.OriginalLook ?? habbo.Look;
 
                     // Disconnected while being escorted — jail them on relog.
-                    if (ownState.EscortedBy > 0)
-                    {
+                    if (ownState.EscortedBy > 0) {
                         stats.JailPending = true;
                         stats.JailStars = ownState.PendingStars;
                     }
@@ -244,16 +239,14 @@ namespace Plus.HabboHotel.Roleplay.Police
         {
             HashSet<int> jailRooms = GetJailRoomIds();
 
-            foreach (var kv in _states)
-            {
+            foreach (var kv in _states) {
                 int targetId = kv.Key;
                 PoliceState state = kv.Value;
 
                 GameClient targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(targetId);
                 Habbo target = targetClient?.GetHabbo();
 
-                if (target == null)
-                {
+                if (target == null) {
                     // Don't remove the state here: the client-manager lookup can fail mid-disconnect
                     // before OnDisconnect has persisted the cuffs, and removing the state first would
                     // silently release the suspect. OnDisconnect owns the cleanup.
@@ -271,8 +264,7 @@ namespace Plus.HabboHotel.Roleplay.Police
                 GameClient officerClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(state.EscortedBy);
                 Habbo officer = officerClient?.GetHabbo();
 
-                if (officer == null || officer.CurrentRoom == null)
-                {
+                if (officer == null || officer.CurrentRoom == null) {
                     // Officer vanished without a clean disconnect — free but keep cuffed.
                     state.EscortedBy = 0;
                     state.Frozen = false;
@@ -282,17 +274,14 @@ namespace Plus.HabboHotel.Roleplay.Police
                 }
 
                 // Follow the officer across rooms.
-                if (officer.CurrentRoomId != target.CurrentRoomId)
-                {
+                if (officer.CurrentRoomId != target.CurrentRoomId) {
                     target.PrepareRoom(officer.CurrentRoomId, string.Empty);
                     continue;
                 }
 
                 // Reached a jail room — jail the suspect and end the escort.
-                if (jailRooms.Contains(officer.CurrentRoomId))
-                {
-                    if (PlusEnvironment.GetJailManager().JailFromEscort(target, officer, state.PendingStars, state.OriginalLook))
-                    {
+                if (jailRooms.Contains(officer.CurrentRoomId)) {
+                    if (PlusEnvironment.GetJailManager().JailFromEscort(target, officer, state.PendingStars, state.OriginalLook)) {
                         state.EscortedBy = 0;
                         state.PendingStars = 0;
                         ApplyFastwalk(target, false);
@@ -313,12 +302,10 @@ namespace Plus.HabboHotel.Roleplay.Police
                     continue;
 
                 Point ahead = officerUser.SquareInFront;
-                if ((targetUser.X != ahead.X || targetUser.Y != ahead.Y) && room.GetGameMap().ValidTile(ahead.X, ahead.Y))
-                {
+                if ((targetUser.X != ahead.X || targetUser.Y != ahead.Y) && room.GetGameMap().ValidTile(ahead.X, ahead.Y)) {
                     SnapTo(room, targetUser, ahead.X, ahead.Y, officerUser.RotBody);
                 }
-                else if (targetUser.RotBody != officerUser.RotBody || targetUser.RotHead != officerUser.RotHead)
-                {
+                else if (targetUser.RotBody != officerUser.RotBody || targetUser.RotHead != officerUser.RotHead) {
                     targetUser.RotBody = officerUser.RotBody;
                     targetUser.RotHead = officerUser.RotHead;
                     targetUser.UpdateNeeded = true;
@@ -338,8 +325,7 @@ namespace Plus.HabboHotel.Roleplay.Police
             if (room == null || _states.IsEmpty)
                 return;
 
-            foreach (var kv in _states)
-            {
+            foreach (var kv in _states) {
                 if (kv.Value.EscortedBy <= 0)
                     continue;
 
@@ -362,14 +348,12 @@ namespace Plus.HabboHotel.Roleplay.Police
                 int stepY = front.Y;
 
                 // Front tile unusable — fall back to the tile the officer is vacating.
-                if (!room.GetGameMap().ValidTile(stepX, stepY))
-                {
+                if (!room.GetGameMap().ValidTile(stepX, stepY)) {
                     stepX = officerUser.X;
                     stepY = officerUser.Y;
                 }
 
-                if (suspect.X == stepX && suspect.Y == stepY)
-                {
+                if (suspect.X == stepX && suspect.Y == stepY) {
                     suspect.RotBody = rot;
                     suspect.RotHead = rot;
                     suspect.UpdateNeeded = true;
@@ -427,8 +411,7 @@ namespace Plus.HabboHotel.Roleplay.Police
         /// <summary>Frees (but keeps cuffed) every suspect the given officer was escorting/holding.</summary>
         private void FreeControlledSuspects(int officerId, string message)
         {
-            foreach (var kv in _states)
-            {
+            foreach (var kv in _states) {
                 PoliceState state = kv.Value;
                 if (state.EscortedBy != officerId && state.CuffedBy != officerId)
                     continue;
@@ -438,8 +421,7 @@ namespace Plus.HabboHotel.Roleplay.Police
                 state.Frozen = false;
 
                 GameClient client = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(kv.Key);
-                if (client?.GetHabbo() != null)
-                {
+                if (client?.GetHabbo() != null) {
                     ApplyFastwalk(client.GetHabbo(), false);
                     ApplyFrozen(client.GetHabbo(), false);
                     if (wasControlled)
@@ -454,8 +436,7 @@ namespace Plus.HabboHotel.Roleplay.Police
             HashSet<int> rooms = new();
 
             string raw = PlusEnvironment.GetSettingsManager().TryGetValue("rp.jail.rooms");
-            if (!string.IsNullOrWhiteSpace(raw))
-            {
+            if (!string.IsNullOrWhiteSpace(raw)) {
                 foreach (string part in raw.Split(';'))
                     if (int.TryParse(part.Trim(), out int id) && id > 0)
                         rooms.Add(id);
@@ -526,8 +507,7 @@ namespace Plus.HabboHotel.Roleplay.Police
         private static void ApplyFastwalk(Habbo target, bool enabled)
         {
             RoomUser roomUser = target?.CurrentRoom?.GetRoomUserManager().GetRoomUserByHabbo(target.Id);
-            if (roomUser != null)
-            {
+            if (roomUser != null) {
                 roomUser.FastWalking = enabled;
                 if (!enabled)
                     roomUser.AllowOverride = false; // drop the escort-lockstep override too
@@ -554,15 +534,13 @@ namespace Plus.HabboHotel.Roleplay.Police
                 return;
 
             Dictionary<string, string> lookParts = new();
-            foreach (string part in originalLook.Split('.'))
-            {
+            foreach (string part in originalLook.Split('.')) {
                 if (string.IsNullOrWhiteSpace(part))
                     continue;
                 lookParts[part.Split('-')[0]] = part;
             }
 
-            foreach (string part in cuffFigure.Split('.'))
-            {
+            foreach (string part in cuffFigure.Split('.')) {
                 if (string.IsNullOrWhiteSpace(part))
                     continue;
                 lookParts[part.Split('-')[0]] = part;

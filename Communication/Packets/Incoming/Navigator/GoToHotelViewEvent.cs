@@ -10,9 +10,7 @@ namespace Plus.Communication.Packets.Incoming.Navigator
             if (session == null || session.GetHabbo() == null)
                 return;
 
-
-            if (session.GetHabbo().InRoom)
-            {
+            if (session.GetHabbo().InRoom) {
                 if (!PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(session.GetHabbo().CurrentRoomId, out Room oldRoom))
                     return;
 

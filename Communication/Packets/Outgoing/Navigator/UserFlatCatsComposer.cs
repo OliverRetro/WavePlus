@@ -18,8 +18,7 @@ namespace Plus.Communication.Packets.Outgoing.Navigator
         public override void Compose(ServerPacket packet)
         {
             packet.WriteInteger(Categories.Count);
-            foreach (SearchResultList category in Categories)
-            {
+            foreach (SearchResultList category in Categories) {
                 packet.WriteInteger(category.Id);
                 packet.WriteString(category.PublicName);
                 packet.WriteBoolean(category.RequiredRank <= Rank);

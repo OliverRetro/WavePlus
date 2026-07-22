@@ -27,15 +27,13 @@ namespace Plus.HabboHotel.Roleplay.Stock
 
         public void Init()
         {
-            lock (_sync)
-            {
+            lock (_sync) {
                 _stock.Clear();
                 _dirty.Clear();
 
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-                foreach (RoomItemStockEntity row in db.RoomItemStocks.AsNoTracking().ToList())
-                {
+                foreach (RoomItemStockEntity row in db.RoomItemStocks.AsNoTracking().ToList()) {
                     _stock[(row.RoomId, row.FurniId, row.StockType, row.ItemId)] =
                         new StockEntry { RowId = row.Id, Amount = row.Amount, Price = row.Price };
                 }
@@ -58,8 +56,7 @@ namespace Plus.HabboHotel.Roleplay.Stock
 
         public List<(string StockType, int ItemId, int Amount, int Price)> GetRoomStock(int roomId, int furniId = RoomScope)
         {
-            lock (_sync)
-            {
+            lock (_sync) {
                 return [.. _stock.Where(kv => kv.Key.RoomId == roomId && kv.Key.FurniId == furniId)
                     .Select(kv => (kv.Key.StockType, kv.Key.ItemId, kv.Value.Amount, kv.Value.Price))
                     .OrderBy(s => s.StockType).ThenBy(s => s.ItemId)];
@@ -68,8 +65,7 @@ namespace Plus.HabboHotel.Roleplay.Stock
 
         public List<int> GetStockedFurniIds(int roomId)
         {
-            lock (_sync)
-            {
+            lock (_sync) {
                 return _stock.Keys.Where(k => k.RoomId == roomId && k.FurniId != RoomScope)
                     .Select(k => k.FurniId).Distinct().OrderBy(x => x).ToList();
             }
@@ -77,8 +73,7 @@ namespace Plus.HabboHotel.Roleplay.Stock
 
         public int AddStock(int roomId, string stockType, int itemId, int amount, int furniId = RoomScope, int? price = null)
         {
-            lock (_sync)
-            {
+            lock (_sync) {
                 StockEntry entry = GetOrCreate(roomId, furniId, stockType, itemId);
 
                 entry.Amount = Math.Max(0, entry.Amount + amount);
@@ -92,8 +87,7 @@ namespace Plus.HabboHotel.Roleplay.Stock
 
         public void SetStock(int roomId, string stockType, int itemId, int amount, int furniId = RoomScope, int? price = null)
         {
-            lock (_sync)
-            {
+            lock (_sync) {
                 StockEntry entry = GetOrCreate(roomId, furniId, stockType, itemId);
 
                 entry.Amount = Math.Max(0, amount);
@@ -108,10 +102,8 @@ namespace Plus.HabboHotel.Roleplay.Stock
             if (furniId == RoomScope)
                 return;
 
-            lock (_sync)
-            {
-                foreach (var key in _stock.Keys.Where(k => k.RoomId == roomId && k.FurniId == furniId).ToList())
-                {
+            lock (_sync) {
+                foreach (var key in _stock.Keys.Where(k => k.RoomId == roomId && k.FurniId == furniId).ToList()) {
                     _stock[key].Amount = 0;
                     _dirty.Add(key);
                 }
@@ -123,8 +115,7 @@ namespace Plus.HabboHotel.Roleplay.Stock
             if (amount <= 0)
                 return false;
 
-            lock (_sync)
-            {
+            lock (_sync) {
                 var key = (roomId, furniId, stockType, itemId);
 
                 if (!_stock.TryGetValue(key, out StockEntry entry) || entry.Amount < amount)
@@ -140,8 +131,7 @@ namespace Plus.HabboHotel.Roleplay.Stock
         {
             var key = (roomId, furniId, stockType, itemId);
 
-            if (!_stock.TryGetValue(key, out StockEntry entry))
-            {
+            if (!_stock.TryGetValue(key, out StockEntry entry)) {
                 entry = new StockEntry();
                 _stock[key] = entry;
             }
@@ -153,8 +143,7 @@ namespace Plus.HabboHotel.Roleplay.Stock
         {
             List<((int RoomId, int FurniId, string StockType, int ItemId) Key, StockEntry Entry)> pending;
 
-            lock (_sync)
-            {
+            lock (_sync) {
                 if (_dirty.Count == 0)
                     return;
 
@@ -162,14 +151,11 @@ namespace Plus.HabboHotel.Roleplay.Stock
                 _dirty.Clear();
             }
 
-            try
-            {
+            try {
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-                foreach (((int roomId, int furniId, string stockType, int itemId) key, StockEntry entry) in pending)
-                {
-                    if (entry.RowId > 0)
-                    {
+                foreach (((int roomId, int furniId, string stockType, int itemId) key, StockEntry entry) in pending) {
+                    if (entry.RowId > 0) {
                         int rowId = entry.RowId, amount = entry.Amount, price = entry.Price;
                         db.RoomItemStocks.Where(s => s.Id == rowId)
                             .ExecuteUpdate(s => s
@@ -193,11 +179,9 @@ namespace Plus.HabboHotel.Roleplay.Stock
                     entry.RowId = row.Id;
                 }
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 // Put the entries back so the next flush retries them rather than losing the stock.
-                lock (_sync)
-                {
+                lock (_sync) {
                     foreach ((var key, StockEntry _) in pending)
                         _dirty.Add(key);
                 }

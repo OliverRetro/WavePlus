@@ -34,10 +34,8 @@ namespace Plus.HabboHotel.Items
                             it.WallPos
                         }).ToList();
 
-            foreach (var row in rows)
-            {
-                if (PlusEnvironment.GetGame().GetItemManager().GetItem((int)row.BaseItem, out ItemData Data))
-                {
+            foreach (var row in rows) {
+                if (PlusEnvironment.GetGame().GetItemManager().GetItem((int)row.BaseItem, out ItemData Data)) {
                     items.Add(new Item((int)row.Id, (int)row.RoomId, (int)row.BaseItem, row.ExtraData,
                         row.X, row.Y, row.Z, row.Rot, row.UserId,
                         row.group_id ?? 0, row.LimitedNumber ?? 0, row.LimitedStack ?? 0, row.WallPos, room));
@@ -73,10 +71,8 @@ namespace Plus.HabboHotel.Items
                             it.WallPos
                         }).ToList();
 
-            foreach (var row in rows)
-            {
-                if (PlusEnvironment.GetGame().GetItemManager().GetItem((int)row.BaseItem, out ItemData data))
-                {
+            foreach (var row in rows) {
+                if (PlusEnvironment.GetGame().GetItemManager().GetItem((int)row.BaseItem, out ItemData data)) {
                     I.Add(new Item((int)row.Id, (int)row.RoomId, (int)row.BaseItem, row.ExtraData,
                         row.X, row.Y, row.Z, row.Rot, row.UserId,
                         row.group_id ?? 0, row.LimitedNumber ?? 0, row.LimitedStack ?? 0, row.WallPos));

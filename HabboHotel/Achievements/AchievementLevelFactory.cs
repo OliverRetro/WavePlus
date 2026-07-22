@@ -12,16 +12,14 @@ namespace Plus.HabboHotel.Achievements
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
             var rows = db.Achievements.Where(a => a.Enabled == 1).Select(a => new { a.Id, a.Category, a.GroupName, a.Level, a.RewardAmount, a.PointsType, a.RewardPoints, a.ProgressNeeded, a.GameId }).ToList();
-            foreach (var row in rows)
-            {
+            foreach (var row in rows) {
                 int id = (int)row.Id;
                 string category = row.Category;
                 string groupName = row.GroupName;
 
                 AchievementLevel level = new(row.Level, row.RewardAmount, row.PointsType, row.RewardPoints, row.ProgressNeeded);
 
-                if (!achievements.TryGetValue(groupName, out Achievement value))
-                {
+                if (!achievements.TryGetValue(groupName, out Achievement value)) {
                     Achievement achievement = new(id, groupName, category, row.GameId);
                     achievement.AddLevel(level);
                     achievements.Add(groupName, achievement);

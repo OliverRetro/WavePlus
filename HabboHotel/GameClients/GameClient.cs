@@ -42,11 +42,9 @@ namespace Plus.HabboHotel.GameClients
 
         public bool TryAuthenticate(string authTicket)
         {
-            try
-            {
+            try {
                 UserData userData = UserDataFactory.GetUserData(authTicket, out byte errorCode);
-                if (errorCode == 1 || errorCode == 2)
-                {
+                if (errorCode == 1 || errorCode == 2) {
                     Disconnect();
                     return false;
                 }
@@ -54,24 +52,18 @@ namespace Plus.HabboHotel.GameClients
                 #region Ban Checking
 
                 //Let's have a quick search for a ban before we successfully authenticate..
-                if (!string.IsNullOrEmpty(MachineId))
-                {
-                    if (PlusEnvironment.GetGame().GetModerationManager().IsBanned(MachineId, out _))
-                    {
-                        if (PlusEnvironment.GetGame().GetModerationManager().MachineBanCheck(MachineId))
-                        {
+                if (!string.IsNullOrEmpty(MachineId)) {
+                    if (PlusEnvironment.GetGame().GetModerationManager().IsBanned(MachineId, out _)) {
+                        if (PlusEnvironment.GetGame().GetModerationManager().MachineBanCheck(MachineId)) {
                             Disconnect();
                             return false;
                         }
                     }
                 }
 
-                if (userData.User != null)
-                {
-                    if (PlusEnvironment.GetGame().GetModerationManager().IsBanned(userData.User.Username, out _))
-                    {
-                        if (PlusEnvironment.GetGame().GetModerationManager().UsernameBanCheck(userData.User.Username))
-                        {
+                if (userData.User != null) {
+                    if (PlusEnvironment.GetGame().GetModerationManager().IsBanned(userData.User.Username, out _)) {
+                        if (PlusEnvironment.GetGame().GetModerationManager().UsernameBanCheck(userData.User.Username)) {
                             Disconnect();
                             return false;
                         }
@@ -87,8 +79,7 @@ namespace Plus.HabboHotel.GameClients
 
                 PlusEnvironment.GetGame().GetClientManager().RegisterClient(this, userData.UserId, userData.User.Username);
                 _habbo = userData.User;
-                if (_habbo != null)
-                {
+                if (_habbo != null) {
                     userData.User.Init(this, userData);
 
                     SendPacket(new AuthenticationOkComposer());
@@ -110,10 +101,8 @@ namespace Plus.HabboHotel.GameClients
                     if (GetHabbo().GetMessenger() != null)
                         GetHabbo().GetMessenger().OnStatusChanged(true);
 
-                    if (!string.IsNullOrEmpty(MachineId))
-                    {
-                        if (_habbo.MachineId != MachineId)
-                        {
+                    if (!string.IsNullOrEmpty(MachineId)) {
+                        if (_habbo.MachineId != MachineId) {
                             int habboId = _habbo.Id;
                             string machineId = MachineId;
                             using WavePlusContext db = PlusEnvironment.GetDbContext();
@@ -123,17 +112,14 @@ namespace Plus.HabboHotel.GameClients
                         _habbo.MachineId = MachineId;
                     }
 
-                    if (PlusEnvironment.GetGame().GetPermissionManager().TryGetGroup(_habbo.Rank, out PermissionGroup group))
-                    {
+                    if (PlusEnvironment.GetGame().GetPermissionManager().TryGetGroup(_habbo.Rank, out PermissionGroup group)) {
                         if (!string.IsNullOrEmpty(group.Badge))
                             if (!_habbo.GetBadgeComponent().HasBadge(group.Badge))
                                 _habbo.GetBadgeComponent().GiveBadge(group.Badge, true, this);
                     }
 
-                    if (PlusEnvironment.GetGame().GetSubscriptionManager().TryGetSubscriptionData(_habbo.VipRank, out SubscriptionData subData))
-                    {
-                        if (!string.IsNullOrEmpty(subData.Badge))
-                        {
+                    if (PlusEnvironment.GetGame().GetSubscriptionManager().TryGetSubscriptionData(_habbo.VipRank, out SubscriptionData subData)) {
+                        if (!string.IsNullOrEmpty(subData.Badge)) {
                             if (!_habbo.GetBadgeComponent().HasBadge(subData.Badge))
                                 _habbo.GetBadgeComponent().GiveBadge(subData.Badge, true, this);
                         }
@@ -145,8 +131,7 @@ namespace Plus.HabboHotel.GameClients
                     _habbo.Look = PlusEnvironment.GetFigureManager().ProcessFigure(_habbo.Look, _habbo.Gender, _habbo.GetClothing().GetClothingParts, true, _habbo.GetPermissions().HasRight("clothing_no_validation"));
                     _habbo.InitProcess();
 
-                    if (userData.User.GetPermissions().HasRight("mod_tickets"))
-                    {
+                    if (userData.User.GetPermissions().HasRight("mod_tickets")) {
                         SendPacket(new ModeratorInitComposer(
                             PlusEnvironment.GetGame().GetModerationManager().UserMessagePresets,
                             PlusEnvironment.GetGame().GetModerationManager().RoomMessagePresets,
@@ -164,8 +149,7 @@ namespace Plus.HabboHotel.GameClients
                     return true;
                 }
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
 
@@ -200,8 +184,7 @@ namespace Plus.HabboHotel.GameClients
 
         public async void SendPacketsAsync(List<MessageComposer> messages)
         {
-            foreach (MessageComposer message in messages)
-            {
+            foreach (MessageComposer message in messages) {
                 await _channel.WriteAsync(message);
             }
 
@@ -213,7 +196,6 @@ namespace Plus.HabboHotel.GameClients
             return _habbo;
         }
 
-
         public bool Disconnect(bool immediate = false)
         {
             if (_disconnected)
@@ -221,8 +203,7 @@ namespace Plus.HabboHotel.GameClients
 
             if (!immediate && _habbo != null &&
                 PlusEnvironment.GetDisconnectDelayManager() != null &&
-                PlusEnvironment.GetDisconnectDelayManager().Begin(this, _channel?.Channel?.Id))
-            {
+                PlusEnvironment.GetDisconnectDelayManager().Begin(this, _channel?.Channel?.Id)) {
                 _ghost = true;
                 PlusEnvironment.GetGame().GetClientManager().DropChannel(_channel?.Channel?.Id);
                 return true;
@@ -230,25 +211,20 @@ namespace Plus.HabboHotel.GameClients
 
             _disconnected = true;
 
-            try
-            {
-                if (GetHabbo() != null)
-                {
-                    try
-                    {
+            try {
+                if (GetHabbo() != null) {
+                    try {
                         using WavePlusContext db = PlusEnvironment.GetDbContext();
                         db.Database.ExecuteSql(GetHabbo().GetQueryString);
                     }
-                    catch (Exception e)
-                    {
+                    catch (Exception e) {
                         ExceptionLogger.LogException(e);
                     }
 
                     GetHabbo()?.OnDisconnect();
                 }
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
 

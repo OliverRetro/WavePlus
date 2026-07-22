@@ -22,8 +22,7 @@ namespace Plus.Communication.Packets.Outgoing.Catalog
 
         public override void Compose(ServerPacket packet)
         {
-            if (Item != null)
-            {
+            if (Item != null) {
                 packet.WriteInteger(BaseItem.Id);
                 packet.WriteString(BaseItem.ItemName);
                 packet.WriteBoolean(false);
@@ -40,8 +39,7 @@ namespace Plus.Communication.Packets.Outgoing.Catalog
                 packet.WriteString("");
                 packet.WriteInteger(1);
             }
-            else
-            {
+            else {
                 packet.WriteInteger(0);
                 packet.WriteString("");
                 packet.WriteBoolean(false);

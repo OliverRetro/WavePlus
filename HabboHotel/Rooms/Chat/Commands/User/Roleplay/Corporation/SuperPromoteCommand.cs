@@ -20,8 +20,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
             if (session?.GetHabbo() == null || room?.Group == null)
                 return;
 
-            if (@params.Length < 2)
-            {
+            if (@params.Length < 2) {
                 session.SendWhisper("Please enter the username of the person you want to promote.", 1);
                 return;
             }
@@ -30,26 +29,22 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
 
             GameClient targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(@params[1]);
             Habbo targetHabbo = targetClient?.GetHabbo() ?? PlusEnvironment.GetHabboByUsername(@params[1]);
-            if (targetHabbo == null)
-            {
+            if (targetHabbo == null) {
                 session.SendWhisper("Oops, couldn't find that user.", 1);
                 return;
             }
 
-            if (!group.IsMember(targetHabbo.Id))
-            {
+            if (!group.IsMember(targetHabbo.Id)) {
                 session.SendWhisper("That user is not a member of this group.", 1);
                 return;
             }
 
-            if (targetHabbo.Id == group.CreatorId)
-            {
+            if (targetHabbo.Id == group.CreatorId) {
                 session.SendWhisper("The group owner is already at the top.", 1);
                 return;
             }
 
-            if (!group.TryPromoteMember(targetHabbo.Id, out GroupRole nextRole))
-            {
+            if (!group.TryPromoteMember(targetHabbo.Id, out GroupRole nextRole)) {
                 session.SendWhisper("That user is already at the highest available role.", 1);
                 return;
             }

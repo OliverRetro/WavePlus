@@ -37,8 +37,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Conditions
                 SetItems.Clear();
 
             int furniCount = packet.PopInt();
-            for (int i = 0; i < furniCount; i++)
-            {
+            for (int i = 0; i < furniCount; i++) {
                 Item selectedItem = Instance.GetRoomItemHandler().GetItem(packet.PopInt());
                 if (selectedItem != null)
                     SetItems.TryAdd(selectedItem.Id, selectedItem);
@@ -47,14 +46,12 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Conditions
 
         public bool Execute(params object[] @params)
         {
-            foreach (Item item in SetItems.Values.ToList())
-            {
+            foreach (Item item in SetItems.Values.ToList()) {
                 if (item == null || !Instance.GetRoomItemHandler().GetFloor.Contains(item))
                     continue;
 
                 bool hasUsers = false;
-                foreach (ThreeDCoord tile in item.GetAffectedTiles.Values)
-                {
+                foreach (ThreeDCoord tile in item.GetAffectedTiles.Values) {
                     if (Instance.GetGameMap().SquareHasUsers(tile.X, tile.Y))
                         hasUsers = true;
                 }

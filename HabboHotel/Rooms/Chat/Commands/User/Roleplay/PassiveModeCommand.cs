@@ -30,14 +30,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
             if (_rpstats == null || roomUser == null)
                 return;
 
-            if (session.GetHabbo().GetRpStats().Aggression > 0)
-            {
+            if (session.GetHabbo().GetRpStats().Aggression > 0) {
                 session.SendWhisper("You cannot toggle passive mode while you have aggression.", 1);
                 return;
             }
 
-            if (roomUser.IsWalking || roomUser.GoalX != roomUser.X || roomUser.GoalY != roomUser.Y)
-            {
+            if (roomUser.IsWalking || roomUser.GoalX != roomUser.X || roomUser.GoalY != roomUser.Y) {
                 session.SendWhisper("You need to stand still to toggle passive mode.", 1);
                 return;
             }
@@ -60,15 +58,13 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 
             Habbo habbo = session?.GetHabbo();
             Room room = habbo?.CurrentRoom;
-            if (habbo == null || room == null || room.Id != roomId)
-            {
+            if (habbo == null || room == null || room.Id != roomId) {
                 WebOverlay.CancelInteractionTimer(session);
                 return;
             }
 
             RoomUser roomUser = room.GetRoomUserManager().GetRoomUserByHabbo(userId);
-            if (roomUser == null || roomUser.IsWalking || roomUser.X != roomUser.GoalX || roomUser.Y != roomUser.GoalY)
-            {
+            if (roomUser == null || roomUser.IsWalking || roomUser.X != roomUser.GoalX || roomUser.Y != roomUser.GoalY) {
                 // Walked off mid-countdown. CancelPendingToggle only fires on a deliberate move,
                 // so this path has to clear the bar itself or it would sit there at 0.
                 WebOverlay.CancelInteractionTimer(session);
@@ -76,8 +72,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
             }
 
             var stats = habbo.GetRpStats();
-            if (stats == null)
-            {
+            if (stats == null) {
                 WebOverlay.CancelInteractionTimer(session);
                 return;
             }

@@ -19,8 +19,7 @@ namespace Plus.Communication.Packets.Outgoing.Messenger
             packet.WriteInteger(Requests.Count);
             packet.WriteInteger(Requests.Count);
 
-            foreach (MessengerRequest request in Requests)
-            {
+            foreach (MessengerRequest request in Requests) {
                 packet.WriteInteger(request.From);
                 packet.WriteString(request.Username);
 

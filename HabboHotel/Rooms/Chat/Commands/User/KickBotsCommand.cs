@@ -18,14 +18,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (!room.CheckRights(session, true))
-            {
+            if (!room.CheckRights(session, true)) {
                 session.SendWhisper("Oops, only the room owner can run this command!");
                 return;
             }
 
-            foreach (RoomUser user in room.GetRoomUserManager().GetUserList().ToList())
-            {
+            foreach (RoomUser user in room.GetRoomUserManager().GetUserList().ToList()) {
                 if (user == null || user.IsPet || !user.IsBot)
                     continue;
 
@@ -34,8 +32,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                     return;
 
                 uint botId = (uint)user.BotData.Id;
-                using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                {
+                using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                     db.Bots.Where(b => b.Id == botId).ExecuteUpdate(s => s.SetProperty(b => b.RoomId, 0u));
                 }
 

@@ -16,15 +16,13 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (session?.GetHabbo() == null || @params.Length < 2)
-            {
+            if (session?.GetHabbo() == null || @params.Length < 2) {
                 session?.SendWhisper("Use :unlockall skins, :unlockall weapons, or :unlockall skills.", 1);
                 return;
             }
 
             string mode = @params[1].ToLower();
-            switch (mode)
-            {
+            switch (mode) {
                 case "skins":
                     UnlockSkins(session);
                     return;
@@ -45,8 +43,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
             UserRpWeaponSkins userSkins = session.GetHabbo().GetRpWeaponSkins();
             int added = 0;
 
-            foreach (WeaponSkin skin in PlusEnvironment.GetWeaponManager().GetSkins())
-            {
+            foreach (WeaponSkin skin in PlusEnvironment.GetWeaponManager().GetSkins()) {
                 if (userSkins.Skins.Any(x => x.SkinId == skin.Id))
                     continue;
 
@@ -67,8 +64,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
             UserRpWeapons userWeapons = session.GetHabbo().GetRpWeapons();
             int added = 0;
 
-            foreach (Weapon weapon in PlusEnvironment.GetWeaponManager().GetWeapons().Where(x => x.Id != 0))
-            {
+            foreach (Weapon weapon in PlusEnvironment.GetWeaponManager().GetWeapons().Where(x => x.Id != 0)) {
                 if (userWeapons.GetWeaponsByWeaponId(weapon.Id).Any())
                     continue;
 
@@ -85,8 +81,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
             UserRpSkills skills = session.GetHabbo().GetRpSkills();
             int updated = 0;
 
-            foreach (Skill skill in PlusEnvironment.GetSkillManager().GetSkills())
-            {
+            foreach (Skill skill in PlusEnvironment.GetSkillManager().GetSkills()) {
                 if (!skills.GrantMaxSkill(skill.Id))
                     continue;
 

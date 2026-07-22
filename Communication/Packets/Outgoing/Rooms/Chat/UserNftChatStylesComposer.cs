@@ -14,8 +14,7 @@
         {
             packet.WriteInteger(Bubbles.Length);
             packet.WriteInteger(5);
-            foreach (var bubbleId in Bubbles)
-            {
+            foreach (var bubbleId in Bubbles) {
                 packet.WriteInteger(bubbleId);
             }
         }

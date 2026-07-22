@@ -14,8 +14,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            foreach (RoomUser user in PlusEnvironment.GetGame().GetRoomManager().GetAllRoomUsers())
-            {
+            foreach (RoomUser user in PlusEnvironment.GetGame().GetRoomManager().GetAllRoomUsers()) {
                 if (user.IsBot)
                     continue;
 
@@ -23,8 +22,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
                 if (client == null)
                     continue;
 
-                if (client.GetHabbo().GetRpStats().Health < UserRpStats.GetMaxHealth(client.GetHabbo()))
-                {
+                if (client.GetHabbo().GetRpStats().Health < UserRpStats.GetMaxHealth(client.GetHabbo())) {
                     if (client.GetHabbo().GetRpStats().IsDead)
                         PlusEnvironment.GetHospitalManager().CancelDeath(client.GetHabbo());
 

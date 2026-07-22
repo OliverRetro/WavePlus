@@ -21,14 +21,12 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni.Stickies
             string color = packet.PopString();
             string text = packet.PopString();
 
-            if (!room.CheckRights(session))
-            {
+            if (!room.CheckRights(session)) {
                 if (!text.StartsWith(item.ExtraData))
                     return; // we can only ADD stuff! older stuff changed, this is not allowed
             }
 
-            switch (color)
-            {
+            switch (color) {
                 case "FFFF33":
                 case "FF9CFF":
                 case "9CCEFF":

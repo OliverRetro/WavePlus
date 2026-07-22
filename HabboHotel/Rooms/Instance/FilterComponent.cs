@@ -23,8 +23,7 @@ namespace Plus.HabboHotel.Rooms.Instance
             if (_instance.WordFilterList.Contains(word))
                 return false;
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.RoomFilters.Add(new RoomFilterEntity { RoomId = _instance.Id, Word = word });
                 db.SaveChanges();
             }
@@ -39,8 +38,7 @@ namespace Plus.HabboHotel.Rooms.Instance
                 return false;
 
             int rid = _instance.Id;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.RoomFilters.Where(f => f.RoomId == rid && f.Word == word).ExecuteDelete();
             }
 
@@ -50,8 +48,7 @@ namespace Plus.HabboHotel.Rooms.Instance
 
         public string CheckMessage(string message)
         {
-            foreach (string filter in _instance.WordFilterList)
-            {
+            foreach (string filter in _instance.WordFilterList) {
                 if (message.ToLower().Contains(filter) || message == filter)
                     message = Regex.Replace(message, filter, "Bobba", RegexOptions.IgnoreCase);
                 else

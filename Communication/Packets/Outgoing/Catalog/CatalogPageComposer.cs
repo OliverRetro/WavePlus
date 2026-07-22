@@ -24,53 +24,43 @@ namespace Plus.Communication.Packets.Outgoing.Catalog
             packet.WriteString(Page.Template);
 
             packet.WriteInteger(Page.PageStrings1.Count);
-            foreach (string s in Page.PageStrings1)
-            {
+            foreach (string s in Page.PageStrings1) {
                 packet.WriteString(s);
             }
 
             packet.WriteInteger(Page.PageStrings2.Count);
-            foreach (string s in Page.PageStrings2)
-            {
+            foreach (string s in Page.PageStrings2) {
                 packet.WriteString(s);
             }
 
-            if (!Page.Template.Equals("frontpage") && !Page.Template.Equals("club_buy"))
-            {
+            if (!Page.Template.Equals("frontpage") && !Page.Template.Equals("club_buy")) {
                 packet.WriteInteger(Page.Items.Count);
-                foreach (CatalogItem item in Page.Items.Values)
-                {
+                foreach (CatalogItem item in Page.Items.Values) {
                     packet.WriteInteger(item.Id);
                     packet.WriteString(item.Name);
                     packet.WriteBoolean(false); //IsRentable
                     packet.WriteInteger(item.CostCredits);
 
-                    if (item.CostDiamonds > 0)
-                    {
+                    if (item.CostDiamonds > 0) {
                         packet.WriteInteger(item.CostDiamonds);
                         packet.WriteInteger(5); // Diamonds
                     }
-                    else
-                    {
+                    else {
                         packet.WriteInteger(item.CostPixels);
                         packet.WriteInteger(0); // Type of PixelCost
                     }
 
                     packet.WriteBoolean(ItemUtility.CanGiftItem(item));
 
-                    if (item.Data.InteractionType == InteractionType.Deal || item.Data.InteractionType == InteractionType.RoomDeal)
-                    {
+                    if (item.Data.InteractionType == InteractionType.Deal || item.Data.InteractionType == InteractionType.RoomDeal) {
                         CatalogDeal deal = null;
-                        if (!PlusEnvironment.GetGame().GetCatalog().TryGetDeal(item.Data.BehaviourData, out deal))
-                        {
+                        if (!PlusEnvironment.GetGame().GetCatalog().TryGetDeal(item.Data.BehaviourData, out deal)) {
                             packet.WriteInteger(0); //Count
                         }
-                        else
-                        {
+                        else {
                             packet.WriteInteger(deal.ItemDataList.Count);
 
-                            foreach (CatalogItem dealItem in deal.ItemDataList.ToList())
-                            {
+                            foreach (CatalogItem dealItem in deal.ItemDataList.ToList()) {
                                 packet.WriteString(dealItem.Data.Type.ToString());
                                 packet.WriteInteger(dealItem.Data.SpriteId);
                                 packet.WriteString("");
@@ -79,27 +69,22 @@ namespace Plus.Communication.Packets.Outgoing.Catalog
                             }
                         }
                     }
-                    else
-                    {
+                    else {
                         packet.WriteInteger(string.IsNullOrEmpty(item.Badge) ? 1 : 2); //Count 1 item if there is no badge, otherwise count as 2.
 
-                        if (!string.IsNullOrEmpty(item.Badge))
-                        {
+                        if (!string.IsNullOrEmpty(item.Badge)) {
                             packet.WriteString("b");
                             packet.WriteString(item.Badge);
                         }
 
                         packet.WriteString(item.Data.Type.ToString());
-                        if (item.Data.Type.ToString().ToLower() == "b")
-                        {
+                        if (item.Data.Type.ToString().ToLower() == "b") {
                             //This is just a badge, append the name.
                             packet.WriteString(item.Data.ItemName);
                         }
-                        else
-                        {
+                        else {
                             packet.WriteInteger(item.Data.SpriteId);
-                            if (item.Data.InteractionType == InteractionType.Wallpaper || item.Data.InteractionType == InteractionType.Floor || item.Data.InteractionType == InteractionType.Landscape)
-                            {
+                            if (item.Data.InteractionType == InteractionType.Wallpaper || item.Data.InteractionType == InteractionType.Floor || item.Data.InteractionType == InteractionType.Landscape) {
                                 packet.WriteString(item.Name.Split('_')[2]);
                             }
                             else if (item.Data.InteractionType == InteractionType.Bot) //Bots
@@ -110,15 +95,13 @@ namespace Plus.Communication.Packets.Outgoing.Catalog
                                 else
                                     packet.WriteString(catalogBot.Figure);
                             }
-                            else if (item.ExtraData != null)
-                            {
+                            else if (item.ExtraData != null) {
                                 packet.WriteString(item.ExtraData != null ? item.ExtraData : string.Empty);
                             }
 
                             packet.WriteInteger(item.Amount);
                             packet.WriteBoolean(item.IsLimited); // IsLimited
-                            if (item.IsLimited)
-                            {
+                            if (item.IsLimited) {
                                 packet.WriteInteger(item.LimitedEditionStack);
                                 packet.WriteInteger(item.LimitedEditionStack - item.LimitedEditionSells);
                             }
@@ -139,8 +122,7 @@ namespace Plus.Communication.Packets.Outgoing.Catalog
             packet.WriteBoolean(false);
 
             packet.WriteInteger(PlusEnvironment.GetGame().GetCatalog().GetPromotions().ToList().Count); //Count
-            foreach (CatalogPromotion promotion in PlusEnvironment.GetGame().GetCatalog().GetPromotions().ToList())
-            {
+            foreach (CatalogPromotion promotion in PlusEnvironment.GetGame().GetCatalog().GetPromotions().ToList()) {
                 packet.WriteInteger(promotion.Id);
                 packet.WriteString(promotion.Title);
                 packet.WriteString(promotion.Image);

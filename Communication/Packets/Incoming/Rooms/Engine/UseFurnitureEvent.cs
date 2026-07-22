@@ -30,8 +30,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
             if (item.GetBaseItem().InteractionType == InteractionType.BanzaiTele)
                 return;
 
-            if (item.GetBaseItem().InteractionType == InteractionType.Toner)
-            {
+            if (item.GetBaseItem().InteractionType == InteractionType.Toner) {
                 if (!room.CheckRights(session, true))
                     return;
 
@@ -43,28 +42,24 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
 
                 // NOTE: preserves legacy behavior - no WHERE clause, updates a single (first) row via LIMIT 1.
                 string tonerEnabled = room.TonerData.Enabled.ToString();
-                using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                {
+                using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                     db.Database.ExecuteSqlInterpolated($"UPDATE `room_items_toner` SET `enabled` = {tonerEnabled} LIMIT 1");
                 }
 
                 return;
             }
 
-            if (item.Data.InteractionType == InteractionType.GnomeBox && item.UserId == session.GetHabbo().Id)
-            {
+            if (item.Data.InteractionType == InteractionType.GnomeBox && item.UserId == session.GetHabbo().Id) {
                 session.SendPacket(new GnomeBoxComposer(item.Id));
             }
 
             bool toggle = true;
-            if (item.GetBaseItem().InteractionType == InteractionType.WfFloorSwitch1 || item.GetBaseItem().InteractionType == InteractionType.WfFloorSwitch2)
-            {
+            if (item.GetBaseItem().InteractionType == InteractionType.WfFloorSwitch1 || item.GetBaseItem().InteractionType == InteractionType.WfFloorSwitch2) {
                 RoomUser user = item.GetRoom().GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id);
                 if (user == null)
                     return;
 
-                if (!Gamemap.TilesTouching(item.GetX, item.GetY, user.X, user.Y))
-                {
+                if (!Gamemap.TilesTouching(item.GetX, item.GetY, user.X, user.Y)) {
                     toggle = false;
                 }
             }

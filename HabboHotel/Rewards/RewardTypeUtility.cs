@@ -4,8 +4,7 @@
     {
         public static RewardType GetType(string type)
         {
-            switch (type.ToLower())
-            {
+            switch (type.ToLower()) {
                 case "badge":
                     return RewardType.Badge;
 

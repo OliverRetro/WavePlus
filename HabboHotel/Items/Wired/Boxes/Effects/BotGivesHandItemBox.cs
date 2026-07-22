@@ -57,8 +57,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
             if (user == null)
                 return false;
 
-            if (user.BotData.TargetUser == 0)
-            {
+            if (user.BotData.TargetUser == 0) {
                 if (!Instance.GetGameMap().CanWalk(actor.SquareBehind.X, actor.SquareBehind.Y, false))
                     return false;
 

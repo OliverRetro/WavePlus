@@ -24,8 +24,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
             string badge = "";
 
             int baseValue = 1;
-            while (baseValue < count)
-            {
+            while (baseValue < count) {
                 int partId = packet.PopInt();
                 int colour = packet.PopInt();
                 int position = packet.PopInt();

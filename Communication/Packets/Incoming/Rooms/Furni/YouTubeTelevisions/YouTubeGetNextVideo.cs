@@ -16,8 +16,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni.YouTubeTelevisions
 
             ICollection<TelevisionItem> videos = PlusEnvironment.GetGame().GetTelevisionManager().TelevisionList;
 
-            if (videos.Count == 0)
-            {
+            if (videos.Count == 0) {
                 session.SendNotification("Oh, it looks like the hotel manager haven't added any videos for you to watch! :(");
                 return;
             }
@@ -27,13 +26,11 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni.YouTubeTelevisions
 
             TelevisionItem item = null;
             Dictionary<int, TelevisionItem> dict = PlusEnvironment.GetGame().GetTelevisionManager().Televisions;
-            foreach (TelevisionItem value in RandomValues(dict).Take(1))
-            {
+            foreach (TelevisionItem value in RandomValues(dict).Take(1)) {
                 item = value;
             }
 
-            if (item == null)
-            {
+            if (item == null) {
                 session.SendNotification("Oh, it looks like their was a problem getting the video.");
                 return;
             }
@@ -46,8 +43,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni.YouTubeTelevisions
             Random rand = new();
             List<TValue> values = dict.Values.ToList();
             int size = dict.Count;
-            while (true)
-            {
+            while (true) {
                 yield return values[rand.Next(size)];
             }
         }

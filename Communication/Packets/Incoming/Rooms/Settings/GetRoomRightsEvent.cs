@@ -18,7 +18,6 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Settings
             if (!instance.CheckRights(session))
                 return;
 
-
             session.SendPacket(new RoomRightsListComposer(instance));
         }
     }

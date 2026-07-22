@@ -25,10 +25,8 @@ namespace Plus.HabboHotel.Rooms.AI.Types
         private void RemovePetStatus()
         {
             RoomUser pet = GetRoomUser();
-            if (pet != null)
-            {
-                foreach (KeyValuePair<string, string> kvp in pet.Statusses.ToList())
-                {
+            if (pet != null) {
+                foreach (KeyValuePair<string, string> kvp in pet.Statusses.ToList()) {
                     if (pet.Statusses.ContainsKey(kvp.Key))
                         pet.Statusses.Remove(kvp.Key);
                 }
@@ -48,16 +46,12 @@ namespace Plus.HabboHotel.Rooms.AI.Types
         {
         }
 
-
         public override void OnUserEnterRoom(RoomUser user)
         {
-            if (user.GetClient() != null && user.GetClient().GetHabbo() != null)
-            {
+            if (user.GetClient() != null && user.GetClient().GetHabbo() != null) {
                 RoomUser pet = GetRoomUser();
-                if (pet != null)
-                {
-                    if (user.GetClient().GetHabbo().Username == pet.PetData.OwnerName)
-                    {
+                if (pet != null) {
+                    if (user.GetClient().GetHabbo().Username == pet.PetData.OwnerName) {
                         string[] speech = PlusEnvironment.GetGame().GetChatManager().GetPetLocale().GetValue("welcome.speech.pet" + pet.PetData.Type);
                         string rSpeech = speech[RandomNumber.GenerateRandom(0, speech.Length - 1)];
                         pet.Chat(rSpeech);
@@ -82,21 +76,18 @@ namespace Plus.HabboHotel.Rooms.AI.Types
 
             #region Speech
 
-            if (_speechTimer <= 0)
-            {
+            if (_speechTimer <= 0) {
                 if (pet.PetData.DbState != PetDatabaseUpdateState.NeedsInsert)
                     pet.PetData.DbState = PetDatabaseUpdateState.NeedsUpdate;
 
-                if (pet != null)
-                {
+                if (pet != null) {
                     var randomSpeech = new Random();
                     RemovePetStatus();
 
                     string[] speech = PlusEnvironment.GetGame().GetChatManager().GetPetLocale().GetValue("speech.pet" + pet.PetData.Type);
                     string rSpeech = speech[RandomNumber.GenerateRandom(0, speech.Length - 1)];
 
-                    if (rSpeech.Length != 3)
-                    {
+                    if (rSpeech.Length != 3) {
                         pet.Chat(rSpeech);
                     }
                     else
@@ -105,8 +96,7 @@ namespace Plus.HabboHotel.Rooms.AI.Types
 
                 _speechTimer = PlusEnvironment.GetRandomNumber(20, 120);
             }
-            else
-            {
+            else {
                 _speechTimer--;
             }
 
@@ -114,14 +104,11 @@ namespace Plus.HabboHotel.Rooms.AI.Types
 
             #region Actions
 
-            if (_actionTimer <= 0)
-            {
-                try
-                {
+            if (_actionTimer <= 0) {
+                try {
                     RemovePetStatus();
                     _actionTimer = RandomNumber.GenerateRandom(15, 40 + GetRoomUser().PetData.VirtualId);
-                    if (!GetRoomUser().RidingHorse)
-                    {
+                    if (!GetRoomUser().RidingHorse) {
                         // Remove Status
                         RemovePetStatus();
 
@@ -130,13 +117,11 @@ namespace Plus.HabboHotel.Rooms.AI.Types
                             GetRoomUser().MoveTo(nextCoord.X, nextCoord.Y);
                     }
                 }
-                catch (Exception e)
-                {
+                catch (Exception e) {
                     ExceptionLogger.LogException(e);
                 }
             }
-            else
-            {
+            else {
                 _actionTimer--;
             }
 
@@ -144,16 +129,14 @@ namespace Plus.HabboHotel.Rooms.AI.Types
 
             #region Energy
 
-            if (_energyTimer <= 0)
-            {
+            if (_energyTimer <= 0) {
                 RemovePetStatus(); // Remove Status
 
                 pet.PetData.PetEnergy(true); // Add Energy
 
                 _energyTimer = RandomNumber.GenerateRandom(30, 120); // 2 Min Max
             }
-            else
-            {
+            else {
                 _energyTimer--;
             }
 
@@ -174,8 +157,7 @@ namespace Plus.HabboHotel.Rooms.AI.Types
             if (pet.PetData.DbState != PetDatabaseUpdateState.NeedsInsert)
                 pet.PetData.DbState = PetDatabaseUpdateState.NeedsUpdate;
 
-            if (message.ToLower().Equals(pet.PetData.Name.ToLower()))
-            {
+            if (message.ToLower().Equals(pet.PetData.Name.ToLower())) {
                 pet.SetRot(Rotation.Calculate(pet.X, pet.Y, user.X, user.Y), false);
                 return;
             }
@@ -183,17 +165,14 @@ namespace Plus.HabboHotel.Rooms.AI.Types
             //if (!Pet.Statusses.ContainsKey("gst thr"))
             //    Pet.Statusses.Add("gst thr", TextHandling.GetString(Pet.Z));
 
-            if ((message.ToLower().StartsWith(pet.PetData.Name.ToLower() + " ") && user.GetClient().GetHabbo().Username.ToLower() == pet.PetData.OwnerName.ToLower()) || (message.ToLower().StartsWith(pet.PetData.Name.ToLower() + " ") && PlusEnvironment.GetGame().GetChatManager().GetPetCommands().TryInvoke(message.Substring(pet.PetData.Name.ToLower().Length + 1)) == 8))
-            {
+            if ((message.ToLower().StartsWith(pet.PetData.Name.ToLower() + " ") && user.GetClient().GetHabbo().Username.ToLower() == pet.PetData.OwnerName.ToLower()) || (message.ToLower().StartsWith(pet.PetData.Name.ToLower() + " ") && PlusEnvironment.GetGame().GetChatManager().GetPetCommands().TryInvoke(message.Substring(pet.PetData.Name.ToLower().Length + 1)) == 8)) {
                 string command = message.Substring(pet.PetData.Name.ToLower().Length + 1);
 
                 int r = RandomNumber.GenerateRandom(1, 8); // Made Random
-                if (pet.PetData.Energy > 10 && r < 6 || pet.PetData.Level > 15 || PlusEnvironment.GetGame().GetChatManager().GetPetCommands().TryInvoke(command) == 8)
-                {
+                if (pet.PetData.Energy > 10 && r < 6 || pet.PetData.Level > 15 || PlusEnvironment.GetGame().GetChatManager().GetPetCommands().TryInvoke(command) == 8) {
                     RemovePetStatus(); // Remove Status
 
-                    switch (PlusEnvironment.GetGame().GetChatManager().GetPetCommands().TryInvoke(command))
-                    {
+                    switch (PlusEnvironment.GetGame().GetChatManager().GetPetCommands().TryInvoke(command)) {
                         // TODO - Level you can use the commands at...
 
                         #region free
@@ -224,39 +203,31 @@ namespace Plus.HabboHotel.Rooms.AI.Types
 
                             #region Rotation
 
-                            if (user.RotBody == 4)
-                            {
+                            if (user.RotBody == 4) {
                                 newY = user.Y + 1;
                             }
-                            else if (user.RotBody == 0)
-                            {
+                            else if (user.RotBody == 0) {
                                 newY = user.Y - 1;
                             }
-                            else if (user.RotBody == 6)
-                            {
+                            else if (user.RotBody == 6) {
                                 newX = user.X - 1;
                             }
-                            else if (user.RotBody == 2)
-                            {
+                            else if (user.RotBody == 2) {
                                 newX = user.X + 1;
                             }
-                            else if (user.RotBody == 3)
-                            {
+                            else if (user.RotBody == 3) {
                                 newX = user.X + 1;
                                 newY = user.Y + 1;
                             }
-                            else if (user.RotBody == 1)
-                            {
+                            else if (user.RotBody == 1) {
                                 newX = user.X + 1;
                                 newY = user.Y - 1;
                             }
-                            else if (user.RotBody == 7)
-                            {
+                            else if (user.RotBody == 7) {
                                 newX = user.X - 1;
                                 newY = user.Y - 1;
                             }
-                            else if (user.RotBody == 5)
-                            {
+                            else if (user.RotBody == 5) {
                                 newX = user.X - 1;
                                 newY = user.Y + 1;
                             }
@@ -382,12 +353,10 @@ namespace Plus.HabboHotel.Rooms.AI.Types
 
                     pet.PetData.PetEnergy(false); // Remove Energy
                 }
-                else
-                {
+                else {
                     RemovePetStatus(); // Remove Status
 
-                    if (pet.PetData.Energy < 10)
-                    {
+                    if (pet.PetData.Energy < 10) {
                         string[] speech = PlusEnvironment.GetGame().GetChatManager().GetPetLocale().GetValue("pet.tired");
 
                         var randomSpeech = new Random();
@@ -400,8 +369,7 @@ namespace Plus.HabboHotel.Rooms.AI.Types
                         _actionTimer = 45;
                         _energyTimer = 5;
                     }
-                    else
-                    {
+                    else {
                         string[] speech = PlusEnvironment.GetGame().GetChatManager().GetPetLocale().GetValue("pet.lazy");
 
                         var randomSpeech = new Random();

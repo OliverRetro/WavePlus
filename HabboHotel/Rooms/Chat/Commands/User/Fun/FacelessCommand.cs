@@ -22,10 +22,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Fun
 
             string[] headParts;
             string[] figureParts = session.GetHabbo().Look.Split('.');
-            foreach (string part in figureParts)
-            {
-                if (part.StartsWith("hd"))
-                {
+            foreach (string part in figureParts) {
+                if (part.StartsWith("hd")) {
                     headParts = part.Split('-');
                     if (!headParts[1].Equals("99999"))
                         headParts[1] = "99999";
@@ -41,8 +39,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Fun
 
             int userId = session.GetHabbo().Id;
             string look = session.GetHabbo().Look;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.Users.Where(u => u.Id == userId).ExecuteUpdate(s => s.SetProperty(u => u.Look, look));
             }
 

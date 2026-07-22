@@ -27,14 +27,12 @@ namespace Plus.Communication.Packets.Incoming.Moderation
 
             Habbo habbo = PlusEnvironment.GetHabboById(userId);
 
-            if (habbo == null)
-            {
+            if (habbo == null) {
                 session.SendWhisper("An error occoured whilst finding that user in the database.");
                 return;
             }
 
-            if (habbo.GetPermissions().HasRight("mod_tool") && !session.GetHabbo().GetPermissions().HasRight("mod_ban_any"))
-            {
+            if (habbo.GetPermissions().HasRight("mod_tool") && !session.GetHabbo().GetPermissions().HasRight("mod_ban_any")) {
                 session.SendWhisper("Oops, you cannot ban that user.");
                 return;
             }
@@ -50,8 +48,7 @@ namespace Plus.Communication.Packets.Incoming.Moderation
                 PlusEnvironment.GetGame().GetModerationManager().BanUser(session.GetHabbo().Username, ModerationBanType.Username, habbo.Username, message, length);
             else if (ipBan)
                 PlusEnvironment.GetGame().GetModerationManager().BanUser(session.GetHabbo().Username, ModerationBanType.Ip, habbo.Username, message, length);
-            else
-            {
+            else {
                 PlusEnvironment.GetGame().GetModerationManager().BanUser(session.GetHabbo().Username, ModerationBanType.Ip, habbo.Username, message, length);
                 PlusEnvironment.GetGame().GetModerationManager().BanUser(session.GetHabbo().Username, ModerationBanType.Username, habbo.Username, message, length);
                 PlusEnvironment.GetGame().GetModerationManager().BanUser(session.GetHabbo().Username, ModerationBanType.Machine, habbo.Username, message, length);

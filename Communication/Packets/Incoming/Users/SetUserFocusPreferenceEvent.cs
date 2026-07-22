@@ -14,8 +14,7 @@ namespace Plus.Communication.Packets.Incoming.Users
             session.GetHabbo().FocusPreference = focusPreference;
             int userId = session.GetHabbo().Id;
             string focusPref = PlusEnvironment.BoolToEnum(focusPreference);
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.Users.Where(u => u.Id == userId)
                     .ExecuteUpdate(s => s.SetProperty(u => u.FocusPreference, focusPref));
             }

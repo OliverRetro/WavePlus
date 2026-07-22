@@ -25,16 +25,14 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni.Stickies
             if (item == null)
                 return;
 
-            try
-            {
+            try {
                 string wallPosition = WallPositionCheck(":" + locationData.Split(':')[1]);
 
                 Item roomItem = new(item.Id, room.RoomId, item.BaseItem, item.ExtraData, 0, 0, 0, 0, session.GetHabbo().Id, item.GroupId, 0, 0, wallPosition, room);
                 if (room.GetRoomItemHandler().SetWallItem(session, roomItem))
                     session.GetHabbo().GetInventoryComponent().RemoveItem(itemId);
             }
-            catch
-            {
+            catch {
                 //TODO: Send a packet
             }
         }
@@ -42,15 +40,12 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni.Stickies
         private static string WallPositionCheck(string wallPosition)
         {
             //:w=3,2 l=9,63 l
-            try
-            {
-                if (wallPosition.Contains(Convert.ToChar(13)))
-                {
+            try {
+                if (wallPosition.Contains(Convert.ToChar(13))) {
                     return null;
                 }
 
-                if (wallPosition.Contains(Convert.ToChar(9)))
-                {
+                if (wallPosition.Contains(Convert.ToChar(9))) {
                     return null;
                 }
 
@@ -71,8 +66,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni.Stickies
                     return null;
                 return ":w=" + widthX + "," + widthY + " " + "l=" + lengthX + "," + lengthY + " " + posD[2];
             }
-            catch
-            {
+            catch {
                 return null;
             }
         }

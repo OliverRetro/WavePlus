@@ -17,8 +17,7 @@ namespace Plus.Communication.Packets.Outgoing.Catalog
         {
             packet.WriteBoolean(true); //wat
             packet.WriteInteger(UsersRooms.Count); //Count of rooms?
-            foreach (RoomData room in UsersRooms)
-            {
+            foreach (RoomData room in UsersRooms) {
                 packet.WriteInteger(room.Id);
                 packet.WriteString(room.Name);
                 packet.WriteBoolean(true);

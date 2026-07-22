@@ -28,8 +28,7 @@ namespace Plus.HabboHotel.Roleplay.Utilities
                 return StaffEffect;
 
             UserWeapon active = habbo.GetRpWeapons()?.GetActiveWeapon();
-            if (active?.WeaponData != null && active.WeaponData.Id != 0)
-            {
+            if (active?.WeaponData != null && active.WeaponData.Id != 0) {
                 UserWeaponSkin skin = habbo.GetRpWeaponSkins()?.GetEquippedSkinForWeapon(active.WeaponId);
                 return skin?.SkinData?.EffectId ?? active.WeaponData.Effect;
             }

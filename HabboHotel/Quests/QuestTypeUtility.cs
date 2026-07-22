@@ -4,8 +4,7 @@
     {
         public static string GetString(QuestType type)
         {
-            switch (type)
-            {
+            switch (type) {
                 case QuestType.SocialWave:
                     return "WAVE";
 

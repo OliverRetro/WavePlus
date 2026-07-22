@@ -15,8 +15,7 @@ namespace Plus.Communication.Packets.Outgoing.Navigator
         public override void Compose(ServerPacket packet)
         {
             packet.WriteInteger(Tags.Count);
-            foreach (KeyValuePair<string, int> tag in Tags)
-            {
+            foreach (KeyValuePair<string, int> tag in Tags) {
                 packet.WriteString(tag.Key);
                 packet.WriteInteger(tag.Value);
             }

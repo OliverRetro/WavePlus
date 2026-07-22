@@ -28,8 +28,7 @@ namespace Plus.HabboHotel.Catalog.Utilities
 
         public static int GetSaddleId(int saddle)
         {
-            switch (saddle)
-            {
+            switch (saddle) {
                 default:
                 case 9:
                     return 4221;

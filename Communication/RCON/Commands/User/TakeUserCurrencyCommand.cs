@@ -31,14 +31,12 @@ namespace Plus.Communication.Rcon.Commands.User
             if (!int.TryParse(parameters[2], out int amount))
                 return false;
 
-            switch (currency)
-            {
+            switch (currency) {
                 default:
                     return false;
 
                 case "coins":
-                case "credits":
-                    {
+                case "credits": {
                         client.GetHabbo().Credits -= amount;
 
                         int credits = client.GetHabbo().Credits;
@@ -50,8 +48,7 @@ namespace Plus.Communication.Rcon.Commands.User
                     }
 
                 case "pixels":
-                case "duckets":
-                    {
+                case "duckets": {
                         client.GetHabbo().Duckets -= amount;
 
                         int duckets = client.GetHabbo().Duckets;
@@ -62,8 +59,7 @@ namespace Plus.Communication.Rcon.Commands.User
                         break;
                     }
 
-                case "diamonds":
-                    {
+                case "diamonds": {
                         client.GetHabbo().Diamonds -= amount;
 
                         int diamonds = client.GetHabbo().Diamonds;
@@ -74,8 +70,7 @@ namespace Plus.Communication.Rcon.Commands.User
                         break;
                     }
 
-                case "gotw":
-                    {
+                case "gotw": {
                         client.GetHabbo().GotwPoints -= amount;
 
                         int gotw = client.GetHabbo().GotwPoints;

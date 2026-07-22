@@ -40,8 +40,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Logs
         {
             _lock.EnterWriteLock();
 
-            if (_chatLogs.Count > 0)
-            {
+            if (_chatLogs.Count > 0) {
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
                 db.Chatlogs.AddRange(_chatLogs.Select(entry => new Database.EF.Entities.ChatlogEntity
                 {

@@ -23,8 +23,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
             if (item == null)
                 return;
 
-            if (item.ExtraData.Contains(Convert.ToChar(5)))
-            {
+            if (item.ExtraData.Contains(Convert.ToChar(5))) {
                 string[] flags = item.ExtraData.Split(Convert.ToChar(5));
                 item.ExtraData = flags[0] + Convert.ToChar(5) + flags[1] + Convert.ToChar(5) + name;
             }
@@ -33,8 +32,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
 
             uint itemDbId = (uint)item.Id;
             string extraData = item.ExtraData;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.Items.Where(i => i.Id == itemDbId).ExecuteUpdate(s => s.SetProperty(i => i.ExtraData, extraData));
             }
 

@@ -4,8 +4,7 @@
     {
         public static NavigatorCategoryType GetCategoryTypeByString(string type)
         {
-            switch (type.ToLower())
-            {
+            switch (type.ToLower()) {
                 default:
                 case "category":
                     return NavigatorCategoryType.Category;

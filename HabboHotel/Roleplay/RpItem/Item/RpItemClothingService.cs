@@ -24,10 +24,8 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
                 .Where(i => i.Equipped && i.ItemData != null && i.ItemData.HasClothing)
                 .ToList();
 
-            if (clothing.Count == 0)
-            {
-                if (_baseLooks.TryRemove(habbo.Id, out string baseLook) && baseLook != null)
-                {
+            if (clothing.Count == 0) {
+                if (_baseLooks.TryRemove(habbo.Id, out string baseLook) && baseLook != null) {
                     habbo.Look = baseLook;
                     // Removing the last clothing item mid-shift must hand the figure back to work.
                     if (!PlusEnvironment.GetGame().GetShiftManager().ReapplyCostume(habbo))
@@ -39,15 +37,13 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             string root = _baseLooks.GetOrAdd(habbo.Id, _ => TrueOwnLook(habbo));
 
             string look = root;
-            foreach (UserRpItem it in clothing)
-            {
+            foreach (UserRpItem it in clothing) {
                 string figure = ResolveFigure(it.ItemData.Clothing, habbo.Gender);
                 if (!string.IsNullOrWhiteSpace(figure))
                     look = MergeFigure(look, figure);
             }
 
-            if (habbo.Look != look)
-            {
+            if (habbo.Look != look) {
                 habbo.Look = look;
                 Broadcast(habbo);
             }
@@ -76,8 +72,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
                 return clothing;
 
             Dictionary<string, string> figures = new();
-            foreach (string part in clothing.Split(';'))
-            {
+            foreach (string part in clothing.Split(';')) {
                 if (string.IsNullOrWhiteSpace(part))
                     continue;
 
@@ -96,8 +91,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
         {
             Dictionary<string, string> lookParts = new();
 
-            foreach (string part in (baseLook ?? "").Split('.'))
-            {
+            foreach (string part in (baseLook ?? "").Split('.')) {
                 if (string.IsNullOrWhiteSpace(part))
                     continue;
                 string[] split = part.Split('-');
@@ -105,8 +99,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
                     lookParts[split[0]] = part;
             }
 
-            foreach (string part in overrideFigure.Split('.'))
-            {
+            foreach (string part in overrideFigure.Split('.')) {
                 if (string.IsNullOrWhiteSpace(part))
                     continue;
                 string[] split = part.Split('-');

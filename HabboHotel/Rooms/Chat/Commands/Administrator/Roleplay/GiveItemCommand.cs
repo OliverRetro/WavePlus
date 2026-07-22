@@ -16,8 +16,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length < 2 || !int.TryParse(Convert.ToString(@params[2]), out int itemId))
-            {
+            if (@params.Length < 2 || !int.TryParse(Convert.ToString(@params[2]), out int itemId)) {
                 session.SendWhisper("Please enter a valid item ID.", 1);
                 return;
             }
@@ -26,8 +25,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
             if (@params.Length >= 3)
                 targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(@params[1]);
 
-            if (targetClient?.GetHabbo() == null)
-            {
+            if (targetClient?.GetHabbo() == null) {
                 session.SendWhisper("That user could not be found.", 1);
                 return;
             }
@@ -37,21 +35,18 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 
             // Enforce a cap of 10 distinct inventory stacks. Adding an item that merges into an
             // existing, non-full stack of the same id doesn't consume a new slot — so it's allowed.
-            if (targetItems != null && PlusEnvironment.GetRpItemManager().TryGetItem(itemId, out RpItemData def))
-            {
+            if (targetItems != null && PlusEnvironment.GetRpItemManager().TryGetItem(itemId, out RpItemData def)) {
                 bool mergesIntoStack = def.IsStackable &&
                     targetItems.GetItemsByItemId(itemId).Count() % def.StackLimit != 0;
 
-                if (!mergesIntoStack && RpInventory.UsedSlots(targetHabbo, 10) >= 10)
-                {
+                if (!mergesIntoStack && RpInventory.UsedSlots(targetHabbo, 10) >= 10) {
                     session.SendWhisper($"{targetHabbo.Username}'s inventory is full (10 stacks max).", 1);
                     return;
                 }
             }
 
             UserRpItem item = targetItems?.AddItem(itemId);
-            if (item == null)
-            {
+            if (item == null) {
                 session.SendWhisper("That item ID does not exist.", 1);
                 return;
             }

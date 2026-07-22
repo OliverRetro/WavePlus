@@ -20,17 +20,14 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Settings
             packet.WriteInteger(RoomId);
 
             packet.WriteInteger(BannedUsers.Count); //Count
-            foreach (int id in BannedUsers)
-            {
+            foreach (int id in BannedUsers) {
                 UserCache data = PlusEnvironment.GetGame().GetCacheManager().GenerateUser(id);
 
-                if (data == null)
-                {
+                if (data == null) {
                     packet.WriteInteger(0);
                     packet.WriteString("Unknown Error");
                 }
-                else
-                {
+                else {
                     packet.WriteInteger(data.Id);
                     packet.WriteString(data.Username);
                 }

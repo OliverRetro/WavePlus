@@ -25,12 +25,9 @@ namespace Plus.HabboHotel.Items
             if (Items.Count > 0)
                 Items.Clear();
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
-                foreach (var row in db.Furnitures.AsNoTracking().ToList())
-                {
-                    try
-                    {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
+                foreach (var row in db.Furnitures.AsNoTracking().ToList()) {
+                    try {
                         int id = (int)row.Id;
                         int spriteId = row.SpriteId.GetValueOrDefault();
                         string itemName = row.ItemName;
@@ -62,8 +59,7 @@ namespace Plus.HabboHotel.Items
                         if (!Items.ContainsKey(id))
                             Items.Add(id, new ItemData(id, spriteId, itemName, publicName, type, width, length, height, allowStack, allowWalk, allowSit, allowRecycle, allowTrade, allowMarketplace, allowGift, allowInventoryStack, interactionType, behaviourData, cycleCount, vendingIds, heightAdjustable, effectId, isRare, extraRot));
                     }
-                    catch (Exception e)
-                    {
+                    catch (Exception e) {
                         Console.WriteLine($"Error loading furniture ID {row.Id}");
                         Console.WriteLine(e);
                         Console.ReadKey();
@@ -81,8 +77,7 @@ namespace Plus.HabboHotel.Items
 
         public ItemData GetItemByName(string name)
         {
-            foreach (var entry in Items)
-            {
+            foreach (var entry in Items) {
                 ItemData item = entry.Value;
                 if (item.ItemName == name)
                     return item;

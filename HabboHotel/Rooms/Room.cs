@@ -120,8 +120,7 @@ namespace Plus.HabboHotel.Rooms
                     return 0;
 
                 int count = 0;
-                foreach (RoomUser user in manager.GetUserList())
-                {
+                foreach (RoomUser user in manager.GetUserList()) {
                     if (user != null && !user.IsBot)
                         count++;
                 }
@@ -233,8 +232,7 @@ namespace Plus.HabboHotel.Rooms
                 .GroupBy(s => s.BotId)
                 .ToDictionary(g => g.Key, g => g.Select(s => s.Text).ToList());
 
-            foreach (var bot in bots)
-            {
+            foreach (var bot in bots) {
                 List<RandomSpeech> speeches = speechesByBot.TryGetValue(bot.Id, out var texts)
                     ? [.. texts.Select(t => new RandomSpeech(t, (int)bot.Id))]
                     : [];
@@ -260,8 +258,7 @@ namespace Plus.HabboHotel.Rooms
                 .ToList()
                 .ToDictionary(p => p.Id);
 
-            foreach (var row in pets)
-            {
+            foreach (var row in pets) {
                 if (!petData.TryGetValue(row.Id, out var mRow))
                     continue;
 
@@ -319,8 +316,7 @@ namespace Plus.HabboHotel.Rooms
 
         public bool CheckRights(GameClient session, bool requireOwnership, bool checkForGroups = false)
         {
-            try
-            {
+            try {
                 if (session == null || session.GetHabbo() == null)
                     return false;
 
@@ -330,8 +326,7 @@ namespace Plus.HabboHotel.Rooms
                 if (session.GetHabbo().GetPermissions().HasRight("room_any_owner"))
                     return true;
 
-                if (!requireOwnership && Type == "private")
-                {
+                if (!requireOwnership && Type == "private") {
                     if (session.GetHabbo().GetPermissions().HasRight("room_any_rights"))
                         return true;
 
@@ -339,23 +334,20 @@ namespace Plus.HabboHotel.Rooms
                         return true;
                 }
 
-                if (checkForGroups && Type == "private")
-                {
+                if (checkForGroups && Type == "private") {
                     if (Group == null)
                         return false;
 
                     if (Group.IsAdmin(session.GetHabbo().Id))
                         return true;
 
-                    if (Group.AdminOnlyDeco == 0)
-                    {
+                    if (Group.AdminOnlyDeco == 0) {
                         if (Group.IsAdmin(session.GetHabbo().Id))
                             return true;
                     }
                 }
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
 
@@ -366,14 +358,11 @@ namespace Plus.HabboHotel.Rooms
         {
             Func<Item, bool> predicate = null;
             string key = null;
-            foreach (Item item in GetRoomItemHandler().GetFurniObjects(ball.GetX, ball.GetY).ToList())
-            {
-                if (item.GetBaseItem().ItemName.StartsWith("fball_goal_"))
-                {
+            foreach (Item item in GetRoomItemHandler().GetFurniObjects(ball.GetX, ball.GetY).ToList()) {
+                if (item.GetBaseItem().ItemName.StartsWith("fball_goal_")) {
                     key = item.GetBaseItem().ItemName.Split(['_'])[2];
                     user.UnIdle();
                     user.DanceId = 0;
-
 
                     PlusEnvironment.GetGame().GetAchievementManager().ProgressAchievement(user.GetClient(), "ACH_FootballGoalScored", 1);
 
@@ -381,14 +370,11 @@ namespace Plus.HabboHotel.Rooms
                 }
             }
 
-            if (key != null)
-            {
+            if (key != null) {
                 predicate ??= p => p.GetBaseItem().ItemName == "fball_score_" + key;
 
-                foreach (Item item2 in GetRoomItemHandler().GetFloor.Where(predicate).ToList())
-                {
-                    if (item2.GetBaseItem().ItemName == "fball_score_" + key)
-                    {
+                foreach (Item item2 in GetRoomItemHandler().GetFloor.Where(predicate).ToList()) {
+                    if (item2.GetBaseItem().ItemName == "fball_score_" + key) {
                         if (!string.IsNullOrEmpty(item2.ExtraData))
                             item2.ExtraData = (Convert.ToInt32(item2.ExtraData) + 1).ToString();
                         else
@@ -404,103 +390,84 @@ namespace Plus.HabboHotel.Rooms
             if (IsCrashed || mDisposed)
                 return;
 
-            try
-            {
+            try {
                 long nowMs = PlusEnvironment.Now();
                 bool fullCycle = nowMs - _lastFullCycleMs >= 500;
                 if (fullCycle)
                     _lastFullCycleMs = nowMs;
 
-                if (fullCycle)
-                {
+                if (fullCycle) {
                     if (GetRoomUserManager().UserCount == 0)
                         IdleTime++;
                     else if (IdleTime > 0)
                         IdleTime = 0;
 
-                    if (HasActivePromotion && Promotion.HasExpired)
-                    {
+                    if (HasActivePromotion && Promotion.HasExpired) {
                         EndPromotion();
                     }
 
-                    if (IdleTime >= 60 && !HasActivePromotion && !IsPublic)
-                    {
+                    if (IdleTime >= 60 && !HasActivePromotion && !IsPublic) {
                         PlusEnvironment.GetGame().GetRoomManager().UnloadRoom(Id);
                         return;
                     }
 
-                    try
-                    {
+                    try {
                         GetRoomItemHandler().OnCycle();
                     }
-                    catch (Exception e)
-                    {
+                    catch (Exception e) {
                         ExceptionLogger.LogException(e);
                     }
                 }
 
-                try
-                {
+                try {
                     GetRoomUserManager().OnCycle(fullCycle);
                 }
-                catch (Exception e)
-                {
+                catch (Exception e) {
                     ExceptionLogger.LogException(e);
                 }
 
-                if (fullCycle)
-                {
-                    try
-                    {
+                if (fullCycle) {
+                    try {
                         Roleplay.Utilities.FurnitureAchievementService.Tick(this);
                     }
-                    catch (Exception e)
-                    {
+                    catch (Exception e) {
                         ExceptionLogger.LogException(e);
                     }
                 }
 
                 #region Status Updates
 
-                try
-                {
+                try {
                     // Runs on every 50ms tick so freshly-issued steps reach clients immediately.
                     GetRoomUserManager().SerializeStatusUpdates();
                 }
-                catch (Exception e)
-                {
+                catch (Exception e) {
                     ExceptionLogger.LogException(e);
                 }
 
                 #endregion
 
-                if (fullCycle)
-                {
+                if (fullCycle) {
                     #region Game Item Cycle
 
-                    try
-                    {
+                    try {
                         _gameItemHandler?.OnCycle();
                     }
-                    catch (Exception e)
-                    {
+                    catch (Exception e) {
                         ExceptionLogger.LogException(e);
                     }
 
                     #endregion
 
-                    try
-                    {
+                    try {
                         GetWired().OnCycle();
                     }
-                    catch (Exception e)
-                    {
+                    catch (Exception e) {
                         ExceptionLogger.LogException(e);
                     }
                 }
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 ExceptionLogger.LogException(e);
                 OnRoomCrash(e);
             }
@@ -508,27 +475,22 @@ namespace Plus.HabboHotel.Rooms
 
         private void OnRoomCrash(Exception e)
         {
-            try
-            {
-                foreach (RoomUser user in _roomUserManager.GetRoomUsers().ToList())
-                {
+            try {
+                foreach (RoomUser user in _roomUserManager.GetRoomUsers().ToList()) {
                     if (user == null || user.GetClient() == null)
                         continue;
 
                     user.GetClient().SendNotification("Sorry, it appears that room has crashed!"); //Unhandled exception in room: " + e);
 
-                    try
-                    {
+                    try {
                         GetRoomUserManager().RemoveUserFromRoom(user.GetClient(), true);
                     }
-                    catch (Exception e2)
-                    {
+                    catch (Exception e2) {
                         ExceptionLogger.LogException(e2);
                     }
                 }
             }
-            catch (Exception e3)
-            {
+            catch (Exception e3) {
                 ExceptionLogger.LogException(e3);
             }
 
@@ -536,17 +498,13 @@ namespace Plus.HabboHotel.Rooms
             PlusEnvironment.GetGame().GetRoomManager().UnloadRoom(Id);
         }
 
-
         public bool CheckMute(GameClient session)
         {
-            if (MutedUsers.ContainsKey(session.GetHabbo().Id))
-            {
-                if (MutedUsers[session.GetHabbo().Id] < PlusEnvironment.GetUnixTimestamp())
-                {
+            if (MutedUsers.ContainsKey(session.GetHabbo().Id)) {
+                if (MutedUsers[session.GetHabbo().Id] < PlusEnvironment.GetUnixTimestamp()) {
                     MutedUsers.Remove(session.GetHabbo().Id);
                 }
-                else
-                {
+                else {
                     return true;
                 }
             }
@@ -567,8 +525,7 @@ namespace Plus.HabboHotel.Rooms
             List<RoomUser> visibleUsers = [.. _roomUserManager.GetUserList().Where(u => u != null)];
             session.SendPacket(new UsersComposer(visibleUsers));
 
-            foreach (RoomUser user in visibleUsers)
-            {
+            foreach (RoomUser user in visibleUsers) {
                 if (user == null)
                     continue;
 
@@ -608,8 +565,7 @@ namespace Plus.HabboHotel.Rooms
         {
             if (!_tents.TryGetValue(tentId, out List<RoomUser> users))
                 return;
-            foreach (RoomUser user in users.ToList())
-            {
+            foreach (RoomUser user in users.ToList()) {
                 if (user == null || user.GetClient() == null || user.GetClient().GetHabbo() == null)
                     continue;
 
@@ -621,8 +577,7 @@ namespace Plus.HabboHotel.Rooms
 
         public void AddUserToTent(int tentId, RoomUser user)
         {
-            if (user != null && user.GetClient() != null && user.GetClient().GetHabbo() != null)
-            {
+            if (user != null && user.GetClient() != null && user.GetClient().GetHabbo() != null) {
                 if (!_tents.ContainsKey(tentId))
                     _tents.Add(tentId, []);
 
@@ -634,8 +589,7 @@ namespace Plus.HabboHotel.Rooms
 
         public void RemoveUserFromTent(int tentId, RoomUser user)
         {
-            if (user != null && user.GetClient() != null && user.GetClient().GetHabbo() != null)
-            {
+            if (user != null && user.GetClient() != null && user.GetClient().GetHabbo() != null) {
                 if (!_tents.ContainsKey(tentId))
                     _tents.Add(tentId, []);
 
@@ -650,8 +604,7 @@ namespace Plus.HabboHotel.Rooms
             if (!_tents.TryGetValue(tentId, out List<RoomUser> value))
                 return;
 
-            foreach (RoomUser user in value.ToList())
-            {
+            foreach (RoomUser user in value.ToList()) {
                 if (user == null || user.GetClient() == null || user.GetClient().GetHabbo() == null || user.GetClient().GetHabbo().GetIgnores().IgnoredUserIds().Contains(id) || user.GetClient().GetHabbo().TentId != tentId)
                     continue;
 
@@ -668,16 +621,14 @@ namespace Plus.HabboHotel.Rooms
             if (message == null)
                 return;
 
-            try
-            {
+            try {
                 RoomUserManager manager = _roomUserManager;
                 if (manager == null)
                     return;
 
                 // Enumerating the concurrent dictionary directly is snapshot-safe; the old
                 // code allocated a fresh list copy for every single broadcast packet.
-                foreach (RoomUser user in manager.GetUserList())
-                {
+                foreach (RoomUser user in manager.GetUserList()) {
                     if (user == null || user.IsBot)
                         continue;
 
@@ -690,8 +641,7 @@ namespace Plus.HabboHotel.Rooms
                     user.GetClient().SendPacket(message);
                 }
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
         }
@@ -701,14 +651,12 @@ namespace Plus.HabboHotel.Rooms
             if (message == null)
                 return;
 
-            try
-            {
+            try {
                 RoomUserManager manager = _roomUserManager;
                 if (manager == null)
                     return;
 
-                foreach (RoomUser user in manager.GetUserList())
-                {
+                foreach (RoomUser user in manager.GetUserList()) {
                     if (user == null || user.IsBot)
                         continue;
 
@@ -718,16 +666,14 @@ namespace Plus.HabboHotel.Rooms
                     user.GetClient().SendPacket(message);
                 }
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
         }
 
         public void BroadcastPacket(List<MessageComposer> packets)
         {
-            foreach (RoomUser user in _roomUserManager.GetUserList())
-            {
+            foreach (RoomUser user in _roomUserManager.GetUserList()) {
                 if (user == null || user.IsBot)
                     continue;
 
@@ -752,8 +698,7 @@ namespace Plus.HabboHotel.Rooms
         {
             // Boot everyone still inside to the configured RP home room (room unload / deletion);
             // fall back to the hotel view for anyone without a valid home room configured.
-            foreach (RoomUser user in _roomUserManager.GetUserList().ToList())
-            {
+            foreach (RoomUser user in _roomUserManager.GetUserList().ToList()) {
                 if (user == null || user.IsBot || user.GetClient() == null)
                     continue;
 
@@ -761,19 +706,16 @@ namespace Plus.HabboHotel.Rooms
                     user.GetClient().SendPacket(new CloseConnectionComposer());
             }
 
-            if (!mDisposed)
-            {
+            if (!mDisposed) {
                 IsCrashed = false;
                 mDisposed = true;
 
                 /* TODO: Needs reviewing */
-                try
-                {
+                try {
                     if (ProcessTask != null && ProcessTask.IsCompleted)
                         ProcessTask.Dispose();
                 }
-                catch
-                {
+                catch {
                 }
 
                 if (ActiveTrades.Count > 0)

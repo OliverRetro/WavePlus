@@ -17,16 +17,14 @@ namespace Plus.Communication.Packets.Outgoing.Avatar
         {
             packet.WriteInteger(1);
             uint uid = (uint)UserId;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 var wardrobeData = db.UserWardrobes
                     .Where(w => w.UserId == uid)
                     .Select(w => new { w.SlotId, w.Look, w.Gender })
                     .ToList();
 
                 packet.WriteInteger(wardrobeData.Count);
-                foreach (var row in wardrobeData)
-                {
+                foreach (var row in wardrobeData) {
                     packet.WriteInteger((int)row.SlotId);
                     packet.WriteString(row.Look);
                     packet.WriteString(row.Gender.ToUpper());

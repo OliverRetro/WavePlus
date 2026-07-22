@@ -12,13 +12,11 @@ namespace Plus.Communication.Packets.Incoming.Inventory.AvatarEffects
 
             AvatarEffect effect = session.GetHabbo().Effects().GetEffectNullable(effectId, false, true);
 
-            if (effect == null || session.GetHabbo().Effects().HasEffect(effectId, true))
-            {
+            if (effect == null || session.GetHabbo().Effects().HasEffect(effectId, true)) {
                 return;
             }
 
-            if (effect.Activate())
-            {
+            if (effect.Activate()) {
                 session.SendPacket(new AvatarEffectActivatedComposer(effect));
             }
         }

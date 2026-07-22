@@ -38,8 +38,7 @@ namespace Plus.Core
             Console.Title = "Plus Emulator - " + usersOnline + " users online - " + roomCount + " rooms loaded - " + uptime.Days + " day(s) " + uptime.Hours + " hour(s) uptime";
 
             // NOTE: original query used LIMIT 1; ExecuteUpdate cannot express LIMIT, so this updates all rows (server_status is a single-row table).
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.ServerStatuses.ExecuteUpdate(s => s
                     .SetProperty(x => x.UsersOnline, usersOnline)
                     .SetProperty(x => x.LoadedRooms, roomCount));
@@ -48,8 +47,7 @@ namespace Plus.Core
 
         public void Dispose()
         {
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.ServerStatuses.ExecuteUpdate(s => s
                     .SetProperty(x => x.UsersOnline, 0)
                     .SetProperty(x => x.LoadedRooms, 0));

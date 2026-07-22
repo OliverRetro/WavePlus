@@ -58,24 +58,20 @@ namespace Plus.Core.Persistence
 
         public static void Flush()
         {
-            try
-            {
+            try {
                 List<UserRoomvisitEntity> inserts = null;
                 while (PendingInserts.TryDequeue(out UserRoomvisitEntity visit))
                     (inserts ??= []).Add(visit);
 
-                if (inserts != null)
-                {
+                if (inserts != null) {
                     using WavePlusContext db = PlusEnvironment.GetDbContext();
                     db.UserRoomvisits.AddRange(inserts);
                     db.SaveChanges();
                 }
 
-                if (!PendingExitUpdates.IsEmpty)
-                {
+                if (!PendingExitUpdates.IsEmpty) {
                     using WavePlusContext db = PlusEnvironment.GetDbContext();
-                    while (PendingExitUpdates.TryDequeue(out (int VisitId, double ExitTimestamp) update))
-                    {
+                    while (PendingExitUpdates.TryDequeue(out (int VisitId, double ExitTimestamp) update)) {
                         int visitId = update.VisitId;
                         double exitTimestamp = update.ExitTimestamp;
                         db.UserRoomvisits.Where(v => v.Id == visitId)
@@ -83,8 +79,7 @@ namespace Plus.Core.Persistence
                     }
                 }
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 Log.Error($"RoomVisitBuffer flush failed: {ex.Message}");
             }
         }

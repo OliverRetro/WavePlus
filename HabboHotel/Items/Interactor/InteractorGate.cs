@@ -17,40 +17,32 @@ namespace Plus.HabboHotel.Items.Interactor
         {
             int modes = item.GetBaseItem().Modes - 1;
 
-            if (!hasRights)
-            {
+            if (!hasRights) {
                 return;
             }
 
-            if (modes <= 0)
-            {
+            if (modes <= 0) {
                 item.UpdateState(false, true);
             }
 
             int currentMode = 0;
             int newMode = 0;
 
-            if (!int.TryParse(item.ExtraData, out currentMode))
-            {
+            if (!int.TryParse(item.ExtraData, out currentMode)) {
             }
 
-            if (currentMode <= 0)
-            {
+            if (currentMode <= 0) {
                 newMode = 1;
             }
-            else if (currentMode >= modes)
-            {
+            else if (currentMode >= modes) {
                 newMode = 0;
             }
-            else
-            {
+            else {
                 newMode = currentMode + 1;
             }
 
-            if (newMode == 0)
-            {
-                if (!item.GetRoom().GetGameMap().ItemCanBePlaced(item.GetX, item.GetY))
-                {
+            if (newMode == 0) {
+                if (!item.GetRoom().GetGameMap().ItemCanBePlaced(item.GetX, item.GetY)) {
                     return;
                 }
             }
@@ -67,35 +59,28 @@ namespace Plus.HabboHotel.Items.Interactor
         {
             int modes = item.GetBaseItem().Modes - 1;
 
-            if (modes <= 0)
-            {
+            if (modes <= 0) {
                 item.UpdateState(false, true);
             }
 
             int currentMode = 0;
             int newMode = 0;
 
-            if (!int.TryParse(item.ExtraData, out currentMode))
-            {
+            if (!int.TryParse(item.ExtraData, out currentMode)) {
             }
 
-            if (currentMode <= 0)
-            {
+            if (currentMode <= 0) {
                 newMode = 1;
             }
-            else if (currentMode >= modes)
-            {
+            else if (currentMode >= modes) {
                 newMode = 0;
             }
-            else
-            {
+            else {
                 newMode = currentMode + 1;
             }
 
-            if (newMode == 0)
-            {
-                if (!item.GetRoom().GetGameMap().ItemCanBePlaced(item.GetX, item.GetY))
-                {
+            if (newMode == 0) {
+                if (!item.GetRoom().GetGameMap().ItemCanBePlaced(item.GetX, item.GetY)) {
                     return;
                 }
             }

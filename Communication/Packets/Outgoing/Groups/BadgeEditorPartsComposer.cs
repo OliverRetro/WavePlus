@@ -25,38 +25,33 @@ namespace Plus.Communication.Packets.Outgoing.Groups
         public override void Compose(ServerPacket packet)
         {
             packet.WriteInteger(Bases.Count);
-            foreach (GroupBadgeParts part in Bases)
-            {
+            foreach (GroupBadgeParts part in Bases) {
                 packet.WriteInteger(part.Id);
                 packet.WriteString(part.AssetOne);
                 packet.WriteString(part.AssetTwo);
             }
 
             packet.WriteInteger(Symbols.Count);
-            foreach (GroupBadgeParts part in Symbols)
-            {
+            foreach (GroupBadgeParts part in Symbols) {
                 packet.WriteInteger(part.Id);
                 packet.WriteString(part.AssetOne);
                 packet.WriteString(part.AssetTwo);
             }
 
             packet.WriteInteger(BaseColours.Count);
-            foreach (GroupColours colour in BaseColours)
-            {
+            foreach (GroupColours colour in BaseColours) {
                 packet.WriteInteger(colour.Id);
                 packet.WriteString(colour.Colour);
             }
 
             packet.WriteInteger(SymbolColours.Count);
-            foreach (GroupColours colour in SymbolColours)
-            {
+            foreach (GroupColours colour in SymbolColours) {
                 packet.WriteInteger(colour.Id);
                 packet.WriteString(colour.Colour);
             }
 
             packet.WriteInteger(BackgroundColours.Count);
-            foreach (GroupColours colour in BackgroundColours)
-            {
+            foreach (GroupColours colour in BackgroundColours) {
                 packet.WriteInteger(colour.Id);
                 packet.WriteString(colour.Colour);
             }

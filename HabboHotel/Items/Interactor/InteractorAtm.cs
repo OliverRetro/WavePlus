@@ -26,8 +26,7 @@ namespace Plus.HabboHotel.Items.Interactor
             if (user == null || !Gamemap.TilesTouching(item.GetX, item.GetY, user.X, user.Y))
                 return;
 
-            if (habbo.GetBankAccount() == null)
-            {
+            if (habbo.GetBankAccount() == null) {
                 session.SendWhisper("Sorry, you don't have a bank account, visit the bank to open one!", 1);
                 return;
             }

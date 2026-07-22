@@ -7,8 +7,7 @@ namespace Plus.HabboHotel.Items.Wired
     {
         public static WiredBoxType FromWiredId(int id)
         {
-            switch (id)
-            {
+            switch (id) {
                 default:
                     return WiredBoxType.None;
                 case 1:
@@ -126,8 +125,7 @@ namespace Plus.HabboHotel.Items.Wired
 
         public static int GetWiredId(WiredBoxType type)
         {
-            switch (type)
-            {
+            switch (type) {
                 case WiredBoxType.TriggerUserSays:
                 case WiredBoxType.TriggerUserSaysCommand:
                 case WiredBoxType.ConditionMatchStateAndPosition:
@@ -219,10 +217,8 @@ namespace Plus.HabboHotel.Items.Wired
             if (box.Type != WiredBoxType.EffectShowMessage && box.Type != WiredBoxType.EffectMuteTriggerer && box.Type != WiredBoxType.EffectTeleportToFurni && box.Type != WiredBoxType.EffectKickUser && box.Type != WiredBoxType.ConditionTriggererOnFurni)
                 return blockedItems;
 
-            foreach (IWiredItem item in triggers)
-            {
-                if (item.Type == WiredBoxType.TriggerRepeat)
-                {
+            foreach (IWiredItem item in triggers) {
+                if (item.Type == WiredBoxType.TriggerRepeat) {
                     if (!blockedItems.Contains(item.Item.GetBaseItem().SpriteId))
                         blockedItems.Add(item.Item.GetBaseItem().SpriteId);
                     else continue;
@@ -243,16 +239,13 @@ namespace Plus.HabboHotel.Items.Wired
             bool hasMoveRotate = effects.Where(x => x.Type == WiredBoxType.EffectMoveAndRotate).ToList().Count > 0;
             bool hasMoveNear = effects.Where(x => x.Type == WiredBoxType.EffectMoveFurniToNearestUser).ToList().Count > 0;
 
-            foreach (IWiredItem item in effects)
-            {
-                if (item.Type == WiredBoxType.EffectKickUser || item.Type == WiredBoxType.EffectMuteTriggerer || item.Type == WiredBoxType.EffectShowMessage || item.Type == WiredBoxType.EffectTeleportToFurni || item.Type == WiredBoxType.EffectBotFollowsUserBox)
-                {
+            foreach (IWiredItem item in effects) {
+                if (item.Type == WiredBoxType.EffectKickUser || item.Type == WiredBoxType.EffectMuteTriggerer || item.Type == WiredBoxType.EffectShowMessage || item.Type == WiredBoxType.EffectTeleportToFurni || item.Type == WiredBoxType.EffectBotFollowsUserBox) {
                     if (!blockedItems.Contains(item.Item.GetBaseItem().SpriteId))
                         blockedItems.Add(item.Item.GetBaseItem().SpriteId);
                     else continue;
                 }
-                else if ((item.Type == WiredBoxType.EffectMoveFurniToNearestUser && hasMoveRotate) || (item.Type == WiredBoxType.EffectMoveAndRotate && hasMoveNear))
-                {
+                else if ((item.Type == WiredBoxType.EffectMoveFurniToNearestUser && hasMoveRotate) || (item.Type == WiredBoxType.EffectMoveAndRotate && hasMoveNear)) {
                     if (!blockedItems.Contains(item.Item.GetBaseItem().SpriteId))
                         blockedItems.Add(item.Item.GetBaseItem().SpriteId);
                     else continue;

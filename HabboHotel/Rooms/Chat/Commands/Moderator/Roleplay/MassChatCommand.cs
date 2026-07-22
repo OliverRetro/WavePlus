@@ -16,8 +16,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
                 session.SendWhisper("Yeah please let them know what the alert is!");
             }
 
-            foreach (RoomUser user in PlusEnvironment.GetGame().GetRoomManager().GetAllRoomUsers())
-            {
+            foreach (RoomUser user in PlusEnvironment.GetGame().GetRoomManager().GetAllRoomUsers()) {
                 if (user.IsBot)
                     continue;
 

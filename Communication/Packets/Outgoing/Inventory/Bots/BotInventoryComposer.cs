@@ -17,8 +17,7 @@ namespace Plus.Communication.Packets.Outgoing.Inventory.Bots
         public override void Compose(ServerPacket packet)
         {
             packet.WriteInteger(Bots.Count);
-            foreach (Bot bot in Bots.ToList())
-            {
+            foreach (Bot bot in Bots.ToList()) {
                 packet.WriteInteger(bot.Id);
                 packet.WriteString(bot.Name);
                 packet.WriteString(bot.Motto);

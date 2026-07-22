@@ -30,8 +30,7 @@ namespace Plus.HabboHotel.Quests
             if (_quests.Count > 0)
                 _quests.Clear();
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 var rows = db.Quests.Select(q => new
                 {
                     q.Id,
@@ -47,8 +46,7 @@ namespace Plus.HabboHotel.Quests
                     q.TimestampLock
                 }).ToList();
 
-                foreach (var dRow in rows)
-                {
+                foreach (var dRow in rows) {
                     int id = Convert.ToInt32(dRow.Id);
                     string category = Convert.ToString(dRow.Type);
                     int num = Convert.ToInt32(dRow.LevelNum);
@@ -71,12 +69,10 @@ namespace Plus.HabboHotel.Quests
 
         private void AddToCounter(string category)
         {
-            if (_questCount.TryGetValue(category, out int count))
-            {
+            if (_questCount.TryGetValue(category, out int count)) {
                 _questCount[category] = count + 1;
             }
-            else
-            {
+            else {
                 _questCount.Add(category, 1);
             }
         }
@@ -95,15 +91,13 @@ namespace Plus.HabboHotel.Quests
 
         public void ProgressUserQuest(GameClient session, QuestType type, int data = 0)
         {
-            if (session == null || session.GetHabbo() == null || session.GetHabbo().GetStats().QuestId <= 0)
-            {
+            if (session == null || session.GetHabbo() == null || session.GetHabbo().GetStats().QuestId <= 0) {
                 return;
             }
 
             Quest quest = GetQuest(session.GetHabbo().GetStats().QuestId);
 
-            if (quest == null || quest.GoalType != type)
-            {
+            if (quest == null || quest.GoalType != type) {
                 return;
             }
 
@@ -111,13 +105,11 @@ namespace Plus.HabboHotel.Quests
             int totalProgress = currentProgress;
             bool completeQuest = false;
 
-            switch (type)
-            {
+            switch (type) {
                 default:
                     totalProgress++;
 
-                    if (totalProgress >= quest.GoalData)
-                    {
+                    if (totalProgress >= quest.GoalData) {
                         completeQuest = true;
                     }
 
@@ -158,8 +150,7 @@ namespace Plus.HabboHotel.Quests
             uint progressQuestId = (uint)quest.Id;
             int progressStatsId = session.GetHabbo().Id;
             int progressValue = totalProgress;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.UserQuests.Where(q => q.UserId == progressUserId && q.QuestId == progressQuestId).ExecuteUpdate(s => s.SetProperty(q => q.Progress, progressValue));
 
                 if (completeQuest)
@@ -169,8 +160,7 @@ namespace Plus.HabboHotel.Quests
             session.GetHabbo().Quests[session.GetHabbo().GetStats().QuestId] = totalProgress;
             session.SendPacket(new QuestStartedComposer(session, quest));
 
-            if (completeQuest)
-            {
+            if (completeQuest) {
                 session.GetHabbo().GetMessenger().BroadcastAchievement(session.GetHabbo().Id, MessengerEventTypes.QuestCompleted, quest.Category + "." + quest.Name);
 
                 session.GetHabbo().GetStats().QuestId = 0;
@@ -184,10 +174,8 @@ namespace Plus.HabboHotel.Quests
 
         public Quest GetNextQuestInSeries(string category, int number)
         {
-            foreach (Quest quest in _quests.Values)
-            {
-                if (quest.Category == category && quest.Number == number)
-                {
+            foreach (Quest quest in _quests.Values) {
+                if (quest.Category == category && quest.Number == number) {
                     return quest;
                 }
             }
@@ -200,37 +188,30 @@ namespace Plus.HabboHotel.Quests
             Dictionary<string, int> userQuestGoals = new();
             Dictionary<string, Quest> userQuests = new();
 
-            foreach (Quest quest in _quests.Values.ToList())
-            {
+            foreach (Quest quest in _quests.Values.ToList()) {
                 if (quest.Category.Contains("xmas2012"))
                     continue;
 
-                if (!userQuestGoals.ContainsKey(quest.Category))
-                {
+                if (!userQuestGoals.ContainsKey(quest.Category)) {
                     userQuestGoals.Add(quest.Category, 1);
                     userQuests.Add(quest.Category, null);
                 }
 
-                if (quest.Number >= userQuestGoals[quest.Category])
-                {
+                if (quest.Number >= userQuestGoals[quest.Category]) {
                     int userProgress = session.GetHabbo().GetQuestProgress(quest.Id);
 
-                    if (session.GetHabbo().GetStats().QuestId != quest.Id && userProgress >= quest.GoalData)
-                    {
+                    if (session.GetHabbo().GetStats().QuestId != quest.Id && userProgress >= quest.GoalData) {
                         userQuestGoals[quest.Category] = quest.Number + 1;
                     }
                 }
             }
 
-            foreach (Quest quest in _quests.Values.ToList())
-            {
-                foreach (var goal in userQuestGoals)
-                {
+            foreach (Quest quest in _quests.Values.ToList()) {
+                foreach (var goal in userQuestGoals) {
                     if (quest.Category.Contains("xmas2012"))
                         continue;
 
-                    if (quest.Category == goal.Key && quest.Number == goal.Value)
-                    {
+                    if (quest.Category == goal.Key && quest.Number == goal.Value) {
                         userQuests[goal.Key] = quest;
                         break;
                     }

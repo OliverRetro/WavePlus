@@ -13,20 +13,17 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (!room.CheckRights(session, true))
-            {
+            if (!room.CheckRights(session, true)) {
                 session.SendWhisper("Oops, only the room owner or staff can use this command.");
                 return;
             }
 
-            if (@params.Length < 3 || !int.TryParse(@params[1], out int cost) || !int.TryParse(@params[2], out int delay))
-            {
+            if (@params.Length < 3 || !int.TryParse(@params[1], out int cost) || !int.TryParse(@params[2], out int delay)) {
                 session.SendWhisper("Usage: :settaxipoint <cost> <delay>");
                 return;
             }
 
-            if (cost < 0 || delay < 0)
-            {
+            if (cost < 0 || delay < 0) {
                 session.SendWhisper("Taxi cost and delay must both be 0 or higher.");
                 return;
             }

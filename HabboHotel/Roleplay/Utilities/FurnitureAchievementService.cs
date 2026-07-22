@@ -43,8 +43,7 @@ namespace Plus.HabboHotel.Roleplay.Utilities
 
             // Resolve the configured furniture ids once per tick (settings are in-memory, cheap).
             Dictionary<string, int> configured = null;
-            foreach (KeyValuePair<string, string> entry in Tracked)
-            {
+            foreach (KeyValuePair<string, string> entry in Tracked) {
                 string raw = PlusEnvironment.GetSettingsManager().TryGetValue(entry.Value);
                 if (int.TryParse(raw, out int itemId) && itemId > 0)
                     (configured ??= new Dictionary<string, int>())[entry.Key] = itemId;
@@ -55,8 +54,7 @@ namespace Plus.HabboHotel.Roleplay.Utilities
 
             double now = PlusEnvironment.GetUnixTimestamp();
 
-            foreach (RoomUser user in room.GetRoomUserManager().GetRoomUsers())
-            {
+            foreach (RoomUser user in room.GetRoomUserManager().GetRoomUsers()) {
                 if (user == null || user.IsBot || user.IsPet)
                     continue;
 
@@ -66,13 +64,11 @@ namespace Plus.HabboHotel.Roleplay.Utilities
 
                 List<Item> tileItems = room.GetRoomItemHandler().GetFurniObjects(user.X, user.Y);
 
-                foreach (KeyValuePair<string, int> track in configured)
-                {
+                foreach (KeyValuePair<string, int> track in configured) {
                     string stateKey = session.GetHabbo().Id + ":" + track.Key;
                     bool standing = IsStandingOn(tileItems, track.Value);
 
-                    if (!standing)
-                    {
+                    if (!standing) {
                         // Stepped off — keep the leftover remainder but stop counting the gap.
                         if (States.TryGetValue(stateKey, out StandState off))
                             off.LastSeen = 0;
@@ -84,8 +80,7 @@ namespace Plus.HabboHotel.Roleplay.Utilities
                         state.AccumSeconds += now - state.LastSeen;
                     state.LastSeen = now;
 
-                    if (state.AccumSeconds >= MinuteSeconds)
-                    {
+                    if (state.AccumSeconds >= MinuteSeconds) {
                         int minutes = (int)(state.AccumSeconds / MinuteSeconds);
                         state.AccumSeconds -= minutes * MinuteSeconds;
                         PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(session, track.Key, minutes);
@@ -99,8 +94,7 @@ namespace Plus.HabboHotel.Roleplay.Utilities
             if (tileItems == null)
                 return false;
 
-            foreach (Item item in tileItems)
-            {
+            foreach (Item item in tileItems) {
                 if (item?.GetBaseItem() != null && item.GetBaseItem().Id == baseItemId)
                     return true;
             }

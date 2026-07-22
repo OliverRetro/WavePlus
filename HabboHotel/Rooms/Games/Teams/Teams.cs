@@ -28,8 +28,7 @@ namespace Plus.HabboHotel.Rooms.Games.Teams
 
         public bool CanEnterOnTeam(Team team)
         {
-            switch (team)
-            {
+            switch (team) {
                 case Team.Blue:
                     return BlueTeam.Count < 5;
                 case Team.Red:
@@ -54,65 +53,52 @@ namespace Plus.HabboHotel.Rooms.Games.Teams
             else if (user.Team.Equals(Team.Green) && !GreenTeam.Contains(user))
                 GreenTeam.Add(user);
 
-            switch (Game.ToLower())
-            {
-                case "banzai":
-                    {
+            switch (Game.ToLower()) {
+                case "banzai": {
                         Room room = user.GetClient().GetHabbo().CurrentRoom;
                         if (room == null)
                             return;
 
-                        foreach (Item item in room.GetRoomItemHandler().GetFloor.ToList())
-                        {
+                        foreach (Item item in room.GetRoomItemHandler().GetFloor.ToList()) {
                             if (item == null)
                                 continue;
 
-                            if (item.GetBaseItem().InteractionType.Equals(InteractionType.BanzaiGateBlue))
-                            {
+                            if (item.GetBaseItem().InteractionType.Equals(InteractionType.BanzaiGateBlue)) {
                                 item.ExtraData = BlueTeam.Count.ToString();
                                 item.UpdateState();
-                                if (BlueTeam.Count == 5)
-                                {
-                                    foreach (RoomUser sser in room.GetGameMap().GetRoomUsers(new Point(item.GetX, item.GetY)))
-                                    {
+                                if (BlueTeam.Count == 5) {
+                                    foreach (RoomUser sser in room.GetGameMap().GetRoomUsers(new Point(item.GetX, item.GetY))) {
                                         sser.SqState = 0;
                                     }
 
                                     room.GetGameMap().GameMap[item.GetX, item.GetY] = 0;
                                 }
                             }
-                            else if (item.GetBaseItem().InteractionType.Equals(InteractionType.BanzaiGateRed))
-                            {
+                            else if (item.GetBaseItem().InteractionType.Equals(InteractionType.BanzaiGateRed)) {
                                 item.ExtraData = RedTeam.Count.ToString();
                                 item.UpdateState();
-                                if (RedTeam.Count == 5)
-                                {
-                                    foreach (RoomUser sser in room.GetGameMap().GetRoomUsers(new Point(item.GetX, item.GetY)))
-                                    {
+                                if (RedTeam.Count == 5) {
+                                    foreach (RoomUser sser in room.GetGameMap().GetRoomUsers(new Point(item.GetX, item.GetY))) {
                                         sser.SqState = 0;
                                     }
 
                                     room.GetGameMap().GameMap[item.GetX, item.GetY] = 0;
                                 }
                             }
-                            else if (item.GetBaseItem().InteractionType.Equals(InteractionType.BanzaiGateGreen))
-                            {
+                            else if (item.GetBaseItem().InteractionType.Equals(InteractionType.BanzaiGateGreen)) {
                                 item.ExtraData = GreenTeam.Count.ToString();
                                 item.UpdateState();
-                                if (GreenTeam.Count == 5)
-                                {
+                                if (GreenTeam.Count == 5) {
                                     foreach (RoomUser sser in room.GetGameMap().GetRoomUsers(new Point(item.GetX, item.GetY)))
                                         sser.SqState = 0;
 
                                     room.GetGameMap().GameMap[item.GetX, item.GetY] = 0;
                                 }
                             }
-                            else if (item.GetBaseItem().InteractionType.Equals(InteractionType.BanzaiGateYellow))
-                            {
+                            else if (item.GetBaseItem().InteractionType.Equals(InteractionType.BanzaiGateYellow)) {
                                 item.ExtraData = YellowTeam.Count.ToString();
                                 item.UpdateState();
-                                if (YellowTeam.Count == 5)
-                                {
+                                if (YellowTeam.Count == 5) {
                                     foreach (RoomUser sser in room.GetGameMap().GetRoomUsers(new Point(item.GetX, item.GetY)))
                                         sser.SqState = 0;
 
@@ -124,34 +110,28 @@ namespace Plus.HabboHotel.Rooms.Games.Teams
                         break;
                     }
 
-                case "freeze":
-                    {
+                case "freeze": {
                         Room room = user.GetClient().GetHabbo().CurrentRoom;
                         if (room == null)
                             return;
 
-                        foreach (Item item in room.GetRoomItemHandler().GetFloor.ToList())
-                        {
+                        foreach (Item item in room.GetRoomItemHandler().GetFloor.ToList()) {
                             if (item == null)
                                 continue;
 
-                            if (item.GetBaseItem().InteractionType.Equals(InteractionType.FreezeBlueGate))
-                            {
+                            if (item.GetBaseItem().InteractionType.Equals(InteractionType.FreezeBlueGate)) {
                                 item.ExtraData = BlueTeam.Count.ToString();
                                 item.UpdateState();
                             }
-                            else if (item.GetBaseItem().InteractionType.Equals(InteractionType.FreezeRedGate))
-                            {
+                            else if (item.GetBaseItem().InteractionType.Equals(InteractionType.FreezeRedGate)) {
                                 item.ExtraData = RedTeam.Count.ToString();
                                 item.UpdateState();
                             }
-                            else if (item.GetBaseItem().InteractionType.Equals(InteractionType.FreezeGreenGate))
-                            {
+                            else if (item.GetBaseItem().InteractionType.Equals(InteractionType.FreezeGreenGate)) {
                                 item.ExtraData = GreenTeam.Count.ToString();
                                 item.UpdateState();
                             }
-                            else if (item.GetBaseItem().InteractionType.Equals(InteractionType.FreezeYellowGate))
-                            {
+                            else if (item.GetBaseItem().InteractionType.Equals(InteractionType.FreezeYellowGate)) {
                                 item.ExtraData = YellowTeam.Count.ToString();
                                 item.UpdateState();
                             }
@@ -174,62 +154,50 @@ namespace Plus.HabboHotel.Rooms.Games.Teams
             else if (user.Team.Equals(Team.Green) && GreenTeam.Contains(user))
                 GreenTeam.Remove(user);
 
-            switch (Game.ToLower())
-            {
-                case "banzai":
-                    {
+            switch (Game.ToLower()) {
+                case "banzai": {
                         Room room = user.GetClient().GetHabbo().CurrentRoom;
                         if (room == null)
                             return;
 
-                        foreach (Item item in room.GetRoomItemHandler().GetFloor.ToList())
-                        {
+                        foreach (Item item in room.GetRoomItemHandler().GetFloor.ToList()) {
                             if (item == null)
                                 continue;
 
-                            if (item.GetBaseItem().InteractionType.Equals(InteractionType.BanzaiGateBlue))
-                            {
+                            if (item.GetBaseItem().InteractionType.Equals(InteractionType.BanzaiGateBlue)) {
                                 item.ExtraData = BlueTeam.Count.ToString();
                                 item.UpdateState();
-                                if (room.GetGameMap().GameMap[item.GetX, item.GetY] == 0)
-                                {
+                                if (room.GetGameMap().GameMap[item.GetX, item.GetY] == 0) {
                                     foreach (RoomUser sser in room.GetGameMap().GetRoomUsers(new Point(item.GetX, item.GetY)))
                                         sser.SqState = 1;
 
                                     room.GetGameMap().GameMap[item.GetX, item.GetY] = 1;
                                 }
                             }
-                            else if (item.GetBaseItem().InteractionType.Equals(InteractionType.BanzaiGateRed))
-                            {
+                            else if (item.GetBaseItem().InteractionType.Equals(InteractionType.BanzaiGateRed)) {
                                 item.ExtraData = RedTeam.Count.ToString();
                                 item.UpdateState();
-                                if (room.GetGameMap().GameMap[item.GetX, item.GetY] == 0)
-                                {
+                                if (room.GetGameMap().GameMap[item.GetX, item.GetY] == 0) {
                                     foreach (RoomUser sser in room.GetGameMap().GetRoomUsers(new Point(item.GetX, item.GetY)))
                                         sser.SqState = 1;
-
 
                                     room.GetGameMap().GameMap[item.GetX, item.GetY] = 1;
                                 }
                             }
-                            else if (item.GetBaseItem().InteractionType.Equals(InteractionType.BanzaiGateGreen))
-                            {
+                            else if (item.GetBaseItem().InteractionType.Equals(InteractionType.BanzaiGateGreen)) {
                                 item.ExtraData = GreenTeam.Count.ToString();
                                 item.UpdateState();
-                                if (room.GetGameMap().GameMap[item.GetX, item.GetY] == 0)
-                                {
+                                if (room.GetGameMap().GameMap[item.GetX, item.GetY] == 0) {
                                     foreach (RoomUser sser in room.GetGameMap().GetRoomUsers(new Point(item.GetX, item.GetY)))
                                         sser.SqState = 1;
 
                                     room.GetGameMap().GameMap[item.GetX, item.GetY] = 1;
                                 }
                             }
-                            else if (item.GetBaseItem().InteractionType.Equals(InteractionType.BanzaiGateYellow))
-                            {
+                            else if (item.GetBaseItem().InteractionType.Equals(InteractionType.BanzaiGateYellow)) {
                                 item.ExtraData = YellowTeam.Count.ToString();
                                 item.UpdateState();
-                                if (room.GetGameMap().GameMap[item.GetX, item.GetY] == 0)
-                                {
+                                if (room.GetGameMap().GameMap[item.GetX, item.GetY] == 0) {
                                     foreach (RoomUser sser in room.GetGameMap().GetRoomUsers(new Point(item.GetX, item.GetY)))
                                         sser.SqState = 1;
 
@@ -240,34 +208,28 @@ namespace Plus.HabboHotel.Rooms.Games.Teams
 
                         break;
                     }
-                case "freeze":
-                    {
+                case "freeze": {
                         Room room = user.GetClient().GetHabbo().CurrentRoom;
                         if (room == null)
                             return;
 
-                        foreach (Item item in room.GetRoomItemHandler().GetFloor.ToList())
-                        {
+                        foreach (Item item in room.GetRoomItemHandler().GetFloor.ToList()) {
                             if (item == null)
                                 continue;
 
-                            if (item.GetBaseItem().InteractionType.Equals(InteractionType.FreezeBlueGate))
-                            {
+                            if (item.GetBaseItem().InteractionType.Equals(InteractionType.FreezeBlueGate)) {
                                 item.ExtraData = BlueTeam.Count.ToString();
                                 item.UpdateState();
                             }
-                            else if (item.GetBaseItem().InteractionType.Equals(InteractionType.FreezeRedGate))
-                            {
+                            else if (item.GetBaseItem().InteractionType.Equals(InteractionType.FreezeRedGate)) {
                                 item.ExtraData = RedTeam.Count.ToString();
                                 item.UpdateState();
                             }
-                            else if (item.GetBaseItem().InteractionType.Equals(InteractionType.FreezeGreenGate))
-                            {
+                            else if (item.GetBaseItem().InteractionType.Equals(InteractionType.FreezeGreenGate)) {
                                 item.ExtraData = GreenTeam.Count.ToString();
                                 item.UpdateState();
                             }
-                            else if (item.GetBaseItem().InteractionType.Equals(InteractionType.FreezeYellowGate))
-                            {
+                            else if (item.GetBaseItem().InteractionType.Equals(InteractionType.FreezeYellowGate)) {
                                 item.ExtraData = YellowTeam.Count.ToString();
                                 item.UpdateState();
                             }

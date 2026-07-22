@@ -32,8 +32,7 @@ namespace Plus.Communication.Packets.Outgoing.Navigator.New
             packet.WriteString(Data); //Text?
 
             packet.WriteInteger(SearchResultLists.Count); //Count
-            foreach (SearchResultList searchResult in SearchResultLists.ToList())
-            {
+            foreach (SearchResultList searchResult in SearchResultLists.ToList()) {
                 packet.WriteString(searchResult.CategoryIdentifier);
                 packet.WriteString(searchResult.PublicName);
                 packet.WriteInteger(NavigatorSearchAllowanceUtility.GetIntegerValue(searchResult.SearchAllowance) != 0

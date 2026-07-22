@@ -20,12 +20,10 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
         {
             _items.Clear();
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 var rows = db.RpItems.AsNoTracking().ToList();
 
-                foreach (var row in rows)
-                {
+                foreach (var row in rows) {
                     RpItemData item = new(
                         row.Id,
                         row.ItemName,

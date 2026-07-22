@@ -25,25 +25,21 @@ namespace Plus.HabboHotel.Rooms.Chat.Pets.Commands
             _commandRegister.Clear();
             _commandDatabase.Clear();
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 var commands = db.BotsPetCommands.Select(c => new { c.Id, c.InputTitle, c.Input }).ToList();
 
-                foreach (var row in commands)
-                {
+                foreach (var row in commands) {
                     _commandRegister.Add(row.Id, row.InputTitle);
                     _commandDatabase.Add(row.InputTitle + ".input", row.Input);
                 }
             }
 
-            foreach (var pair in _commandRegister)
-            {
+            foreach (var pair in _commandRegister) {
                 int commandId = pair.Key;
                 string commandStringedId = pair.Value;
                 string[] commandInput = _commandDatabase[commandStringedId + ".input"].Split(',');
 
-                foreach (string command in commandInput)
-                {
+                foreach (string command in commandInput) {
                     _petCommands.Add(command, new PetCommand(commandId, command));
                 }
             }

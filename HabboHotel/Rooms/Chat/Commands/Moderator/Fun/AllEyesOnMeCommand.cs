@@ -20,8 +20,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Fun
                 return;
 
             List<RoomUser> users = room.GetRoomUserManager().GetRoomUsers();
-            foreach (RoomUser u in users.ToList())
-            {
+            foreach (RoomUser u in users.ToList()) {
                 if (u == null || session.GetHabbo().Id == u.UserId)
                     continue;
 

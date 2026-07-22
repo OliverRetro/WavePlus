@@ -19,16 +19,14 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator
             if (room == null)
                 return;
 
-            if (room.Group == null)
-            {
+            if (room.Group == null) {
                 session.SendWhisper("Oops, there is no group here?");
                 return;
             }
 
             int groupIdInt = room.Group.Id;
             uint groupIdUint = (uint)room.Group.Id;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.Groups.Where(x => x.Id == groupIdUint).ExecuteDelete();
                 db.GroupMemberships.Where(x => x.GroupId == groupIdUint).ExecuteDelete();
                 db.GroupRoles.Where(x => x.GroupId == groupIdInt).ExecuteDelete();

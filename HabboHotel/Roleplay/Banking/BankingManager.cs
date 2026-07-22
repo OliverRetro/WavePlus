@@ -61,12 +61,6 @@ namespace Plus.HabboHotel.Roleplay.Banking
                 .ToList();
         }
 
-        private static double GetDepositFeeFraction()
-        {
-            int percent = int.TryParse(PlusEnvironment.GetSettingsManager().TryGetValue("rp.bank.deposit.fee.default"), out int p) ? p : 0;
-            return percent / 100.0;
-        }
-
         public UserRpBankAccount LoadAccount(int userId)
         {
             using WavePlusContext db = PlusEnvironment.GetDbContext();
@@ -93,16 +87,14 @@ namespace Plus.HabboHotel.Roleplay.Banking
             // The row has to land before the user gets an in-memory account: an account that exists
             // only in memory makes every later balance write a no-op UPDATE, so the user appears to
             // have opened an account, loses the fee, and finds no account again after a relog.
-            try
-            {
+            try {
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
 
                 var existing = db.UserRpBanks.Where(b => b.UserId == habbo.Id)
                     .Select(b => new { b.Balance, b.AccountOpened })
                     .FirstOrDefault();
 
-                if (existing != null)
-                {
+                if (existing != null) {
                     // A row from an earlier attempt is already there — adopt it instead of charging again.
                     UserRpBankAccount recovered = new UserRpBankAccount(habbo.Id, existing.Balance, existing.AccountOpened);
                     recovered.MarkSaved();
@@ -119,8 +111,7 @@ namespace Plus.HabboHotel.Roleplay.Banking
                 });
                 db.SaveChanges();
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 ExceptionLogger.LogException(e);
                 return false;
             }
@@ -141,8 +132,7 @@ namespace Plus.HabboHotel.Roleplay.Banking
             if (habbo?.GetBankAccount() == null)
                 return false;
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.UserRpBankLogs.Where(l => l.UserId == habbo.Id).ExecuteDelete();
                 db.UserRpBanks.Where(b => b.UserId == habbo.Id).ExecuteDelete();
             }
@@ -208,18 +198,15 @@ namespace Plus.HabboHotel.Roleplay.Banking
             if (account == null)
                 return;
 
-            try
-            {
+            try {
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-                if (account.Dirty)
-                {
+                if (account.Dirty) {
                     int balance = account.Balance;
                     int rows = db.UserRpBanks.Where(b => b.UserId == habbo.Id)
                         .ExecuteUpdate(s => s.SetProperty(b => b.Balance, balance));
 
-                    if (rows == 0)
-                    {
+                    if (rows == 0) {
                         // No row to update — insert one rather than dropping the balance.
                         db.UserRpBanks.Add(new UserRpBankEntity
                         {
@@ -235,8 +222,7 @@ namespace Plus.HabboHotel.Roleplay.Banking
 
                 // Snapshot first: a transaction landing mid-save must not have its log discarded.
                 List<UserRpBankLog> logs = account.PendingLogs.ToList();
-                if (logs.Count > 0)
-                {
+                if (logs.Count > 0) {
                     db.UserRpBankLogs.AddRange(logs.Select(log => new Plus.Database.EF.Entities.UserRpBankLogEntity
                     {
                         UserId = log.UserId,
@@ -250,8 +236,7 @@ namespace Plus.HabboHotel.Roleplay.Banking
                     account.PendingLogs.RemoveRange(0, logs.Count);
                 }
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 // Left dirty on purpose — the next save cycle retries it.
                 ExceptionLogger.LogException(e);
             }

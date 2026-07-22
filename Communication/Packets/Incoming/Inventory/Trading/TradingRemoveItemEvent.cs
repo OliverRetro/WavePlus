@@ -21,8 +21,7 @@ namespace Plus.Communication.Packets.Incoming.Inventory.Trading
 
             int itemId = packet.PopInt();
 
-            if (!room.GetTrading().TryGetTrade(roomUser.TradeId, out Trade trade))
-            {
+            if (!room.GetTrading().TryGetTrade(roomUser.TradeId, out Trade trade)) {
                 session.SendPacket(new TradingClosedComposer(session.GetHabbo().Id));
                 return;
             }

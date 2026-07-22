@@ -12,8 +12,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Police
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length < 2)
-            {
+            if (@params.Length < 2) {
                 session.SendWhisper("Usage: :escort <username>", 1);
                 return;
             }
@@ -21,8 +20,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Police
             if (!RpCommandUtil.TryGetTarget(session, room, @params[1], out GameClient targetClient))
                 return;
 
-            if (!PlusEnvironment.GetPoliceManager().IsCuffed(targetClient.GetHabbo().Id))
-            {
+            if (!PlusEnvironment.GetPoliceManager().IsCuffed(targetClient.GetHabbo().Id)) {
                 session.SendWhisper("You must cuff the suspect before escorting them.", 1);
                 return;
             }

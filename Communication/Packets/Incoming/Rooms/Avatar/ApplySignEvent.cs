@@ -16,7 +16,6 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Avatar
             if (user == null)
                 return;
 
-
             user.UnIdle();
 
             user.SetStatus("sign", Convert.ToString(signId));

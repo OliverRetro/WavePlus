@@ -21,10 +21,8 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
                 return;
 
             Item item;
-            if (room.Group != null)
-            {
-                if (!room.CheckRights(session, false, true))
-                {
+            if (room.Group != null) {
+                if (!room.CheckRights(session, false, true)) {
                     item = room.GetRoomItemHandler().GetItem(itemId);
                     if (item == null)
                         return;
@@ -33,10 +31,8 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
                     return;
                 }
             }
-            else
-            {
-                if (!room.CheckRights(session))
-                {
+            else {
+                if (!room.CheckRights(session)) {
                     return;
                 }
             }
@@ -56,8 +52,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
             if (rotation != item.Rotation)
                 PlusEnvironment.GetGame().GetQuestManager().ProgressUserQuest(session, QuestType.FurniRotate);
 
-            if (!room.GetRoomItemHandler().SetFloorItem(session, item, x, y, rotation, false, false, true))
-            {
+            if (!room.GetRoomItemHandler().SetFloorItem(session, item, x, y, rotation, false, false, true)) {
                 room.SendPacket(new ObjectUpdateComposer(item, room.OwnerId));
                 return;
             }

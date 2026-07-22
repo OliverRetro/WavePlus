@@ -15,8 +15,7 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Settings
         public override void Compose(ServerPacket packet)
         {
             packet.WriteInteger(WordFilterList.Count);
-            foreach (string word in WordFilterList)
-            {
+            foreach (string word in WordFilterList) {
                 packet.WriteString(word);
             }
         }

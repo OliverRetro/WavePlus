@@ -4,8 +4,7 @@
     {
         public static SetType GetSetType(string type)
         {
-            switch (type)
-            {
+            switch (type) {
                 default:
                 case "hr":
                     return SetType.HR;

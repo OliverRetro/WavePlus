@@ -36,10 +36,8 @@ namespace Plus.HabboHotel.Moderation
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-            foreach (var row in db.ModerationPresets.Select(p => new { p.Type, p.Message }).ToList())
-            {
-                switch (row.Type?.ToLower())
-                {
+            foreach (var row in db.ModerationPresets.Select(p => new { p.Type, p.Message }).ToList()) {
+                switch (row.Type?.ToLower()) {
                     case "user":
                         _userPresets.Add(row.Message);
                         break;
@@ -50,14 +48,12 @@ namespace Plus.HabboHotel.Moderation
                 }
             }
 
-            foreach (var row in db.ModerationTopics.Select(t => new { t.Id, t.Caption }).ToList())
-            {
+            foreach (var row in db.ModerationTopics.Select(t => new { t.Id, t.Caption }).ToList()) {
                 if (!_moderationCfhTopics.ContainsKey((int)row.Id))
                     _moderationCfhTopics.Add((int)row.Id, row.Caption);
             }
 
-            foreach (var row in db.ModerationTopicActions.Select(a => new { a.Id, a.ParentId, a.Type, a.Caption, a.MessageText, a.MuteTime, a.BanTime, a.IpTime, a.TradeLockTime, a.DefaultSanction }).ToList())
-            {
+            foreach (var row in db.ModerationTopicActions.Select(a => new { a.Id, a.ParentId, a.Type, a.Caption, a.MessageText, a.MuteTime, a.BanTime, a.IpTime, a.TradeLockTime, a.DefaultSanction }).ToList()) {
                 int parentId = row.ParentId;
 
                 if (!_moderationCfhTopicActions.ContainsKey(parentId))
@@ -70,8 +66,7 @@ namespace Plus.HabboHotel.Moderation
             foreach (var row in db.ModerationPresetActionCategories.Select(c => new { c.Id, c.Caption }).ToList())
                 _userActionPresetCategories.Add((int)row.Id, row.Caption);
 
-            foreach (var row in db.ModerationPresetActionMessages.Select(m => new { m.Id, m.ParentId, m.Caption, m.MessageText, m.MuteHours, m.BanHours, m.IpBanHours, m.TradeLockDays, m.Notice }).ToList())
-            {
+            foreach (var row in db.ModerationPresetActionMessages.Select(m => new { m.Id, m.ParentId, m.Caption, m.MessageText, m.MuteHours, m.BanHours, m.IpBanHours, m.TradeLockDays, m.Notice }).ToList()) {
                 int parentId = (int)row.ParentId;
 
                 if (!_userActionPresetMessages.ContainsKey(parentId))
@@ -106,19 +101,16 @@ namespace Plus.HabboHotel.Moderation
             var rows = db.Bans.Where(b => b.Bantype == "machine" || b.Bantype == "user")
                 .Select(b => new { b.Bantype, b.Value, b.Reason, b.Expire }).ToList();
 
-            foreach (var row in rows)
-            {
+            foreach (var row in rows) {
                 string value = row.Value;
                 double expires = row.Expire;
 
                 ModerationBan ban = new(BanTypeUtility.GetModerationBanType(row.Bantype), value, row.Reason, expires);
-                if (expires > PlusEnvironment.GetUnixTimestamp())
-                {
+                if (expires > PlusEnvironment.GetUnixTimestamp()) {
                     if (value != null && !_bans.ContainsKey(value))
                         _bans.Add(value, ban);
                 }
-                else
-                {
+                else {
                     string banType = BanTypeUtility.FromModerationBanType(ban.Type);
                     db.Bans.Where(b => b.Bantype == banType && b.Value == value).ExecuteDelete();
                 }
@@ -142,8 +134,7 @@ namespace Plus.HabboHotel.Moderation
                     AppealState = "0"
                 }).On(b => new { b.Bantype, b.Value }).Run();
 
-            if (type == ModerationBanType.Machine || type == ModerationBanType.Username)
-            {
+            if (type == ModerationBanType.Machine || type == ModerationBanType.Username) {
                 if (!_bans.ContainsKey(banValue))
                     _bans.Add(banValue, new ModerationBan(type, banValue, reason, expireTimestamp));
             }
@@ -160,14 +151,11 @@ namespace Plus.HabboHotel.Moderation
             get
             {
                 Dictionary<string, List<ModerationPresetActions>> result = new();
-                foreach (KeyValuePair<int, string> category in _moderationCfhTopics.ToList())
-                {
+                foreach (KeyValuePair<int, string> category in _moderationCfhTopics.ToList()) {
                     result.Add(category.Value, new List<ModerationPresetActions>());
 
-                    if (_moderationCfhTopicActions.ContainsKey(category.Key))
-                    {
-                        foreach (ModerationPresetActions data in _moderationCfhTopicActions[category.Key])
-                        {
+                    if (_moderationCfhTopicActions.ContainsKey(category.Key)) {
+                        foreach (ModerationPresetActions data in _moderationCfhTopicActions[category.Key]) {
                             result[category.Value].Add(data);
                         }
                     }
@@ -203,8 +191,7 @@ namespace Plus.HabboHotel.Moderation
         /// </summary>
         public bool IsBanned(string key, out ModerationBan ban)
         {
-            if (_bans.TryGetValue(key, out ban))
-            {
+            if (_bans.TryGetValue(key, out ban)) {
                 if (!ban.Expired)
                     return true;
 
@@ -227,13 +214,11 @@ namespace Plus.HabboHotel.Moderation
         /// </summary>
         public bool MachineBanCheck(string machineId)
         {
-            if (PlusEnvironment.GetGame().GetModerationManager().IsBanned(machineId, out ModerationBan _))
-            {
+            if (PlusEnvironment.GetGame().GetModerationManager().IsBanned(machineId, out ModerationBan _)) {
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
 
                 //If there is no more ban record, then we can simply remove it from our cache!
-                if (!db.Bans.Any(b => b.Bantype == "machine" && b.Value == machineId))
-                {
+                if (!db.Bans.Any(b => b.Bantype == "machine" && b.Value == machineId)) {
                     PlusEnvironment.GetGame().GetModerationManager().RemoveBan(machineId);
                     return false;
                 }
@@ -247,13 +232,11 @@ namespace Plus.HabboHotel.Moderation
         /// </summary>
         public bool UsernameBanCheck(string username)
         {
-            if (PlusEnvironment.GetGame().GetModerationManager().IsBanned(username, out ModerationBan _))
-            {
+            if (PlusEnvironment.GetGame().GetModerationManager().IsBanned(username, out ModerationBan _)) {
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
 
                 //If there is no more ban record, then we can simply remove it from our cache!
-                if (!db.Bans.Any(b => b.Bantype == "user" && b.Value == username))
-                {
+                if (!db.Bans.Any(b => b.Bantype == "user" && b.Value == username)) {
                     PlusEnvironment.GetGame().GetModerationManager().RemoveBan(username);
                     return false;
                 }

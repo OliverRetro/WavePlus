@@ -25,8 +25,7 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Engine
 
             packet.WriteInteger(Objects.Length);
 
-            foreach (Item item in Objects)
-            {
+            foreach (Item item in Objects) {
                 WriteWallItem(item, OwnerId, packet);
             }
         }
@@ -36,12 +35,10 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Engine
             packet.WriteString(item.Id.ToString());
             packet.WriteInteger(item.Data.SpriteId);
 
-            try
-            {
+            try {
                 packet.WriteString(item.WallCoord);
             }
-            catch
-            {
+            catch {
                 packet.WriteString("");
             }
 

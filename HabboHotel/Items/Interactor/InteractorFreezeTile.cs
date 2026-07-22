@@ -23,13 +23,11 @@ namespace Plus.HabboHotel.Items.Interactor
             if (user == null)
                 return;
 
-            if (user.Team != Team.None)
-            {
+            if (user.Team != Team.None) {
                 user.FreezeInteracting = true;
                 item.InteractingUser = session.GetHabbo().Id;
 
-                if (item.Data.InteractionType == InteractionType.FreezeTileBlock)
-                {
+                if (item.Data.InteractionType == InteractionType.FreezeTileBlock) {
                     if (Gamemap.TileDistance(user.X, user.Y, item.GetX, item.GetY) < 2)
                         item.GetRoom().GetFreeze().OnFreezeTiles(item, item.FreezePowerUp);
                 }

@@ -16,8 +16,7 @@ namespace Plus.Communication.Packets.Outgoing.Roleplay
             List<RpCrimeManager.WantedRow> rows = PlusEnvironment.GetRpCrimeManager().GetWantedList();
 
             packet.WriteInteger(rows.Count);
-            foreach (RpCrimeManager.WantedRow row in rows)
-            {
+            foreach (RpCrimeManager.WantedRow row in rows) {
                 packet.WriteString(row.Username);
                 packet.WriteString(row.Look);
                 packet.WriteInteger(row.Stars);

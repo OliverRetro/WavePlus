@@ -83,8 +83,7 @@ namespace Plus.HabboHotel.GameClients
                 return client.GetHabbo().Username;
 
             string username;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 username = db.Users.Where(u => u.Id == id).Select(u => u.Username).FirstOrDefault();
             }
 
@@ -93,8 +92,7 @@ namespace Plus.HabboHotel.GameClients
 
         public IEnumerable<GameClient> GetClientsById(Dictionary<int, MessengerBuddy>.KeyCollection users)
         {
-            foreach (int id in users)
-            {
+            foreach (int id in users) {
                 GameClient client = GetClientByUserId(id);
                 if (client != null)
                     yield return client;
@@ -103,8 +101,7 @@ namespace Plus.HabboHotel.GameClients
 
         public void StaffAlert(MessageComposer message, int exclude = 0)
         {
-            foreach (GameClient client in GetClients.ToList())
-            {
+            foreach (GameClient client in GetClients.ToList()) {
                 if (client == null || client.GetHabbo() == null)
                     continue;
 
@@ -117,20 +114,16 @@ namespace Plus.HabboHotel.GameClients
 
         public void ModAlert(string message)
         {
-            foreach (GameClient client in GetClients.ToList())
-            {
+            foreach (GameClient client in GetClients.ToList()) {
                 if (client == null || client.GetHabbo() == null)
                     continue;
 
                 if (client.GetHabbo().GetPermissions().HasRight("mod_tool") &&
-                    !client.GetHabbo().GetPermissions().HasRight("staff_ignore_mod_alert"))
-                {
-                    try
-                    {
+                    !client.GetHabbo().GetPermissions().HasRight("staff_ignore_mod_alert")) {
+                    try {
                         client.SendWhisper(message, 5);
                     }
-                    catch
-                    {
+                    catch {
                     }
                 }
             }
@@ -148,18 +141,15 @@ namespace Plus.HabboHotel.GameClients
             builder.Append(target.GetHabbo().Username + "s last 10 messages:\r\r");
 
             uint targetId = (uint)target.GetHabbo().Id;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 int number = 11;
-                foreach (string message in db.Chatlogs.Where(c => c.UserId == targetId).OrderByDescending(c => c.Id).Take(10).Select(c => c.Message).ToList())
-                {
+                foreach (string message in db.Chatlogs.Where(c => c.UserId == targetId).OrderByDescending(c => c.Id).Take(10).Select(c => c.Message).ToList()) {
                     number -= 1;
                     builder.Append(number + ": " + message + "\r");
                 }
             }
 
-            foreach (GameClient client in GetClients.ToList())
-            {
+            foreach (GameClient client in GetClients.ToList()) {
                 if (client == null || client.GetHabbo() == null)
                     continue;
 
@@ -169,16 +159,13 @@ namespace Plus.HabboHotel.GameClients
             }
         }
 
-
         public void SendPacket(MessageComposer packet, string fuse = "")
         {
-            foreach (GameClient client in _clients.Values)
-            {
+            foreach (GameClient client in _clients.Values) {
                 if (client == null || client.GetHabbo() == null)
                     continue;
 
-                if (!string.IsNullOrEmpty(fuse))
-                {
+                if (!string.IsNullOrEmpty(fuse)) {
                     if (!client.GetHabbo().GetPermissions().HasRight(fuse))
                         continue;
                 }
@@ -190,8 +177,7 @@ namespace Plus.HabboHotel.GameClients
         public void CreateAndStartClient(IChannelHandlerContext connection)
         {
             GameClient client = new(connection);
-            if (_clients.TryAdd(connection.Channel.Id, client))
-            {
+            if (_clients.TryAdd(connection.Channel.Id, client)) {
                 //Hmmmmm?
             }
             else
@@ -208,8 +194,7 @@ namespace Plus.HabboHotel.GameClients
             // grace registry — only drop the dead channel mapping here; the real teardown runs when
             // the window expires (or up-front on reconnect) via CompleteGhostDisconnect.
             bool ghosted = client != null && client.Disconnect();
-            if (ghosted)
-            {
+            if (ghosted) {
                 _clients.TryRemove(clientId, out _);
                 return;
             }
@@ -238,13 +223,11 @@ namespace Plus.HabboHotel.GameClients
             // If the normal teardown already pulled the user from the room this is a no-op
             // (GetRoomUserByHabbo returns null); otherwise force the removal now. Runs BEFORE
             // Dispose, which nulls the client's Habbo reference.
-            try
-            {
+            try {
                 if (room != null && habbo != null && room.GetRoomUserManager()?.GetRoomUserByHabbo(habbo.Id) != null)
                     room.GetRoomUserManager().RemoveUserFromRoom(client, false);
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
 
@@ -290,48 +273,40 @@ namespace Plus.HabboHotel.GameClients
         {
             Log.Info("<<- SERVER SHUTDOWN ->> Running disconnection saves for every online user...");
 
-            foreach (GameClient client in GetClients.ToList())
-            {
+            foreach (GameClient client in GetClients.ToList()) {
                 var habbo = client?.GetHabbo();
                 if (habbo == null)
                     continue;
 
-                try
-                {
+                try {
                     // Run the full disconnection save (RP stats, items, weapons, skills, bank,
                     // shift end, crime-log flush, user row) — the same path a normal logout takes.
                     habbo.OnDisconnect();
                     Log.Info(habbo.Username + " has been disconnected.");
                 }
-                catch (Exception e)
-                {
+                catch (Exception e) {
                     ExceptionLogger.LogException(e);
                 }
             }
 
             Log.Info("Done saving all online users!");
             Log.Info("Closing server connections...");
-            try
-            {
-                foreach (GameClient client in GetClients.ToList())
-                {
+            try {
+                foreach (GameClient client in GetClients.ToList()) {
                     if (client == null)
                         continue;
 
-                    try
-                    {
+                    try {
                         client.Dispose();
                     }
-                    catch
-                    {
+                    catch {
                     }
                 }
 
                 Console.Clear();
                 Log.Info("<<- SERVER SHUTDOWN ->> CLOSING CONNECTIONS");
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
 
@@ -343,24 +318,19 @@ namespace Plus.HabboHotel.GameClients
 
         private void TestClientConnections()
         {
-            if (_clientPingStopwatch.ElapsedMilliseconds >= 30000)
-            {
+            if (_clientPingStopwatch.ElapsedMilliseconds >= 30000) {
                 _clientPingStopwatch.Restart();
 
                 List<GameClient> toPing = new();
 
-                foreach (GameClient client in _clients.Values)
-                {
-                    if (client.PingCount < 6)
-                    {
+                foreach (GameClient client in _clients.Values) {
+                    if (client.PingCount < 6) {
                         client.PingCount++;
 
                         toPing.Add(client);
                     }
-                    else
-                    {
-                        lock (_timedOutConnections.SyncRoot)
-                        {
+                    else {
+                        lock (_timedOutConnections.SyncRoot) {
                             _timedOutConnections.Enqueue(client);
                         }
                     }
@@ -368,16 +338,12 @@ namespace Plus.HabboHotel.GameClients
 
                 DateTime start = DateTime.Now;
 
-                foreach (GameClient client in toPing)
-                {
-                    try
-                    {
+                foreach (GameClient client in toPing) {
+                    try {
                         client.SendPacket(new PongComposer());
                     }
-                    catch
-                    {
-                        lock (_timedOutConnections.SyncRoot)
-                        {
+                    catch {
+                        lock (_timedOutConnections.SyncRoot) {
                             _timedOutConnections.Enqueue(client);
                         }
                     }
@@ -387,12 +353,9 @@ namespace Plus.HabboHotel.GameClients
 
         private void HandleTimeouts()
         {
-            if (_timedOutConnections.Count > 0)
-            {
-                lock (_timedOutConnections.SyncRoot)
-                {
-                    while (_timedOutConnections.Count > 0)
-                    {
+            if (_timedOutConnections.Count > 0) {
+                lock (_timedOutConnections.SyncRoot) {
+                    while (_timedOutConnections.Count > 0) {
                         GameClient client = null;
 
                         if (_timedOutConnections.Count > 0)

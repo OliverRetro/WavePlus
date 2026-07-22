@@ -32,31 +32,25 @@ namespace Plus.HabboHotel.Rooms
 
         public void OnCycle()
         {
-            try
-            {
+            try {
                 TimeSpan sinceLastTime = DateTime.Now - _cycleLastExecution;
                 // 50ms tick: rooms process movement/status every tick, and internally fall back
                 // to the classic 500ms cadence for items/wired/timers (see Room.ProcessRoom).
-                if (sinceLastTime.TotalMilliseconds >= 50)
-                {
+                if (sinceLastTime.TotalMilliseconds >= 50) {
                     _cycleLastExecution = DateTime.Now;
-                    foreach (Room room in _rooms.Values)
-                    {
+                    foreach (Room room in _rooms.Values) {
                         if (room.IsCrashed)
                             continue;
 
-                        if (room.ProcessTask == null || room.ProcessTask.IsCompleted)
-                        {
+                        if (room.ProcessTask == null || room.ProcessTask.IsCompleted) {
                             room.ProcessTask = Task.Run(room.ProcessRoom);
                             room.IsLagging = 0;
                         }
-                        else
-                        {
+                        else {
                             room.IsLagging++;
                             // 300 consecutive busy 50ms ticks ≈ 15s of continuous stall — the same
                             // tolerance the old 30 × 500ms check gave.
-                            if (room.IsLagging >= 300)
-                            {
+                            if (room.IsLagging >= 300) {
                                 room.IsCrashed = true;
                                 UnloadRoom(room.Id);
                             }
@@ -64,8 +58,7 @@ namespace Plus.HabboHotel.Rooms
                     }
                 }
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
         }
@@ -82,8 +75,7 @@ namespace Plus.HabboHotel.Rooms
                 .Select(m => new { m.Id, m.DoorX, m.DoorY, m.DoorZ, m.DoorDir, m.Heightmap, m.ClubOnly, m.WallHeight })
                 .ToList();
 
-            foreach (var m in models)
-            {
+            foreach (var m in models) {
                 if (m.Id != null)
                     _roomModels.Add(m.Id, new RoomModel(m.Id, m.DoorX, m.DoorY, m.DoorZ, m.DoorDir,
                         m.Heightmap, PlusEnvironment.EnumToBool(m.ClubOnly), m.WallHeight, false));
@@ -100,8 +92,7 @@ namespace Plus.HabboHotel.Rooms
             if (m == null)
                 return false;
 
-            if (m.Id != null && !_roomModels.ContainsKey(m.Id))
-            {
+            if (m.Id != null && !_roomModels.ContainsKey(m.Id)) {
                 _roomModels.Add(m.Id, new RoomModel(m.Id, m.DoorX, m.DoorY, m.DoorZ, m.DoorDir,
                     m.Heightmap, PlusEnvironment.EnumToBool(m.ClubOnly), m.WallHeight, true));
             }
@@ -111,8 +102,7 @@ namespace Plus.HabboHotel.Rooms
 
         public void ReloadModel(string id)
         {
-            if (!_roomModels.ContainsKey(id))
-            {
+            if (!_roomModels.ContainsKey(id)) {
                 LoadModel(id);
                 return;
             }
@@ -123,17 +113,14 @@ namespace Plus.HabboHotel.Rooms
 
         public bool TryGetModel(string id, out RoomModel model)
         {
-            if (_roomModels.ContainsKey(id))
-            {
+            if (_roomModels.ContainsKey(id)) {
                 model = _roomModels[id];
                 return true;
             }
 
             // Try to load this model.
-            if (LoadModel(id))
-            {
-                if (TryGetModel(id, out RoomModel customModel))
-                {
+            if (LoadModel(id)) {
+                if (TryGetModel(id, out RoomModel customModel)) {
                     model = customModel;
                     return true;
                 }
@@ -145,18 +132,15 @@ namespace Plus.HabboHotel.Rooms
 
         public void UnloadRoom(int roomId)
         {
-            if (_rooms.TryRemove(roomId, out Room room))
-            {
+            if (_rooms.TryRemove(roomId, out Room room)) {
                 room.Dispose();
             }
         }
 
         public bool TryLoadRoom(int roomId, out Room room)
         {
-            if (_rooms.TryGetValue(roomId, out Room inst))
-            {
-                if (!inst.Unloaded)
-                {
+            if (_rooms.TryGetValue(roomId, out Room inst)) {
+                if (!inst.Unloaded) {
                     room = inst;
                     return true;
                 }
@@ -165,12 +149,9 @@ namespace Plus.HabboHotel.Rooms
                 return false;
             }
 
-            lock (_roomLoadingSync)
-            {
-                if (_rooms.TryGetValue(roomId, out inst))
-                {
-                    if (!inst.Unloaded)
-                    {
+            lock (_roomLoadingSync) {
+                if (_rooms.TryGetValue(roomId, out inst)) {
+                    if (!inst.Unloaded) {
                         room = inst;
                         return true;
                     }
@@ -179,15 +160,13 @@ namespace Plus.HabboHotel.Rooms
                     return false;
                 }
 
-                if (!RoomFactory.TryGetData(roomId, out RoomData data))
-                {
+                if (!RoomFactory.TryGetData(roomId, out RoomData data)) {
                     room = null;
                     return false;
                 }
 
                 Room myInstance = new(data);
-                if (_rooms.TryAdd(roomId, myInstance))
-                {
+                if (_rooms.TryAdd(roomId, myInstance)) {
                     room = myInstance;
                     return true;
                 }
@@ -229,8 +208,7 @@ namespace Plus.HabboHotel.Rooms
 
         public List<Room> GetOnGoingRoomPromotions(int mode, int amount = 50)
         {
-            if (mode == 17)
-            {
+            if (mode == 17) {
                 return _rooms.Values.Where(x => x.HasActivePromotion && x.Access != RoomAccess.Invisible).OrderByDescending(x => x.Promotion.TimestampStarted).Take(amount).ToList();
             }
 
@@ -264,16 +242,14 @@ namespace Plus.HabboHotel.Rooms
 
         public RoomData CreateRoom(GameClient session, string name, string description, int category, int maxVisitors, int tradeSettings, RoomModel model, string wallpaper = "0.0", string floor = "0.0", string landscape = "0.0", int wallThick = 0, int floorThick = 0)
         {
-            if (name.Length < 3)
-            {
+            if (name.Length < 3) {
                 session.SendNotification(PlusEnvironment.GetLanguageManager().TryGetValue("room.creation.name.too_short"));
                 return null;
             }
 
             int roomId;
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 var newRoom = new Database.EF.Entities.RoomEntity
                 {
                     Roomtype = "private",
@@ -303,8 +279,7 @@ namespace Plus.HabboHotel.Rooms
 
         public IEnumerable<RoomUser> GetAllRoomUsers()
         {
-            foreach (Room room in _rooms.Values)
-            {
+            foreach (Room room in _rooms.Values) {
                 if (room == null)
                     continue;
 
@@ -312,8 +287,7 @@ namespace Plus.HabboHotel.Rooms
                 if (userManager == null)
                     continue;
 
-                foreach (RoomUser user in userManager.GetUserList())
-                {
+                foreach (RoomUser user in userManager.GetUserList()) {
                     if (user != null)
                         yield return user;
                 }
@@ -324,8 +298,7 @@ namespace Plus.HabboHotel.Rooms
         {
             int length = _rooms.Count;
             int i = 0;
-            foreach (Room room in _rooms.Values)
-            {
+            foreach (Room room in _rooms.Values) {
                 if (room == null)
                     continue;
 

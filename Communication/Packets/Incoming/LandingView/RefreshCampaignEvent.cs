@@ -7,8 +7,7 @@ namespace Plus.Communication.Packets.Incoming.LandingView
     {
         public void Parse(GameClient session, ClientPacket packet)
         {
-            try
-            {
+            try {
                 string parseCampaigns = packet.PopString();
                 if (parseCampaigns.Contains("gamesmaker"))
                     return;
@@ -16,8 +15,7 @@ namespace Plus.Communication.Packets.Incoming.LandingView
                 string campaignName = "";
                 string[] parser = parseCampaigns.Split(';');
 
-                foreach (var value in parser)
-                {
+                foreach (var value in parser) {
                     if (string.IsNullOrEmpty(value) || value.EndsWith(","))
                         continue;
 
@@ -27,8 +25,7 @@ namespace Plus.Communication.Packets.Incoming.LandingView
 
                 session.SendPacket(new CampaignComposer(parseCampaigns, campaignName));
             }
-            catch
-            {
+            catch {
                 //ignored
             }
         }

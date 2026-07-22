@@ -45,7 +45,6 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
             if (string.IsNullOrEmpty(StringData))
                 return false;
 
-
             string[] stuff = StringData.Split('\t');
             if (stuff.Length != 2)
                 return false; //This is important, incase a cunt scripts.
@@ -64,12 +63,10 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
             MessageComposer userChangeComposer = new UserChangeComposer(user.VirtualId, user.BotData);
             Instance.SendPacket(userChangeComposer);
 
-
             uint botId = (uint)user.BotData.Id;
             string look = user.BotData.Look;
             string gender = user.BotData.Gender;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.Bots.Where(b => b.Id == botId)
                     .ExecuteUpdate(s => s.SetProperty(b => b.Look, look).SetProperty(b => b.Gender, gender));
             }

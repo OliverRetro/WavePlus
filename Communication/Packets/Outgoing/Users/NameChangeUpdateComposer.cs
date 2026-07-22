@@ -30,8 +30,7 @@ namespace Plus.Communication.Packets.Outgoing.Users
             packet.WriteString(Name);
 
             packet.WriteInteger(Tags.Count);
-            foreach (string tag in Tags)
-            {
+            foreach (string tag in Tags) {
                 packet.WriteString(Name + tag);
             }
         }

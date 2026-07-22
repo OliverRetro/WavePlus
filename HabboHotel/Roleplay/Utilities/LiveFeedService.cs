@@ -64,8 +64,7 @@ namespace Plus.HabboHotel.Roleplay.Utilities
                     { "image", "livefeed" }
                 });
 
-            foreach (RoomUser user in PlusEnvironment.GetGame().GetRoomManager().GetAllRoomUsers())
-            {
+            foreach (RoomUser user in PlusEnvironment.GetGame().GetRoomManager().GetAllRoomUsers()) {
                 if (user.IsBot)
                     continue;
 
@@ -101,8 +100,7 @@ namespace Plus.HabboHotel.Roleplay.Utilities
 
         private static async Task DiscordEmbed(string message, string type)
         {
-            try
-            {
+            try {
                 string webhookUrl = "https://discord.com/api/webhooks/1522299501128192031/pz-zpxt761N6BshyiZ3_50G1nXNkgHRZS2FE3SpRCpOIhyKFOe3IqFRL1x_kDLn90B6f";
                 string markdown = ConvertHtmlToDiscordMarkdown(message);
 
@@ -152,8 +150,7 @@ namespace Plus.HabboHotel.Roleplay.Utilities
 
                 await WebhookClient.PostAsync(webhookUrl, new StringContent(json, Encoding.UTF8, "application/json"));
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 Console.WriteLine($"Error while sending live feed webhook message: {ex}");
             }
         }

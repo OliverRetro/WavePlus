@@ -18,12 +18,10 @@ namespace Plus.HabboHotel.Catalog.Vouchers
             if (_vouchers.Count > 0)
                 _vouchers.Clear();
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 var rows = db.CatalogVouchers.Where(v => v.Enabled == "1")
                     .Select(v => new { v.Voucher, v.Type, v.Value, v.CurrentUses, v.MaxUses }).ToList();
-                foreach (var row in rows)
-                {
+                foreach (var row in rows) {
                     _vouchers.Add(row.Voucher, new Voucher(row.Voucher, row.Type, row.Value, row.CurrentUses, row.MaxUses));
                 }
             }

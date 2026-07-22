@@ -26,8 +26,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
 
             uint roomId = (uint)room.Id;
             int userId = session.GetHabbo().Id;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.Items.Where(i => i.RoomId == roomId && i.UserId == userId).ExecuteUpdate(s => s.SetProperty(i => i.RoomId, 0u));
             }
 

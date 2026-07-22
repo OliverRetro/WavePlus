@@ -18,8 +18,7 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Furni.Moodlight
             packet.WriteInteger(Data.CurrentPreset);
 
             int i = 1;
-            foreach (MoodlightPreset preset in Data.Presets)
-            {
+            foreach (MoodlightPreset preset in Data.Presets) {
                 packet.WriteInteger(i);
                 packet.WriteInteger(preset.BackgroundOnly ? 2 : 1);
                 packet.WriteString(preset.ColorCode);

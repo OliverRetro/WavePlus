@@ -13,8 +13,7 @@ namespace Plus.Network.Handler
     {
         protected override void Decode(IChannelHandlerContext context, IByteBuffer input, List<object> output)
         {
-            if (input.GetString(0, 3, Encoding.UTF8).StartsWith("GET"))
-            {
+            if (input.GetString(0, 3, Encoding.UTF8).StartsWith("GET")) {
                 // this is a websocket upgrade request, so add the appropriate decoders/encoders
                 context.Channel.Pipeline.AddAfter("messageInterceptor", "websocketCodec", new WebSocketFrameCodec());
                 context.Channel.Pipeline.AddAfter("messageInterceptor", "protocolHandler", new WebSocketServerProtocolHandler("/", null, false, NetworkBootstrap.MAX_FRAME_SIZE, false, true));

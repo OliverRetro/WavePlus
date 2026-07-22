@@ -17,12 +17,10 @@ namespace Plus.Communication.Packets.Outgoing.Inventory.Achievements
         {
             packet.WriteInteger(Achievements.Count);
 
-            foreach (Achievement achievement in Achievements.Values)
-            {
+            foreach (Achievement achievement in Achievements.Values) {
                 packet.WriteString(achievement.GroupName.Replace("ACH_", ""));
                 packet.WriteInteger(achievement.Levels.Count);
-                foreach (AchievementLevel level in achievement.Levels.Values)
-                {
+                foreach (AchievementLevel level in achievement.Levels.Values) {
                     packet.WriteInteger(level.Level);
                     packet.WriteInteger(level.Requirement);
                 }

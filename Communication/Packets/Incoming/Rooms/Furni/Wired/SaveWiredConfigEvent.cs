@@ -31,8 +31,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni.Wired
             if (!session.GetHabbo().CurrentRoom.GetWired().TryGet(itemId, out IWiredItem box))
                 return;
 
-            if (box.Type == WiredBoxType.EffectGiveUserBadge && !session.GetHabbo().GetPermissions().HasRight("room_item_wired_rewards"))
-            {
+            if (box.Type == WiredBoxType.EffectGiveUserBadge && !session.GetHabbo().GetPermissions().HasRight("room_item_wired_rewards")) {
                 session.SendNotification("You don't have the correct permissions to do this.");
                 return;
             }

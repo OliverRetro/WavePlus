@@ -48,8 +48,7 @@ namespace Plus.Communication.Packets.Outgoing.Groups
 
             int req = 5 - data.Length;
 
-            foreach (string s in data)
-            {
+            foreach (string s in data) {
                 packet.WriteInteger(
                     s.Length >= 6
                         ? int.Parse(s.Substring(0, 3))
@@ -68,8 +67,7 @@ namespace Plus.Communication.Packets.Outgoing.Groups
                     packet.WriteInteger(int.Parse(s.Substring(4, 1)));
             }
 
-            while (req > 0)
-            {
+            while (req > 0) {
                 packet.WriteInteger(0);
                 packet.WriteInteger(0);
                 packet.WriteInteger(0);

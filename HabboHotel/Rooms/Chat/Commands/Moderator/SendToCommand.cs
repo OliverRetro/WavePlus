@@ -14,27 +14,23 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length < 3)
-            {
+            if (@params.Length < 3) {
                 session.SendWhisper("Please enter a username and a room id. Example: :sendto Oliver 12345");
                 return;
             }
 
-            if (!int.TryParse(@params[2], out int roomId))
-            {
+            if (!int.TryParse(@params[2], out int roomId)) {
                 session.SendWhisper("You must enter a valid room ID.");
                 return;
             }
 
-            if (!RoomFactory.TryGetData(roomId, out RoomData data))
-            {
+            if (!RoomFactory.TryGetData(roomId, out RoomData data)) {
                 session.SendWhisper("This room does not exist!");
                 return;
             }
 
             GameClient targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(@params[1]);
-            if (targetClient == null || targetClient.GetHabbo() == null)
-            {
+            if (targetClient == null || targetClient.GetHabbo() == null) {
                 session.SendWhisper("An error occurred whilst finding that user, maybe they're not online.");
                 return;
             }

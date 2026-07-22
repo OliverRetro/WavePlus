@@ -33,8 +33,7 @@ namespace Plus.Communication.Packets.Incoming.Catalog
             int colour = packet.PopInt();
             packet.PopBoolean();
 
-            if (PlusEnvironment.GetSettingsManager().TryGetValue("room.item.gifts.enabled") != "1")
-            {
+            if (PlusEnvironment.GetSettingsManager().TryGetValue("room.item.gifts.enabled") != "1") {
                 session.SendNotification("The hotel managers have disabled gifting");
                 return;
             }
@@ -45,10 +44,8 @@ namespace Plus.Communication.Packets.Incoming.Catalog
             if (!page.Enabled || !page.Visible || page.MinimumRank > session.GetHabbo().Rank || page.MinimumVip > session.GetHabbo().VipRank && session.GetHabbo().Rank == 1)
                 return;
 
-            if (!page.Items.TryGetValue(itemId, out CatalogItem item))
-            {
-                if (page.ItemOffers.ContainsKey(itemId))
-                {
+            if (!page.Items.TryGetValue(itemId, out CatalogItem item)) {
+                if (page.ItemOffers.ContainsKey(itemId)) {
                     item = page.ItemOffers[itemId];
                     if (item == null)
                         return;
@@ -63,33 +60,28 @@ namespace Plus.Communication.Packets.Incoming.Catalog
             if (!PlusEnvironment.GetGame().GetItemManager().GetGift(spriteId, out ItemData presentData) || presentData.InteractionType != InteractionType.Gift)
                 return;
 
-            if (session.GetHabbo().Credits < item.CostCredits)
-            {
+            if (session.GetHabbo().Credits < item.CostCredits) {
                 session.SendPacket(new PresentDeliverErrorMessageComposer(true, false));
                 return;
             }
 
-            if (session.GetHabbo().Duckets < item.CostPixels)
-            {
+            if (session.GetHabbo().Duckets < item.CostPixels) {
                 session.SendPacket(new PresentDeliverErrorMessageComposer(false, true));
                 return;
             }
 
             Habbo habbo = PlusEnvironment.GetHabboByUsername(giftUser);
-            if (habbo == null)
-            {
+            if (habbo == null) {
                 session.SendPacket(new GiftWrappingErrorComposer());
                 return;
             }
 
-            if (!habbo.AllowGifts)
-            {
+            if (!habbo.AllowGifts) {
                 session.SendNotification("Oops, this user doesn't allow gifts to be sent to them!");
                 return;
             }
 
-            if ((DateTime.Now - session.GetHabbo().LastGiftPurchaseTime).TotalSeconds <= 15.0)
-            {
+            if ((DateTime.Now - session.GetHabbo().LastGiftPurchaseTime).TotalSeconds <= 15.0) {
                 session.SendNotification("You're purchasing gifts too fast! Please wait 15 seconds!");
 
                 session.GetHabbo().GiftPurchasingWarnings += 1;
@@ -101,12 +93,10 @@ namespace Plus.Communication.Packets.Incoming.Catalog
             if (session.GetHabbo().SessionGiftBlocked)
                 return;
 
-
             string ed = giftUser + Convert.ToChar(5) + giftMessage + Convert.ToChar(5) + session.GetHabbo().Id + Convert.ToChar(5) + item.Data.Id + Convert.ToChar(5) + spriteId + Convert.ToChar(5) + ribbon + Convert.ToChar(5) + colour;
 
             int newItemId;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 //Insert the dummy item.
                 Plus.Database.EF.Entities.ItemEntity dummyItem = new()
                 {
@@ -119,8 +109,7 @@ namespace Plus.Communication.Packets.Incoming.Catalog
                 newItemId = (int)dummyItem.Id;
 
                 string itemExtraData = null;
-                switch (item.Data.InteractionType)
-                {
+                switch (item.Data.InteractionType) {
                     case InteractionType.None:
                         itemExtraData = "";
                         break;
@@ -129,8 +118,7 @@ namespace Plus.Communication.Packets.Incoming.Catalog
 
                     case InteractionType.Pet:
 
-                        try
-                        {
+                        try {
                             string[] bits = data.Split('\n');
                             string petName = bits[0];
                             string race = bits[1];
@@ -147,8 +135,7 @@ namespace Plus.Communication.Packets.Incoming.Catalog
 
                             PlusEnvironment.GetGame().GetAchievementManager().ProgressAchievement(session, "ACH_PetLover", 1);
                         }
-                        catch
-                        {
+                        catch {
                             return;
                         }
 
@@ -161,12 +148,10 @@ namespace Plus.Communication.Packets.Incoming.Catalog
                     case InteractionType.Landscape:
 
                         double number = 0;
-                        try
-                        {
+                        try {
                             number = string.IsNullOrEmpty(data) ? 0 : double.Parse(data, PlusEnvironment.CultureInfo);
                         }
-                        catch
-                        {
+                        catch {
                             //ignored
                         }
 
@@ -190,8 +175,7 @@ namespace Plus.Communication.Packets.Incoming.Catalog
                         break;
 
                     case InteractionType.BadgeDisplay:
-                        if (!session.GetHabbo().GetBadgeComponent().HasBadge(data))
-                        {
+                        if (!session.GetHabbo().GetBadgeComponent().HasBadge(data)) {
                             session.SendPacket(new BroadcastMessageAlertComposer("Oops, it appears that you do not own this badge."));
                             return;
                         }
@@ -218,13 +202,10 @@ namespace Plus.Communication.Packets.Incoming.Catalog
                 db.Items.Where(i => i.Id == deleteId).ExecuteDelete();
             }
 
-
             HabboHotel.Items.Item giveItem = ItemFactory.CreateGiftItem(presentData, habbo, ed, ed, newItemId);
-            if (giveItem != null)
-            {
+            if (giveItem != null) {
                 GameClient receiver = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(habbo.Id);
-                if (receiver != null)
-                {
+                if (receiver != null) {
                     receiver.GetHabbo().GetInventoryComponent().TryAddItem(giveItem);
                     receiver.SendPacket(new FurniListNotificationComposer(giveItem.Id, 1));
                     receiver.SendPacket(new PurchaseOkComposer());
@@ -232,8 +213,7 @@ namespace Plus.Communication.Packets.Incoming.Catalog
                     receiver.SendPacket(new FurniListUpdateComposer());
                 }
 
-                if (habbo.Id != session.GetHabbo().Id && !string.IsNullOrWhiteSpace(giftMessage))
-                {
+                if (habbo.Id != session.GetHabbo().Id && !string.IsNullOrWhiteSpace(giftMessage)) {
                     PlusEnvironment.GetGame().GetAchievementManager().ProgressAchievement(session, "ACH_GiftGiver", 1);
                     if (receiver != null)
                         PlusEnvironment.GetGame().GetAchievementManager().ProgressAchievement(receiver, "ACH_GiftReceiver", 1);
@@ -243,14 +223,12 @@ namespace Plus.Communication.Packets.Incoming.Catalog
 
             session.SendPacket(new PurchaseOkComposer(item, presentData));
 
-            if (item.CostCredits > 0)
-            {
+            if (item.CostCredits > 0) {
                 session.GetHabbo().Credits -= item.CostCredits;
                 session.SendPacket(new CreditBalanceComposer(session.GetHabbo().Credits));
             }
 
-            if (item.CostPixels > 0)
-            {
+            if (item.CostPixels > 0) {
                 session.GetHabbo().Duckets -= item.CostPixels;
                 session.SendPacket(new HabboActivityPointNotificationComposer(session.GetHabbo().Duckets, session.GetHabbo().Duckets));
             }

@@ -23,8 +23,7 @@ namespace Plus.Communication.Packets.Outgoing.Catalog
             packet.WriteString(PetType);
 
             packet.WriteInteger(Races.Count);
-            foreach (PetRace race in Races.ToList())
-            {
+            foreach (PetRace race in Races.ToList()) {
                 packet.WriteInteger(PetId);
                 packet.WriteInteger(race.PrimaryColour);
                 packet.WriteInteger(race.SecondaryColour);

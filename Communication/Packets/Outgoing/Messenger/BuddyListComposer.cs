@@ -29,8 +29,7 @@ namespace Plus.Communication.Packets.Outgoing.Messenger
             packet.WriteInteger(Page); // Page
 
             packet.WriteInteger(Friends.Count);
-            foreach (MessengerBuddy friend in Friends.ToList())
-            {
+            foreach (MessengerBuddy friend in Friends.ToList()) {
                 Relationship relationship = Habbo.Relationships.FirstOrDefault(x => x.Value.UserId == Convert.ToInt32(friend.UserId)).Value;
 
                 packet.WriteInteger(friend.Id);

@@ -37,21 +37,16 @@ namespace Plus.HabboHotel.Navigator
             if (_featuredRooms.Count > 0)
                 _featuredRooms.Clear();
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
-                foreach (var row in db.NavigatorCategories.OrderBy(c => c.Id).ToList())
-                {
-                    if (Convert.ToInt32(row.Enabled) == 1)
-                    {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
+                foreach (var row in db.NavigatorCategories.OrderBy(c => c.Id).ToList()) {
+                    if (Convert.ToInt32(row.Enabled) == 1) {
                         if (!_searchResultLists.ContainsKey(row.Id))
                             _searchResultLists.Add(row.Id, new SearchResultList(row.Id, row.Category, row.CategoryIdentifier, row.PublicName, true, -1, row.RequiredRank, NavigatorViewModeUtility.GetViewModeByString(row.ViewMode), row.CategoryType, row.SearchAllowance, row.OrderId));
                     }
                 }
 
-                foreach (var row in db.NavigatorPublics.OrderBy(p => p.OrderNum).Select(p => new { p.RoomId, p.Caption, p.Description, p.ImageUrl, p.Enabled }).ToList())
-                {
-                    if (Convert.ToInt32(row.Enabled) == 1)
-                    {
+                foreach (var row in db.NavigatorPublics.OrderBy(p => p.OrderNum).Select(p => new { p.RoomId, p.Caption, p.Description, p.ImageUrl, p.Enabled }).ToList()) {
+                    if (Convert.ToInt32(row.Enabled) == 1) {
                         if (!_featuredRooms.ContainsKey(row.RoomId))
                             _featuredRooms.Add(row.RoomId, new FeaturedRoom(row.RoomId, row.Caption, row.Description, row.ImageUrl));
                     }

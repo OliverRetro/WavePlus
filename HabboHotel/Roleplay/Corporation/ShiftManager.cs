@@ -57,32 +57,27 @@ namespace Plus.HabboHotel.Roleplay.Corporation
             Habbo habbo = session.GetHabbo();
             Group group = room.Group;
 
-            if (habbo.GetRpStats().Energy < 1)
-            {
+            if (habbo.GetRpStats().Energy < 1) {
                 session.SendWhisper("You don't have enough energy!", 1);
                 return;
             }
 
-            if (!GroupManager.IsWorkableKind(group.Kind))
-            {
+            if (!GroupManager.IsWorkableKind(group.Kind)) {
                 session.SendWhisper("This command can only be used in corporation room!", 1);
                 return;
             }
 
-            if (!group.IsMember(habbo.Id))
-            {
+            if (!group.IsMember(habbo.Id)) {
                 session.SendWhisper("You don't work here! Feel free to apply to join the corporation.", 1);
                 return;
             }
 
-            if (!group.TryGetRoleData(habbo.Id, out GroupRole role))
-            {
+            if (!group.TryGetRoleData(habbo.Id, out GroupRole role)) {
                 session.SendWhisper("You don't have a role in this corporation! Contact your superior to get assigned a role.", 1);
                 return;
             }
 
-            if (IsWorking(habbo.Id))
-            {
+            if (IsWorking(habbo.Id)) {
                 session.SendWhisper("You are already working!", 1);
                 return;
             }
@@ -123,20 +118,17 @@ namespace Plus.HabboHotel.Roleplay.Corporation
             Habbo habbo = session.GetHabbo();
             Group group = room.Group;
 
-            if (!GroupManager.IsWorkableKind(group.Kind))
-            {
+            if (!GroupManager.IsWorkableKind(group.Kind)) {
                 session.SendWhisper("This command can only be used in corporation room!", 1);
                 return;
             }
 
-            if (!group.IsMember(habbo.Id))
-            {
+            if (!group.IsMember(habbo.Id)) {
                 session.SendWhisper("You don't work here! Feel free to apply to join the corporation.", 1);
                 return;
             }
 
-            if (!group.TryGetRoleData(habbo.Id, out GroupRole _))
-            {
+            if (!group.TryGetRoleData(habbo.Id, out GroupRole _)) {
                 session.SendWhisper("You don't have a role in this corporation! Contact your superior to get assigned a role.", 1);
                 return;
             }
@@ -164,11 +156,9 @@ namespace Plus.HabboHotel.Roleplay.Corporation
             string figureString = role.ShiftCostume;
             string selectedFigure = null;
 
-            if (figureString.Contains('|'))
-            {
+            if (figureString.Contains('|')) {
                 Dictionary<string, string> figures = [];
-                foreach (string part in figureString.Split(';'))
-                {
+                foreach (string part in figureString.Split(';')) {
                     if (string.IsNullOrWhiteSpace(part))
                         continue;
 
@@ -184,8 +174,7 @@ namespace Plus.HabboHotel.Roleplay.Corporation
                 else if (figures.TryGetValue("m", out fig))
                     selectedFigure = fig;
             }
-            else
-            {
+            else {
                 selectedFigure = figureString;
             }
 
@@ -196,8 +185,7 @@ namespace Plus.HabboHotel.Roleplay.Corporation
 
             // Build from the true own look (OldLook), not habbo.Look, so a worn clothing item
             // never leaks into the costume figure.
-            foreach (string part in habbo.OldLook.Split('.'))
-            {
+            foreach (string part in habbo.OldLook.Split('.')) {
                 if (string.IsNullOrWhiteSpace(part))
                     continue;
 
@@ -208,8 +196,7 @@ namespace Plus.HabboHotel.Roleplay.Corporation
                 lookParts[split[0]] = part;
             }
 
-            foreach (string part in selectedFigure.Split('.'))
-            {
+            foreach (string part in selectedFigure.Split('.')) {
                 if (string.IsNullOrWhiteSpace(part))
                     continue;
 
@@ -269,8 +256,7 @@ namespace Plus.HabboHotel.Roleplay.Corporation
             // Stopping work (including by death) strips any police-issue tazer.
             TazerService.RemoveTazer(habbo);
 
-            if (shift.BonusCredits > 0)
-            {
+            if (shift.BonusCredits > 0) {
                 GivePay(habbo, shift.BonusCredits);
                 AddPendingLog(habbo.Id, shift.GroupId, shift.BonusCredits);
                 IncrementCountCache(shift.GroupId, habbo.Id);
@@ -300,10 +286,8 @@ namespace Plus.HabboHotel.Roleplay.Corporation
             // The tazer is shift-scoped and must never persist across sessions.
             TazerService.RemoveTazer(habbo);
 
-            if (_activeShifts.TryRemove(habbo.Id, out ActiveShift shift))
-            {
-                if (shift.BonusCredits > 0)
-                {
+            if (_activeShifts.TryRemove(habbo.Id, out ActiveShift shift)) {
+                if (shift.BonusCredits > 0) {
                     habbo.Credits += shift.BonusCredits;
                     AddPendingLog(habbo.Id, shift.GroupId, shift.BonusCredits);
                     IncrementCountCache(shift.GroupId, habbo.Id);
@@ -340,8 +324,7 @@ namespace Plus.HabboHotel.Roleplay.Corporation
             // Only when the setting is on AND the user actually owns an account.
             var settings = habbo.GetRpSettings();
             var account = habbo.GetBankAccount();
-            if (settings != null && settings.AutoSalaryDeposit && account != null)
-            {
+            if (settings != null && settings.AutoSalaryDeposit && account != null) {
                 account.SetBalance(account.Balance + amount);
                 account.AddLog(new Banking.UserRpBankLog(habbo.Id, amount, "DEPOSIT", "SALARY", 0, (int)PlusEnvironment.GetUnixTimestamp()));
                 PlusEnvironment.GetBankingManager().Save(habbo);
@@ -390,8 +373,7 @@ namespace Plus.HabboHotel.Roleplay.Corporation
         private void LoadCountsFromDatabase(int groupId, int userId)
         {
             int total = 0, weekly = 0;
-            try
-            {
+            try {
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
                 total = db.RpShiftLogs.Count(x => x.GroupId == groupId && x.UserId == userId);
 
@@ -421,11 +403,9 @@ namespace Plus.HabboHotel.Roleplay.Corporation
             if (snapshot.Count == 0)
                 return;
 
-            try
-            {
+            try {
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
-                foreach (var (groupId, credits, finished) in snapshot)
-                {
+                foreach (var (groupId, credits, finished) in snapshot) {
                     db.RpShiftLogs.Add(new RpShiftLogEntity
                     {
                         GroupId = groupId,

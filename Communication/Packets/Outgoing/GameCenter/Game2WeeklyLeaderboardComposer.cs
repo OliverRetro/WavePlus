@@ -29,8 +29,7 @@ namespace Plus.Communication.Packets.Outgoing.GameCenter
             int num = 0;
 
             packet.WriteInteger(Habbos.Count); //Count
-            foreach (Habbo habbo in Habbos.ToList())
-            {
+            foreach (Habbo habbo in Habbos.ToList()) {
                 num++;
                 packet.WriteInteger(habbo.Id); //Id
                 packet.WriteInteger(habbo.FastFoodScore); //Score

@@ -34,8 +34,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.FloorPlan
                 return;
             }
 
-            if (map.Any(letter => !validLetters.Contains(letter)) || string.IsNullOrEmpty(map))
-            {
+            if (map.Any(letter => !validLetters.Contains(letter)) || string.IsNullOrEmpty(map)) {
                 session.SendPacket(new RoomNotificationComposer("floorplan_editor.error", "errors", "Oops, it appears that you have entered an invalid floor map!"));
                 return;
             }
@@ -45,8 +44,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.FloorPlan
             int sizeY = modelData.Length;
             int sizeX = modelData[0].Length;
 
-            if (sizeY > 64 || sizeX > 64)
-            {
+            if (sizeY > 64 || sizeX > 64) {
                 session.SendPacket(new RoomNotificationComposer("floorplan_editor.error", "errors", "The maximum height and width of a model is 64x64!"));
                 return;
             }
@@ -54,22 +52,18 @@ namespace Plus.Communication.Packets.Incoming.Rooms.FloorPlan
             int lastLineLength = 0;
             bool isValid = true;
 
-            foreach (var data in modelData)
-            {
-                if (lastLineLength == 0)
-                {
+            foreach (var data in modelData) {
+                if (lastLineLength == 0) {
                     lastLineLength = data.Length;
                     continue;
                 }
 
-                if (lastLineLength != data.Length)
-                {
+                if (lastLineLength != data.Length) {
                     isValid = false;
                 }
             }
 
-            if (!isValid)
-            {
+            if (!isValid) {
                 session.SendPacket(new RoomNotificationComposer("floorplan_editor.error", "errors", "Oops, it appears that you have entered an invalid floor map!"));
                 return;
             }
@@ -83,12 +77,10 @@ namespace Plus.Communication.Packets.Incoming.Rooms.FloorPlan
 
             int doorZ = 0;
 
-            try
-            {
+            try {
                 doorZ = Parse(modelData[doorY][doorX]);
             }
-            catch
-            {
+            catch {
                 //ignored
             }
 
@@ -115,8 +107,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.FloorPlan
             map += '\r' + new string('x', sizeX);
 
             int rid = room.Id;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 bool exists = db.RoomModels.Any(m => m.Id == modelName && m.Custom == "1");
 
                 if (!exists) //The row is still null, let's insert instead.
@@ -124,8 +115,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.FloorPlan
                     // Partial insert (relies on DB defaults for public_items/club_only/poolmap), so raw insert is used.
                     db.Database.ExecuteSqlInterpolated($"INSERT INTO `room_models` (`id`,`door_x`,`door_y`, `door_z`, `door_dir`,`heightmap`,`custom`,`wall_height`) VALUES ({modelName}, {doorX}, {doorY}, {doorZ}, {doorDirection}, {map}, '1', {wallHeight})");
                 }
-                else
-                {
+                else {
                     double doorZd = doorZ;
                     db.RoomModels.Where(m => m.Id == modelName).ExecuteUpdate(s => s
                         .SetProperty(m => m.Heightmap, map)
@@ -151,9 +141,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.FloorPlan
             PlusEnvironment.GetGame().GetRoomManager().ReloadModel(modelName);
             PlusEnvironment.GetGame().GetRoomManager().UnloadRoom(room.Id);
 
-
-            foreach (RoomUser user in usersToReturn)
-            {
+            foreach (RoomUser user in usersToReturn) {
                 if (user == null || user.GetClient() == null)
                     continue;
 
@@ -163,8 +151,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.FloorPlan
 
         private static short Parse(char input)
         {
-            switch (input)
-            {
+            switch (input) {
                 default:
                     return 0;
                 case '1':

@@ -22,8 +22,7 @@ namespace Plus.Communication.Packets.Outgoing.Moderation
         public override void Compose(ServerPacket packet)
         {
             packet.WriteInteger(Tickets.Count);
-            foreach (ModerationTicket ticket in Tickets)
-            {
+            foreach (ModerationTicket ticket in Tickets) {
                 packet.WriteInteger(ticket.Id); // Id
                 packet.WriteInteger(ticket.GetStatus(Id)); // Tab ID
                 packet.WriteInteger(ticket.Type); // Type
@@ -43,8 +42,7 @@ namespace Plus.Communication.Packets.Outgoing.Moderation
             }
 
             packet.WriteInteger(UserPresets.Count);
-            foreach (string pre in UserPresets)
-            {
+            foreach (string pre in UserPresets) {
                 packet.WriteString(pre);
             }
 
@@ -82,8 +80,7 @@ namespace Plus.Communication.Packets.Outgoing.Moderation
             packet.WriteBoolean(true); // Love you, Tom
 
             packet.WriteInteger(RoomPresets.Count);
-            foreach (string pre in RoomPresets)
-            {
+            foreach (string pre in RoomPresets) {
                 packet.WriteString(pre);
             }
         }

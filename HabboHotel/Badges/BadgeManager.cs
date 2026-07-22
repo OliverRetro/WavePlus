@@ -18,11 +18,9 @@ namespace Plus.HabboHotel.Badges
 
         public void Init()
         {
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 var rows = db.BadgeDefinitions.Select(b => new { b.Code, b.RequiredRight }).ToList();
-                foreach (var row in rows)
-                {
+                foreach (var row in rows) {
                     string code = row.Code.ToUpper();
 
                     if (!_badges.ContainsKey(code))

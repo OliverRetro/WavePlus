@@ -17,8 +17,7 @@ namespace Plus.Communication.Packets.Incoming.Navigator
 
             uint userId = (uint)session.GetHabbo().Id;
             uint roomId = (uint)id;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.UserFavorites.Where(f => f.UserId == userId && f.RoomId == roomId).ExecuteDelete();
             }
         }

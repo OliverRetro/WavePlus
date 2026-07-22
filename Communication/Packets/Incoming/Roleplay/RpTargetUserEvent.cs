@@ -27,8 +27,7 @@ namespace Plus.Communication.Packets.Incoming.Roleplay
             // -1 (or any non-positive id) means the client dropped its selection.
             // Only clear an unlocked selection: a lock is released by :unlocktarget,
             // a reconnect, or picking a different target - never by a stray deselect.
-            if (userId <= 0)
-            {
+            if (userId <= 0) {
                 TargetLockService.ClearClickedTarget(session.GetHabbo());
                 return;
             }

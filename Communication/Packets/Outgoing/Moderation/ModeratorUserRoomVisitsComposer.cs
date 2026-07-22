@@ -23,8 +23,7 @@ namespace Plus.Communication.Packets.Outgoing.Moderation
             packet.WriteString(Habbo.Username);
             packet.WriteInteger(Visits.Count);
 
-            foreach (KeyValuePair<double, RoomData> visit in Visits)
-            {
+            foreach (KeyValuePair<double, RoomData> visit in Visits) {
                 packet.WriteInteger(visit.Value.Id);
                 packet.WriteString(visit.Value.Name);
                 packet.WriteInteger(UnixTimestamp.FromUnixTimestamp(visit.Key).Hour);

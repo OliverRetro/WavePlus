@@ -18,8 +18,7 @@ namespace Plus.Communication.Packets.Outgoing.Catalog
             packet.WriteBoolean(true);
             packet.WriteInteger(Rooms.Count); //Count
 
-            foreach (RoomData data in Rooms)
-            {
+            foreach (RoomData data in Rooms) {
                 packet.WriteInteger(data.Id);
                 packet.WriteString(data.Name);
                 packet.WriteBoolean(false);

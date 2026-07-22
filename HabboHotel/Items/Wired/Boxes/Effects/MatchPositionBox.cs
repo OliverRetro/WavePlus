@@ -58,8 +58,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
             string unknown2 = packet.PopString();
 
             int furniCount = packet.PopInt();
-            for (int i = 0; i < furniCount; i++)
-            {
+            for (int i = 0; i < furniCount; i++) {
                 Item selectedItem = Instance.GetRoomItemHandler().GetItem(packet.PopInt());
                 if (selectedItem != null)
                     SetItems.TryAdd(selectedItem.Id, selectedItem);
@@ -73,8 +72,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
 
         public bool Execute(params object[] @params)
         {
-            if (!_requested)
-            {
+            if (!_requested) {
                 TickCount = Delay;
                 _requested = true;
             }
@@ -87,13 +85,11 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
             if (!_requested || string.IsNullOrEmpty(StringData) || StringData == "0;0;0" || SetItems.Count == 0)
                 return false;
 
-            foreach (Item item in SetItems.Values.ToList())
-            {
+            foreach (Item item in SetItems.Values.ToList()) {
                 if (Instance.GetRoomItemHandler().GetFloor == null && !Instance.GetRoomItemHandler().GetFloor.Contains(item))
                     continue;
 
-                foreach (string I in ItemsData.Split(';'))
-                {
+                foreach (string I in ItemsData.Split(';')) {
                     if (string.IsNullOrEmpty(I))
                         continue;
 
@@ -103,20 +99,17 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
                         continue;
 
                     string[] partsString = I.Split(':');
-                    try
-                    {
+                    try {
                         if (string.IsNullOrEmpty(partsString[0]) || string.IsNullOrEmpty(partsString[1]))
                             continue;
                     }
-                    catch
-                    {
+                    catch {
                         continue;
                     }
 
                     string[] part = partsString[1].Split(',');
 
-                    try
-                    {
+                    try {
                         if (int.Parse(StringData.Split(';')[0]) == 1) //State
                         {
                             if (part.Count() >= 4)
@@ -125,28 +118,23 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
                                 SetState(ii, "1");
                         }
                     }
-                    catch (Exception e)
-                    {
+                    catch (Exception e) {
                         ExceptionLogger.LogWiredException(e);
                     }
 
-                    try
-                    {
+                    try {
                         if (int.Parse(StringData.Split(';')[1]) == 1) //Direction
                             SetRotation(ii, Convert.ToInt32(part[3]));
                     }
-                    catch (Exception e)
-                    {
+                    catch (Exception e) {
                         ExceptionLogger.LogWiredException(e);
                     }
 
-                    try
-                    {
+                    try {
                         if (int.Parse(StringData.Split(';')[2]) == 1) //Position
                             SetPosition(ii, Convert.ToInt32(part[0]), Convert.ToInt32(part[1]), Convert.ToDouble(part[2]));
                     }
-                    catch (Exception e)
-                    {
+                    catch (Exception e) {
                         ExceptionLogger.LogWiredException(e);
                     }
                 }

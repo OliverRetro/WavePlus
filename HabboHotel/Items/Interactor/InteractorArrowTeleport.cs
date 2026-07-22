@@ -23,12 +23,10 @@ namespace Plus.HabboHotel.Items.Interactor
         {
             item.ExtraData = "0";
 
-            if (item.InteractingUser != 0)
-            {
+            if (item.InteractingUser != 0) {
                 RoomUser user = item.GetRoom().GetRoomUserManager().GetRoomUserByHabbo(item.InteractingUser);
 
-                if (user != null)
-                {
+                if (user != null) {
                     user.ClearMovement(true);
                     user.AllowOverride = false;
                     user.CanWalk = true;
@@ -37,12 +35,10 @@ namespace Plus.HabboHotel.Items.Interactor
                 item.InteractingUser = 0;
             }
 
-            if (item.InteractingUser2 != 0)
-            {
+            if (item.InteractingUser2 != 0) {
                 RoomUser user = item.GetRoom().GetRoomUserManager().GetRoomUserByHabbo(item.InteractingUser2);
 
-                if (user != null)
-                {
+                if (user != null) {
                     user.ClearMovement(true);
                     user.AllowOverride = false;
                     user.CanWalk = true;
@@ -56,8 +52,7 @@ namespace Plus.HabboHotel.Items.Interactor
         {
             item.ExtraData = "0";
 
-            if (item.InteractingUser != 0)
-            {
+            if (item.InteractingUser != 0) {
                 RoomUser user = item.GetRoom().GetRoomUserManager().GetRoomUserByHabbo(item.InteractingUser);
 
                 user?.UnlockWalking();
@@ -65,8 +60,7 @@ namespace Plus.HabboHotel.Items.Interactor
                 item.InteractingUser = 0;
             }
 
-            if (item.InteractingUser2 != 0)
-            {
+            if (item.InteractingUser2 != 0) {
                 RoomUser user = item.GetRoom().GetRoomUserManager().GetRoomUserByHabbo(item.InteractingUser2);
 
                 user?.UnlockWalking();
@@ -87,12 +81,10 @@ namespace Plus.HabboHotel.Items.Interactor
             if (user == null)
                 return;
 
-            if (user.X == item.GetX && user.Y == item.GetY)
-            {
+            if (user.X == item.GetX && user.Y == item.GetY) {
                 BeginDelayedTeleport(user, item);
             }
-            else if (user.CanWalk)
-            {
+            else if (user.CanWalk) {
                 user.MoveTo(item.GetX, item.GetY);
             }
         }
@@ -109,22 +101,19 @@ namespace Plus.HabboHotel.Items.Interactor
             Room room = item.GetRoom();
             var userHabbo = user.GetClient().GetHabbo();
 
-            if (!ItemTeleporterFinder.IsTeleLinked(item.Id, room))
-            {
+            if (!ItemTeleporterFinder.IsTeleLinked(item.Id, room)) {
                 user.GetClient().Disconnect();
                 return;
             }
 
             int linkedTele = ItemTeleporterFinder.GetLinkedTele(item.Id);
-            if (linkedTele == 0)
-            {
+            if (linkedTele == 0) {
                 user.GetClient().Disconnect();
                 return;
             }
 
             int teleRoomId = ItemTeleporterFinder.GetTeleRoomId(linkedTele, room);
-            if (teleRoomId == 0)
-            {
+            if (teleRoomId == 0) {
                 user.GetClient().Disconnect();
                 return;
             }
@@ -138,19 +127,16 @@ namespace Plus.HabboHotel.Items.Interactor
                 TargetRoomId = teleRoomId
             };
 
-            if (teleRoomId == room.RoomId)
-            {
+            if (teleRoomId == room.RoomId) {
                 Item targetItem = room.GetRoomItemHandler().GetItem(linkedTele);
-                if (targetItem == null)
-                {
+                if (targetItem == null) {
                     user.GetClient().Disconnect();
                     return;
                 }
 
                 room.GetGameMap().TeleportToItem(user, targetItem);
                 user.SetRot(user.RotBody, false);
-                if (PendingArrivals.TryRemove(userHabbo.Id, out ArrowTeleportArrivalData arrivalData))
-                {
+                if (PendingArrivals.TryRemove(userHabbo.Id, out ArrowTeleportArrivalData arrivalData)) {
                     user.SetRot(arrivalData.Rotation, false);
                     user.RotHead = arrivalData.HeadRotation;
                 }
@@ -182,8 +168,7 @@ namespace Plus.HabboHotel.Items.Interactor
 
         private static void CompleteDelayedTeleport(int userId, int itemId)
         {
-            try
-            {
+            try {
                 // A newer walk target cancels the pending teleport (MoveTo → CancelDelayedTeleport).
                 if (!PendingTeleports.TryRemove(userId, out int pendingItemId) || pendingItemId != itemId)
                     return;
@@ -199,8 +184,7 @@ namespace Plus.HabboHotel.Items.Interactor
 
                 TriggerInstantTeleport(user, item);
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 Plus.Core.ExceptionLogger.LogException(e);
             }
         }

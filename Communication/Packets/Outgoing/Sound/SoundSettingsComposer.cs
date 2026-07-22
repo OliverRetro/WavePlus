@@ -22,8 +22,7 @@ namespace Plus.Communication.Packets.Outgoing.Sound
 
         public override void Compose(ServerPacket packet)
         {
-            foreach (int volume in Volumes)
-            {
+            foreach (int volume in Volumes) {
                 packet.WriteInteger(volume);
             }
 

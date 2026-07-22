@@ -14,8 +14,7 @@ namespace Plus.Network.Codec
             if (input.ReadableBytes < 1) return;
             byte delimiter = input.ReadByte();
             input.ResetReaderIndex();
-            if (delimiter == 0x3C)
-            {
+            if (delimiter == 0x3C) {
                 var policy = "<?xml version=\"1.0\"?>\r\n"
                              + "<!DOCTYPE cross-domain-policy SYSTEM \"/xml/dtds/cross-domain-policy.dtd\">\r\n"
                              + "<cross-domain-policy>\r\n"
@@ -23,8 +22,7 @@ namespace Plus.Network.Codec
                              + "</cross-domain-policy>\0)";
                 context.WriteAndFlushAsync(Unpooled.CopiedBuffer(Encoding.Default.GetBytes(policy)));
             }
-            else
-            {
+            else {
                 context.Channel.Pipeline.Remove(this);
             }
         }

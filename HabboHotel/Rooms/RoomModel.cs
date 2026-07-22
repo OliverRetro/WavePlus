@@ -26,8 +26,7 @@ namespace Plus.HabboHotel.Rooms
 
         public RoomModel(string id, int doorX, int doorY, double doorZ, int doorOrientation, string heightmap, bool clubOnly, int wallHeight, bool custom)
         {
-            try
-            {
+            try {
                 Id = id;
                 DoorX = doorX;
                 DoorY = doorY;
@@ -48,21 +47,17 @@ namespace Plus.HabboHotel.Rooms
                 SqFloorHeight = new short[MapSizeX, MapSizeY];
                 SqSeatRot = new byte[MapSizeX, MapSizeY];
 
-                for (int y = 0; y < MapSizeY; y++)
-                {
+                for (int y = 0; y < MapSizeY; y++) {
                     string line = tmpHeightmap[y];
                     line = line.Replace("\r", "");
                     line = line.Replace("\n", "");
 
                     int x = 0;
-                    foreach (char square in line)
-                    {
-                        if (square == 'x')
-                        {
+                    foreach (char square in line) {
+                        if (square == 'x') {
                             SqState[x, y] = SquareState.Blocked;
                         }
-                        else
-                        {
+                        else {
                             SqState[x, y] = SquareState.Open;
                             SqFloorHeight[x, y] = Parse(square);
                         }
@@ -81,8 +76,7 @@ namespace Plus.HabboHotel.Rooms
 
         public static short Parse(char input)
         {
-            switch (input)
-            {
+            switch (input) {
                 case '0':
                     return 0;
                 case '1':

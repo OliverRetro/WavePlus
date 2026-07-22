@@ -13,27 +13,23 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Fun
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length == 1)
-            {
+            if (@params.Length == 1) {
                 session.SendWhisper("Please enter the username of the user you wish to summon.");
                 return;
             }
 
             GameClient targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(@params[1]);
-            if (targetClient == null)
-            {
+            if (targetClient == null) {
                 session.SendWhisper("An error occoured whilst finding that user, maybe they're not online.");
                 return;
             }
 
-            if (targetClient.GetHabbo() == null)
-            {
+            if (targetClient.GetHabbo() == null) {
                 session.SendWhisper("An error occoured whilst finding that user, maybe they're not online.");
                 return;
             }
 
-            if (targetClient.GetHabbo().Username == session.GetHabbo().Username)
-            {
+            if (targetClient.GetHabbo().Username == session.GetHabbo().Username) {
                 session.SendWhisper("Get a life.");
                 return;
             }

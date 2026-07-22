@@ -48,8 +48,7 @@ namespace Plus.Communication.Packets.Outgoing.Catalog
             packet.WriteString(page.Caption);
 
             packet.WriteInteger(page.ItemOffers.Count);
-            foreach (int i in page.ItemOffers.Keys)
-            {
+            foreach (int i in page.ItemOffers.Keys) {
                 packet.WriteInteger(i);
             }
 
@@ -59,8 +58,7 @@ namespace Plus.Communication.Packets.Outgoing.Catalog
         public int CalcTreeSize(Habbo habbo, ICollection<CatalogPage> pages, int parentId)
         {
             int i = 0;
-            foreach (CatalogPage page in pages)
-            {
+            foreach (CatalogPage page in pages) {
                 if (page.MinimumRank > habbo.Rank || (page.MinimumVip > habbo.VipRank && habbo.Rank == 1) || page.ParentId != parentId)
                     continue;
 
@@ -85,8 +83,7 @@ namespace Plus.Communication.Packets.Outgoing.Catalog
             else
                 WriteNodeIndex(page, treeSize, packet);
 
-            foreach (CatalogPage child in Pages)
-            {
+            foreach (CatalogPage child in Pages) {
                 if (child.ParentId != page.Id || !CanViewPage(child))
                     continue;
 
@@ -98,8 +95,7 @@ namespace Plus.Communication.Packets.Outgoing.Catalog
         {
             WriteRootIndex(Habbo, Pages, packet);
 
-            foreach (CatalogPage parent in Pages)
-            {
+            foreach (CatalogPage parent in Pages) {
                 if (parent.ParentId != -1 || !CanViewPage(parent))
                     continue;
 

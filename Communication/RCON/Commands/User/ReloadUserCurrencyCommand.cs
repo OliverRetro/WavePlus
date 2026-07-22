@@ -27,17 +27,14 @@ namespace Plus.Communication.Rcon.Commands.User
 
             string currency = Convert.ToString(parameters[1]);
 
-            switch (currency)
-            {
+            switch (currency) {
                 default:
                     return false;
 
                 case "coins":
-                case "credits":
-                    {
+                case "credits": {
                         int credits;
-                        using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                        {
+                        using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                             credits = db.Users.Where(u => u.Id == userId).Select(u => u.Credits).FirstOrDefault() ?? 0;
                         }
 
@@ -47,11 +44,9 @@ namespace Plus.Communication.Rcon.Commands.User
                     }
 
                 case "pixels":
-                case "duckets":
-                    {
+                case "duckets": {
                         int duckets;
-                        using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                        {
+                        using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                             duckets = db.Users.Where(u => u.Id == userId).Select(u => u.ActivityPoints).FirstOrDefault() ?? 0;
                         }
 
@@ -60,11 +55,9 @@ namespace Plus.Communication.Rcon.Commands.User
                         break;
                     }
 
-                case "diamonds":
-                    {
+                case "diamonds": {
                         int diamonds;
-                        using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                        {
+                        using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                             diamonds = db.Users.Where(u => u.Id == userId).Select(u => u.VipPoints).FirstOrDefault() ?? 0;
                         }
 
@@ -73,11 +66,9 @@ namespace Plus.Communication.Rcon.Commands.User
                         break;
                     }
 
-                case "gotw":
-                    {
+                case "gotw": {
                         int gotw;
-                        using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                        {
+                        using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                             gotw = db.Users.Where(u => u.Id == userId).Select(u => u.GotwPoints).FirstOrDefault() ?? 0;
                         }
 

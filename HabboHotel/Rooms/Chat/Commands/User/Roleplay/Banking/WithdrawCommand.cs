@@ -20,15 +20,13 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Banking
             if (!BankCommandUtil.RequireAccount(session))
                 return;
 
-            if (@params.Length < 2 || !int.TryParse(@params[1], out int amount) || amount <= 0)
-            {
+            if (@params.Length < 2 || !int.TryParse(@params[1], out int amount) || amount <= 0) {
                 session.SendWhisper("Please enter a valid amount to withdraw.", 1);
                 return;
             }
 
             UserRpBankAccount account = session.GetHabbo().GetBankAccount();
-            if (account.Balance < amount)
-            {
+            if (account.Balance < amount) {
                 session.SendWhisper("You don't have this amount to withdraw!", 1);
                 return;
             }
@@ -36,8 +34,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Banking
             string source = (@params.Length >= 3 && @params[2].Equals("phone", StringComparison.OrdinalIgnoreCase)) ? "PHONE" : "ATM";
 
             BankTransactionResult result = PlusEnvironment.GetBankingManager().Withdraw(session.GetHabbo(), amount, source);
-            if (!result.Success)
-            {
+            if (!result.Success) {
                 session.SendWhisper("You don't have this amount to withdraw!", 1);
                 return;
             }

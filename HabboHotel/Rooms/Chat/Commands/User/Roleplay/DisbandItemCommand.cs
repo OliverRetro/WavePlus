@@ -22,8 +22,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length < 2 || !int.TryParse(Convert.ToString(@params[1]), out int slot) || slot < 1 || slot > SlotCount)
-            {
+            if (@params.Length < 2 || !int.TryParse(Convert.ToString(@params[1]), out int slot) || slot < 1 || slot > SlotCount) {
                 session.SendWhisper("Usage: :disbanditem <1-" + SlotCount + ">", 1);
                 return;
             }
@@ -34,14 +33,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
                 return;
 
             RpInventoryEntry entry = RpInventory.BuildSlotView(habbo, SlotCount)[slot - 1];
-            if (entry == null)
-            {
+            if (entry == null) {
                 session.SendWhisper("There's nothing in slot " + slot + ".", 1);
                 return;
             }
 
-            if (entry.Kind == "weapon")
-            {
+            if (entry.Kind == "weapon") {
                 habbo.GetRpWeapons()?.RemoveWeapon(entry.Weapon.Id);
                 habbo.SaveRpWeapons();
                 session.SendWhisper($"Destroyed {entry.Weapon.WeaponData?.Name ?? "weapon"}.", 1);

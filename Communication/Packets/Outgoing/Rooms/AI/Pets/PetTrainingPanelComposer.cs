@@ -45,8 +45,7 @@
 
         public int GetCount(int level)
         {
-            switch (level)
-            {
+            switch (level) {
                 case 1:
                 case 2:
                     return 1;

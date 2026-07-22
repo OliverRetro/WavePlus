@@ -34,14 +34,11 @@ public static class LevelManager
         int level = 0;
         int nextLevelXP = Levels[Levels.Keys.Max()];
 
-        foreach (var entry in Levels.OrderBy(l => l.Key))
-        {
-            if (xp >= entry.Value)
-            {
+        foreach (var entry in Levels.OrderBy(l => l.Key)) {
+            if (xp >= entry.Value) {
                 level = entry.Key;
             }
-            else
-            {
+            else {
                 nextLevelXP = entry.Value;
                 break;
             }

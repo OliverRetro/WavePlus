@@ -22,18 +22,14 @@ namespace Plus.HabboHotel.Items.Televisions
             if (Televisions.Count > 0)
                 Televisions.Clear();
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
-                foreach (var row in db.ItemsYoutubes.AsNoTracking().OrderByDescending(x => x.Id).ToList())
-                {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
+                foreach (var row in db.ItemsYoutubes.AsNoTracking().OrderByDescending(x => x.Id).ToList()) {
                     Televisions.Add(row.Id, new TelevisionItem(row.Id, row.YoutubeId, row.Title, row.Description, PlusEnvironment.EnumToBool(row.Enabled)));
                 }
             }
 
-
             Log.Info("Television Items -> LOADED");
         }
-
 
         public ICollection<TelevisionItem> TelevisionList => Televisions.Values;
 

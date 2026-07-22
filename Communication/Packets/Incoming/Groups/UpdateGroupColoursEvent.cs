@@ -27,10 +27,8 @@ namespace Plus.Communication.Packets.Incoming.Groups
             group.MarkDirty(); // cached; written to DB on the 15-minute group flush
 
             session.SendPacket(new GroupInfoComposer(group, session));
-            if (session.GetHabbo().CurrentRoom != null)
-            {
-                foreach (Item item in session.GetHabbo().CurrentRoom.GetRoomItemHandler().GetFloor.ToList())
-                {
+            if (session.GetHabbo().CurrentRoom != null) {
+                foreach (Item item in session.GetHabbo().CurrentRoom.GetRoomItemHandler().GetFloor.ToList()) {
                     if (item == null || item.GetBaseItem() == null)
                         continue;
 

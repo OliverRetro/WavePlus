@@ -17,14 +17,12 @@ namespace Plus.Communication.Packets.Outgoing.Inventory.AvatarEffects
         public override void Compose(ServerPacket packet)
         {
             packet.WriteInteger(ClothingParts.Count);
-            foreach (ClothingParts part in ClothingParts.ToList())
-            {
+            foreach (ClothingParts part in ClothingParts.ToList()) {
                 packet.WriteInteger(part.PartId);
             }
 
             packet.WriteInteger(ClothingParts.Count);
-            foreach (ClothingParts part in ClothingParts.ToList())
-            {
+            foreach (ClothingParts part in ClothingParts.ToList()) {
                 packet.WriteString(part.Part);
             }
         }

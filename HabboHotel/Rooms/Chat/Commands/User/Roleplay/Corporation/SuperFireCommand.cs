@@ -20,8 +20,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
             if (session?.GetHabbo() == null || room?.Group == null)
                 return;
 
-            if (@params.Length < 2)
-            {
+            if (@params.Length < 2) {
                 session.SendWhisper("Please enter the username of the person you want to fire.", 1);
                 return;
             }
@@ -30,21 +29,18 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
 
             GameClient targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(@params[1]);
             Habbo targetHabbo = targetClient?.GetHabbo() ?? PlusEnvironment.GetHabboByUsername(@params[1]);
-            if (targetHabbo == null)
-            {
+            if (targetHabbo == null) {
                 session.SendWhisper("Oops, couldn't find that user.", 1);
                 return;
             }
 
-            if (!group.IsMember(targetHabbo.Id))
-            {
+            if (!group.IsMember(targetHabbo.Id)) {
                 session.SendWhisper("That user is not a member of this group.", 1);
                 return;
             }
 
             // Still off limits: the group would be left without an owner.
-            if (targetHabbo.Id == group.CreatorId)
-            {
+            if (targetHabbo.Id == group.CreatorId) {
                 session.SendWhisper("You cannot fire the group owner.", 1);
                 return;
             }

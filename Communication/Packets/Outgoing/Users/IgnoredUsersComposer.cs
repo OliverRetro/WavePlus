@@ -15,8 +15,7 @@ namespace Plus.Communication.Packets.Outgoing.Users
         public override void Compose(ServerPacket packet)
         {
             packet.WriteInteger(IgnoredUsers.Count);
-            foreach (string username in IgnoredUsers)
-            {
+            foreach (string username in IgnoredUsers) {
                 packet.WriteString(username);
             }
         }

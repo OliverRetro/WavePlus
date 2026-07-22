@@ -48,15 +48,12 @@ namespace Plus.HabboHotel.Users.Inventory
                 _botItems.Clear();
 
             List<Item> items = ItemLoader.GetItemsForUser(_userId);
-            foreach (Item item in items.ToList())
-            {
-                if (item.IsFloorItem)
-                {
+            foreach (Item item in items.ToList()) {
+                if (item.IsFloorItem) {
                     if (!_floorItems.TryAdd(item.Id, item))
                         continue;
                 }
-                else if (item.IsWallItem)
-                {
+                else if (item.IsWallItem) {
                     if (!_wallItems.TryAdd(item.Id, item))
                         continue;
                 }
@@ -65,19 +62,15 @@ namespace Plus.HabboHotel.Users.Inventory
             }
 
             List<Pet> pets = PetLoader.GetPetsForUser(Convert.ToInt32(_userId));
-            foreach (Pet pet in pets)
-            {
-                if (!_petsItems.TryAdd(pet.PetId, pet))
-                {
+            foreach (Pet pet in pets) {
+                if (!_petsItems.TryAdd(pet.PetId, pet)) {
                     Console.WriteLine("Error whilst loading pet x1: " + pet.PetId);
                 }
             }
 
             List<Bot> bots = BotLoader.GetBotsForUser(Convert.ToInt32(_userId));
-            foreach (Bot bot in bots)
-            {
-                if (!_botItems.TryAdd(bot.Id, bot))
-                {
+            foreach (Bot bot in bots) {
+                if (!_botItems.TryAdd(bot.Id, bot)) {
                     Console.WriteLine("Error whilst loading bot x1: " + bot.Id);
                 }
             }
@@ -87,8 +80,7 @@ namespace Plus.HabboHotel.Users.Inventory
         {
             UpdateItems(true);
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.Items.Where(i => i.RoomId == 0 && i.UserId == _userId).ExecuteDelete();
             }
 
@@ -131,10 +123,8 @@ namespace Plus.HabboHotel.Users.Inventory
 
         public Item AddNewItem(int id, int baseItem, string extraData, int group, bool toInsert, bool fromRoom, int limitedNumber, int limitedStack)
         {
-            if (toInsert)
-            {
-                if (fromRoom)
-                {
+            if (toInsert) {
+                if (fromRoom) {
                     uint fromRoomId = (uint)id;
                     int uid = _userId;
                     using WavePlusContext db = PlusEnvironment.GetDbContext();
@@ -142,16 +132,13 @@ namespace Plus.HabboHotel.Users.Inventory
                         .SetProperty(i => i.RoomId, (uint)0)
                         .SetProperty(i => i.UserId, uid));
                 }
-                else
-                {
+                else {
                     using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-                    if (id > 0)
-                    {
+                    if (id > 0) {
                         db.Database.ExecuteSqlInterpolated($"INSERT INTO `items` (`id`,`base_item`, `user_id`, `limited_number`, `limited_stack`) VALUES ({id}, {baseItem}, {_userId}, {limitedNumber}, {limitedStack})");
                     }
-                    else
-                    {
+                    else {
                         var row = new Database.EF.Entities.ItemEntity { BaseItem = (uint)baseItem, UserId = _userId, LimitedNumber = limitedNumber, LimitedStack = limitedStack };
                         db.Items.Add(row);
                         db.SaveChanges();
@@ -163,8 +150,7 @@ namespace Plus.HabboHotel.Users.Inventory
                     if (group > 0)
                         db.Database.ExecuteSqlInterpolated($"INSERT INTO `items_groups` VALUES ({id}, {group})");
 
-                    if (!string.IsNullOrEmpty(extraData))
-                    {
+                    if (!string.IsNullOrEmpty(extraData)) {
                         uint newItemId = (uint)id;
                         string ed = extraData;
                         db.Items.Where(i => i.Id == newItemId).ExecuteUpdate(s => s.SetProperty(i => i.ExtraData, ed));
@@ -201,13 +187,11 @@ namespace Plus.HabboHotel.Users.Inventory
             if (GetClient().GetHabbo() == null || GetClient().GetHabbo().GetInventoryComponent() == null)
                 GetClient().Disconnect();
 
-            if (_floorItems.ContainsKey(id))
-            {
+            if (_floorItems.ContainsKey(id)) {
                 _floorItems.TryRemove(id, out Item _);
             }
 
-            if (_wallItems.ContainsKey(id))
-            {
+            if (_wallItems.ContainsKey(id)) {
                 _wallItems.TryRemove(id, out Item _);
             }
 

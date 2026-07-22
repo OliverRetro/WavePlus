@@ -13,8 +13,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (!int.TryParse(Convert.ToString(@params[1]), out int itemId))
-            {
+            if (!int.TryParse(Convert.ToString(@params[1]), out int itemId)) {
                 session.SendWhisper("Please enter a valid integer.");
                 return;
             }

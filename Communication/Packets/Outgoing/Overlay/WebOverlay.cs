@@ -120,8 +120,7 @@ namespace Plus.Communication.Packets.Outgoing.Overlay
 
         public static void SendMacroSet(GameClient session, Macro macro, bool isEnabled)
         {
-            if (macro == null)
-            {
+            if (macro == null) {
                 Send(session, "macro_set", new { isEnabled });
                 return;
             }
@@ -226,8 +225,7 @@ namespace Plus.Communication.Packets.Outgoing.Overlay
             ChatStyleManager styles = PlusEnvironment.GetGame().GetChatManager().GetChatStyles();
             List<object> bubbles = new();
 
-            foreach (int bubbleId in habbo.GetOwnedChatBubbleIds().Distinct().OrderBy(x => x))
-            {
+            foreach (int bubbleId in habbo.GetOwnedChatBubbleIds().Distinct().OrderBy(x => x)) {
                 if (!styles.TryGetStyle(bubbleId, out ChatStyle style))
                     continue;
 

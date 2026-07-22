@@ -43,8 +43,7 @@ namespace Plus.HabboHotel.Roleplay.Utilities
             if (sender == null || group == null || target == null)
                 return false;
 
-            if (_pending.TryGetValue(target.Id, out PendingInvite existing) && !existing.IsExpired)
-            {
+            if (_pending.TryGetValue(target.Id, out PendingInvite existing) && !existing.IsExpired) {
                 senderSession.SendWhisper("That user already has a pending invite — let it expire first.", 1);
                 return false;
             }
@@ -76,8 +75,7 @@ namespace Plus.HabboHotel.Roleplay.Utilities
 
             _pending.TryRemove(target.Id, out _);
 
-            if (invite.IsExpired)
-            {
+            if (invite.IsExpired) {
                 targetClient.SendWhisper("That group invite has expired.", 1);
                 return;
             }
@@ -86,8 +84,7 @@ namespace Plus.HabboHotel.Roleplay.Utilities
             if (!PlusEnvironment.GetGame().GetGroupManager().TryGetGroup(invite.GroupId, out Group group) || group == null)
                 return;
 
-            if (!accepted)
-            {
+            if (!accepted) {
                 senderSession?.SendWhisper(target.Username + " declined your invite to " + group.Name + ".", 1);
                 targetClient.SendWhisper("You declined the invite to " + group.Name + ".", 1);
                 ShoutFrom(target, DeclineShout(group));
@@ -95,14 +92,12 @@ namespace Plus.HabboHotel.Roleplay.Utilities
             }
 
             // Re-check the guards — the world may have moved on during the 60s window.
-            if (group.IsMember(target.Id))
-            {
+            if (group.IsMember(target.Id)) {
                 targetClient.SendWhisper("You're already a member of " + group.Name + ".", 1);
                 return;
             }
 
-            if (GroupManager.IsWorkableKind(group.Kind) && target.CorporationId != 0)
-            {
+            if (GroupManager.IsWorkableKind(group.Kind) && target.CorporationId != 0) {
                 targetClient.SendWhisper("You already work for another corporation.", 1);
                 senderSession?.SendWhisper(target.Username + " already works for another corporation.", 1);
                 return;
@@ -117,16 +112,14 @@ namespace Plus.HabboHotel.Roleplay.Utilities
             if (group == null || target == null)
                 return;
 
-            if (target.GetStats().FavouriteGroupId == 0 && (group.Kind == GroupKind.Gang || group.Kind == GroupKind.Cartel || group.Kind == GroupKind.Mafia))
-            {
+            if (target.GetStats().FavouriteGroupId == 0 && (group.Kind == GroupKind.Gang || group.Kind == GroupKind.Cartel || group.Kind == GroupKind.Mafia)) {
                 target.GetStats().FavouriteGroupId = group.Id;
                 int gid = group.Id;
                 int uid = target.Id;
                 using (WavePlusContext db = PlusEnvironment.GetDbContext())
                     db.UserStats.Where(x => x.Id == uid).ExecuteUpdate(s => s.SetProperty(x => x.Groupid, gid));
 
-                if (target.InRoom && target.CurrentRoom != null)
-                {
+                if (target.InRoom && target.CurrentRoom != null) {
                     target.CurrentRoom.SendPacket(new RefreshFavouriteGroupComposer(target.Id));
                     target.CurrentRoom.SendPacket(new HabboGroupBadgesComposer(group));
 
@@ -140,8 +133,7 @@ namespace Plus.HabboHotel.Roleplay.Utilities
 
             group.HandleRequest(target.Id, true);
 
-            if (GroupManager.IsWorkableKind(group.Kind))
-            {
+            if (GroupManager.IsWorkableKind(group.Kind)) {
                 target.CorporationId = group.Id;
                 PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(targetClient, "ACH_Hired", 1);
             }
@@ -149,8 +141,7 @@ namespace Plus.HabboHotel.Roleplay.Utilities
             if (group.Kind == GroupKind.Gang)
                 PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(targetClient, "ACH_JoinGang", 1);
 
-            if (senderSession?.GetHabbo() != null)
-            {
+            if (senderSession?.GetHabbo() != null) {
                 senderSession.SendPacket(new GroupMemberUpdatedComposer(group, target, 4));
                 senderSession.SendPacket(new GroupInfoComposer(group, targetClient));
                 LiveFeedService.LiveFeed(LiveFeedService.Name(senderSession.GetHabbo().Username, "green") + " hired " +

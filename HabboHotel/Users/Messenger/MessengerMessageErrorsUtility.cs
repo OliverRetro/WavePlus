@@ -13,8 +13,7 @@
               _-1xC[9] = "${messenger.error.senderhasnochat}";
               _-1xC[10] = "${messenger.error.offline_failed}";*/
 
-            switch (error)
-            {
+            switch (error) {
                 default:
                 case MessengerMessageErrors.FriendMuted:
                     return 3;

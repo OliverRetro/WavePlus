@@ -38,20 +38,17 @@ namespace Plus.HabboHotel.Roleplay.Combat
 
             // No fighting while idle — an idle attacker can't swing, and an idle player can't be
             // jumped (stops people getting killed while AFK, and stops idlers from attacking).
-            if (attackerRoomUser.IsAsleep)
-            {
+            if (attackerRoomUser.IsAsleep) {
                 attacker.GetClient()?.SendWhisper("You can't attack while you're idle.", 1);
                 return;
             }
 
-            if (targetRoomUser.IsAsleep)
-            {
+            if (targetRoomUser.IsAsleep) {
                 attacker.GetClient()?.SendWhisper(target.Username + " is idle — you can't attack them right now.", 1);
                 return;
             }
 
-            if (attackerStats.IsDead || targetStats.IsDead)
-            {
+            if (attackerStats.IsDead || targetStats.IsDead) {
                 attacker.GetClient().SendWhisper("User is already knocked out!", 1);
                 return;
             }
@@ -65,16 +62,14 @@ namespace Plus.HabboHotel.Roleplay.Combat
             int range = weapon?.Range ?? 1;
             bool allowDiagonal = weapon?.AllowDiagonal ?? true;
 
-            if (!RpProximity.IsWithinWeaponRange(attackerRoomUser, targetRoomUser, range, allowDiagonal))
-            {
+            if (!RpProximity.IsWithinWeaponRange(attackerRoomUser, targetRoomUser, range, allowDiagonal)) {
                 attacker.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, "*swings at " + target.Username + ", but misses*", 0, 29, isRpAction: true));
                 return;
             }
 
             // The tazer is a pure-stun police tool: no damage, guaranteed 2s stun, limited charges,
             // and tazing is not treated as an assault crime.
-            if (TazerService.IsTazer(weapon))
-            {
+            if (TazerService.IsTazer(weapon)) {
                 HandleTazer(attacker, target, attackerStats, attackerRoomUser, targetRoomUser);
                 return;
             }
@@ -102,13 +97,11 @@ namespace Plus.HabboHotel.Roleplay.Combat
             // stats and damage application
             targetStats.Shield = Math.Max(0, targetStats.Shield - totalDamage);
 
-            if (damageToHealth > 0)
-            {
+            if (damageToHealth > 0) {
                 targetStats.Health -= damageToHealth;
             }
 
-            if (isFinalBlow)
-            {
+            if (isFinalBlow) {
                 attacker.ResetAggressionTimer();
                 targetStats.Health = 0;
                 LiveFeedService.LiveFeed(LiveFeedService.Name(attacker.Username, "green") + " knocked out <b>" + LiveFeedService.Name(target.Username, "red") + "</b>");
@@ -122,8 +115,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
                 PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(attacker.GetClient(), "ACH_Kill", 1);
                 PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(target.GetClient(), "ACH_Death", 1);
             }
-            else
-            {
+            else {
                 attacker.ResetAggressionTimer();
 
                 // A non-lethal hit is an assault (or a more specific variant).
@@ -137,8 +129,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
 
             // stun
             bool stunTarget = Random.Shared.NextDouble() < ((weapon?.StunChance ?? 0) / 100.0);
-            if (stunTarget && !targetStats.IsDead)
-            {
+            if (stunTarget && !targetStats.IsDead) {
                 target.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(target.Id).VirtualId, "*gets stunned by the hit*", 0, 29, isRpAction: true));
                 StunUser(targetRoomUser);
             }
@@ -204,8 +195,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
             if (habbo == null)
                 return false;
 
-            foreach (Group group in PlusEnvironment.GetGame().GetGroupManager().GetGroupsForUser(habbo.Id))
-            {
+            foreach (Group group in PlusEnvironment.GetGame().GetGroupManager().GetGroupsForUser(habbo.Id)) {
                 if (group != null && (group.Kind == GroupKind.Gang || group.Kind == GroupKind.Cartel || group.Kind == GroupKind.Mafia))
                     return true;
             }
@@ -225,8 +215,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
             minDamage = Math.Max(0, minDamage);
             maxDamage = Math.Max(minDamage, maxDamage);
 
-            foreach (RoomUser ru in room.GetRoomUserManager().GetRoomUsers())
-            {
+            foreach (RoomUser ru in room.GetRoomUserManager().GetRoomUsers()) {
                 if (ru == null || ru.IsBot || ru.HabboId == source.Id)
                     continue;
 
@@ -305,8 +294,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
         private void HandleTazer(Habbo attacker, Habbo target, UserRpStats attackerStats, RoomUser attackerRoomUser, RoomUser targetRoomUser)
         {
             UserWeapon tazer = attacker.GetRpWeapons()?.GetActiveWeapon();
-            if (tazer == null || tazer.DurabilityLeft <= 0)
-            {
+            if (tazer == null || tazer.DurabilityLeft <= 0) {
                 attacker.GetClient()?.SendWhisper("Your tazer is out of charge — recharge it at the station.", 1);
                 return;
             }
@@ -358,8 +346,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
 
             bool alwaysSucceeds = targetStats.IsDead;
 
-            if (target.Credits <= 0 || (!alwaysSucceeds && UserRpStats.GetRobberyChance(attacker) < Random.Shared.Next(0, 100)))
-            {
+            if (target.Credits <= 0 || (!alwaysSucceeds && UserRpStats.GetRobberyChance(attacker) < Random.Shared.Next(0, 100))) {
                 attacker.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, "*attempts to rob " + target.Username + ", but fails*", 0, 6, isRpAction: true));
                 return;
             }

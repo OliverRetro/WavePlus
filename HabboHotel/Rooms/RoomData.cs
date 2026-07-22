@@ -56,7 +56,6 @@ namespace Plus.HabboHotel.Rooms
 
         private Group _group;
 
-
         public RoomModel Model { get; set; }
 
         public RoomData(int id, string caption, string modelName, string ownerName, int ownerId, string password, int score, string type, string access, int usersNow, int usersMax, int category, string description,
@@ -79,8 +78,7 @@ namespace Plus.HabboHotel.Rooms
             Description = description;
 
             Tags = new List<string>();
-            foreach (string tag in tags.Split(','))
-            {
+            foreach (string tag in tags.Split(',')) {
                 Tags.Add(tag);
             }
 

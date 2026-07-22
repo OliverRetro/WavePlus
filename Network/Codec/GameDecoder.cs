@@ -11,15 +11,13 @@ namespace Plus.Network.Codec
     {
         protected override void Decode(IChannelHandlerContext context, IByteBuffer message, List<object> output)
         {
-            try
-            {
+            try {
                 short id = message.ReadShort();
                 ClientPacket packet = new(id, message.ReadBytes(message.ReadableBytes));
 
                 output.Add(packet);
             }
-            catch (Exception)
-            {
+            catch (Exception) {
             }
         }
     }

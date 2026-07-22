@@ -17,23 +17,19 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length == 1)
-            {
+            if (@params.Length == 1) {
                 session.SendWhisper("Oops, you must choose a room option to disable.");
                 return;
             }
 
-            if (!room.CheckRights(session, true))
-            {
+            if (!room.CheckRights(session, true)) {
                 session.SendWhisper("Oops, only the room owner or staff can use this command.");
                 return;
             }
 
             string option = @params[1];
-            switch (option)
-            {
-                case "list":
-                    {
+            switch (option) {
+                case "list": {
                         StringBuilder list = new("");
                         list.AppendLine("Room Command List");
                         list.AppendLine("-------------------------");
@@ -49,12 +45,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                         break;
                     }
 
-                case "push":
-                    {
+                case "push": {
                         room.PushEnabled = !room.PushEnabled;
                         bool pushEnabled = room.PushEnabled;
-                        using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                        {
+                        using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                             db.Rooms.Where(r => r.Id == room.Id).ExecuteUpdate(s => s.SetProperty(r => r.PushEnabled, pushEnabled));
                         }
 
@@ -62,12 +56,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                         break;
                     }
 
-                case "spush":
-                    {
+                case "spush": {
                         room.SuperPushEnabled = !room.SuperPushEnabled;
                         string superPushEnabled = PlusEnvironment.BoolToEnum(room.SuperPushEnabled);
-                        using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                        {
+                        using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                             db.Rooms.Where(r => r.Id == room.Id).ExecuteUpdate(s => s.SetProperty(r => r.SpushEnabled, superPushEnabled));
                         }
 
@@ -75,12 +67,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                         break;
                     }
 
-                case "spull":
-                    {
+                case "spull": {
                         room.SuperPullEnabled = !room.SuperPullEnabled;
                         bool superPullEnabled = room.SuperPullEnabled;
-                        using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                        {
+                        using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                             db.Rooms.Where(r => r.Id == room.Id).ExecuteUpdate(s => s.SetProperty(r => r.SpullEnabled, superPullEnabled));
                         }
 
@@ -88,12 +78,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                         break;
                     }
 
-                case "pull":
-                    {
+                case "pull": {
                         room.PullEnabled = !room.PullEnabled;
                         bool pullEnabled = room.PullEnabled;
-                        using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                        {
+                        using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                             db.Rooms.Where(r => r.Id == room.Id).ExecuteUpdate(s => s.SetProperty(r => r.PullEnabled, pullEnabled));
                         }
 
@@ -102,12 +90,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                     }
 
                 case "enable":
-                case "enables":
-                    {
+                case "enables": {
                         room.EnablesEnabled = !room.EnablesEnabled;
                         bool enablesEnabled = room.EnablesEnabled;
-                        using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                        {
+                        using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                             db.Rooms.Where(r => r.Id == room.Id).ExecuteUpdate(s => s.SetProperty(r => r.EnablesEnabled, enablesEnabled));
                         }
 
@@ -115,12 +101,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                         break;
                     }
 
-                case "respect":
-                    {
+                case "respect": {
                         room.RespectNotificationsEnabled = !room.RespectNotificationsEnabled;
                         bool respectNotificationsEnabled = room.RespectNotificationsEnabled;
-                        using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                        {
+                        using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                             db.Rooms.Where(r => r.Id == room.Id).ExecuteUpdate(s => s.SetProperty(r => r.RespectNotificationsEnabled, respectNotificationsEnabled));
                         }
 
@@ -128,12 +112,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                         break;
                     }
 
-                case "safezone":
-                    {
+                case "safezone": {
                         room.Safezone = !room.Safezone;
                         string safezone = PlusEnvironment.BoolToEnum(room.Safezone);
-                        using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                        {
+                        using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                             db.Rooms.Where(r => r.Id == room.Id).ExecuteUpdate(s => s.SetProperty(r => r.Safezone, safezone));
                         }
 
@@ -141,29 +123,23 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                         break;
                     }
 
-
                 case "pets":
-                case "morphs":
-                    {
+                case "morphs": {
                         room.PetMorphsAllowed = !room.PetMorphsAllowed;
                         bool petMorphsAllowed = room.PetMorphsAllowed;
-                        using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                        {
+                        using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                             db.Rooms.Where(r => r.Id == room.Id).ExecuteUpdate(s => s.SetProperty(r => r.PetMorphsAllowed, petMorphsAllowed));
                         }
 
                         session.SendWhisper("Human pet morphs notifications mode set to " + (room.PetMorphsAllowed ? "enabled!" : "disabled!"));
 
-                        if (!room.PetMorphsAllowed)
-                        {
-                            foreach (RoomUser user in room.GetRoomUserManager().GetRoomUsers())
-                            {
+                        if (!room.PetMorphsAllowed) {
+                            foreach (RoomUser user in room.GetRoomUserManager().GetRoomUsers()) {
                                 if (user == null || user.GetClient() == null || user.GetClient().GetHabbo() == null)
                                     continue;
 
                                 user.GetClient().SendWhisper("The room owner has disabled the ability to use a pet morph in this room.");
-                                if (user.GetClient().GetHabbo().PetId > 0)
-                                {
+                                if (user.GetClient().GetHabbo().PetId > 0) {
                                     //Tell the user what is going on.
                                     user.GetClient().SendWhisper("Oops, the room owner has just disabled pet-morphs, un-morphing you.");
 

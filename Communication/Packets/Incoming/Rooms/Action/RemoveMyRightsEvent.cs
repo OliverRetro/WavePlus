@@ -20,11 +20,9 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Action
             if (!room.CheckRights(session, false))
                 return;
 
-            if (room.UsersWithRights.Contains(session.GetHabbo().Id))
-            {
+            if (room.UsersWithRights.Contains(session.GetHabbo().Id)) {
                 RoomUser user = room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id);
-                if (user != null && !user.IsBot)
-                {
+                if (user != null && !user.IsBot) {
                     user.RemoveStatus("flatctrl 1");
                     user.UpdateNeeded = true;
 
@@ -33,8 +31,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Action
 
                 uint uid = (uint)session.GetHabbo().Id;
                 uint rid = (uint)room.Id;
-                using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                {
+                using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                     db.RoomRights.Where(r => r.UserId == uid && r.RoomId == rid).ExecuteDelete();
                 }
 

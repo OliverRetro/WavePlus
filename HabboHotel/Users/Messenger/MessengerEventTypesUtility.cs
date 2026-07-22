@@ -4,8 +4,7 @@
     {
         public static int GetEventTypePacketNum(MessengerEventTypes type)
         {
-            switch (type)
-            {
+            switch (type) {
                 case MessengerEventTypes.EventStarted:
                     return 0;
 

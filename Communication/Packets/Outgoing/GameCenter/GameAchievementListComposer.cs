@@ -16,8 +16,7 @@ namespace Plus.Communication.Packets.Outgoing.GameCenter
         {
             packet.WriteInteger(GameId);
             packet.WriteInteger(Achievements.Count);
-            foreach (Achievement ach in Achievements.ToList())
-            {
+            foreach (Achievement ach in Achievements.ToList()) {
                 UserAchievement userData = Habbo.GetAchievementData(ach.GroupName);
                 int targetLevel = (userData != null ? userData.Level + 1 : 1);
 

@@ -41,24 +41,20 @@ namespace Plus.HabboHotel.Roleplay.RpItem
             List<RpInventoryEntry> entries = new();
 
             UserRpItems items = habbo?.GetRpItems();
-            if (items != null)
-            {
+            if (items != null) {
                 // Stackable items collapse by item-id into chunks of stack_limit; everything
                 // else (non-stackable, shields with durability) is a single entry.
                 Dictionary<int, List<UserRpItem>> stackable = new();
-                foreach (UserRpItem item in items.Items)
-                {
+                foreach (UserRpItem item in items.Items) {
                     if (item.Equipped) // equipped shield lives in the secondary slot
                         continue;
 
-                    if (item.ItemData != null && item.ItemData.IsStackable)
-                    {
+                    if (item.ItemData != null && item.ItemData.IsStackable) {
                         if (!stackable.TryGetValue(item.ItemId, out List<UserRpItem> list))
                             stackable[item.ItemId] = list = new List<UserRpItem>();
                         list.Add(item);
                     }
-                    else
-                    {
+                    else {
                         entries.Add(new RpInventoryEntry
                         {
                             Kind = item.ItemData == null ? "item"
@@ -71,16 +67,14 @@ namespace Plus.HabboHotel.Roleplay.RpItem
                     }
                 }
 
-                foreach (List<UserRpItem> group in stackable.Values)
-                {
+                foreach (List<UserRpItem> group in stackable.Values) {
                     int limit = group[0].ItemData.StackLimit;
                     List<UserRpItem> ordered = group
                         .OrderBy(x => x.Slot < 0 ? int.MaxValue : x.Slot)
                         .ThenBy(x => x.Id)
                         .ToList();
 
-                    for (int i = 0; i < ordered.Count; i += limit)
-                    {
+                    for (int i = 0; i < ordered.Count; i += limit) {
                         List<UserRpItem> chunk = ordered.Skip(i).Take(limit).ToList();
                         entries.Add(new RpInventoryEntry { Kind = "item", Stack = chunk, Slot = chunk[0].Slot });
                     }
@@ -88,11 +82,9 @@ namespace Plus.HabboHotel.Roleplay.RpItem
             }
 
             UserRpWeapons weapons = habbo?.GetRpWeapons();
-            if (weapons != null)
-            {
+            if (weapons != null) {
                 int activeId = weapons.ActiveWeaponId;
-                foreach (UserWeapon weapon in weapons.Weapons)
-                {
+                foreach (UserWeapon weapon in weapons.Weapons) {
                     if (weapon.IsDefault || weapon.Id == activeId)
                         continue; // active weapon is shown in the primary equipped slot
 
@@ -109,8 +101,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem
             RpInventoryEntry[] view = new RpInventoryEntry[slotCount];
             List<RpInventoryEntry> overflow = new();
 
-            foreach (RpInventoryEntry entry in BuildEntries(habbo))
-            {
+            foreach (RpInventoryEntry entry in BuildEntries(habbo)) {
                 if (entry.Slot >= 0 && entry.Slot < slotCount && view[entry.Slot] == null)
                     view[entry.Slot] = entry;
                 else
@@ -128,8 +119,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem
                 .ThenBy(EntryId)
                 .ToList();
 
-            foreach (RpInventoryEntry entry in overflow)
-            {
+            foreach (RpInventoryEntry entry in overflow) {
                 int next = 0;
                 while (next < slotCount && (view[next] != null || reserved.Contains(next)))
                     next++;
@@ -162,8 +152,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem
                         reserved.Add(it.Slot);
 
             UserRpWeapons weapons = habbo?.GetRpWeapons();
-            if (weapons != null && weapons.ActiveWeaponId != 0)
-            {
+            if (weapons != null && weapons.ActiveWeaponId != 0) {
                 UserWeapon active = weapons.GetWeapon(weapons.ActiveWeaponId);
                 if (active != null && active.Slot >= 0 && active.Slot < slotCount)
                     reserved.Add(active.Slot);

@@ -12,8 +12,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Police
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length < 2)
-            {
+            if (@params.Length < 2) {
                 session.SendWhisper("Usage: :pardon <username>", 1);
                 return;
             }

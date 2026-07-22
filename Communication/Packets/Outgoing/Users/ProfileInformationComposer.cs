@@ -44,8 +44,7 @@ namespace Plus.Communication.Packets.Outgoing.Users
             packet.WriteBoolean((PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(TargetHabbo.Id)) != null);
 
             packet.WriteInteger(Groups.Count);
-            foreach (Group group in Groups)
-            {
+            foreach (Group group in Groups) {
                 packet.WriteInteger(group.Id);
                 packet.WriteString(group.Name);
                 packet.WriteString(group.Badge);
@@ -75,16 +74,14 @@ namespace Plus.Communication.Packets.Outgoing.Users
             packet.WriteInteger(TargetHabbo.GetRpStats().Knowledge);
 
             var equippedSkills = new List<Skill>();
-            foreach (var s in TargetHabbo.GetRpSkills().Skills)
-            {
+            foreach (var s in TargetHabbo.GetRpSkills().Skills) {
                 if (!s.Equipped) continue;
                 if (PlusEnvironment.GetSkillManager().TryGetSkill(s.SkillId, out Skill skill))
                     equippedSkills.Add(skill);
             }
 
             packet.WriteInteger(equippedSkills.Count);
-            foreach (var skill in equippedSkills)
-            {
+            foreach (var skill in equippedSkills) {
                 packet.WriteString(skill.BadgeCode);
                 packet.WriteInteger(skill.Id);
                 packet.WriteInteger(TargetHabbo.GetRpSkills().GetLevel(skill.Id));
@@ -93,8 +90,7 @@ namespace Plus.Communication.Packets.Outgoing.Users
             packet.WriteInteger(Level);
             packet.WriteInteger(TargetHabbo.GetRpStats().Experience);
             packet.WriteInteger(NextLevelXP);
-            if (Corporation != null)
-            {
+            if (Corporation != null) {
                 packet.WriteInteger(Corporation.Id); // job group id
                 packet.WriteString(Corporation.Name); // name
                 packet.WriteString(Corporation.Badge); // badge
@@ -103,8 +99,7 @@ namespace Plus.Communication.Packets.Outgoing.Users
                 packet.WriteInteger(weeklyShifts); // weekly shifts (Mon-Sun, current IRL week)
                 packet.WriteInteger(totalShifts); // all shifts (any time)
             }
-            else
-            {
+            else {
                 packet.WriteInteger(0); // no corporation
             }
         }

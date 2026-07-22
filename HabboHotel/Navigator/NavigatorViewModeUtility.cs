@@ -4,8 +4,7 @@
     {
         public static NavigatorViewMode GetViewModeByString(string mode)
         {
-            switch (mode.ToUpper())
-            {
+            switch (mode.ToUpper()) {
                 default:
                 case "REGULAR":
                     return NavigatorViewMode.Regular;

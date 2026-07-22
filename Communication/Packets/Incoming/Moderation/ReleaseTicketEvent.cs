@@ -13,8 +13,7 @@ namespace Plus.Communication.Packets.Incoming.Moderation
 
             int amount = packet.PopInt();
 
-            for (int i = 0; i < amount; i++)
-            {
+            for (int i = 0; i < amount; i++) {
                 if (!PlusEnvironment.GetGame().GetModerationManager().TryGetTicket(packet.PopInt(), out ModerationTicket ticket))
                     continue;
 

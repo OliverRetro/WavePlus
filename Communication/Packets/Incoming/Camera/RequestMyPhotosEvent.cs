@@ -20,8 +20,7 @@ namespace Plus.Communication.Packets.Incoming.Camera
 
             List<GalleryPhoto> photos;
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 photos = db.CameraPhotos
                     .Where(p => p.UserId == userId)
                     .GroupBy(p => p.Url)

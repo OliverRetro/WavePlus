@@ -1,6 +1,5 @@
 ﻿using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.HabboHotel.GameClients;
-using Plus.HabboHotel.Roleplay.RpItem.Weapon;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 {
@@ -15,7 +14,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
         public void Execute(GameClient session, Room room, string[] @params)
         {
             var stats = session.GetHabbo().GetRpStats();
-            if(stats == null || session.GetHabbo() == null) { return; }
+            if (stats == null || session.GetHabbo() == null) { return; }
             stats.IsGodMode = !stats.IsGodMode;
 
             bool god = stats.IsGodMode;
@@ -24,7 +23,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 
             if (stats.IsGodMode) {
                 roomUser.ApplyEffect(59);
-            } else {
+            }
+            else {
                 roomUser.ApplyEffect(0);
             }
         }

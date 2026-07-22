@@ -21,10 +21,8 @@ namespace Plus.Communication.Packets.Incoming.Groups
             if (!PlusEnvironment.GetGame().GetGroupManager().TryGetGroup(groupId, out Group group))
                 return;
 
-            if (userId == session.GetHabbo().Id)
-            {
-                if (group.CreatorId == userId)
-                {
+            if (userId == session.GetHabbo().Id) {
+                if (group.CreatorId == userId) {
                     session.SendNotification("Oops, the group owner cannot leave the group.");
                     return;
                 }
@@ -32,8 +30,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
                 if (group.IsMember(userId))
                     group.DeleteMember(userId);
 
-                if (group.IsAdmin(userId))
-                {
+                if (group.IsAdmin(userId)) {
                     if (group.IsAdmin(userId))
                         group.TakeAdmin(userId);
 
@@ -41,8 +38,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
                         return;
 
                     RoomUser user = room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id);
-                    if (user != null)
-                    {
+                    if (user != null) {
                         user.RemoveStatus("flatctrl 1");
                         user.UpdateNeeded = true;
 
@@ -52,22 +48,18 @@ namespace Plus.Communication.Packets.Incoming.Groups
                 }
 
                 session.SendPacket(new GroupInfoComposer(group, session));
-                if (session.GetHabbo().GetStats().FavouriteGroupId == groupId)
-                {
+                if (session.GetHabbo().GetStats().FavouriteGroupId == groupId) {
                     session.GetHabbo().GetStats().FavouriteGroupId = 0;
-                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                    {
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                         db.UserStats.Where(x => x.Id == userId).ExecuteUpdate(s => s.SetProperty(x => x.Groupid, 0));
                     }
 
-                    if (group.AdminOnlyDeco == 0)
-                    {
+                    if (group.AdminOnlyDeco == 0) {
                         if (!PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(group.RoomId, out Room room))
                             return;
 
                         RoomUser user = room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id);
-                        if (user != null)
-                        {
+                        if (user != null) {
                             user.RemoveStatus("flatctrl 1");
                             user.UpdateNeeded = true;
 
@@ -76,8 +68,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
                         }
                     }
 
-                    if (session.GetHabbo().InRoom && session.GetHabbo().CurrentRoom != null)
-                    {
+                    if (session.GetHabbo().InRoom && session.GetHabbo().CurrentRoom != null) {
                         RoomUser user = session.GetHabbo().CurrentRoom.GetRoomUserManager()
                             .GetRoomUserByHabbo(session.GetHabbo().Id);
                         if (user != null)
@@ -93,16 +84,14 @@ namespace Plus.Communication.Packets.Incoming.Groups
                 return;
             }
 
-            if (group.CreatorId == session.GetHabbo().Id || group.IsAdmin(session.GetHabbo().Id))
-            {
+            if (group.CreatorId == session.GetHabbo().Id || group.IsAdmin(session.GetHabbo().Id)) {
                 if (!group.IsMember(userId))
                     return;
 
                 if (userId == group.CreatorId)
                     return;
 
-                if (group.IsAdmin(userId) && group.CreatorId != session.GetHabbo().Id)
-                {
+                if (group.IsAdmin(userId) && group.CreatorId != session.GetHabbo().Id) {
                     session.SendNotification("Sorry, only group creators can remove other administrators from the group.");
                     return;
                 }
@@ -115,8 +104,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
 
                 List<UserCache> members = new();
                 List<int> memberIds = group.GetAllMembers;
-                foreach (int id in memberIds.ToList())
-                {
+                foreach (int id in memberIds.ToList()) {
                     UserCache groupMember = PlusEnvironment.GetGame().GetCacheManager().GenerateUser(id);
                     if (groupMember == null)
                         continue;
@@ -124,7 +112,6 @@ namespace Plus.Communication.Packets.Incoming.Groups
                     if (!members.Contains(groupMember))
                         members.Add(groupMember);
                 }
-
 
                 int finishIndex = 14 < members.Count ? 14 : members.Count;
                 int membersCount = members.Count;

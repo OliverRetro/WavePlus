@@ -29,29 +29,24 @@ namespace Plus.HabboHotel.Rooms.Instance
         public void OnCycle()
         {
             DateTime start = DateTime.Now;
-            foreach (KeyValuePair<int, IWiredItem> item in _wiredItems.ToList())
-            {
+            foreach (KeyValuePair<int, IWiredItem> item in _wiredItems.ToList()) {
                 Items.Item selectedItem = _room.GetRoomItemHandler().GetItem(item.Value.Item.Id);
 
                 if (selectedItem == null)
                     TryRemove(item.Key);
 
-                if (item.Value is IWiredCycle cycle)
-                {
-                    if (cycle.TickCount <= 0)
-                    {
+                if (item.Value is IWiredCycle cycle) {
+                    if (cycle.TickCount <= 0) {
                         cycle.OnCycle();
                     }
-                    else
-                    {
+                    else {
                         cycle.TickCount--;
                     }
                 }
             }
 
             TimeSpan span = (DateTime.Now - start);
-            if (span.Milliseconds > 400)
-            {
+            if (span.Milliseconds > 400) {
                 //log.Warn("<Room " + _room.Id + "> Wired took " + Span.TotalMilliseconds + "ms to execute - Rooms lagging behind");
             }
         }
@@ -61,16 +56,13 @@ namespace Plus.HabboHotel.Rooms.Instance
             IWiredItem newBox = GenerateNewBox(item);
 
             int itemId = item.Id;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 var row = db.WiredItems.Where(w => w.Id == itemId)
                     .Select(w => new { w._string, w._bool, w.Items, w.Delay })
                     .FirstOrDefault();
 
-                if (row != null)
-                {
-                    if (string.IsNullOrEmpty(row._string))
-                    {
+                if (row != null) {
+                    if (string.IsNullOrEmpty(row._string)) {
                         if (newBox.Type == WiredBoxType.ConditionMatchStateAndPosition || newBox.Type == WiredBoxType.ConditionDontMatchStateAndPosition)
                             newBox.StringData = "0;0;0";
                         else if (newBox.Type == WiredBoxType.ConditionUserCountInRoom || newBox.Type == WiredBoxType.ConditionUserCountDoesntInRoom)
@@ -87,21 +79,18 @@ namespace Plus.HabboHotel.Rooms.Instance
                     newBox.BoolData = Convert.ToInt32(row._bool) == 1;
                     newBox.ItemsData = row.Items;
 
-                    if (newBox is IWiredCycle box)
-                    {
+                    if (newBox is IWiredCycle box) {
                         box.Delay = row.Delay;
                     }
 
-                    foreach (string str in Convert.ToString(row.Items).Split(';'))
-                    {
+                    foreach (string str in Convert.ToString(row.Items).Split(';')) {
                         int id = 0;
                         string sId = "0";
 
                         if (str.Contains(':'))
                             sId = str.Split(':')[0];
 
-                        if (int.TryParse(str, out id) || int.TryParse(sId, out id))
-                        {
+                        if (int.TryParse(str, out id) || int.TryParse(sId, out id)) {
                             Items.Item selectedItem = _room.GetRoomItemHandler().GetItem(Convert.ToInt32(id));
                             if (selectedItem == null)
                                 continue;
@@ -110,8 +99,7 @@ namespace Plus.HabboHotel.Rooms.Instance
                         }
                     }
                 }
-                else
-                {
+                else {
                     newBox.ItemsData = "";
                     newBox.StringData = "";
                     newBox.BoolData = false;
@@ -119,8 +107,7 @@ namespace Plus.HabboHotel.Rooms.Instance
                 }
             }
 
-            if (!AddBox(newBox))
-            {
+            if (!AddBox(newBox)) {
                 // ummm
             }
 
@@ -129,8 +116,7 @@ namespace Plus.HabboHotel.Rooms.Instance
 
         public IWiredItem GenerateNewBox(Items.Item item)
         {
-            switch (item.GetBaseItem().WiredType)
-            {
+            switch (item.GetBaseItem().WiredType) {
                 case WiredBoxType.TriggerRoomEnter:
                     return new RoomEnterBox(_room, item);
                 case WiredBoxType.TriggerRepeat:
@@ -283,10 +269,8 @@ namespace Plus.HabboHotel.Rooms.Instance
 
             ICollection<IWiredItem> items = GetEffects(box).Where(x => x.Item.Id != box.Item.Id).ToList();
 
-            if (items != null && items.Count > 0)
-            {
-                foreach (IWiredItem item in items)
-                {
+            if (items != null && items.Count > 0) {
+                foreach (IWiredItem item in items) {
                     if (item.Type != WiredBoxType.EffectMoveAndRotate && item.Type != WiredBoxType.EffectMoveFurniFromNearestUser && item.Type != WiredBoxType.EffectMoveFurniToNearestUser)
                         continue;
 
@@ -298,38 +282,31 @@ namespace Plus.HabboHotel.Rooms.Instance
                 }
             }
 
-
             return false;
         }
 
         public bool TriggerEvent(WiredBoxType type, params object[] @params)
         {
             bool finished = false;
-            try
-            {
-                if (type == WiredBoxType.TriggerUserSays)
-                {
+            try {
+                if (type == WiredBoxType.TriggerUserSays) {
                     List<IWiredItem> ranBoxes = new();
-                    foreach (IWiredItem box in _wiredItems.Values.ToList())
-                    {
+                    foreach (IWiredItem box in _wiredItems.Values.ToList()) {
                         if (box == null)
                             continue;
 
-                        if (box.Type == WiredBoxType.TriggerUserSays)
-                        {
+                        if (box.Type == WiredBoxType.TriggerUserSays) {
                             if (!ranBoxes.Contains(box))
                                 ranBoxes.Add(box);
                         }
                     }
 
                     string message = Convert.ToString(@params[1]);
-                    foreach (IWiredItem box in ranBoxes.ToList())
-                    {
+                    foreach (IWiredItem box in ranBoxes.ToList()) {
                         if (box == null)
                             continue;
 
-                        if (message.Contains(" " + box.StringData) || message.Contains(box.StringData + " ") || message == box.StringData)
-                        {
+                        if (message.Contains(" " + box.StringData) || message.Contains(box.StringData + " ") || message == box.StringData) {
                             finished = box.Execute(@params);
                         }
                     }
@@ -337,19 +314,16 @@ namespace Plus.HabboHotel.Rooms.Instance
                     return finished;
                 }
 
-                foreach (IWiredItem box in _wiredItems.Values.ToList())
-                {
+                foreach (IWiredItem box in _wiredItems.Values.ToList()) {
                     if (box == null)
                         continue;
 
-                    if (box.Type == type && IsTrigger(box.Item))
-                    {
+                    if (box.Type == type && IsTrigger(box.Item)) {
                         finished = box.Execute(@params);
                     }
                 }
             }
-            catch
-            {
+            catch {
                 //log.Error("Error when triggering Wired Event: " + e);
                 return false;
             }
@@ -360,10 +334,8 @@ namespace Plus.HabboHotel.Rooms.Instance
         public ICollection<IWiredItem> GetTriggers(IWiredItem item)
         {
             List<IWiredItem> items = new();
-            foreach (IWiredItem I in _wiredItems.Values)
-            {
-                if (IsTrigger(I.Item) && I.Item.GetX == item.Item.GetX && I.Item.GetY == item.Item.GetY)
-                {
+            foreach (IWiredItem I in _wiredItems.Values) {
+                if (IsTrigger(I.Item) && I.Item.GetX == item.Item.GetX && I.Item.GetY == item.Item.GetY) {
                     items.Add(I);
                 }
             }
@@ -375,10 +347,8 @@ namespace Plus.HabboHotel.Rooms.Instance
         {
             List<IWiredItem> items = new();
 
-            foreach (IWiredItem I in _wiredItems.Values)
-            {
-                if (IsEffect(I.Item) && I.Item.GetX == item.Item.GetX && I.Item.GetY == item.Item.GetY)
-                {
+            foreach (IWiredItem I in _wiredItems.Values) {
+                if (IsEffect(I.Item) && I.Item.GetX == item.Item.GetX && I.Item.GetY == item.Item.GetY) {
                     items.Add(I);
                 }
             }
@@ -396,15 +366,11 @@ namespace Plus.HabboHotel.Rooms.Instance
             if (room == null || item == null)
                 return false;
 
-            foreach (Point point in item.GetSides())
-            {
-                if (room.GetGameMap().SquareHasUsers(point.X, point.Y))
-                {
+            foreach (Point point in item.GetSides()) {
+                if (room.GetGameMap().SquareHasUsers(point.X, point.Y)) {
                     List<RoomUser> users = room.GetGameMap().GetRoomUsers(point);
-                    if (users != null && users.Count > 0)
-                    {
-                        foreach (RoomUser user in users.ToList())
-                        {
+                    if (users != null && users.Count > 0) {
+                        foreach (RoomUser user in users.ToList()) {
                             if (user == null)
                                 continue;
 
@@ -425,10 +391,8 @@ namespace Plus.HabboHotel.Rooms.Instance
         {
             List<IWiredItem> items = new();
 
-            foreach (IWiredItem I in _wiredItems.Values)
-            {
-                if (IsCondition(I.Item) && I.Item.GetX == item.Item.GetX && I.Item.GetY == item.Item.GetY)
-                {
+            foreach (IWiredItem I in _wiredItems.Values) {
+                if (IsCondition(I.Item) && I.Item.GetX == item.Item.GetX && I.Item.GetY == item.Item.GetY) {
                     items.Add(I);
                 }
             }
@@ -450,13 +414,11 @@ namespace Plus.HabboHotel.Rooms.Instance
         {
             string items = "";
             IWiredCycle cycle = null;
-            if (item is IWiredCycle wiredCycle)
-            {
+            if (item is IWiredCycle wiredCycle) {
                 cycle = wiredCycle;
             }
 
-            foreach (Items.Item I in item.SetItems.Values)
-            {
+            foreach (Items.Item I in item.SetItems.Values) {
                 Items.Item selectedItem = _room.GetRoomItemHandler().GetItem(Convert.ToInt32(I.Id));
                 if (selectedItem == null)
                     continue;
@@ -470,8 +432,7 @@ namespace Plus.HabboHotel.Rooms.Instance
             if (item.Type == WiredBoxType.EffectMatchPosition || item.Type == WiredBoxType.ConditionMatchStateAndPosition || item.Type == WiredBoxType.ConditionDontMatchStateAndPosition)
                 item.ItemsData = items;
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.WiredItems.Upsert(new WiredItemEntity
                 {
                     Id = item.Item.Id,

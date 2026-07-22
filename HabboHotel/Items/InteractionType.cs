@@ -127,8 +127,7 @@
     {
         public static InteractionType GetTypeFromString(string type)
         {
-            switch (type.ToLower())
-            {
+            switch (type.ToLower()) {
                 case "":
                 case "default":
                     return InteractionType.None;
@@ -365,8 +364,7 @@
                     return InteractionType.StockVendor;
                 case "pet":
                     return InteractionType.Pet;
-                default:
-                    {
+                default: {
                         //Logging.WriteLine("Unknown interaction type in parse code: " + pType, ConsoleColor.Yellow);
                         return InteractionType.None;
                     }

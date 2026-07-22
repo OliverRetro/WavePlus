@@ -44,8 +44,7 @@ namespace Plus.Communication.Packets.Outgoing.Roleplay
             packet.WriteString(_updatedAt.ToString(CultureInfo.InvariantCulture));
 
             packet.WriteInteger(_transactions.Count);
-            foreach (UserRpBankLog log in _transactions)
-            {
+            foreach (UserRpBankLog log in _transactions) {
                 packet.WriteInteger(0); // id (not tracked individually)
                 packet.WriteString(log.ActionType ?? ""); // DEPOSIT|WITHDRAWAL|...
                 packet.WriteString(log.Amount.ToString(CultureInfo.InvariantCulture));

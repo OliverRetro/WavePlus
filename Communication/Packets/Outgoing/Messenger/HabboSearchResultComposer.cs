@@ -19,8 +19,7 @@ namespace Plus.Communication.Packets.Outgoing.Messenger
         public override void Compose(ServerPacket packet)
         {
             packet.WriteInteger(Friends.Count);
-            foreach (SearchResult friend in Friends.ToList())
-            {
+            foreach (SearchResult friend in Friends.ToList()) {
                 bool online = (PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(friend.UserId) != null);
 
                 packet.WriteInteger(friend.UserId);
@@ -35,8 +34,7 @@ namespace Plus.Communication.Packets.Outgoing.Messenger
             }
 
             packet.WriteInteger(OtherUsers.Count);
-            foreach (SearchResult otherUser in OtherUsers.ToList())
-            {
+            foreach (SearchResult otherUser in OtherUsers.ToList()) {
                 bool online = (PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(otherUser.UserId) != null);
 
                 packet.WriteInteger(otherUser.UserId);

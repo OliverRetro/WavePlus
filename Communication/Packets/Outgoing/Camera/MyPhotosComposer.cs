@@ -11,8 +11,7 @@ namespace Plus.Communication.Packets.Outgoing.Camera
         {
             packet.WriteInteger(Photos.Count);
 
-            foreach (GalleryPhoto photo in Photos)
-            {
+            foreach (GalleryPhoto photo in Photos) {
                 packet.WriteString(photo.Url);
                 packet.WriteInteger(photo.Timestamp);
                 packet.WriteInteger(photo.RoomId);

@@ -16,28 +16,24 @@ namespace Plus.Communication.Packets.Outgoing.Inventory.Trading
 
         public override void Compose(ServerPacket packet)
         {
-            foreach (TradeUser user in Trade.Users.ToList())
-            {
+            foreach (TradeUser user in Trade.Users.ToList()) {
                 packet.WriteInteger(user.RoomUser.UserId);
                 packet.WriteInteger(user.OfferedItems.Count);
 
-                foreach (Item item in user.OfferedItems.Values)
-                {
+                foreach (Item item in user.OfferedItems.Values) {
                     packet.WriteInteger(item.Id);
                     packet.WriteString(item.GetBaseItem().Type.ToString().ToLower());
                     packet.WriteInteger(item.Id);
                     packet.WriteInteger(item.Data.SpriteId);
                     packet.WriteInteger(0); //Not sure.
-                    if (item.LimitedNo > 0)
-                    {
+                    if (item.LimitedNo > 0) {
                         packet.WriteBoolean(false); //Stackable
                         packet.WriteInteger(256);
                         packet.WriteString("");
                         packet.WriteInteger(item.LimitedNo);
                         packet.WriteInteger(item.LimitedTot);
                     }
-                    else
-                    {
+                    else {
                         packet.WriteBoolean(true); //Stackable
                         packet.WriteInteger(0);
                         packet.WriteString("");

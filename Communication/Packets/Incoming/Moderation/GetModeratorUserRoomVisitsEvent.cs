@@ -21,16 +21,14 @@ namespace Plus.Communication.Packets.Incoming.Moderation
 
             Dictionary<double, RoomData> visits = new();
             uint uid = (uint)userId;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 var table = db.UserRoomvisits.Where(v => v.UserId == uid)
                     .OrderByDescending(v => v.EntryTimestamp)
                     .Select(v => new { v.RoomId, v.EntryTimestamp })
                     .Take(50)
                     .ToList();
 
-                foreach (var row in table)
-                {
+                foreach (var row in table) {
                     if (!RoomFactory.TryGetData((int)row.RoomId, out RoomData data))
                         continue;
 

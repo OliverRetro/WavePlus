@@ -23,20 +23,17 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
                 .Select(o => new { o.UserId, o.ItemId, o.ExtraData, o.FurniId, o.LimitedNumber, o.LimitedStack })
                 .FirstOrDefault();
 
-            if (offerData == null)
-            {
+            if (offerData == null) {
                 session.SendPacket(new MarketplaceCancelOfferResultComposer(offerId, false));
                 return;
             }
 
-            if (offerData.UserId != session.GetHabbo().Id)
-            {
+            if (offerData.UserId != session.GetHabbo().Id) {
                 session.SendPacket(new MarketplaceCancelOfferResultComposer(offerId, false));
                 return;
             }
 
-            if (!PlusEnvironment.GetGame().GetItemManager().GetItem((int)offerData.ItemId, out ItemData item))
-            {
+            if (!PlusEnvironment.GetGame().GetItemManager().GetItem((int)offerData.ItemId, out ItemData item)) {
                 session.SendPacket(new MarketplaceCancelOfferResultComposer(offerId, false));
                 return;
             }

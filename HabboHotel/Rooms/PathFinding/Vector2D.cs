@@ -27,8 +27,7 @@
 
         public override bool Equals(object obj)
         {
-            if (obj is Vector2D)
-            {
+            if (obj is Vector2D) {
                 var v2d = (Vector2D)obj;
                 return v2d.X == X && v2d.Y == Y;
             }

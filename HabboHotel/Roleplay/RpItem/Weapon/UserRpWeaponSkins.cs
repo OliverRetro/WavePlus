@@ -45,8 +45,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
             if (!_skins.TryGetValue(userSkinId, out UserWeaponSkin targetSkin))
                 return false;
 
-            foreach (UserWeaponSkin skin in GetSkinsForWeapon(targetSkin.SkinData.WeaponId))
-            {
+            foreach (UserWeaponSkin skin in GetSkinsForWeapon(targetSkin.SkinData.WeaponId)) {
                 bool shouldEquip = skin.Id == userSkinId && !targetSkin.Equipped;
                 if (skin.Equipped == shouldEquip)
                     continue;

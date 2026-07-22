@@ -15,13 +15,11 @@ namespace Plus.Communication.Packets.Incoming.Inventory.Badges
             session.GetHabbo().GetBadgeComponent().ResetSlots();
 
             uint badgeUserId = (uint)session.GetHabbo().Id;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.UserBadges.Where(b => b.UserId == badgeUserId).ExecuteUpdate(s => s.SetProperty(b => b.BadgeSlot, 0));
             }
 
-            for (int i = 0; i < 5; i++)
-            {
+            for (int i = 0; i < 5; i++) {
                 int slot = packet.PopInt();
                 string badge = packet.PopString();
 
@@ -35,14 +33,12 @@ namespace Plus.Communication.Packets.Incoming.Inventory.Badges
 
                 int badgeSlot = slot;
                 string badgeId = badge;
-                using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                {
+                using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                     db.UserBadges.Where(b => b.BadgeId == badgeId && b.UserId == badgeUserId).ExecuteUpdate(s => s.SetProperty(b => b.BadgeSlot, badgeSlot));
                 }
             }
 
             PlusEnvironment.GetGame().GetQuestManager().ProgressUserQuest(session, QuestType.ProfileBadge);
-
 
             if (session.GetHabbo().InRoom && PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(session.GetHabbo().CurrentRoomId, out Room room))
                 room.SendPacket(new HabboUserBadgesComposer(session.GetHabbo()));

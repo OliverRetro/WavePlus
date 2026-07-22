@@ -18,8 +18,7 @@ namespace Plus.Communication.Packets.Outgoing.Navigator.New
         {
             //TODO: HMU here too, if you want saved searches to be fixed
             packet.WriteInteger(TopLevelItems.Count); //Count
-            foreach (TopLevelItem topLevelItem in TopLevelItems.ToList())
-            {
+            foreach (TopLevelItem topLevelItem in TopLevelItems.ToList()) {
                 //TopLevelContext
                 packet.WriteString(topLevelItem.SearchCode); //Search code
                 packet.WriteInteger(0); //Count of saved searches?

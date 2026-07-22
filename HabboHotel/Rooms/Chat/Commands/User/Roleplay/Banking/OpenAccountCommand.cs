@@ -15,20 +15,17 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Banking
             if (session?.GetHabbo() == null || room == null)
                 return;
 
-            if (session.GetHabbo().GetBankAccount() != null)
-            {
+            if (session.GetHabbo().GetBankAccount() != null) {
                 session.SendWhisper("You already have a bank account.", 1);
                 return;
             }
 
-            if (!IsBankRoom(room.Id))
-            {
+            if (!IsBankRoom(room.Id)) {
                 session.SendWhisper("You can only open a bank account inside the bank.", 1);
                 return;
             }
 
-            if (!PlusEnvironment.GetBankingManager().CreateAccount(session.GetHabbo()))
-            {
+            if (!PlusEnvironment.GetBankingManager().CreateAccount(session.GetHabbo())) {
                 session.SendWhisper("You couldn't open an account — you may not have enough credits for the opening fee.", 1);
                 return;
             }

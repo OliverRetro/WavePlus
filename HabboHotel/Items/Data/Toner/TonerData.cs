@@ -21,8 +21,7 @@ namespace Plus.HabboHotel.Items.Data.Toner
 
             var row = db.RoomItemsToners.Where(t => t.Id == idKey).Select(t => new { t.Enabled, t.Data1, t.Data2, t.Data3 }).FirstOrDefault();
 
-            if (row == null)
-            {
+            if (row == null) {
                 db.Database.ExecuteSqlInterpolated($"INSERT INTO `room_items_toner` VALUES ({ItemId}, '0', 0, 0, 0)");
                 row = db.RoomItemsToners.Where(t => t.Id == idKey).Select(t => new { t.Enabled, t.Data1, t.Data2, t.Data3 }).FirstOrDefault();
             }

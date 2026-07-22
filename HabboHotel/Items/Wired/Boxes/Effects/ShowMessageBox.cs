@@ -64,7 +64,6 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
             if (StringData.Contains("%USERSONLINE%"))
                 message = message.Replace("%USERSONLINE%", PlusEnvironment.GetGame().GetClientManager().Count.ToString());
 
-
             player.GetClient().SendPacket(new WhisperComposer(user.VirtualId, message, 0, 34));
             return true;
         }

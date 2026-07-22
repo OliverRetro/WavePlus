@@ -21,13 +21,11 @@ namespace Plus.HabboHotel.Games
             if (_games.Count > 0)
                 _games.Clear();
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 var rows = db.GamesConfigs
                     .Select(g => new { g.Id, g.Name, g.ColourOne, g.ColourTwo, g.ResourcePath, g.StringThree, g.GameSwf, g.GameAssets, g.GameServerHost, g.GameServerPort, g.SocketPolicyPort, g.GameEnabled })
                     .ToList();
-                foreach (var row in rows)
-                {
+                foreach (var row in rows) {
                     _games.Add(row.Id, new GameData(row.Id, row.Name, row.ColourOne, row.ColourTwo, row.ResourcePath, row.StringThree, row.GameSwf, row.GameAssets, row.GameServerHost, row.GameServerPort, row.SocketPolicyPort, PlusEnvironment.EnumToBool(row.GameEnabled)));
                 }
             }

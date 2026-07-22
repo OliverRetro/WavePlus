@@ -20,8 +20,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Settings
             room.RoomMuted = !room.RoomMuted;
 
             List<RoomUser> roomUsers = room.GetRoomUserManager().GetRoomUsers();
-            foreach (RoomUser roomUser in roomUsers.ToList())
-            {
+            foreach (RoomUser roomUser in roomUsers.ToList()) {
                 if (roomUser == null || roomUser.GetClient() == null)
                     continue;
 

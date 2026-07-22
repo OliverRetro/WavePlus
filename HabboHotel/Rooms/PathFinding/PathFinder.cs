@@ -59,8 +59,7 @@ namespace Plus.HabboHotel.Rooms.PathFinding
             int[] gCost = new int[size];
             int[] parent = new int[size];
             bool[] closed = new bool[size];
-            for (int i = 0; i < size; i++)
-            {
+            for (int i = 0; i < size; i++) {
                 gCost[i] = int.MaxValue;
                 parent[i] = -1;
             }
@@ -79,8 +78,7 @@ namespace Plus.HabboHotel.Rooms.PathFinding
             var fromVec = new Vector2D();
             var toVec = new Vector2D();
 
-            while (open.Count > 0)
-            {
+            while (open.Count > 0) {
                 int currentIdx = open.Pop();
 
                 if (closed[currentIdx])
@@ -94,8 +92,7 @@ namespace Plus.HabboHotel.Rooms.PathFinding
                 int cx = currentIdx % width;
                 int cy = currentIdx / width;
 
-                for (int i = 0; i < neighbourCount; i++)
-                {
+                for (int i = 0; i < neighbourCount; i++) {
                     int nx = cx + dxs[i];
                     int ny = cy + dys[i];
 
@@ -150,8 +147,7 @@ namespace Plus.HabboHotel.Rooms.PathFinding
             // Legacy order: [end, ..., start].
             var path = new List<Vector2D>();
             int idx = endIdx;
-            while (idx != -1)
-            {
+            while (idx != -1) {
                 path.Add(new Vector2D(idx % width, idx / width));
                 idx = parent[idx];
             }
@@ -175,8 +171,7 @@ namespace Plus.HabboHotel.Rooms.PathFinding
 
             public void Push(int priority, int value)
             {
-                if (Count == _priority.Length)
-                {
+                if (Count == _priority.Length) {
                     Array.Resize(ref _priority, Count * 2);
                     Array.Resize(ref _value, Count * 2);
                 }
@@ -185,8 +180,7 @@ namespace Plus.HabboHotel.Rooms.PathFinding
                 _priority[i] = priority;
                 _value[i] = value;
 
-                while (i > 0)
-                {
+                while (i > 0) {
                     int p = (i - 1) >> 1;
                     if (_priority[p] <= _priority[i])
                         break;
@@ -205,8 +199,7 @@ namespace Plus.HabboHotel.Rooms.PathFinding
                 _value[0] = _value[Count];
 
                 int i = 0;
-                while (true)
-                {
+                while (true) {
                     int l = (i << 1) + 1;
                     if (l >= Count)
                         break;

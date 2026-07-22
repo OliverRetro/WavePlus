@@ -20,14 +20,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Banking
             if (!BankCommandUtil.RequireAccount(session))
                 return;
 
-            if (@params.Length < 2 || !int.TryParse(@params[1], out int amount) || amount <= 0)
-            {
+            if (@params.Length < 2 || !int.TryParse(@params[1], out int amount) || amount <= 0) {
                 session.SendWhisper("Please enter a valid amount to deposit.", 1);
                 return;
             }
 
-            if (session.GetHabbo().Credits < amount)
-            {
+            if (session.GetHabbo().Credits < amount) {
                 session.SendWhisper("You don't have this amount to deposit!", 1);
                 return;
             }
@@ -35,8 +33,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Banking
             string source = (@params.Length >= 3 && @params[2].Equals("phone", StringComparison.OrdinalIgnoreCase)) ? "PHONE" : "ATM";
 
             BankTransactionResult result = PlusEnvironment.GetBankingManager().Deposit(session.GetHabbo(), amount, source);
-            if (!result.Success)
-            {
+            if (!result.Success) {
                 session.SendWhisper("You don't have this amount to deposit!", 1);
                 return;
             }

@@ -110,8 +110,7 @@ namespace Plus
 
             CultureInfo = CultureInfo.CreateSpecificCulture("en-GB");
 
-            try
-            {
+            try {
                 _configuration = new ConfigurationData($"Config{Path.DirectorySeparatorChar}config.ini");
 
                 var connectionString = new MySqlConnectionStringBuilder
@@ -141,18 +140,15 @@ namespace Plus
                     uint.Parse(GetConfig().Data["db.pool.maxsize"]));
 
                 bool dbConnected;
-                try
-                {
+                try {
                     using WavePlusContext db = GetDbContext();
                     dbConnected = db.Database.CanConnect();
                 }
-                catch
-                {
+                catch {
                     dbConnected = false;
                 }
 
-                if (!dbConnected)
-                {
+                if (!dbConnected) {
                     Log.Error("Failed to Connect to the specified MySQL server.");
                     Console.ReadKey(true);
                     Environment.Exit(1);
@@ -165,8 +161,7 @@ namespace Plus
                 _redisManager.Init();
 
                 //Reset our statistics first.
-                using (WavePlusContext db = GetDbContext())
-                {
+                using (WavePlusContext db = GetDbContext()) {
                     db.Database.ExecuteSqlRaw("TRUNCATE `catalog_marketplace_data`");
                     db.Rooms.Where(r => r.UsersNow > 0).ExecuteUpdate(s => s.SetProperty(r => r.UsersNow, 0));
                     db.Users.Where(u => u.Online == "1").ExecuteUpdate(s => s.SetProperty(u => u.Online, "0"));
@@ -233,23 +228,20 @@ namespace Plus
 
                 Log.Info("EMULATOR -> READY! (" + timeUsed.Seconds + " s, " + timeUsed.Milliseconds + " ms)");
             }
-            catch (KeyNotFoundException)
-            {
+            catch (KeyNotFoundException) {
                 Log.Error("Please check your configuration file - some values appear to be missing.");
                 Log.Error("Press any key to shut down ...");
 
                 Console.ReadKey(true);
                 Environment.Exit(1);
             }
-            catch (InvalidOperationException e)
-            {
+            catch (InvalidOperationException e) {
                 Log.Error("Failed to initialize PlusEmulator: " + e.Message);
                 Log.Error("Press any key to shut down ...");
                 Console.ReadKey(true);
                 Environment.Exit(1);
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 Log.Error("Fatal error during startup: " + e);
                 Log.Error("Press a key to exit");
 
@@ -287,8 +279,7 @@ namespace Plus
 
         public static string FilterFigure(string figure)
         {
-            foreach (char character in figure)
-            {
+            foreach (char character in figure) {
                 if (!IsValid(character))
                     return "sh-3338-93.ea-1406-62.hr-831-49.ha-3331-92.hd-180-7.ch-3334-93-1408.lg-3337-92.ca-1813-62";
             }
@@ -304,15 +295,12 @@ namespace Plus
         public static bool IsValidAlphaNumeric(string inputStr)
         {
             inputStr = inputStr.ToLower();
-            if (string.IsNullOrEmpty(inputStr))
-            {
+            if (string.IsNullOrEmpty(inputStr)) {
                 return false;
             }
 
-            for (int i = 0; i < inputStr.Length; i++)
-            {
-                if (!IsValid(inputStr[i]))
-                {
+            for (int i = 0; i < inputStr.Length; i++) {
+                if (!IsValid(inputStr[i])) {
                     return false;
                 }
             }
@@ -343,13 +331,11 @@ namespace Plus
 
         public static Habbo GetHabboById(int userId)
         {
-            try
-            {
+            try {
                 GameClient client = GetGame().GetClientManager().GetClientByUserId(userId);
                 Habbo online = client?.GetHabbo();
 
-                if (online != null && online.Id > 0)
-                {
+                if (online != null && online.Id > 0) {
                     UsersCached.TryRemove(userId, out _);
                     return online;
                 }
@@ -366,8 +352,7 @@ namespace Plus
                 UsersCached.TryAdd(userId, generated);
                 return generated;
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 // Swallowing this silently is why the failure only ever surfaced as "an error
                 // occurred while finding that user's profile" with nothing to go on.
                 ExceptionLogger.LogException(e);
@@ -377,10 +362,8 @@ namespace Plus
 
         public static Habbo GetHabboByUsername(string userName)
         {
-            try
-            {
-                using (WavePlusContext db = GetDbContext())
-                {
+            try {
+                using (WavePlusContext db = GetDbContext()) {
                     int id = db.Users.Where(u => u.Username == userName).Select(u => u.Id).FirstOrDefault();
                     if (id > 0)
                         return GetHabboById(id);
@@ -388,8 +371,7 @@ namespace Plus
 
                 return null;
             }
-            catch
-            {
+            catch {
                 return null;
             }
         }
@@ -413,8 +395,7 @@ namespace Plus
             _bootstrap.ShutdownWorkers();
             GetGame().GetRoomManager().Dispose(); //Stop the game loop.
 
-            using (WavePlusContext db = GetDbContext())
-            {
+            using (WavePlusContext db = GetDbContext()) {
                 db.Database.ExecuteSqlRaw("TRUNCATE `catalog_marketplace_data`");
                 db.Users.ExecuteUpdate(s => s.SetProperty(u => u.Online, "0").SetProperty(u => u.AuthTicket, (string)null));
                 db.Rooms.Where(r => r.UsersNow > 0).ExecuteUpdate(s => s.SetProperty(r => r.UsersNow, 0));

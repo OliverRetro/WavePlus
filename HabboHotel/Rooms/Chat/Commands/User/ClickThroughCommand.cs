@@ -25,8 +25,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
 
             // Persist so the Settings overlay reflects the change (and vice-versa).
             var settings = session.GetHabbo().GetRpSettings();
-            if (settings != null)
-            {
+            if (settings != null) {
                 settings.ClickThrough = !clickThrough;
                 settings.Save();
             }

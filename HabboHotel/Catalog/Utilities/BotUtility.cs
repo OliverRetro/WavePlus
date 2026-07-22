@@ -21,8 +21,7 @@ namespace Plus.HabboHotel.Catalog.Utilities
                 AiType = cataBot.AIType
             };
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.Bots.Add(botEntity);
                 db.SaveChanges();
             }
@@ -30,11 +29,9 @@ namespace Plus.HabboHotel.Catalog.Utilities
             return new Users.Inventory.Bots.Bot((int)botEntity.Id, (int)botEntity.UserId, botEntity.Name, botEntity.Motto, botEntity.Look, botEntity.Gender);
         }
 
-
         public static BotAIType GetAIFromString(string type)
         {
-            switch (type)
-            {
+            switch (type) {
                 case "pet":
                     return BotAIType.Pet;
                 case "generic":

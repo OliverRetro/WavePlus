@@ -23,10 +23,8 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Action
             if (targetUser == null)
                 return;
 
-            if (!(Math.Abs(user.X - targetUser.X) >= 3 || Math.Abs(user.Y - targetUser.Y) >= 3) || session.GetHabbo().GetPermissions().HasRight("mod_tool"))
-            {
-                if (user.CarryItemId > 0 && user.CarryTimer > 0)
-                {
+            if (!(Math.Abs(user.X - targetUser.X) >= 3 || Math.Abs(user.Y - targetUser.Y) >= 3) || session.GetHabbo().GetPermissions().HasRight("mod_tool")) {
+                if (user.CarryItemId > 0 && user.CarryTimer > 0) {
                     if (user.CarryItemId == 8)
                         PlusEnvironment.GetGame().GetQuestManager().ProgressUserQuest(session, QuestType.GiveCoffee);
                     targetUser.CarryItem(user.CarryItemId);

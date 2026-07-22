@@ -17,9 +17,7 @@ namespace Plus.Communication.Packets.Incoming.Messenger
             if (string.IsNullOrWhiteSpace(message))
                 return;
 
-
-            if (session.GetHabbo().TimeMuted > 0)
-            {
+            if (session.GetHabbo().TimeMuted > 0) {
                 session.SendNotification("Oops, you're currently muted - you cannot send messages.");
                 return;
             }

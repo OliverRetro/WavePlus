@@ -17,12 +17,10 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
             string searchQuery = packet.PopString();
             int filterMode = packet.PopInt();
 
-
             double minTimestamp = PlusEnvironment.GetGame().GetCatalog().GetMarketplace().FormatTimestamp();
 
             List<MarketOffer> offers;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 var query = db.CatalogMarketplaceOffers.Where(o => o.State == "1" && o.Timestamp >= minTimestamp);
                 if (minCost >= 0)
                     query = query.Where(o => o.TotalPrice > minCost);
@@ -44,10 +42,8 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
 
             PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItems.Clear();
             PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItemKeys.Clear();
-            foreach (MarketOffer offer in offers)
-            {
-                if (!PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItemKeys.Contains(offer.OfferId))
-                {
+            foreach (MarketOffer offer in offers) {
+                if (!PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItemKeys.Contains(offer.OfferId)) {
                     PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItemKeys.Add(offer.OfferId);
                     PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItems.Add(offer);
                 }
@@ -56,21 +52,16 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
             Dictionary<int, MarketOffer> dictionary = new();
             Dictionary<int, int> dictionary2 = new();
 
-            foreach (MarketOffer item in PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItems)
-            {
-                if (dictionary.ContainsKey(item.SpriteId))
-                {
-                    if (item.LimitedNumber > 0)
-                    {
+            foreach (MarketOffer item in PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItems) {
+                if (dictionary.ContainsKey(item.SpriteId)) {
+                    if (item.LimitedNumber > 0) {
                         if (!dictionary.ContainsKey(item.OfferId))
                             dictionary.Add(item.OfferId, item);
                         if (!dictionary2.ContainsKey(item.OfferId))
                             dictionary2.Add(item.OfferId, 1);
                     }
-                    else
-                    {
-                        if (dictionary[item.SpriteId].TotalPrice > item.TotalPrice)
-                        {
+                    else {
+                        if (dictionary[item.SpriteId].TotalPrice > item.TotalPrice) {
                             dictionary.Remove(item.SpriteId);
                             dictionary.Add(item.SpriteId, item);
                         }
@@ -80,8 +71,7 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
                         dictionary2.Add(item.SpriteId, num + 1);
                     }
                 }
-                else
-                {
+                else {
                     if (!dictionary.ContainsKey(item.SpriteId))
                         dictionary.Add(item.SpriteId, item);
                     if (!dictionary2.ContainsKey(item.SpriteId))

@@ -19,12 +19,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Filter
             if (_filteredWords.Count > 0)
                 _filteredWords.Clear();
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 var data = db.Wordfilters.Select(w => new { w.Word, w.Replacement, w.Strict, w.Bannable }).ToList();
 
-                foreach (var row in data)
-                {
+                foreach (var row in data) {
                     _filteredWords.Add(new WordFilter(row.Word, row.Replacement, PlusEnvironment.EnumToBool(row.Strict), PlusEnvironment.EnumToBool(row.Bannable)));
                 }
             }
@@ -32,19 +30,15 @@ namespace Plus.HabboHotel.Rooms.Chat.Filter
 
         public string CheckMessage(string message)
         {
-            foreach (WordFilter filter in _filteredWords.ToList())
-            {
-                if (message.ToLower().Contains(filter.Word) && filter.IsStrict || message == filter.Word)
-                {
+            foreach (WordFilter filter in _filteredWords.ToList()) {
+                if (message.ToLower().Contains(filter.Word) && filter.IsStrict || message == filter.Word) {
                     message = Regex.Replace(message, filter.Word, filter.Replacement, RegexOptions.IgnoreCase);
                 }
-                else if (message.ToLower().Contains(filter.Word) && !filter.IsStrict || message == filter.Word)
-                {
+                else if (message.ToLower().Contains(filter.Word) && !filter.IsStrict || message == filter.Word) {
                     string[] words = message.Split(' ');
 
                     message = "";
-                    foreach (string word in words.ToList())
-                    {
+                    foreach (string word in words.ToList()) {
                         if (word.ToLower() == filter.Word)
                             message += filter.Replacement + " ";
                         else
@@ -60,8 +54,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Filter
         {
             message = message.Replace(" ", "").Replace(".", "").Replace("_", "").ToLower();
 
-            foreach (WordFilter filter in _filteredWords.ToList())
-            {
+            foreach (WordFilter filter in _filteredWords.ToList()) {
                 if (!filter.IsBannable)
                     continue;
 
@@ -74,8 +67,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Filter
 
         public bool IsFiltered(string message)
         {
-            foreach (WordFilter filter in _filteredWords.ToList())
-            {
+            foreach (WordFilter filter in _filteredWords.ToList()) {
                 if (message.Contains(filter.Word))
                     return true;
             }

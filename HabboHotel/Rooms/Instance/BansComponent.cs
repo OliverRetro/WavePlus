@@ -34,8 +34,7 @@ namespace Plus.HabboHotel.Rooms.Instance
 
             uint roomId = (uint)_instance.Id;
             long nowSec = (long)PlusEnvironment.GetUnixTimestamp();
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 foreach (var row in db.RoomBans.Where(b => b.RoomId == roomId && b.Expire > nowSec).Select(b => new { b.UserId, b.Expire }).ToList())
                     _bans.TryAdd((int)row.UserId, row.Expire);
             }
@@ -67,8 +66,7 @@ namespace Plus.HabboHotel.Rooms.Instance
                 return false;
 
             double banTime = _bans[userId] - UnixTimestamp.GetNow();
-            if (banTime <= 0)
-            {
+            if (banTime <= 0) {
                 _bans.TryRemove(userId, out double time);
 
                 uint roomId = (uint)_instance.Id;
@@ -87,8 +85,7 @@ namespace Plus.HabboHotel.Rooms.Instance
             if (!_bans.ContainsKey(userId))
                 return false;
 
-            if (_bans.TryRemove(userId, out double time))
-            {
+            if (_bans.TryRemove(userId, out double time)) {
                 uint roomId = (uint)_instance.Id;
                 uint uid = (uint)userId;
                 using (WavePlusContext db = PlusEnvironment.GetDbContext())
@@ -106,10 +103,8 @@ namespace Plus.HabboHotel.Rooms.Instance
 
             uint roomId = (uint)_instance.Id;
             long nowSec = (long)PlusEnvironment.GetUnixTimestamp();
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
-                foreach (int uid in db.RoomBans.Where(b => b.RoomId == roomId && b.Expire > nowSec).Select(b => (int)b.UserId).ToList())
-                {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
+                foreach (int uid in db.RoomBans.Where(b => b.RoomId == roomId && b.Expire > nowSec).Select(b => (int)b.UserId).ToList()) {
                     if (!bans.Contains(uid))
                         bans.Add(uid);
                 }

@@ -64,15 +64,13 @@ namespace Plus.HabboHotel.Roleplay.TargetLock
             if (requester == null)
                 return;
 
-            if (!locked)
-            {
+            if (!locked) {
                 ReleaseLock(requester, false);
                 return;
             }
 
             Habbo target = GetTarget(requester);
-            if (target == null)
-            {
+            if (target == null) {
                 requester.GetClient()?.SendWhisper("Click a player first, then lock your target.", 1);
                 SendComposer(requester, string.Empty, false);
                 return;
@@ -95,12 +93,10 @@ namespace Plus.HabboHotel.Roleplay.TargetLock
             // Locked: ignore the click. The client optimistically shows the just-clicked
             // avatar in the RP layout, so re-assert the locked target to snap it back
             // (otherwise the clicked user lingers with empty "-" stats).
-            if (IsLocked(requester.Id))
-            {
+            if (IsLocked(requester.Id)) {
                 Habbo locked = GetTarget(requester);
                 GameClient lockedClient = requester.GetClient();
-                if (locked != null && lockedClient != null)
-                {
+                if (locked != null && lockedClient != null) {
                     lockedClient.SendPacket(new TargetLockComposer(locked.Username, true));
                     requester.TrySendUserStatsUpdate(true);
                 }
@@ -123,8 +119,7 @@ namespace Plus.HabboHotel.Roleplay.TargetLock
 
         public static bool LockTarget(Habbo requester, Habbo target)
         {
-            if (!IsLockable(requester, target))
-            {
+            if (!IsLockable(requester, target)) {
                 requester?.GetClient()?.SendWhisper("That user is not a valid target.", 1);
                 return false;
             }
@@ -157,14 +152,12 @@ namespace Plus.HabboHotel.Roleplay.TargetLock
 
             string targetName = string.Empty;
 
-            if (Targets.TryGetValue(requester.Id, out TargetState state))
-            {
+            if (Targets.TryGetValue(requester.Id, out TargetState state)) {
                 targetName = clearTarget ? string.Empty : (state.TargetName ?? string.Empty);
 
                 if (clearTarget)
                     Targets.TryRemove(requester.Id, out _);
-                else
-                {
+                else {
                     state.Locked = false;
                     state.LastUpdated = PlusEnvironment.GetUnixTimestamp();
                 }
@@ -193,8 +186,7 @@ namespace Plus.HabboHotel.Roleplay.TargetLock
             if (state.Locked)
                 return IsLockable(requester, target) ? target : null;
 
-            if (!IsClickable(requester, target))
-            {
+            if (!IsClickable(requester, target)) {
                 Targets.TryRemove(requester.Id, out _);
                 return null;
             }
@@ -253,8 +245,7 @@ namespace Plus.HabboHotel.Roleplay.TargetLock
 
             // Anyone who merely *clicked* this user has a stale, room-scoped selection —
             // drop those, but leave real locks parked.
-            foreach (var kv in Targets)
-            {
+            foreach (var kv in Targets) {
                 if (kv.Value.TargetId == requesterId && !kv.Value.Locked)
                     Targets.TryRemove(kv.Key, out _);
             }

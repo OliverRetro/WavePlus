@@ -240,8 +240,7 @@ namespace Plus.HabboHotel.Users
             LastOnline = lastOnline;
             AccountCreated = createDate;
             ClientVolume = new List<int>();
-            foreach (string str in clientVolume.Split(','))
-            {
+            foreach (string str in clientVolume.Split(',')) {
                 if (int.TryParse(str, out _))
                     ClientVolume.Add(int.Parse(str));
                 else
@@ -285,16 +284,13 @@ namespace Plus.HabboHotel.Users
             _timeCached = DateTime.Now;
 
             TradingLockExpiry = tradingLock;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
-                if (!db.UserInfos.Any(u => u.UserId == id))
-                {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
+                if (!db.UserInfos.Any(u => u.UserId == id)) {
                     db.UserInfos.Add(new UserInfoEntity { UserId = id });
                     db.SaveChanges();
                 }
 
-                if (TradingLockExpiry > 0 && PlusEnvironment.GetUnixTimestamp() > TradingLockExpiry)
-                {
+                if (TradingLockExpiry > 0 && PlusEnvironment.GetUnixTimestamp() > TradingLockExpiry) {
                     TradingLockExpiry = 0;
                     db.UserInfos.Where(u => u.UserId == id)
                         .ExecuteUpdate(s => s.SetProperty(u => u.TradingLocked, 0.0));
@@ -364,18 +360,15 @@ namespace Plus.HabboHotel.Users
 
             #region Stats
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 UserStatEntity statRow = db.UserStats.FirstOrDefault(s => s.Id == id);
-                if (statRow == null)
-                {
+                if (statRow == null) {
                     statRow = new UserStatEntity { Id = id };
                     db.UserStats.Add(statRow);
                     db.SaveChanges();
                 }
 
-                try
-                {
+                try {
                     _habboStats = new HabboStats(
                         statRow.RoomVisits,
                         statRow.OnlineTime,
@@ -393,8 +386,7 @@ namespace Plus.HabboHotel.Users
                         statRow.ForumPosts
                     );
 
-                    if (statRow.RespectsTimestamp != DateTime.Today.ToString("MM/dd"))
-                    {
+                    if (statRow.RespectsTimestamp != DateTime.Today.ToString("MM/dd")) {
                         _habboStats.RespectsTimestamp = DateTime.Today.ToString("MM/dd");
 
                         int dailyRespects = 10;
@@ -415,14 +407,12 @@ namespace Plus.HabboHotel.Users
                                 .SetProperty(x => x.RespectsTimestamp, respectsTimestamp));
                     }
                 }
-                catch (Exception e)
-                {
+                catch (Exception e) {
                     ExceptionLogger.LogException(e);
                 }
 
                 List<int> chatBubbleIds = db.UserChatBubbles.Where(b => b.UserId == id).Select(b => b.ChatBubbleId).ToList();
-                foreach (int chatBubbleId in chatBubbleIds)
-                {
+                foreach (int chatBubbleId in chatBubbleIds) {
                     if (!OwnedChatBubbleIds.Contains(chatBubbleId))
                         OwnedChatBubbleIds.Add(chatBubbleId);
                 }
@@ -439,18 +429,15 @@ namespace Plus.HabboHotel.Users
             if (!PlusEnvironment.GetGame().GetGroupManager().TryGetGroup(_habboStats.FavouriteGroupId, out Groups.Group _))
                 _habboStats.FavouriteGroupId = 0;
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 UserRpStatisticEntity statRow = db.UserRpStatistics.FirstOrDefault(s => s.UserId == id);
-                if (statRow == null)
-                {
+                if (statRow == null) {
                     statRow = new UserRpStatisticEntity { UserId = id };
                     db.UserRpStatistics.Add(statRow);
                     db.SaveChanges();
                 }
 
-                try
-                {
+                try {
                     _rpStats = new UserRpStats(
                         id,
                         statRow.Health,
@@ -485,20 +472,17 @@ namespace Plus.HabboHotel.Users
                         statRow.JailTimeLeft
                     );
                 }
-                catch (Exception e)
-                {
+                catch (Exception e) {
                     ExceptionLogger.LogException(e);
                 }
             }
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 var weaponRows = db.UserRpWeapons.Where(w => w.UserId == id)
                     .Select(w => new { w.Id, w.WeaponId, w.DurabilityLeft, w.Slot }).ToList();
 
                 List<UserWeapon> loadedWeapons = new();
-                foreach (var row in weaponRows)
-                {
+                foreach (var row in weaponRows) {
                     Weapon weaponData = PlusEnvironment.GetWeaponManager().GetWeaponById(row.WeaponId);
                     if (weaponData == null)
                         continue;
@@ -511,14 +495,12 @@ namespace Plus.HabboHotel.Users
                 _rpStats.Weapons = _rpWeapons;
             }
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 var skinRows = db.UserRpWeaponSkins.Where(s => s.UserId == id)
                     .Select(s => new { s.Id, s.SkinId, s.Equipped }).ToList();
 
                 List<UserWeaponSkin> loadedSkins = new();
-                foreach (var row in skinRows)
-                {
+                foreach (var row in skinRows) {
                     WeaponSkin skinData = PlusEnvironment.GetWeaponManager().GetSkinById(row.SkinId);
                     if (skinData == null)
                         continue;
@@ -530,14 +512,12 @@ namespace Plus.HabboHotel.Users
                 _rpWeaponSkins.MarkSaved();
             }
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 var skillRows = db.UserRpSkills.Where(s => s.UserId == id)
                     .Select(s => new { s.SkillId, s.Progress, s.Equipped }).ToList();
 
                 List<UserSkillData> loadedSkills = new();
-                foreach (var row in skillRows)
-                {
+                foreach (var row in skillRows) {
                     loadedSkills.Add(new UserSkillData(row.SkillId, row.Progress, row.Equipped));
                 }
 
@@ -545,14 +525,12 @@ namespace Plus.HabboHotel.Users
                 _rpSkills.MarkSaved();
             }
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 var itemRows = db.UserRpItems.Where(i => i.UserId == id)
                     .Select(i => new { i.Id, i.ItemId, i.Uses, i.Slot, i.DurabilityLeft, i.Equipped }).ToList();
 
                 List<UserRpItem> loadedItems = new();
-                foreach (var row in itemRows)
-                {
+                foreach (var row in itemRows) {
                     RpItemData itemData = PlusEnvironment.GetRpItemManager().GetItemById(row.ItemId);
                     if (itemData == null)
                         continue;
@@ -638,19 +616,16 @@ namespace Plus.HabboHotel.Users
 
         public void LoadHomeRoomData(string data)
         {
-            if (string.IsNullOrWhiteSpace(data))
-            {
+            if (string.IsNullOrWhiteSpace(data)) {
                 HomeRoomData = null;
                 return;
             }
 
-            try
-            {
+            try {
                 HomeRoomData = JsonSerializer.Deserialize<HomeRoomDataState>(data);
                 PendingReconnectPlacement = HomeRoomData?.roomid > 0;
             }
-            catch
-            {
+            catch {
                 HomeRoomData = null;
                 PendingReconnectPlacement = false;
             }
@@ -710,8 +685,7 @@ namespace Plus.HabboHotel.Users
 
             int targetX = HomeRoomData.x;
             int targetY = HomeRoomData.y;
-            if (!CurrentRoom.GetGameMap().ValidTile(targetX, targetY) || !CurrentRoom.GetGameMap().SquareIsOpen(targetX, targetY, false))
-            {
+            if (!CurrentRoom.GetGameMap().ValidTile(targetX, targetY) || !CurrentRoom.GetGameMap().SquareIsOpen(targetX, targetY, false)) {
                 PendingReconnectPlacement = false;
                 return;
             }
@@ -815,17 +789,14 @@ namespace Plus.HabboHotel.Users
             if (!toggled || _rpStats == null)
                 return toggled;
 
-            if (isEquipped)
-            {
-                if (_rpStats.Health > 100)
-                {
+            if (isEquipped) {
+                if (_rpStats.Health > 100) {
                     CachedSkillHealth = _rpStats.Health;
                     HasCachedSkillHealth = true;
                     _rpStats.Health = 100;
                 }
             }
-            else if (HasCachedSkillHealth)
-            {
+            else if (HasCachedSkillHealth) {
                 if (CachedSkillHealth > _rpStats.Health)
                     _rpStats.Health = CachedSkillHealth;
 
@@ -841,8 +812,7 @@ namespace Plus.HabboHotel.Users
             if (_rpStats == null)
                 return;
 
-            try
-            {
+            try {
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
                 db.UserRpStatistics.Upsert(new UserRpStatisticEntity
                 {
@@ -881,8 +851,7 @@ namespace Plus.HabboHotel.Users
                 .On(s => s.UserId)
                 .Run();
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
         }
@@ -905,8 +874,7 @@ namespace Plus.HabboHotel.Users
 
         public void SaveUserRow()
         {
-            try
-            {
+            try {
                 // The dead respawn at the hospital — don't pin them to where they died.
                 if (GetRpStats()?.IsDead != true)
                     CaptureHomeRoomData();
@@ -952,8 +920,7 @@ namespace Plus.HabboHotel.Users
                         .SetProperty(x => x.Groupid, _habboStats.FavouriteGroupId)
                         .SetProperty(x => x.ForumPosts, _habboStats.ForumPosts));
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
         }
@@ -963,8 +930,7 @@ namespace Plus.HabboHotel.Users
             if (_rpSkills == null || !_rpSkills.Dirty)
                 return;
 
-            try
-            {
+            try {
                 var rows = _rpSkills.Skills.Select(skill => new UserRpSkillEntity
                 {
                     UserId = Id,
@@ -973,8 +939,7 @@ namespace Plus.HabboHotel.Users
                     Equipped = skill.Equipped
                 }).ToList();
 
-                if (rows.Count > 0)
-                {
+                if (rows.Count > 0) {
                     using WavePlusContext db = PlusEnvironment.GetDbContext();
                     db.UserRpSkills.UpsertRange(rows)
                         .On(s => new { s.UserId, s.SkillId })
@@ -983,8 +948,7 @@ namespace Plus.HabboHotel.Users
 
                 _rpSkills.MarkSaved();
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
         }
@@ -994,8 +958,7 @@ namespace Plus.HabboHotel.Users
             if (_rpWeapons == null || !_rpWeapons.Dirty)
                 return;
 
-            try
-            {
+            try {
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
 
                 var removed = _rpWeapons.RemovedIds.ToList();
@@ -1005,13 +968,11 @@ namespace Plus.HabboHotel.Users
                 // Track new rows so we can copy the DB-generated id back after SaveChanges.
                 var inserted = new List<(UserWeapon Src, UserRpWeaponEntity Row)>();
 
-                foreach (UserWeapon weapon in _rpWeapons.Weapons.ToList())
-                {
+                foreach (UserWeapon weapon in _rpWeapons.Weapons.ToList()) {
                     if (weapon.IsDefault)
                         continue;
 
-                    if (weapon.Id > 0)
-                    {
+                    if (weapon.Id > 0) {
                         var row = new UserRpWeaponEntity { Id = weapon.Id, DurabilityLeft = weapon.DurabilityLeft, Slot = weapon.Slot };
                         db.UserRpWeapons.Attach(row);
                         db.Entry(row).Property(w => w.DurabilityLeft).IsModified = true;
@@ -1026,8 +987,7 @@ namespace Plus.HabboHotel.Users
 
                 db.SaveChanges();
 
-                foreach ((UserWeapon src, UserRpWeaponEntity row) in inserted)
-                {
+                foreach ((UserWeapon src, UserRpWeaponEntity row) in inserted) {
                     int oldId = src.Id;
                     src.Id = row.Id;
                     _rpWeapons.RekeyWeapon(oldId, src.Id);
@@ -1035,8 +995,7 @@ namespace Plus.HabboHotel.Users
 
                 _rpWeapons.MarkSaved();
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
         }
@@ -1046,8 +1005,7 @@ namespace Plus.HabboHotel.Users
             if (_rpItems == null || !_rpItems.Dirty)
                 return;
 
-            try
-            {
+            try {
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
 
                 var removed = _rpItems.RemovedIds.ToList();
@@ -1056,10 +1014,8 @@ namespace Plus.HabboHotel.Users
 
                 var inserted = new List<(UserRpItem Src, Plus.Database.EF.Entities.UserRpItemEntity Row)>();
 
-                foreach (UserRpItem item in _rpItems.Items.ToList())
-                {
-                    if (item.Id > 0)
-                    {
+                foreach (UserRpItem item in _rpItems.Items.ToList()) {
+                    if (item.Id > 0) {
                         var row = new Plus.Database.EF.Entities.UserRpItemEntity { Id = item.Id, Uses = (short)item.Uses, Slot = item.Slot, DurabilityLeft = item.DurabilityLeft, Equipped = item.Equipped };
                         db.UserRpItems.Attach(row);
                         db.Entry(row).Property(i => i.Uses).IsModified = true;
@@ -1076,8 +1032,7 @@ namespace Plus.HabboHotel.Users
 
                 db.SaveChanges();
 
-                foreach ((UserRpItem src, Plus.Database.EF.Entities.UserRpItemEntity row) in inserted)
-                {
+                foreach ((UserRpItem src, Plus.Database.EF.Entities.UserRpItemEntity row) in inserted) {
                     int oldId = src.Id;
                     src.Id = row.Id;
                     _rpItems.RekeyItem(oldId, src.Id);
@@ -1085,8 +1040,7 @@ namespace Plus.HabboHotel.Users
 
                 _rpItems.MarkSaved();
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
         }
@@ -1096,16 +1050,13 @@ namespace Plus.HabboHotel.Users
             if (_rpWeaponSkins == null || !_rpWeaponSkins.Dirty)
                 return;
 
-            try
-            {
+            try {
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
 
                 var inserted = new List<(UserWeaponSkin Src, UserRpWeaponSkinEntity Row)>();
 
-                foreach (UserWeaponSkin skin in _rpWeaponSkins.Skins.ToList())
-                {
-                    if (skin.Id > 0)
-                    {
+                foreach (UserWeaponSkin skin in _rpWeaponSkins.Skins.ToList()) {
+                    if (skin.Id > 0) {
                         // ExecuteUpdate rather than Attach: a row that has since been deleted just
                         // updates nothing, instead of failing the whole batch with a concurrency error.
                         int equipped = skin.Equipped ? 1 : 0;
@@ -1121,8 +1072,7 @@ namespace Plus.HabboHotel.Users
 
                 db.SaveChanges();
 
-                foreach ((UserWeaponSkin src, UserRpWeaponSkinEntity row) in inserted)
-                {
+                foreach ((UserWeaponSkin src, UserRpWeaponSkinEntity row) in inserted) {
                     int oldId = src.Id;
                     src.Id = row.Id;
                     _rpWeaponSkins.RekeySkin(oldId, src.Id);
@@ -1130,8 +1080,7 @@ namespace Plus.HabboHotel.Users
 
                 _rpWeaponSkins.MarkSaved();
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
         }
@@ -1227,8 +1176,7 @@ namespace Plus.HabboHotel.Users
             Achievements = data.Achievements;
 
             FavoriteRooms = new ArrayList();
-            foreach (int id in data.FavoritedRooms)
-            {
+            foreach (int id in data.FavoritedRooms) {
                 FavoriteRooms.Add(id);
             }
 
@@ -1297,34 +1245,29 @@ namespace Plus.HabboHotel.Users
             if (GetRpStats()?.IsDead == true && GetRpStats().HospitalReleaseTime <= 0)
                 PlusEnvironment.GetHospitalManager().SkipBleedout(this);
 
-            try
-            {
+            try {
                 if (GetRpStats()?.IsDead != true)
                     CaptureHomeRoomData();
 
                 _process?.Dispose();
             }
-            catch
-            {
+            catch {
             }
 
             _disconnected = true;
 
             PlusEnvironment.GetGame().GetClientManager().UnregisterClient(Id, Username);
 
-            if (!_habboSaved)
-            {
+            if (!_habboSaved) {
                 _habboSaved = true;
-                using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                {
+                using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                     int lastOnline = (int)PlusEnvironment.GetUnixTimestamp();
                     db.Users.Where(u => u.Id == Id)
                         .ExecuteUpdate(s => s
                             .SetProperty(u => u.Online, "0")
                             .SetProperty(u => u.LastOnline, lastOnline));
 
-                    if (GetPermissions().HasRight("mod_tickets"))
-                    {
+                    if (GetPermissions().HasRight("mod_tickets")) {
                         uint modId = (uint)Id;
                         db.ModerationTickets.Where(t => t.Status == "picked" && t.ModeratorId == modId)
                             .ExecuteUpdate(s => s.SetProperty(t => t.Status, "open").SetProperty(t => t.ModeratorId, 0u));
@@ -1349,8 +1292,7 @@ namespace Plus.HabboHotel.Users
             if (InRoom && CurrentRoom != null)
                 CurrentRoom.GetRoomUserManager().RemoveUserFromRoom(_client, false);
 
-            if (_messenger != null)
-            {
+            if (_messenger != null) {
                 _messenger.AppearOffline = true;
                 _messenger.Destroy();
             }
@@ -1369,17 +1311,14 @@ namespace Plus.HabboHotel.Users
 
         public void CheckCreditsTimer()
         {
-            try
-            {
+            try {
                 CreditsUpdateTick--;
 
-                if (CreditsUpdateTick <= 0)
-                {
+                if (CreditsUpdateTick <= 0) {
                     int creditUpdate = Convert.ToInt32(PlusEnvironment.GetSettingsManager().TryGetValue("user.currency_scheduler.credit_reward"));
                     int ducketUpdate = Convert.ToInt32(PlusEnvironment.GetSettingsManager().TryGetValue("user.currency_scheduler.ducket_reward"));
 
-                    if (PlusEnvironment.GetGame().GetSubscriptionManager().TryGetSubscriptionData(VipRank, out SubscriptionData subData))
-                    {
+                    if (PlusEnvironment.GetGame().GetSubscriptionManager().TryGetSubscriptionData(VipRank, out SubscriptionData subData)) {
                         creditUpdate += subData.Credits;
                         ducketUpdate += subData.Duckets;
                     }
@@ -1393,15 +1332,13 @@ namespace Plus.HabboHotel.Users
                     CreditsUpdateTick = Convert.ToInt32(PlusEnvironment.GetSettingsManager().TryGetValue("user.currency_scheduler.tick"));
                 }
             }
-            catch
-            {
+            catch {
             }
         }
 
         public void CheckBankSaveTimer()
         {
-            try
-            {
+            try {
                 BankSaveTick--;
                 if (BankSaveTick > 0)
                     return;
@@ -1409,8 +1346,7 @@ namespace Plus.HabboHotel.Users
                 SaveBank();
                 BankSaveTick = 900;
             }
-            catch
-            {
+            catch {
             }
         }
 
@@ -1429,13 +1365,10 @@ namespace Plus.HabboHotel.Users
 
         private async Task RunAggressionTimerAsync(int seconds, CancellationToken cancellationToken)
         {
-            try
-            {
-                while (!cancellationToken.IsCancellationRequested)
-                {
+            try {
+                while (!cancellationToken.IsCancellationRequested) {
                     SyncAggressionState();
-                    if ((_rpStats?.Aggression ?? 0) <= 0)
-                    {
+                    if ((_rpStats?.Aggression ?? 0) <= 0) {
                         ClearAggressionTimer();
                         TrySendUserStatsUpdate(true);
                         return;
@@ -1446,8 +1379,7 @@ namespace Plus.HabboHotel.Users
                     await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
                 }
             }
-            catch (TaskCanceledException)
-            {
+            catch (TaskCanceledException) {
             }
         }
 
@@ -1552,33 +1484,27 @@ namespace Plus.HabboHotel.Users
             if (GetClient() == null || GetClient().GetHabbo() == null)
                 return;
 
-            if (GetClient().GetHabbo().InRoom)
-            {
-                if (!PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(GetClient().GetHabbo().CurrentRoomId, out Rooms.Room oldRoom))
-                {
+            if (GetClient().GetHabbo().InRoom) {
+                if (!PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(GetClient().GetHabbo().CurrentRoomId, out Rooms.Room oldRoom)) {
                     // Old room no longer loaded (unloaded while idle) — clear the stale room ID and continue.
                     GetClient().GetHabbo().CurrentRoomId = 0;
                 }
-                else if (oldRoom.GetRoomUserManager() != null)
-                {
+                else if (oldRoom.GetRoomUserManager() != null) {
                     oldRoom.GetRoomUserManager().RemoveUserFromRoom(GetClient(), false);
                 }
             }
 
-            if (GetClient().GetHabbo().IsTeleporting && GetClient().GetHabbo().TeleportingRoomId != id)
-            {
+            if (GetClient().GetHabbo().IsTeleporting && GetClient().GetHabbo().TeleportingRoomId != id) {
                 GetClient().SendPacket(new CloseConnectionComposer());
                 return;
             }
 
-            if (!PlusEnvironment.GetGame().GetRoomManager().TryLoadRoom(id, out Room room))
-            {
+            if (!PlusEnvironment.GetGame().GetRoomManager().TryLoadRoom(id, out Room room)) {
                 GetClient().SendPacket(new CloseConnectionComposer());
                 return;
             }
 
-            if (room.IsCrashed)
-            {
+            if (room.IsCrashed) {
                 GetClient().SendNotification("This room has crashed! :(");
                 GetClient().SendPacket(new CloseConnectionComposer());
                 return;
@@ -1586,16 +1512,13 @@ namespace Plus.HabboHotel.Users
 
             GetClient().GetHabbo().CurrentRoomId = room.RoomId;
 
-            if (room.GetRoomUserManager().UserCount >= room.UsersMax && !GetClient().GetHabbo().GetPermissions().HasRight("room_enter_full") && GetClient().GetHabbo().Id != room.OwnerId)
-            {
+            if (room.GetRoomUserManager().UserCount >= room.UsersMax && !GetClient().GetHabbo().GetPermissions().HasRight("room_enter_full") && GetClient().GetHabbo().Id != room.OwnerId) {
                 GetClient().SendPacket(new CantConnectComposer(1));
                 GetClient().SendPacket(new CloseConnectionComposer());
                 return;
             }
 
-
-            if (!GetPermissions().HasRight("room_ban_override") && room.GetBans().IsBanned(Id))
-            {
+            if (!GetPermissions().HasRight("room_ban_override") && room.GetBans().IsBanned(Id)) {
                 RoomAuthOk = false;
                 GetClient().GetHabbo().RoomAuthOk = false;
                 GetClient().SendPacket(new CantConnectComposer(4));
@@ -1604,12 +1527,9 @@ namespace Plus.HabboHotel.Users
             }
 
             GetClient().SendPacket(new OpenConnectionComposer());
-            if (!room.CheckRights(GetClient(), true, true) && !GetClient().GetHabbo().IsTeleporting && !GetClient().GetHabbo().IsHopping)
-            {
-                if (room.Access == RoomAccess.Doorbell && !GetClient().GetHabbo().GetPermissions().HasRight("room_enter_locked"))
-                {
-                    if (room.UserCount > 0)
-                    {
+            if (!room.CheckRights(GetClient(), true, true) && !GetClient().GetHabbo().IsTeleporting && !GetClient().GetHabbo().IsHopping) {
+                if (room.Access == RoomAccess.Doorbell && !GetClient().GetHabbo().GetPermissions().HasRight("room_enter_locked")) {
+                    if (room.UserCount > 0) {
                         GetClient().SendPacket(new DoorbellComposer(""));
                         room.SendPacket(new DoorbellComposer(GetClient().GetHabbo().Username), true);
                         return;
@@ -1620,10 +1540,8 @@ namespace Plus.HabboHotel.Users
                     return;
                 }
 
-                if (room.Access == RoomAccess.Password && !GetClient().GetHabbo().GetPermissions().HasRight("room_enter_locked"))
-                {
-                    if (password.ToLower() != room.Password.ToLower() || string.IsNullOrWhiteSpace(password))
-                    {
+                if (room.Access == RoomAccess.Password && !GetClient().GetHabbo().GetPermissions().HasRight("room_enter_locked")) {
+                    if (password.ToLower() != room.Password.ToLower() || string.IsNullOrWhiteSpace(password)) {
                         GetClient().SendPacket(new GenericErrorComposer(-100002));
                         GetClient().SendPacket(new CloseConnectionComposer());
                         return;
@@ -1631,22 +1549,19 @@ namespace Plus.HabboHotel.Users
                 }
             }
 
-            if (!EnterRoom(room))
-            {
+            if (!EnterRoom(room)) {
                 GetClient().SendPacket(new CloseConnectionComposer());
             }
         }
 
         public bool EnterRoom(Rooms.Room room)
         {
-            if (room == null)
-            {
+            if (room == null) {
                 GetClient().SendPacket(new CloseConnectionComposer());
                 return false;
             }
 
-            if (!RoomFactory.TryGetData(room.Id, out RoomData data))
-            {
+            if (!RoomFactory.TryGetData(room.Id, out RoomData data)) {
                 return false;
             }
 
@@ -1668,8 +1583,7 @@ namespace Plus.HabboHotel.Users
             // Buffered (write-behind) — room entry no longer runs a synchronous INSERT.
             Plus.Core.Persistence.RoomVisitBuffer.OnEnter(GetClient().GetHabbo().Id, GetClient().GetHabbo().CurrentRoomId);
 
-            if (room.OwnerId != Id)
-            {
+            if (room.OwnerId != Id) {
                 GetClient().GetHabbo().GetStats().RoomVisits += 1;
 
                 // Batched: room hopping is frequent enough that the synchronous achievement

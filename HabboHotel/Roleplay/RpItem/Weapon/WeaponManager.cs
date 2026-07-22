@@ -19,11 +19,9 @@ namespace Plus.HabboHotel.Permissions
             _weapons.Clear();
             _skins.Clear();
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 // Load weapons
-                foreach (var row in db.RpWeapons.AsNoTracking().ToList())
-                {
+                foreach (var row in db.RpWeapons.AsNoTracking().ToList()) {
                     var weapon = new Weapon(
                         row.Id,
                         row.Name,
@@ -46,8 +44,7 @@ namespace Plus.HabboHotel.Permissions
                     _weapons.Add(weapon.Id, weapon);
                 }
 
-                foreach (var row in db.RpWeaponSkins.AsNoTracking().ToList())
-                {
+                foreach (var row in db.RpWeaponSkins.AsNoTracking().ToList()) {
                     WeaponSkin skin = new(
                         row.Id,
                         row.WeaponId,

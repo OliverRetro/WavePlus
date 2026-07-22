@@ -16,8 +16,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Police
             if (session?.GetHabbo() == null || room == null)
                 return;
 
-            if (@params.Length < 2)
-            {
+            if (@params.Length < 2) {
                 session.SendWhisper("Usage: :arrest <username>", 1);
                 return;
             }
@@ -27,8 +26,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Police
 
             int targetId = targetClient.GetHabbo().Id;
 
-            if (!PlusEnvironment.GetPoliceManager().IsCuffed(targetId))
-            {
+            if (!PlusEnvironment.GetPoliceManager().IsCuffed(targetId)) {
                 session.SendWhisper(targetClient.GetHabbo().Username + " must be cuffed before you can arrest them.", 1);
                 return;
             }

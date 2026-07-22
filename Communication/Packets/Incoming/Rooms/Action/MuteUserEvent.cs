@@ -27,8 +27,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Action
             if (target.GetClient().GetHabbo().GetPermissions().HasRight("mod_tool"))
                 return;
 
-            if (room.MutedUsers.ContainsKey(userId))
-            {
+            if (room.MutedUsers.ContainsKey(userId)) {
                 if (room.MutedUsers[userId] < PlusEnvironment.GetUnixTimestamp())
                     room.MutedUsers.Remove(userId);
                 else

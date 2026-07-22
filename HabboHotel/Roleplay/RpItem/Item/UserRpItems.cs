@@ -57,8 +57,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             UserRpItem[] view = new UserRpItem[slotCount];
             List<UserRpItem> overflow = new();
 
-            foreach (UserRpItem item in _items.Values)
-            {
+            foreach (UserRpItem item in _items.Values) {
                 int slot = item.Slot;
                 if (slot >= 0 && slot < slotCount && view[slot] == null)
                     view[slot] = item;
@@ -67,8 +66,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             }
 
             int next = 0;
-            foreach (UserRpItem item in overflow)
-            {
+            foreach (UserRpItem item in overflow) {
                 while (next < slotCount && view[next] != null)
                     next++;
                 if (next >= slotCount)
@@ -117,8 +115,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             if (IsBlockedByDeath(habbo, item.ItemData))
                 return false;
 
-            if (item.ItemData.BlockedWhilePassive && habbo?.GetRpStats()?.PassiveMode == true)
-            {
+            if (item.ItemData.BlockedWhilePassive && habbo?.GetRpStats()?.PassiveMode == true) {
                 habbo.GetClient()?.SendWhisper($"You can't equip {item.ItemData.Name} while passive!", 1);
                 return false;
             }
@@ -137,8 +134,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
 
             // Vests (standard body armour / suicide vests) do NOT feed the shield pool — their
             // durability lives on the item itself and is managed directly in combat.
-            if (!item.ItemData.IsVest && !item.ItemData.IsSuicideVest)
-            {
+            if (!item.ItemData.IsVest && !item.ItemData.IsSuicideVest) {
                 UserRpStats stats = habbo?.GetRpStats();
                 if (stats != null)
                     stats.Shield = item.EffectiveDurability;
@@ -163,8 +159,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             if (IsBlockedByDeath(habbo, item.ItemData))
                 return false;
 
-            if (item.ItemData.BlockedWhilePassive && habbo?.GetRpStats()?.PassiveMode == true)
-            {
+            if (item.ItemData.BlockedWhilePassive && habbo?.GetRpStats()?.PassiveMode == true) {
                 habbo.GetClient()?.SendWhisper($"You can't equip {item.ItemData.Name} while passive!", 1);
                 return false;
             }
@@ -209,8 +204,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
                 return;
 
             // A vest keeps its durability on the item, not in the shield pool.
-            if (shield.ItemData != null && (shield.ItemData.IsVest || shield.ItemData.IsSuicideVest))
-            {
+            if (shield.ItemData != null && (shield.ItemData.IsVest || shield.ItemData.IsSuicideVest)) {
                 shield.Equipped = false;
                 MarkDirty();
                 RpItemClothingService.Refresh(habbo);
@@ -219,8 +213,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             }
 
             UserRpStats stats = habbo?.GetRpStats();
-            if (stats != null)
-            {
+            if (stats != null) {
                 shield.DurabilityLeft = Math.Max(0, stats.Shield);
                 stats.Shield = 0;
             }
@@ -250,8 +243,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
                 return;
 
             shield.DurabilityLeft = Math.Max(0, stats.Shield);
-            if (stats.Shield <= 0)
-            {
+            if (stats.Shield <= 0) {
                 shield.Equipped = false;
                 Remove(shield);
                 RpItemClothingService.Refresh(habbo);
@@ -295,8 +287,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
 
             // Inert items do nothing at all. Without this they fall through to the consumable
             // path below, which burns a use and destroys the item for no effect.
-            if (data.IsNone)
-            {
+            if (data.IsNone) {
                 habbo.GetClient()?.SendWhisper($"{data.Name} isn't something you can use.", 1);
                 return false;
             }
@@ -309,8 +300,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
 
             // Generic passive gate: any item flagged with the "passive" attribute can't be used
             // while the owner is in passive mode (aggressive items — suicide vest, etc.).
-            if (data.BlockedWhilePassive && stats != null && stats.PassiveMode)
-            {
+            if (data.BlockedWhilePassive && stats != null && stats.PassiveMode) {
                 habbo.GetClient()?.SendWhisper($"You can't use {data.Name} while passive!", 1);
                 return false;
             }
@@ -332,8 +322,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
 
             // an item that drops you to 0 health kills you (no attacker)
             bool died = stats != null && stats.Health <= 0 && !stats.IsDead && roomUser != null;
-            if (died)
-            {
+            if (died) {
                 LiveFeedService.LiveFeed("💀 " + LiveFeedService.Name(habbo.Username, "green") + " died of item over usage.", "red");
                 UserRpStats.Kill(habbo, roomUser);
             }
@@ -408,14 +397,12 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
 
             int reduced = incomingDamage;
             bool failed = Random.Shared.Next(0, 100) < vest.ItemData.VestFailChance;
-            if (!failed)
-            {
+            if (!failed) {
                 int reduction = Random.Shared.Next(vest.ItemData.VestReductionMin, vest.ItemData.VestReductionMax + 1);
                 reduced = Math.Max(0, incomingDamage - reduction);
             }
 
-            if (vest.DurabilityLeft <= 0)
-            {
+            if (vest.DurabilityLeft <= 0) {
                 vest.Equipped = false;
                 Remove(vest);
                 RpItemClothingService.Refresh(habbo);
@@ -435,21 +422,18 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
         {
             var police = PlusEnvironment.GetPoliceManager();
 
-            if (!police.IsCuffed(habbo.Id))
-            {
+            if (!police.IsCuffed(habbo.Id)) {
                 habbo.GetClient()?.SendWhisper("You're not cuffed.", 1);
                 return false;
             }
 
             // Can't pick the lock unless you're free to move (not frozen: fresh cuff or escort).
-            if (police.IsFrozen(habbo.Id))
-            {
+            if (police.IsFrozen(habbo.Id)) {
                 habbo.GetClient()?.SendWhisper("You can't pick your cuffs while you're being taken in.", 1);
                 return false;
             }
 
-            if (PlusEnvironment.GetJailManager().IsJailed(habbo.Id))
-            {
+            if (PlusEnvironment.GetJailManager().IsJailed(habbo.Id)) {
                 habbo.GetClient()?.SendWhisper("You can't pick your cuffs while in jail.", 1);
                 return false;
             }
@@ -457,13 +441,11 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             int chance = data.GetInt("handpick", 0);
             ConsumeUse(userItem);
 
-            if (Random.Shared.Next(1, 101) <= chance)
-            {
+            if (Random.Shared.Next(1, 101) <= chance) {
                 police.BreakFree(habbo);
                 habbo.GetClient()?.SendWhisper("You picked your cuffs and slipped free!", 1);
             }
-            else
-            {
+            else {
                 habbo.GetClient()?.SendWhisper("The lockpick slipped — you're still cuffed.", 1);
             }
 

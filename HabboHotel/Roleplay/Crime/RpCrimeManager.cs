@@ -39,8 +39,7 @@ namespace Plus.HabboHotel.Roleplay.Crime
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-            foreach (var row in db.RpCrimes.AsNoTracking().ToList())
-            {
+            foreach (var row in db.RpCrimes.AsNoTracking().ToList()) {
                 RpCrime crime = new(
                     row.Id,
                     row.CrimeTag,
@@ -54,8 +53,7 @@ namespace Plus.HabboHotel.Roleplay.Crime
                 _byTag[crime.Tag] = crime;
             }
 
-            foreach (var row in db.RpCrimePenalties.AsNoTracking().OrderBy(x => x.StarLevel).ToList())
-            {
+            foreach (var row in db.RpCrimePenalties.AsNoTracking().OrderBy(x => x.StarLevel).ToList()) {
                 _penalties.Add(new RpCrimePenalty(
                     row.Id,
                     row.StarLevel,
@@ -101,19 +99,16 @@ namespace Plus.HabboHotel.Roleplay.Crime
             DateTime expiresAt = now.AddMinutes(Math.Max(1, crime.TimeActiveMinutes));
 
             Prune(rec);
-            lock (rec.Crimes)
-            {
+            lock (rec.Crimes) {
                 ActiveCrime existing = rec.Crimes.FirstOrDefault(c => c.CrimeId == crime.Id);
-                if (existing != null)
-                {
+                if (existing != null) {
                     // Already wanted for this crime — reset its clock and let the newest log entry
                     // own the expiry flag, but don't award another set of stars.
                     existing.CommittedAt = now;
                     existing.ExpiresAt = expiresAt;
                     existing.Log = log;
                 }
-                else if (crime.AutoCharge || !rec.Charged)
-                {
+                else if (crime.AutoCharge || !rec.Charged) {
                     rec.Crimes.Add(new ActiveCrime
                     {
                         CrimeId = crime.Id,
@@ -163,8 +158,7 @@ namespace Plus.HabboHotel.Roleplay.Crime
                 return null;
 
             string q = query.Trim();
-            foreach (RpCrime crime in _byId.Values)
-            {
+            foreach (RpCrime crime in _byId.Values) {
                 if (string.Equals(crime.Name, q, StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(crime.Tag, q, StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(crime.Tag.Replace('_', ' '), q, StringComparison.OrdinalIgnoreCase))
@@ -187,11 +181,9 @@ namespace Plus.HabboHotel.Roleplay.Crime
 
             Prune(rec);
             bool applied = false;
-            lock (rec.Crimes)
-            {
+            lock (rec.Crimes) {
                 ActiveCrime active = rec.Crimes.FirstOrDefault(c => c.CrimeId == crime.Id);
-                if (active != null)
-                {
+                if (active != null) {
                     active.Revealed = true;
                     rec.Charged = true;
                     applied = true;
@@ -209,8 +201,7 @@ namespace Plus.HabboHotel.Roleplay.Crime
             string where = room != null ? $"{room.Name} (#{room.Id})" : "an unknown location";
             string message = $"[DISPATCH] {offender.Username} committed {crime.Name} in {where}.";
 
-            foreach (int officerId in PlusEnvironment.GetGame().GetShiftManager().GetWorkersForGroup(policeCorp))
-            {
+            foreach (int officerId in PlusEnvironment.GetGame().GetShiftManager().GetWorkersForGroup(policeCorp)) {
                 GameClient client = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(officerId);
                 client?.SendWhisper(message, 1);
             }
@@ -264,8 +255,7 @@ namespace Plus.HabboHotel.Roleplay.Crime
                 return 0;
 
             Prune(rec);
-            lock (rec.Crimes)
-            {
+            lock (rec.Crimes) {
                 foreach (ActiveCrime c in rec.Crimes)
                     c.Revealed = true;
                 rec.Charged = rec.Crimes.Count > 0;
@@ -289,8 +279,7 @@ namespace Plus.HabboHotel.Roleplay.Crime
         public void ResolveAll(int userId)
         {
             if (_wanted.TryGetValue(userId, out UserWantedRecord rec))
-                lock (rec.Crimes)
-                {
+                lock (rec.Crimes) {
                     rec.Crimes.Clear();
                     rec.Charged = false;
                 }
@@ -309,8 +298,7 @@ namespace Plus.HabboHotel.Roleplay.Crime
         public List<WantedRow> GetWantedList(int limit = 50)
         {
             List<WantedRow> rows = new();
-            foreach (UserWantedRecord rec in _wanted.Values)
-            {
+            foreach (UserWantedRecord rec in _wanted.Values) {
                 int stars = GetVisibleStars(rec.UserId);
                 if (stars <= 0)
                     continue;
@@ -324,12 +312,9 @@ namespace Plus.HabboHotel.Roleplay.Crime
         private static void Prune(UserWantedRecord rec)
         {
             DateTime now = DateTime.Now;
-            lock (rec.Crimes)
-            {
-                for (int i = rec.Crimes.Count - 1; i >= 0; i--)
-                {
-                    if (rec.Crimes[i].ExpiresAt <= now)
-                    {
+            lock (rec.Crimes) {
+                for (int i = rec.Crimes.Count - 1; i >= 0; i--) {
+                    if (rec.Crimes[i].ExpiresAt <= now) {
                         if (rec.Crimes[i].Log != null)
                             rec.Crimes[i].Log.Expired = true;
                         rec.Crimes.RemoveAt(i);
@@ -349,11 +334,9 @@ namespace Plus.HabboHotel.Roleplay.Crime
             if (!_logBuffer.TryRemove(userId, out List<PendingCrimeLog> logs) || logs.Count == 0)
                 return;
 
-            try
-            {
+            try {
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
-                foreach (PendingCrimeLog log in logs)
-                {
+                foreach (PendingCrimeLog log in logs) {
                     db.RpCrimeLogs.Add(new RpCrimeLogEntity
                     {
                         CrimeId = log.CrimeId,
@@ -364,8 +347,7 @@ namespace Plus.HabboHotel.Roleplay.Crime
                 }
                 db.SaveChanges();
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 Log.Error("Failed flushing crime logs for user " + userId, e);
             }
         }

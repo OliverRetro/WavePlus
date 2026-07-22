@@ -17,8 +17,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
             if (session?.GetHabbo() == null)
                 return;
 
-            if (session.PingRequestedAt != 0)
-            {
+            if (session.PingRequestedAt != 0) {
                 session.SendWhisper("A ping is already in flight - hang on a moment.", 1);
                 return;
             }

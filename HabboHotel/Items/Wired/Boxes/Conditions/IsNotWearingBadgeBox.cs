@@ -47,8 +47,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Conditions
             if (!player.GetBadgeComponent().GetBadges().Contains(player.GetBadgeComponent().GetBadge(StringData)))
                 return true;
 
-            foreach (Badge badge in player.GetBadgeComponent().GetBadges().ToList())
-            {
+            foreach (Badge badge in player.GetBadgeComponent().GetBadges().ToList()) {
                 if (badge.Slot <= 0)
                     continue;
 

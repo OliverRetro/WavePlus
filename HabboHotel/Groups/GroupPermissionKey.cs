@@ -34,8 +34,7 @@ namespace Plus.HabboHotel.Groups
                 return supportedKinds;
 
             string trimmed = raw.Trim().TrimStart('{').TrimEnd('}');
-            foreach (string value in trimmed.Split([','], StringSplitOptions.RemoveEmptyEntries))
-            {
+            foreach (string value in trimmed.Split([','], StringSplitOptions.RemoveEmptyEntries)) {
                 if (int.TryParse(value.Trim(), out int kindValue) && Enum.IsDefined(typeof(GroupKind), kindValue))
                     supportedKinds.Add((GroupKind)kindValue);
             }

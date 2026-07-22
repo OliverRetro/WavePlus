@@ -39,14 +39,12 @@ namespace Plus.HabboHotel.Achievements
                 return false;
 
             Achievement data = Achievements[group];
-            if (data == null)
-            {
+            if (data == null) {
                 return false;
             }
 
             UserAchievement userData = session.GetHabbo().GetAchievementData(group);
-            if (userData == null)
-            {
+            if (userData == null) {
                 userData = new UserAchievement(group, 0, 0);
                 session.GetHabbo().Achievements.TryAdd(group, userData);
             }
@@ -62,8 +60,7 @@ namespace Plus.HabboHotel.Achievements
 
             // Carry overflow across as many levels as the gained progress supports, so a large
             // jump (e.g. an old account first satisfying "days registered") lands on the right level.
-            while (newLevel < totalLevels)
-            {
+            while (newLevel < totalLevels) {
                 int targetLevel = newLevel + 1;
                 AchievementLevel level = data.Levels[targetLevel];
 
@@ -128,8 +125,7 @@ namespace Plus.HabboHotel.Achievements
             if (_pendingProgress.IsEmpty)
                 return;
 
-            foreach (int userId in _pendingProgress.Keys.ToList())
-            {
+            foreach (int userId in _pendingProgress.Keys.ToList()) {
                 if (!_pendingProgress.TryRemove(userId, out ConcurrentDictionary<string, int> userPending))
                     continue;
 
@@ -137,14 +133,11 @@ namespace Plus.HabboHotel.Achievements
                 if (session?.GetHabbo() == null)
                     continue; // user left; buffered progress for this window is dropped
 
-                foreach (KeyValuePair<string, int> entry in userPending)
-                {
-                    try
-                    {
+                foreach (KeyValuePair<string, int> entry in userPending) {
+                    try {
                         ProgressAchievement(session, entry.Key, entry.Value);
                     }
-                    catch (System.Exception e)
-                    {
+                    catch (System.Exception e) {
                         Log.Error($"Failed to flush achievement '{entry.Key}' for user {userId}: {e}");
                     }
                 }
@@ -223,8 +216,7 @@ namespace Plus.HabboHotel.Achievements
                 return;
 
             Users.Habbo habbo = session.GetHabbo();
-            switch (pointsType)
-            {
+            switch (pointsType) {
                 case -1:
                     habbo.Credits += amount;
                     session.SendPacket(new CreditBalanceComposer(habbo.Credits));
@@ -256,8 +248,7 @@ namespace Plus.HabboHotel.Achievements
         {
             List<Achievement> achievements = new();
 
-            foreach (Achievement achievement in Achievements.Values.ToList())
-            {
+            foreach (Achievement achievement in Achievements.Values.ToList()) {
                 if (achievement.Category == "games" && achievement.GameId == gameId)
                     achievements.Add(achievement);
             }

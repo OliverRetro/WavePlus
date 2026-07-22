@@ -19,14 +19,12 @@ namespace Plus.HabboHotel.Items.Interactor
             if (habbo == null)
                 return;
 
-            if (habbo.GetBankAccount() != null)
-            {
+            if (habbo.GetBankAccount() != null) {
                 PlusEnvironment.GetBankingManager().SendBankSnapshot(habbo);
                 return;
             }
 
-            if (!PlusEnvironment.GetBankingManager().CreateAccount(habbo))
-            {
+            if (!PlusEnvironment.GetBankingManager().CreateAccount(habbo)) {
                 session.SendWhisper("You couldn't open an account — you may not have enough credits for the opening fee.", 1);
                 return;
             }

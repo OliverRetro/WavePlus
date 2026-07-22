@@ -52,8 +52,7 @@ namespace Plus.HabboHotel.Bots
             string configuredBots = PlusEnvironment.GetSettingsManager().TryGetValue("rp.taxi.bots");
             Dictionary<int, int> probabilities = ParseTaxiBotProbabilities(configuredBots);
 
-            foreach (var row in db.Bots.Select(b => new { b.Id, b.AiType, b.WalkMode, b.Name, b.Motto, b.Look, b.Gender, b.Rotation, b.AutomaticChat, b.SpeakingInterval, b.MixSentences, b.ChatBubble, b.EffectId }).ToList())
-            {
+            foreach (var row in db.Bots.Select(b => new { b.Id, b.AiType, b.WalkMode, b.Name, b.Motto, b.Look, b.Gender, b.Rotation, b.AutomaticChat, b.SpeakingInterval, b.MixSentences, b.ChatBubble, b.EffectId }).ToList()) {
                 int botId = (int)row.Id;
                 if (!probabilities.ContainsKey(botId))
                     continue;
@@ -78,11 +77,9 @@ namespace Plus.HabboHotel.Bots
                     speeches);
             }
 
-            foreach (var row in db.RoomTaxiPoints.Select(p => new { p.RoomId, p.X, p.Y, p.Z, p.Rotation, p.Cost, p.Delay }).ToList())
-            {
+            foreach (var row in db.RoomTaxiPoints.Select(p => new { p.RoomId, p.X, p.Y, p.Z, p.Rotation, p.Cost, p.Delay }).ToList()) {
                 int roomId = row.RoomId;
-                if (!_taxiPoints.TryGetValue(roomId, out List<TaxiPointData> roomPoints))
-                {
+                if (!_taxiPoints.TryGetValue(roomId, out List<TaxiPointData> roomPoints)) {
                     roomPoints = [];
                     _taxiPoints[roomId] = roomPoints;
                 }
@@ -93,14 +90,11 @@ namespace Plus.HabboHotel.Bots
 
         public void OnCycle()
         {
-            foreach (TaxiRideRequest request in _activeTaxiRequests.Values.ToList())
-            {
-                try
-                {
+            foreach (TaxiRideRequest request in _activeTaxiRequests.Values.ToList()) {
+                try {
                     ProcessRequest(request);
                 }
-                catch (Exception e)
-                {
+                catch (Exception e) {
                     Console.WriteLine(e);
                     CancelTaxi(request.UserId, false);
                 }
@@ -109,10 +103,8 @@ namespace Plus.HabboHotel.Bots
 
         public BotResponse GetResponse(BotAIType type, string message)
         {
-            foreach (BotResponse response in _responses.Where(x => x.AiType == type).ToList())
-            {
-                if (response.KeywordMatched(message))
-                {
+            foreach (BotResponse response in _responses.Where(x => x.AiType == type).ToList()) {
+                if (response.KeywordMatched(message)) {
                     return response;
                 }
             }
@@ -127,8 +119,7 @@ namespace Plus.HabboHotel.Bots
 
         public void AddTaxiPoint(TaxiPointData point)
         {
-            if (!_taxiPoints.TryGetValue(point.RoomId, out List<TaxiPointData> roomPoints))
-            {
+            if (!_taxiPoints.TryGetValue(point.RoomId, out List<TaxiPointData> roomPoints)) {
                 roomPoints = [];
                 _taxiPoints[point.RoomId] = roomPoints;
             }
@@ -162,34 +153,29 @@ namespace Plus.HabboHotel.Bots
         public bool TryCallTaxi(GameClient session, int targetRoomId, out string error)
         {
             error = string.Empty;
-            if (session?.GetHabbo() == null || session.GetHabbo().CurrentRoom == null)
-            {
+            if (session?.GetHabbo() == null || session.GetHabbo().CurrentRoom == null) {
                 error = "You cannot call a taxi right now.";
                 return false;
             }
 
             int userId = session.GetHabbo().Id;
-            if (_activeTaxiRequests.ContainsKey(userId))
-            {
+            if (_activeTaxiRequests.ContainsKey(userId)) {
                 error = "You already have a taxi on the way.";
                 return false;
             }
 
             Room sourceRoom = session.GetHabbo().CurrentRoom;
-            if (targetRoomId == sourceRoom.Id)
-            {
+            if (targetRoomId == sourceRoom.Id) {
                 error = "You cannot take a taxi to the room you are already in.";
                 return false;
             }
 
-            if (!_taxiPoints.TryGetValue(sourceRoom.Id, out List<TaxiPointData> sourcePoints) || sourcePoints.Count == 0)
-            {
+            if (!_taxiPoints.TryGetValue(sourceRoom.Id, out List<TaxiPointData> sourcePoints) || sourcePoints.Count == 0) {
                 error = "There is no taxi pickup point configured for this room.";
                 return false;
             }
 
-            if (!_taxiPoints.TryGetValue(targetRoomId, out List<TaxiPointData> targetPoints) || targetPoints.Count == 0)
-            {
+            if (!_taxiPoints.TryGetValue(targetRoomId, out List<TaxiPointData> targetPoints) || targetPoints.Count == 0) {
                 error = "That room is not serviced by taxis.";
                 return false;
             }
@@ -197,27 +183,23 @@ namespace Plus.HabboHotel.Bots
             TaxiPointData sourcePoint = sourcePoints[_random.Next(sourcePoints.Count)];
             TaxiPointData targetPoint = targetPoints[_random.Next(targetPoints.Count)];
 
-            if (!RoomFactory.TryGetData(targetRoomId, out RoomData targetRoomData))
-            {
+            if (!RoomFactory.TryGetData(targetRoomId, out RoomData targetRoomData)) {
                 error = "That room does not exist.";
                 return false;
             }
 
-            if (targetRoomData.Access != RoomAccess.Open && !session.GetHabbo().GetPermissions().HasRight("room_enter_locked"))
-            {
+            if (targetRoomData.Access != RoomAccess.Open && !session.GetHabbo().GetPermissions().HasRight("room_enter_locked")) {
                 error = "You can only take a taxi to open rooms.";
                 return false;
             }
 
             int templateBotId = PickTaxiTemplateId();
-            if (templateBotId == 0 || !_taxiTemplates.ContainsKey(templateBotId))
-            {
+            if (templateBotId == 0 || !_taxiTemplates.ContainsKey(templateBotId)) {
                 error = "No taxi drivers are configured.";
                 return false;
             }
 
-            if (session.GetHabbo().Credits < sourcePoint.Cost)
-            {
+            if (session.GetHabbo().Credits < sourcePoint.Cost) {
                 error = "You do not have enough credits for this taxi.";
                 return false;
             }
@@ -264,14 +246,12 @@ namespace Plus.HabboHotel.Bots
             if (!_activeTaxiRequests.TryRemove(userId, out TaxiRideRequest request))
                 return;
 
-            if (request.TaxiUser != null && request.TaxiUser.GetRoom() != null)
-            {
+            if (request.TaxiUser != null && request.TaxiUser.GetRoom() != null) {
                 request.TaxiUser.GetRoom().GetRoomUserManager().RemoveBot(request.TaxiUser.VirtualId, true);
             }
 
             GameClient client = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(userId);
-            if (refund && client?.GetHabbo() != null)
-            {
+            if (refund && client?.GetHabbo() != null) {
                 client.GetHabbo().Credits += request.SourceCost;
                 client.SendPacket(new Plus.Communication.Packets.Outgoing.Inventory.Purse.CreditBalanceComposer(client.GetHabbo().Credits));
             }
@@ -302,8 +282,7 @@ namespace Plus.HabboHotel.Bots
             if (user == null)
                 return;
 
-            if (!room.GetGameMap().ValidTile(request.ExitSpawnX, request.ExitSpawnY) || !room.GetGameMap().SquareIsOpen(request.ExitSpawnX, request.ExitSpawnY, false))
-            {
+            if (!room.GetGameMap().ValidTile(request.ExitSpawnX, request.ExitSpawnY) || !room.GetGameMap().SquareIsOpen(request.ExitSpawnX, request.ExitSpawnY, false)) {
                 CancelTaxi(session.GetHabbo().Id, false);
                 return;
             }
@@ -327,8 +306,7 @@ namespace Plus.HabboHotel.Bots
             HandleDelayedTaxiSpeech(request);
             HandleExitTaxiRemoval(request);
 
-            if (request.Arrived)
-            {
+            if (request.Arrived) {
                 if (request.ExitTaxiVirtualId <= 0)
                     _activeTaxiRequests.TryRemove(request.UserId, out _);
 
@@ -336,47 +314,39 @@ namespace Plus.HabboHotel.Bots
             }
 
             GameClient client = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(request.UserId);
-            if (client?.GetHabbo() == null)
-            {
+            if (client?.GetHabbo() == null) {
                 CancelTaxi(request.UserId, false);
                 return;
             }
 
-            if (!request.Spawned)
-            {
-                if (client.GetHabbo().CurrentRoomId != request.SourceRoomId)
-                {
+            if (!request.Spawned) {
+                if (client.GetHabbo().CurrentRoomId != request.SourceRoomId) {
                     CancelTaxi(request.UserId, true);
                     return;
                 }
 
-                if (DateTime.UtcNow >= request.ArrivalAtUtc)
-                {
+                if (DateTime.UtcNow >= request.ArrivalAtUtc) {
                     SpawnTaxi(request, client);
                 }
 
                 return;
             }
 
-            if (request.TaxiUser == null || request.TaxiUser.GetRoom() == null)
-            {
+            if (request.TaxiUser == null || request.TaxiUser.GetRoom() == null) {
                 CancelTaxi(request.UserId, false);
                 return;
             }
 
-            if (!request.PassengerBoarded)
-            {
+            if (!request.PassengerBoarded) {
                 RoomUser rider = client.GetHabbo().CurrentRoom?.GetRoomUserManager().GetRoomUserByHabbo(request.UserId);
-                if (rider == null)
-                {
+                if (rider == null) {
                     CancelTaxi(request.UserId, false);
                     return;
                 }
 
                 request.TaxiUser.BotData.ForcedUserTargetMovement = request.UserId;
                 double distance = Math.Sqrt(Math.Pow(request.TaxiUser.X - rider.X, 2) + Math.Pow(request.TaxiUser.Y - rider.Y, 2));
-                if (distance <= 1.5)
-                {
+                if (distance <= 1.5) {
                     request.PassengerBoarded = true;
                     request.PassengerBoardedAtUtc = DateTime.UtcNow;
                     request.TaxiUser.BotData.ForcedUserTargetMovement = 0;
@@ -386,8 +356,7 @@ namespace Plus.HabboHotel.Bots
                 return;
             }
 
-            if (!request.Arrived)
-            {
+            if (!request.Arrived) {
                 if (client.GetHabbo().CurrentRoomId == request.TargetRoomId)
                     return;
 
@@ -405,15 +374,13 @@ namespace Plus.HabboHotel.Bots
 
         private void SpawnTaxi(TaxiRideRequest request, GameClient client)
         {
-            if (!_taxiTemplates.TryGetValue(request.TaxiBotTemplateId, out TaxiBotTemplate template))
-            {
+            if (!_taxiTemplates.TryGetValue(request.TaxiBotTemplateId, out TaxiBotTemplate template)) {
                 CancelTaxi(request.UserId, true);
                 return;
             }
 
             Room room = client.GetHabbo().CurrentRoom;
-            if (room == null || room.Id != request.SourceRoomId)
-            {
+            if (room == null || room.Id != request.SourceRoomId) {
                 CancelTaxi(request.UserId, true);
                 return;
             }
@@ -439,21 +406,17 @@ namespace Plus.HabboHotel.Bots
             botUser.Chat("Thanks for business!", template.ChatBubble);
             request.ExitTaxiVirtualId = botUser.VirtualId;
 
-            if (_taxiPoints.TryGetValue(room.Id, out List<TaxiPointData> roomPoints) && roomPoints.Count > 1)
-            {
+            if (_taxiPoints.TryGetValue(room.Id, out List<TaxiPointData> roomPoints) && roomPoints.Count > 1) {
                 List<TaxiPointData> otherPoints = [.. roomPoints.Where(x => x.X != request.ExitSpawnX || x.Y != request.ExitSpawnY || x.Rotation != request.ExitSpawnRotation)];
-                if (otherPoints.Count > 0)
-                {
+                if (otherPoints.Count > 0) {
                     TaxiPointData furthestPoint = otherPoints.OrderByDescending(x => Math.Sqrt(Math.Pow(x.X - request.ExitSpawnX, 2) + Math.Pow(x.Y - request.ExitSpawnY, 2))).First();
                     Point origin = new(request.ExitSpawnX, request.ExitSpawnY);
                     Point target = new(furthestPoint.X, furthestPoint.Y);
                     int distance = Math.Abs(target.X - origin.X) + Math.Abs(target.Y - origin.Y);
 
-                    if (distance < 15 && botUser.BotAI != null)
-                    {
+                    if (distance < 15 && botUser.BotAI != null) {
                         Point? farAway = botUser.BotAI.GetFarAwayWalkableSquare(origin, 15);
-                        if (farAway.HasValue)
-                        {
+                        if (farAway.HasValue) {
                             target = farAway.Value;
                             distance = Math.Abs(target.X - origin.X) + Math.Abs(target.Y - origin.Y);
                         }
@@ -498,11 +461,9 @@ namespace Plus.HabboHotel.Bots
             if (request.ExitTaxiVirtualId <= 0)
                 return;
 
-            if (PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(request.TargetRoomId, out Room room))
-            {
+            if (PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(request.TargetRoomId, out Room room)) {
                 RoomUser exitTaxi = room.GetRoomUserManager().GetRoomUserByVirtualId(request.ExitTaxiVirtualId);
-                if (exitTaxi != null)
-                {
+                if (exitTaxi != null) {
                     bool reachedTarget = request.ExitTargetX > 0 && request.ExitTargetY > 0 && exitTaxi.X == request.ExitTargetX && exitTaxi.Y == request.ExitTargetY;
                     bool timedOut = request.ExitTimeoutAtUtc != DateTime.MinValue && DateTime.UtcNow >= request.ExitTimeoutAtUtc;
                     bool delayedEnough = request.ExitRemovalAtUtc != DateTime.MinValue && DateTime.UtcNow >= request.ExitRemovalAtUtc;
@@ -529,8 +490,7 @@ namespace Plus.HabboHotel.Bots
 
             int roll = _random.Next(1, 101);
             int current = 0;
-            foreach (KeyValuePair<int, int> entry in probabilities)
-            {
+            foreach (KeyValuePair<int, int> entry in probabilities) {
                 current += entry.Value;
                 if (roll <= current)
                     return entry.Key;
@@ -545,8 +505,7 @@ namespace Plus.HabboHotel.Bots
             if (string.IsNullOrWhiteSpace(value) || value == "0")
                 return result;
 
-            foreach (string entry in value.Split(';'))
-            {
+            foreach (string entry in value.Split(';')) {
                 string[] parts = entry.Split(':');
                 if (parts.Length != 2)
                     continue;
@@ -565,8 +524,7 @@ namespace Plus.HabboHotel.Bots
             if (room?.GetRoomItemHandler() == null || user == null)
                 return false;
 
-            foreach (Item item in room.GetRoomItemHandler().GetFloor)
-            {
+            foreach (Item item in room.GetRoomItemHandler().GetFloor) {
                 if (item?.GetBaseItem()?.InteractionType != InteractionType.TaxiPole)
                     continue;
 

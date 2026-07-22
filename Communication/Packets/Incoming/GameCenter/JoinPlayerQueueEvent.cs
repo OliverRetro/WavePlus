@@ -15,8 +15,7 @@ namespace Plus.Communication.Packets.Incoming.GameCenter
 
             int gameId = packet.PopInt();
 
-            if (PlusEnvironment.GetGame().GetGameDataManager().TryGetGame(gameId, out GameData gameData))
-            {
+            if (PlusEnvironment.GetGame().GetGameDataManager().TryGetGame(gameId, out GameData gameData)) {
                 string ssoTicket = "HABBOON-Fastfood-" + GenerateSso(32) + "-" + session.GetHabbo().Id;
 
                 session.SendPacket(new JoinQueueComposer(gameData.Id));
@@ -29,8 +28,7 @@ namespace Plus.Communication.Packets.Incoming.GameCenter
             Random random = new();
             string characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
             StringBuilder result = new(length);
-            for (int i = 0; i < length; i++)
-            {
+            for (int i = 0; i < length; i++) {
                 result.Append(characters[random.Next(characters.Length)]);
             }
 

@@ -17,12 +17,10 @@ namespace Plus.Communication.Packets.Outgoing.Moderation
         public override void Compose(ServerPacket packet)
         {
             packet.WriteInteger(UserActionPresets.Count);
-            foreach (KeyValuePair<string, List<ModerationPresetActions>> cat in UserActionPresets.ToList())
-            {
+            foreach (KeyValuePair<string, List<ModerationPresetActions>> cat in UserActionPresets.ToList()) {
                 packet.WriteString(cat.Key);
                 packet.WriteInteger(cat.Value.Count);
-                foreach (ModerationPresetActions preset in cat.Value.ToList())
-                {
+                foreach (ModerationPresetActions preset in cat.Value.ToList()) {
                     packet.WriteString(preset.Caption);
                     packet.WriteInteger(preset.Id);
                     packet.WriteString(preset.Type);

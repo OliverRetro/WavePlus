@@ -37,30 +37,23 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
             else if (session.GetHabbo().GetPermissions().HasRight("room_item_take"))
                 itemRights = true;
 
-            if (itemRights)
-            {
+            if (itemRights) {
                 if (item.GetBaseItem().InteractionType == InteractionType.Tent || item.GetBaseItem().InteractionType == InteractionType.TentSmall)
                     room.RemoveTent(item.Id);
 
                 uint itemDbId = (uint)item.Id;
-                if (item.GetBaseItem().InteractionType == InteractionType.Moodlight)
-                {
-                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                    {
+                if (item.GetBaseItem().InteractionType == InteractionType.Moodlight) {
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                         db.RoomItemsMoodlights.Where(m => m.ItemId == itemDbId).ExecuteDelete();
                     }
                 }
-                else if (item.GetBaseItem().InteractionType == InteractionType.Toner)
-                {
-                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                    {
+                else if (item.GetBaseItem().InteractionType == InteractionType.Toner) {
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                         db.RoomItemsToners.Where(t => t.Id == itemDbId).ExecuteDelete();
                     }
                 }
 
-
-                if (item.UserId == session.GetHabbo().Id)
-                {
+                if (item.UserId == session.GetHabbo().Id) {
                     room.GetRoomItemHandler().RemoveFurniture(session, item.Id);
                     session.GetHabbo().GetInventoryComponent().AddNewItem(item.Id, item.BaseItem, item.ExtraData, item.GroupId, true, true, item.LimitedNo, item.LimitedTot);
                     session.GetHabbo().GetInventoryComponent().UpdateItems(false);
@@ -84,8 +77,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
                     {
                         room.GetRoomItemHandler().RemoveFurniture(null, item.Id);
                         uint ejectItemId = (uint)item.Id;
-                        using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                        {
+                        using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                             db.Items.Where(i => i.Id == ejectItemId).ExecuteUpdate(s => s.SetProperty(i => i.RoomId, (uint)0));
                         }
                     }

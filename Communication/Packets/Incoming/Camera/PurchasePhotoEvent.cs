@@ -36,21 +36,18 @@ namespace Plus.Communication.Packets.Incoming.Camera
 
             int price = camera.PurchasePrice;
 
-            if (session.GetHabbo().Credits < price)
-            {
+            if (session.GetHabbo().Credits < price) {
                 session.SendNotification("You do not have enough credits to buy this photo.");
                 return;
             }
 
-            if (!PlusEnvironment.GetGame().GetItemManager().GetItem(camera.PhotoItemId, out ItemData itemData))
-            {
+            if (!PlusEnvironment.GetGame().GetItemManager().GetItem(camera.PhotoItemId, out ItemData itemData)) {
                 Log.Error("[Camera] server_settings key 'camera.item.id' does not point at a valid items_base row; photo purchases are broken until it does.");
                 session.SendNotification("Photo purchasing is not configured correctly. Please contact staff.");
                 return;
             }
 
-            if (itemData.InteractionType != InteractionType.CameraPicture)
-            {
+            if (itemData.InteractionType != InteractionType.CameraPicture) {
                 Log.Error("[Camera] items_base " + itemData.Id + " must have interaction_type 'camera_picture' to be sold as a photo.");
                 session.SendNotification("Photo purchasing is not configured correctly. Please contact staff.");
                 return;
@@ -59,8 +56,7 @@ namespace Plus.Communication.Packets.Incoming.Camera
             string url = camera.PhotoUrl + "/" + photo.Filename;
 
             int photoId;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 var row = new CameraPhotoEntity
                 {
                     UserId = session.GetHabbo().Id,

@@ -52,10 +52,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Emotions
         /// <returns></returns>
         public int GetEmotionsForText(string text)
         {
-            foreach (KeyValuePair<string, ChatEmotions> kvp in _emotions)
-            {
-                if (text.ToLower().Contains(kvp.Key.ToLower()))
-                {
+            foreach (KeyValuePair<string, ChatEmotions> kvp in _emotions) {
+                if (text.ToLower().Contains(kvp.Key.ToLower())) {
                     return GetEmoticonPacketNum(kvp.Value);
                 }
             }
@@ -70,8 +68,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Emotions
         /// <returns></returns>
         private static int GetEmoticonPacketNum(ChatEmotions e)
         {
-            switch (e)
-            {
+            switch (e) {
                 case ChatEmotions.Smile:
                     return 1;
 

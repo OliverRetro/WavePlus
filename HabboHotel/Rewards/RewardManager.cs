@@ -22,19 +22,16 @@ namespace Plus.HabboHotel.Rewards
 
         public void Init()
         {
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 var rewards = db.ServerRewards.Where(r => r.Enabled == "1")
                     .Select(r => new { r.Id, r.RewardStart, r.RewardEnd, r.RewardType, r.RewardData, r.Message })
                     .ToList();
-                foreach (var r in rewards)
-                {
+                foreach (var r in rewards) {
                     _rewards.TryAdd(r.Id, new Reward(Convert.ToDouble(r.RewardStart), Convert.ToDouble(r.RewardEnd), r.RewardType, r.RewardData, r.Message));
                 }
 
                 var logs = db.ServerRewardLogs.Select(l => new { l.UserId, l.RewardId }).ToList();
-                foreach (var l in logs)
-                {
+                foreach (var l in logs) {
                     int id = l.UserId;
                     int rewardId = l.RewardId;
 
@@ -60,8 +57,7 @@ namespace Plus.HabboHotel.Rewards
             if (!_rewardLogs[id].Contains(rewardId))
                 _rewardLogs[id].Add(rewardId);
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.ServerRewardLogs.Add(new ServerRewardLogEntity { UserId = id, RewardId = rewardId });
                 db.SaveChanges();
             }
@@ -72,41 +68,34 @@ namespace Plus.HabboHotel.Rewards
             if (session == null || session.GetHabbo() == null)
                 return;
 
-            foreach (KeyValuePair<int, Reward> entry in _rewards)
-            {
+            foreach (KeyValuePair<int, Reward> entry in _rewards) {
                 int id = entry.Key;
                 Reward reward = entry.Value;
 
                 if (HasReward(session.GetHabbo().Id, id))
                     continue;
 
-                if (reward.Active)
-                {
-                    switch (reward.Type)
-                    {
-                        case RewardType.Badge:
-                            {
+                if (reward.Active) {
+                    switch (reward.Type) {
+                        case RewardType.Badge: {
                                 if (!session.GetHabbo().GetBadgeComponent().HasBadge(reward.RewardData))
                                     session.GetHabbo().GetBadgeComponent().GiveBadge(reward.RewardData, true, session);
                                 break;
                             }
 
-                        case RewardType.Credits:
-                            {
+                        case RewardType.Credits: {
                                 session.GetHabbo().Credits += Convert.ToInt32(reward.RewardData);
                                 session.SendPacket(new CreditBalanceComposer(session.GetHabbo().Credits));
                                 break;
                             }
 
-                        case RewardType.Duckets:
-                            {
+                        case RewardType.Duckets: {
                                 session.GetHabbo().Duckets += Convert.ToInt32(reward.RewardData);
                                 session.SendPacket(new HabboActivityPointNotificationComposer(session.GetHabbo().Duckets, Convert.ToInt32(reward.RewardData)));
                                 break;
                             }
 
-                        case RewardType.Diamonds:
-                            {
+                        case RewardType.Diamonds: {
                                 session.GetHabbo().Diamonds += Convert.ToInt32(reward.RewardData);
                                 session.SendPacket(new HabboActivityPointNotificationComposer(session.GetHabbo().Diamonds, Convert.ToInt32(reward.RewardData), 5));
                                 break;

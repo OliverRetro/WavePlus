@@ -19,20 +19,17 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
             int itemId = packet.PopInt();
 
             Item item = session.GetHabbo().GetInventoryComponent().GetItem(itemId);
-            if (item == null)
-            {
+            if (item == null) {
                 session.SendPacket(new MarketplaceMakeOfferResultComposer(0));
                 return;
             }
 
-            if (!ItemUtility.IsRare(item))
-            {
+            if (!ItemUtility.IsRare(item)) {
                 session.SendNotification("Sorry, only Rares & LTDs can go be auctioned off in the Marketplace!");
                 return;
             }
 
-            if (sellingPrice > 70000000 || sellingPrice == 0)
-            {
+            if (sellingPrice > 70000000 || sellingPrice == 0) {
                 session.SendPacket(new MarketplaceMakeOfferResultComposer(0));
                 return;
             }
@@ -45,8 +42,7 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
 
             int ownerId = session.GetHabbo().Id;
             uint itemIdU = (uint)itemId;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.CatalogMarketplaceOffers.Add(new CatalogMarketplaceOfferEntity
                 {
                     FurniId = itemIdU,

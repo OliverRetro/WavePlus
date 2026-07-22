@@ -59,8 +59,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
 
             if (player.GetBadgeComponent().HasBadge(StringData))
                 player.GetClient().SendPacket(new WhisperComposer(user.VirtualId, "Oops, it appears you have already recieved this badge!", 0, user.LastBubble));
-            else
-            {
+            else {
                 player.GetBadgeComponent().GiveBadge(StringData, true, player.GetClient());
                 player.GetClient().SendNotification("You have recieved a badge!");
             }

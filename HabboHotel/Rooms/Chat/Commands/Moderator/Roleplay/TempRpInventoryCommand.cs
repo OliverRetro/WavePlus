@@ -17,14 +17,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
         {
             StringBuilder habboInfo = new();
             habboInfo.Append("<b>Weapons:</b>\r");
-            if (session != null)
-            {
+            if (session != null) {
                 habboInfo.Append("Equipped Weapon: <b>" + session.GetHabbo().GetRpStats().ActiveWeapon().WeaponData.Name + "</b>\r\r");
 
                 habboInfo.Append("<b>Weapons owned:</b>\r");
 
-                foreach (UserWeapon weaponData in session.GetHabbo().GetRpWeapons().Weapons)
-                {
+                foreach (UserWeapon weaponData in session.GetHabbo().GetRpWeapons().Weapons) {
                     Weapon weapon = PlusEnvironment.GetWeaponManager().GetWeaponById(weaponData.WeaponId);
 
                     if (weapon == null)
@@ -35,8 +33,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
 
                 habboInfo.Append("\r<b>Weapon skins owned:</b>\r");
 
-                foreach (UserWeaponSkin skinData in session.GetHabbo().GetRpWeaponSkins().Skins)
-                {
+                foreach (UserWeaponSkin skinData in session.GetHabbo().GetRpWeaponSkins().Skins) {
                     WeaponSkin skin = skinData.SkinData;
                     Weapon baseWeapon = PlusEnvironment.GetWeaponManager().GetWeaponById(skin?.WeaponId ?? 0);
 
@@ -48,16 +45,14 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
 
                 habboInfo.Append("\r<b>Other RP Items:</b>\r");
 
-                foreach (UserRpItem item in session.GetHabbo().GetRpItems().Items)
-                {
+                foreach (UserRpItem item in session.GetHabbo().GetRpItems().Items) {
                     if (item == null)
                         continue;
 
                     habboInfo.Append($"ID: {item.Id} - {item.ItemData.Name} - Used: {item.Uses} / {item.ItemData.MaxUses}\r");
                 }
             }
-            else
-            {
+            else {
                 habboInfo.Append("It appears you're offline. This is a bug. Please inform Oliver.\r");
             }
 

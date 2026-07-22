@@ -23,8 +23,7 @@ namespace Plus.HabboHotel.Items.Data.Moodlight
 
             var row = db.RoomItemsMoodlights.Where(m => m.ItemId == itemKey).Select(m => new { m.Enabled, m.CurrentPreset, m.PresetOne, m.PresetTwo, m.PresetThree }).FirstOrDefault();
 
-            if (row == null)
-            {
+            if (row == null) {
                 db.RoomItemsMoodlights.Add(new Database.EF.Entities.RoomItemsMoodlightEntity
                 {
                     ItemId = itemKey,
@@ -67,17 +66,14 @@ namespace Plus.HabboHotel.Items.Data.Moodlight
 
         public void UpdatePreset(int preset, string color, int intensity, bool bgOnly, bool hax = false)
         {
-            if (!IsValidColor(color) || !IsValidIntensity(intensity) && !hax)
-            {
+            if (!IsValidColor(color) || !IsValidIntensity(intensity) && !hax) {
                 return;
             }
 
             string presetVal = color + "," + intensity + "," + PlusEnvironment.BoolToEnum(bgOnly);
             uint itemKey = (uint)ItemId;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
-                switch (preset)
-                {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
+                switch (preset) {
                     case 3:
                         db.RoomItemsMoodlights.Where(m => m.ItemId == itemKey).ExecuteUpdate(s => s.SetProperty(m => m.PresetThree, presetVal));
                         break;
@@ -101,8 +97,7 @@ namespace Plus.HabboHotel.Items.Data.Moodlight
         {
             string[] bits = data.Split(',');
 
-            if (!IsValidColor(bits[0]))
-            {
+            if (!IsValidColor(bits[0])) {
                 bits[0] = "#000000";
             }
 
@@ -113,8 +108,7 @@ namespace Plus.HabboHotel.Items.Data.Moodlight
         {
             i--;
 
-            if (Presets[i] != null)
-            {
+            if (Presets[i] != null) {
                 return Presets[i];
             }
 
@@ -123,8 +117,7 @@ namespace Plus.HabboHotel.Items.Data.Moodlight
 
         public static bool IsValidColor(string colorCode)
         {
-            switch (colorCode)
-            {
+            switch (colorCode) {
                 case "#000000":
                 case "#0053F7":
                 case "#EA4532":

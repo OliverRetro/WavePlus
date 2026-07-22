@@ -21,11 +21,9 @@ namespace Plus.Core.Settings
             if (_settings.Count > 0)
                 _settings.Clear();
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 var rows = db.ServerSettings.Select(s => new { s.Key, s.Value }).ToList();
-                foreach (var row in rows)
-                {
+                foreach (var row in rows) {
                     _settings.Add(row.Key.ToLower(), row.Value.ToLower());
                 }
             }

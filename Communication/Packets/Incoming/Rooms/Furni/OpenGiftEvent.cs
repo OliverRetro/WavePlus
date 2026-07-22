@@ -35,16 +35,14 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
             int baseId;
             string extraData;
             bool found;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 var row = db.UserPresents.Where(p => p.ItemId == presentKey).Select(p => new { p.BaseId, p.ExtraData }).FirstOrDefault();
                 found = row != null;
                 baseId = found ? (int)row.BaseId : 0;
                 extraData = row?.ExtraData;
             }
 
-            if (!found)
-            {
+            if (!found) {
                 session.SendNotification("Oops! Appears there was a bug with this gift.\nWe'll just get rid of it for you.");
                 room.GetRoomItemHandler().RemoveFurniture(null, present.Id);
                 DeletePresent(present.Id);
@@ -52,8 +50,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
                 return;
             }
 
-            if (!int.TryParse(present.ExtraData.Split(Convert.ToChar(5))[2], out int purchaserId))
-            {
+            if (!int.TryParse(present.ExtraData.Split(Convert.ToChar(5))[2], out int purchaserId)) {
                 session.SendNotification("Oops! Appears there was a bug with this gift.\nWe'll just get rid of it for you.");
                 room.GetRoomItemHandler().RemoveFurniture(null, present.Id);
                 DeletePresent(present.Id);
@@ -62,8 +59,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
             }
 
             UserCache purchaser = PlusEnvironment.GetGame().GetCacheManager().GenerateUser(purchaserId);
-            if (purchaser == null)
-            {
+            if (purchaser == null) {
                 session.SendNotification("Oops! Appears there was a bug with this gift.\nWe'll just get rid of it for you.");
                 room.GetRoomItemHandler().RemoveFurniture(null, present.Id);
                 DeletePresent(present.Id);
@@ -71,15 +67,13 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
                 return;
             }
 
-            if (!PlusEnvironment.GetGame().GetItemManager().GetItem(baseId, out ItemData baseItem))
-            {
+            if (!PlusEnvironment.GetGame().GetItemManager().GetItem(baseId, out ItemData baseItem)) {
                 session.SendNotification("Oops, it appears that the item within the gift is no longer in the hotel!");
                 room.GetRoomItemHandler().RemoveFurniture(null, present.Id);
                 DeletePresent(present.Id);
                 session.GetHabbo().GetInventoryComponent().RemoveItem(present.Id);
                 return;
             }
-
 
             present.MagicRemove = true;
             room.SendPacket(new ObjectUpdateComposer(present, Convert.ToInt32(session.GetHabbo().Id)));
@@ -99,11 +93,9 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
 
         private void FinishOpenGift(GameClient session, ItemData baseItem, Item present, Room room, int baseId, string extraData)
         {
-            try
-            {
+            try {
                 if (baseItem == null || present == null || room == null)
                     return;
-
 
                 Thread.Sleep(1500);
 
@@ -114,8 +106,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
                 uint itemId = (uint)present.Id;
                 uint baseItemVal = (uint)baseId;
                 string edata = extraData;
-                using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                {
+                using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                     db.Items.Where(i => i.Id == itemId).ExecuteUpdate(s => s.SetProperty(i => i.BaseItem, baseItemVal).SetProperty(i => i.ExtraData, edata));
                     db.UserPresents.Where(p => p.ItemId == itemId).ExecuteDelete();
                 }
@@ -124,18 +115,15 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
                 present.ResetBaseItem();
                 present.ExtraData = !string.IsNullOrEmpty(extraData) ? extraData : "";
 
-                if (present.Data.Type == 's')
-                {
-                    if (!room.GetRoomItemHandler().SetFloorItem(session, present, present.GetX, present.GetY, present.Rotation, true, false, true))
-                    {
+                if (present.Data.Type == 's') {
+                    if (!room.GetRoomItemHandler().SetFloorItem(session, present, present.GetX, present.GetY, present.Rotation, true, false, true)) {
                         using (WavePlusContext db = PlusEnvironment.GetDbContext())
                             db.Items.Where(i => i.Id == itemId).ExecuteUpdate(s => s.SetProperty(i => i.RoomId, (uint)0));
 
                         itemIsInRoom = false;
                     }
                 }
-                else
-                {
+                else {
                     using (WavePlusContext db = PlusEnvironment.GetDbContext())
                         db.Items.Where(i => i.Id == itemId).ExecuteUpdate(s => s.SetProperty(i => i.RoomId, (uint)0));
 
@@ -146,8 +134,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
 
                 session.GetHabbo().GetInventoryComponent().UpdateItems(true);
             }
-            catch
-            {
+            catch {
                 //ignored
             }
         }

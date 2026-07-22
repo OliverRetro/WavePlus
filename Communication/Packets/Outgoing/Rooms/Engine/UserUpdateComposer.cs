@@ -18,8 +18,7 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Engine
         public override void Compose(ServerPacket packet)
         {
             packet.WriteInteger(Users.Count);
-            foreach (RoomUser user in Users.ToList())
-            {
+            foreach (RoomUser user in Users.ToList()) {
                 packet.WriteInteger(user.VirtualId);
                 packet.WriteInteger(user.X);
                 packet.WriteInteger(user.Y);
@@ -30,12 +29,10 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Engine
                 StringBuilder statusComposer = new();
                 statusComposer.Append("/");
 
-                foreach (KeyValuePair<string, string> status in user.Statusses.ToList())
-                {
+                foreach (KeyValuePair<string, string> status in user.Statusses.ToList()) {
                     statusComposer.Append(status.Key);
 
-                    if (!string.IsNullOrEmpty(status.Value))
-                    {
+                    if (!string.IsNullOrEmpty(status.Value)) {
                         statusComposer.Append(" ");
                         statusComposer.Append(status.Value);
                     }

@@ -19,15 +19,13 @@ namespace Plus.Communication.Packets.Incoming.Messenger
             if (client == null || client.GetHabbo() == null)
                 return;
 
-            if (!client.GetHabbo().InRoom)
-            {
+            if (!client.GetHabbo().InRoom) {
                 session.SendPacket(new FollowFriendFailedComposer(2));
                 session.GetHabbo().GetMessenger().UpdateFriend(client.GetHabbo().Id, client, true);
                 return;
             }
 
-            if (session.GetHabbo().CurrentRoom != null && client.GetHabbo().CurrentRoom != null)
-            {
+            if (session.GetHabbo().CurrentRoom != null && client.GetHabbo().CurrentRoom != null) {
                 if (session.GetHabbo().CurrentRoom.RoomId == client.GetHabbo().CurrentRoom.RoomId)
                     return;
             }

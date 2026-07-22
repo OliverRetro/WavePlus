@@ -105,15 +105,13 @@ namespace Plus.HabboHotel.Roleplay.Hospital
             _deadUsers.TryRemove(habbo.Id, out _);
             _bleedoutUsers.TryRemove(habbo.Id, out _);
 
-            if (habbo.CurrentRoom == null)
-            {
+            if (habbo.CurrentRoom == null) {
                 habbo.SaveRpStats();
                 return;
             }
 
             RoomUser roomUser = habbo.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(habbo.Id);
-            if (roomUser != null)
-            {
+            if (roomUser != null) {
                 roomUser.ClearMovement(true);
                 roomUser.RemoveStatus("lay");
                 roomUser.RemoveStatus("sit");
@@ -135,8 +133,7 @@ namespace Plus.HabboHotel.Roleplay.Hospital
             if (stats == null)
                 return;
 
-            if (stats.IsDead)
-            {
+            if (stats.IsDead) {
                 _deadUsers[habbo.Id] = 0;
                 if (stats.HospitalReleaseTime > 0)
                     ProgressDeadUserRecovery(habbo);
@@ -152,8 +149,7 @@ namespace Plus.HabboHotel.Roleplay.Hospital
 
         public void OnCycle()
         {
-            foreach (GameClient client in PlusEnvironment.GetGame().GetClientManager().GetClients)
-            {
+            foreach (GameClient client in PlusEnvironment.GetGame().GetClientManager().GetClients) {
                 if (client?.GetHabbo() == null)
                     continue;
 
@@ -197,8 +193,7 @@ namespace Plus.HabboHotel.Roleplay.Hospital
             int healedHealth = stats.HospitalHealthStart + (int)Math.Floor((maxHealth - stats.HospitalHealthStart) * (elapsed / totalDuration));
             stats.Health = Math.Clamp(healedHealth, 0, maxHealth);
 
-            if (now < releaseTime)
-            {
+            if (now < releaseTime) {
                 return;
             }
 
@@ -249,8 +244,7 @@ namespace Plus.HabboHotel.Roleplay.Hospital
             if (hospitalRoomId <= 0 || habbo.GetRpStats()?.IsDead != true)
                 return 0;
 
-            if (habbo.GetRpStats().HospitalReleaseTime <= 0)
-            {
+            if (habbo.GetRpStats().HospitalReleaseTime <= 0) {
                 _bleedoutUsers.TryRemove(habbo.Id, out _);
                 BeginHospitalStay(habbo, false);
             }
@@ -386,10 +380,8 @@ namespace Plus.HabboHotel.Roleplay.Hospital
 
         private static Point? GetNearbyWalkableTile(Room room, int x, int y)
         {
-            for (int dx = -1; dx <= 1; dx++)
-            {
-                for (int dy = -1; dy <= 1; dy++)
-                {
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dy = -1; dy <= 1; dy++) {
                     if (dx == 0 && dy == 0)
                         continue;
 

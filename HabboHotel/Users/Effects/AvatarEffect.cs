@@ -41,8 +41,7 @@ namespace Plus.HabboHotel.Users.Effects
             {
                 double tl = (Activated ? Duration - TimeUsed : Duration);
 
-                if (tl < 0)
-                {
+                if (tl < 0) {
                     tl = 0;
                 }
 
@@ -76,14 +75,11 @@ namespace Plus.HabboHotel.Users.Effects
             TimestampActivated = 0;
 
             int id = Id;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
-                if (Quantity < 1)
-                {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
+                if (Quantity < 1) {
                     db.UserEffects.Where(e => e.Id == id).ExecuteDelete();
                 }
-                else
-                {
+                else {
                     int qt = Quantity;
                     db.UserEffects.Where(e => e.Id == id).ExecuteUpdate(s => s
                         .SetProperty(e => e.Quantity, qt)

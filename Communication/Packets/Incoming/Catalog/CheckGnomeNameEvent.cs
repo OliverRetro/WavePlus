@@ -32,14 +32,12 @@ namespace Plus.Communication.Packets.Incoming.Catalog
                 return;
 
             string petName = packet.PopString();
-            if (string.IsNullOrEmpty(petName))
-            {
+            if (string.IsNullOrEmpty(petName)) {
                 session.SendPacket(new CheckGnomeNameComposer(petName, 1));
                 return;
             }
 
-            if (!PlusEnvironment.IsValidAlphaNumeric(petName))
-            {
+            if (!PlusEnvironment.IsValidAlphaNumeric(petName)) {
                 session.SendPacket(new CheckGnomeNameComposer(petName, 1));
                 return;
             }
@@ -49,8 +47,7 @@ namespace Plus.Communication.Packets.Incoming.Catalog
 
             //Quickly delete it from the database.
             uint deleteItemId = (uint)item.Id;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.Items.Where(i => i.Id == deleteItemId).ExecuteDelete();
             }
 
@@ -62,8 +59,7 @@ namespace Plus.Communication.Packets.Incoming.Catalog
 
             //Create the pet here.
             Pet pet = PetUtility.CreatePet(session.GetHabbo().Id, petName, 26, "30", "ffffff");
-            if (pet == null)
-            {
+            if (pet == null) {
                 session.SendNotification("Oops, an error occoured. Please report this!");
                 return;
             }
@@ -76,8 +72,7 @@ namespace Plus.Communication.Packets.Incoming.Catalog
             //Update the pets gnome clothing.
             uint petId = (uint)pet.PetId;
             string gnomeClothing = pet.GnomeClothing;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.BotsPetdata.Where(p => p.Id == petId).ExecuteUpdate(s => s.SetProperty(p => p.GnomeClothing, gnomeClothing));
             }
 
@@ -85,11 +80,9 @@ namespace Plus.Communication.Packets.Incoming.Catalog
             room.GetRoomUserManager().DeployBot(new RoomBot(pet.PetId, pet.RoomId, "pet", "freeroam", pet.Name, "", pet.Look, x, y, 0, 0, 0, 0, 0, 0, ref rndSpeechList, "", 0, pet.OwnerId, false, 0, false, 0, 0), pet);
 
             //Give the food.
-            if (PlusEnvironment.GetGame().GetItemManager().GetItem(320, out ItemData petFood))
-            {
+            if (PlusEnvironment.GetGame().GetItemManager().GetItem(320, out ItemData petFood)) {
                 Item food = ItemFactory.CreateSingleItemNullable(petFood, session.GetHabbo(), "", "");
-                if (food != null)
-                {
+                if (food != null) {
                     session.GetHabbo().GetInventoryComponent().TryAddItem(food);
                     session.SendPacket(new FurniListNotificationComposer(food.Id, 1));
                 }

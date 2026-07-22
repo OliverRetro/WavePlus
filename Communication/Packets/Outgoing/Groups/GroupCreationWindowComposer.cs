@@ -19,8 +19,7 @@ namespace Plus.Communication.Packets.Outgoing.Groups
             packet.WriteInteger(Convert.ToInt32(PlusEnvironment.GetSettingsManager().TryGetValue("catalog.group.purchase.cost"))); //Price
 
             packet.WriteInteger(Rooms.Count); //Room count that the user has.
-            foreach (RoomData room in Rooms)
-            {
+            foreach (RoomData room in Rooms) {
                 packet.WriteInteger(room.Id); //Room Id
                 packet.WriteString(room.Name); //Room Name
                 packet.WriteBoolean(false); //What?

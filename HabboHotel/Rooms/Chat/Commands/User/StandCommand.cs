@@ -22,7 +22,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                 user.Z += 0.35;
                 user.IsSitting = false;
                 user.UpdateNeeded = true;
-            } else if (user.IsLying && !session.GetHabbo().GetRpStats().IsDead) {
+            }
+            else if (user.IsLying && !session.GetHabbo().GetRpStats().IsDead) {
                 user.Statusses.Remove("lay");
                 user.Z += 0.35;
                 user.IsLying = false;

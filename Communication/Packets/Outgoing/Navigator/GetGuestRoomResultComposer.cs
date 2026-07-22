@@ -37,13 +37,11 @@ namespace Plus.Communication.Packets.Outgoing.Navigator
             packet.WriteInteger(Data.Category);
 
             packet.WriteInteger(Data.Tags.Count);
-            foreach (string tag in Data.Tags)
-            {
+            foreach (string tag in Data.Tags) {
                 packet.WriteString(tag);
             }
 
-            if (Data.Group != null && Data.Promotion != null)
-            {
+            if (Data.Group != null && Data.Promotion != null) {
                 packet.WriteInteger(62);
 
                 packet.WriteInteger(Data.Group == null ? 0 : Data.Group.Id);
@@ -54,25 +52,21 @@ namespace Plus.Communication.Packets.Outgoing.Navigator
                 packet.WriteString(Data.Promotion != null ? Data.Promotion.Description : "");
                 packet.WriteInteger(Data.Promotion != null ? Data.Promotion.MinutesLeft : 0);
             }
-            else if (Data.Group != null && Data.Promotion == null)
-            {
+            else if (Data.Group != null && Data.Promotion == null) {
                 packet.WriteInteger(58);
                 packet.WriteInteger(Data.Group == null ? 0 : Data.Group.Id);
                 packet.WriteString(Data.Group == null ? "" : Data.Group.Name);
                 packet.WriteString(Data.Group == null ? "" : Data.Group.Badge);
             }
-            else if (Data.Group == null && Data.Promotion != null)
-            {
+            else if (Data.Group == null && Data.Promotion != null) {
                 packet.WriteInteger(60);
                 packet.WriteString(Data.Promotion != null ? Data.Promotion.Name : "");
                 packet.WriteString(Data.Promotion != null ? Data.Promotion.Description : "");
                 packet.WriteInteger(Data.Promotion != null ? Data.Promotion.MinutesLeft : 0);
             }
-            else
-            {
+            else {
                 packet.WriteInteger(56);
             }
-
 
             packet.WriteBoolean(CheckEntry);
             packet.WriteBoolean(false);

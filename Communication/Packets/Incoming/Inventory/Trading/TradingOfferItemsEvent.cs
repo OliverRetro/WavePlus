@@ -24,14 +24,12 @@ namespace Plus.Communication.Packets.Incoming.Inventory.Trading
             int amount = packet.PopInt();
             int itemId = packet.PopInt();
 
-            if (!roomUser.IsTrading)
-            {
+            if (!roomUser.IsTrading) {
                 session.SendPacket(new TradingClosedComposer(session.GetHabbo().Id));
                 return;
             }
 
-            if (!room.GetTrading().TryGetTrade(roomUser.TradeId, out Trade trade))
-            {
+            if (!room.GetTrading().TryGetTrade(roomUser.TradeId, out Trade trade)) {
                 session.SendPacket(new TradingClosedComposer(session.GetHabbo().Id));
                 return;
             }
@@ -49,8 +47,7 @@ namespace Plus.Communication.Packets.Incoming.Inventory.Trading
                 tradeUser = trade.Users[1];
 
             List<Item> allItems = session.GetHabbo().GetInventoryComponent().GetItems.Where(x => x.Data.Id == item.Data.Id).Take(amount).ToList();
-            foreach (Item I in allItems)
-            {
+            foreach (Item I in allItems) {
                 if (tradeUser.OfferedItems.ContainsKey(I.Id))
                     return;
 

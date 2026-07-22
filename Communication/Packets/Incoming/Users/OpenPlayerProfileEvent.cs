@@ -16,8 +16,7 @@ namespace Plus.Communication.Packets.Incoming.Users
             packet.PopBoolean(); //IsMe?
 
             Habbo targetData = PlusEnvironment.GetHabboById(userId);
-            if (targetData == null)
-            {
+            if (targetData == null) {
                 session.SendNotification("An error occurred while finding that user's profile.");
                 return;
             }
@@ -26,8 +25,7 @@ namespace Plus.Communication.Packets.Incoming.Users
 
             uint uid = (uint)userId;
             int friendCount;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 friendCount = db.MessengerFriendships.Count(f => f.UserOneId == uid || f.UserTwoId == uid);
             }
 

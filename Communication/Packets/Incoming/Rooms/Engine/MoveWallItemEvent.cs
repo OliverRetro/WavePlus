@@ -23,13 +23,11 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
             if (item == null)
                 return;
 
-            try
-            {
+            try {
                 string wallPos = RoomItemHandling.WallPositionCheck(":" + wallPositionData.Split(':')[1]);
                 item.WallCoord = wallPos;
             }
-            catch
-            {
+            catch {
                 return;
             }
 

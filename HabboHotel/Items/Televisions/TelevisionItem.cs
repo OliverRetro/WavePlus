@@ -15,7 +15,6 @@
 
         public string YouTubeId { get; }
 
-
         public string Title { get; }
 
         public string Description { get; }

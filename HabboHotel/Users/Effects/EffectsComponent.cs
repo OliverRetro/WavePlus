@@ -25,17 +25,14 @@ namespace Plus.HabboHotel.Users.Effects
                 return false;
 
             uint uid = (uint)habbo.Id;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 var effects = db.UserEffects
                     .Where(e => e.UserId == uid)
                     .Select(e => new { e.Id, e.UserId, e.EffectId, e.TotalDuration, e.IsActivated, e.ActivatedStamp, e.Quantity })
                     .ToList();
 
-                foreach (var row in effects)
-                {
-                    if (_effects.TryAdd(row.Id, new AvatarEffect(row.Id, (int)(row.UserId ?? 0), row.EffectId ?? 0, row.TotalDuration ?? 0, PlusEnvironment.EnumToBool(row.IsActivated), row.ActivatedStamp ?? 0, row.Quantity ?? 0)))
-                    {
+                foreach (var row in effects) {
+                    if (_effects.TryAdd(row.Id, new AvatarEffect(row.Id, (int)(row.UserId ?? 0), row.EffectId ?? 0, row.TotalDuration ?? 0, PlusEnvironment.EnumToBool(row.IsActivated), row.ActivatedStamp ?? 0, row.Quantity ?? 0))) {
                         //umm?
                     }
                 }
@@ -72,10 +69,8 @@ namespace Plus.HabboHotel.Users.Effects
         /// <returns></returns>
         public AvatarEffect GetEffectNullable(int spriteId, bool activatedOnly = false, bool unactivatedOnly = false)
         {
-            foreach (AvatarEffect effect in _effects.Values.ToList())
-            {
-                if (!effect.HasExpired && effect.SpriteId == spriteId && (!activatedOnly || effect.Activated) && (!unactivatedOnly || !effect.Activated))
-                {
+            foreach (AvatarEffect effect in _effects.Values.ToList()) {
+                if (!effect.HasExpired && effect.SpriteId == spriteId && (!activatedOnly || effect.Activated) && (!unactivatedOnly || !effect.Activated)) {
                     return effect;
                 }
             }
@@ -89,10 +84,8 @@ namespace Plus.HabboHotel.Users.Effects
         /// <param name="habbo"></param>
         public void CheckEffectExpiry(Habbo habbo)
         {
-            foreach (AvatarEffect effect in _effects.Values.ToList())
-            {
-                if (effect.HasExpired)
-                {
+            foreach (AvatarEffect effect in _effects.Values.ToList()) {
+                if (effect.HasExpired) {
                     effect.HandleExpiration(habbo);
                 }
             }

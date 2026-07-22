@@ -38,26 +38,22 @@ namespace Plus.Communication.Packets.Incoming
             string payload = packet.PopString();
             if (IsDebugEnabled()) Console.WriteLine("[WebOverlay] <-- packet 314 received, raw payload: " + payload);
 
-            if (session?.GetHabbo() == null)
-            {
+            if (session?.GetHabbo() == null) {
                 if (IsDebugEnabled()) Console.WriteLine("[WebOverlay] aborted: session/habbo is null");
                 return;
             }
 
             payload = payload.Replace("&#47;", "/");
-            if (string.IsNullOrWhiteSpace(payload))
-            {
+            if (string.IsNullOrWhiteSpace(payload)) {
                 if (IsDebugEnabled()) Console.WriteLine("[WebOverlay] aborted: empty payload");
                 return;
             }
 
-            try
-            {
+            try {
                 using JsonDocument doc = JsonDocument.Parse(payload);
                 JsonElement root = doc.RootElement;
 
-                if (!root.TryGetProperty("header", out JsonElement headerEl))
-                {
+                if (!root.TryGetProperty("header", out JsonElement headerEl)) {
                     if (IsDebugEnabled()) Console.WriteLine("[WebOverlay] aborted: no 'header' property in payload");
                     return;
                 }
@@ -68,8 +64,7 @@ namespace Plus.Communication.Packets.Incoming
                 if (IsDebugEnabled()) Console.WriteLine("[WebOverlay] dispatching header: '" + header + "'");
                 Dispatch(header, data, session);
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 if (IsDebugEnabled()) Console.WriteLine("[WebOverlay] malformed message: " + ex.Message);
             }
         }
@@ -81,8 +76,7 @@ namespace Plus.Communication.Packets.Incoming
 
         private static void Dispatch(string header, JsonElement data, GameClient session)
         {
-            switch (header)
-            {
+            switch (header) {
                 // The overlay finished loading / handshake — push everything it needs.
                 case "sso":
                 case "js_loaded":
@@ -200,8 +194,7 @@ namespace Plus.Communication.Packets.Incoming
                     break;
 
                 // The user clicked the lock/unlock toggle on their current target.
-                case "lock_target":
-                    {
+                case "lock_target": {
                         bool locked = GetBool(data, "lock");
                         TargetLockService.SetLock(session.GetHabbo(), locked);
                         Habbo clicked = TargetLockService.GetClickedHabbo(session.GetHabbo().Id);
@@ -268,8 +261,7 @@ namespace Plus.Communication.Packets.Incoming
 
             bool value = GetBool(data, "value");
 
-            switch (key)
-            {
+            switch (key) {
                 case "clickThrough":
                     settings.ClickThrough = value;
                     habbo.ClickThrough = value;
@@ -324,16 +316,14 @@ namespace Plus.Communication.Packets.Incoming
             if (habbo?.GetRpSkills() == null)
                 return;
 
-            if (habbo.ToggleSkill(skillId))
-            {
+            if (habbo.ToggleSkill(skillId)) {
                 habbo.SaveRpSkills();
 
                 Skill skill = PlusEnvironment.GetSkillManager().GetSkillById(skillId);
                 if (skill != null)
                     session.SendWhisper($"{skill.Name} is now {(habbo.GetRpSkills().IsEquipped(skillId) ? "equipped" : "unequipped")}.", 1);
             }
-            else
-            {
+            else {
                 session.SendWhisper("Skill couldn't be toggled. Please note you need to have the skill unlocked and the limit is " +
                     UserRpSkills.MaxEquippedSkills + ".", 1);
             }
@@ -352,8 +342,7 @@ namespace Plus.Communication.Packets.Incoming
             if (habbo == null)
                 return;
 
-            if (!habbo.HasChatBubble(bubbleId))
-            {
+            if (!habbo.HasChatBubble(bubbleId)) {
                 session.SendWhisper("You do not own that chat bubble.", 1);
                 WebOverlay.SendMyItems(session);
                 return;
@@ -362,17 +351,14 @@ namespace Plus.Communication.Packets.Incoming
             // Id 0 clears any custom bubble. It has a room_chat_styles row for the overlay's
             // preview, but skip the checks anyway so a misconfigured row can never leave someone
             // stuck on a bubble with no way back to the default. Matches :bubble.
-            if (bubbleId != 0)
-            {
-                if (!PlusEnvironment.GetGame().GetChatManager().GetChatStyles().TryGetStyle(bubbleId, out ChatStyle style))
-                {
+            if (bubbleId != 0) {
+                if (!PlusEnvironment.GetGame().GetChatManager().GetChatStyles().TryGetStyle(bubbleId, out ChatStyle style)) {
                     session.SendWhisper("That chat bubble does not exist.", 1);
                     WebOverlay.SendMyItems(session);
                     return;
                 }
 
-                if (!string.IsNullOrEmpty(style.RequiredRight) && !habbo.GetPermissions().HasRight(style.RequiredRight))
-                {
+                if (!string.IsNullOrEmpty(style.RequiredRight) && !habbo.GetPermissions().HasRight(style.RequiredRight)) {
                     session.SendWhisper("You cannot use this bubble due to a rank requirement, sorry!", 1);
                     WebOverlay.SendMyItems(session);
                     return;
@@ -399,15 +385,13 @@ namespace Plus.Communication.Packets.Incoming
             Habbo habbo = session.GetHabbo();
             UserRpWeaponSkins weaponSkins = habbo?.GetRpWeaponSkins();
             UserWeaponSkin userSkin = weaponSkins?.GetSkin(userSkinId);
-            if (userSkin == null)
-            {
+            if (userSkin == null) {
                 session.SendWhisper("You do not own that skin.", 1);
                 WebOverlay.SendMyItems(session);
                 return;
             }
 
-            if (!weaponSkins.ToggleSkin(userSkinId))
-            {
+            if (!weaponSkins.ToggleSkin(userSkinId)) {
                 session.SendWhisper("That skin could not be toggled.", 1);
                 WebOverlay.SendMyItems(session);
                 return;
@@ -420,8 +404,7 @@ namespace Plus.Communication.Packets.Incoming
 
             // The shout is room-scoped; equipping from the overlay while roomless is still allowed.
             RoomUser roomUser = habbo.CurrentRoom?.GetRoomUserManager()?.GetRoomUserByHabbo(habbo.Id);
-            if (roomUser != null)
-            {
+            if (roomUser != null) {
                 habbo.CurrentRoom.SendPacket(new ShoutComposer(roomUser.VirtualId,
                     (equipped ? "*equips the " : "*unequips the ") + userSkin.SkinData.Name + " skin*",
                     0, habbo.CustomBubbleId, isRpAction: true));
@@ -496,8 +479,7 @@ namespace Plus.Communication.Packets.Incoming
 
             // Primary equipped slot (0): a primary item if one is equipped, otherwise the weapon.
             UserRpItem equippedPrimary = habbo.GetRpItems()?.GetEquippedPrimaryItem();
-            if (equippedPrimary?.ItemData != null)
-            {
+            if (equippedPrimary?.ItemData != null) {
                 bool hasBar = equippedPrimary.ItemData.MaxDurability > 0;
                 items.Add(new
                 {
@@ -513,11 +495,9 @@ namespace Plus.Communication.Packets.Incoming
                     health = hasBar ? (int)Math.Round(100.0 * equippedPrimary.EffectiveDurability / Math.Max(1, equippedPrimary.ItemData.MaxDurability)) : 100
                 });
             }
-            else
-            {
+            else {
                 UserWeapon weapon = habbo.GetRpWeapons()?.GetActiveWeapon();
-                if (weapon?.WeaponData != null && weapon.WeaponData.Id != 0)
-                {
+                if (weapon?.WeaponData != null && weapon.WeaponData.Id != 0) {
                     items.Add(new
                     {
                         id = -1000 - weapon.Id,
@@ -541,8 +521,7 @@ namespace Plus.Communication.Packets.Incoming
 
             // Secondary equipped slot (1): the equipped secondary (shield) item (durability driven).
             UserRpItem equippedShield = habbo.GetRpItems()?.GetEquippedShield();
-            if (equippedShield?.ItemData != null)
-            {
+            if (equippedShield?.ItemData != null) {
                 // A suicide vest is single-use — it has no durability, so it renders no bar.
                 bool isSuicide = equippedShield.ItemData.IsSuicideVest;
                 int maxShield = Math.Max(1, equippedShield.ItemData.MaxDurability);
@@ -566,14 +545,12 @@ namespace Plus.Communication.Packets.Incoming
 
             // Normal grid: merged + stacked items and (non-active) weapons.
             RpInventoryEntry[] view = RpInventory.BuildSlotView(habbo, 10);
-            for (int slot = 0; slot < view.Length; slot++)
-            {
+            for (int slot = 0; slot < view.Length; slot++) {
                 RpInventoryEntry entry = view[slot];
                 if (entry == null)
                     continue;
 
-                if (entry.Kind == "weapon")
-                {
+                if (entry.Kind == "weapon") {
                     UserWeapon w = entry.Weapon;
                     // Lock the resolved position so consuming items leaves a blank slot
                     // instead of reflowing the rest of the grid.
@@ -644,8 +621,7 @@ namespace Plus.Communication.Packets.Incoming
 
             UserWeapon active = habbo.GetRpWeapons()?.GetActiveWeapon();
             bool hasRealWeapon = active?.WeaponData != null && active.WeaponData.Id != 0;
-            if (hasRealWeapon && RpInventory.UsedSlots(habbo, 10) >= 10)
-            {
+            if (hasRealWeapon && RpInventory.UsedSlots(habbo, 10) >= 10) {
                 session.SendWhisper("You don't have a free inventory slot — disband something first.", 1);
                 return;
             }
@@ -663,8 +639,7 @@ namespace Plus.Communication.Packets.Incoming
                 return;
 
             UserRpItem equippedSecondary = items.GetEquippedShield();
-            if (equippedSecondary == null)
-            {
+            if (equippedSecondary == null) {
                 OpenInventory(session);
                 return;
             }
@@ -672,8 +647,7 @@ namespace Plus.Communication.Packets.Incoming
             // Unequipping (drag out / take off) NEVER detonates — a suicide vest is only triggered
             // by an explicit use (double-click), handled via UseItem. This lets it be dragged away
             // safely instead of blowing up the moment it's touched.
-            if (RpInventory.UsedSlots(habbo, 10) >= 10)
-            {
+            if (RpInventory.UsedSlots(habbo, 10) >= 10) {
                 session.SendWhisper("You don't have a free inventory slot — disband something first.", 1);
                 return;
             }
@@ -713,14 +687,12 @@ namespace Plus.Communication.Packets.Incoming
             if (items == null)
                 return;
 
-            if (items.GetEquippedPrimaryItem() == null)
-            {
+            if (items.GetEquippedPrimaryItem() == null) {
                 OpenInventory(session);
                 return;
             }
 
-            if (RpInventory.UsedSlots(habbo, 10) >= 10)
-            {
+            if (RpInventory.UsedSlots(habbo, 10) >= 10) {
                 session.SendWhisper("You don't have a free inventory slot — disband something first.", 1);
                 return;
             }
@@ -754,25 +726,20 @@ namespace Plus.Communication.Packets.Incoming
             // path and silently no-op. This is what let equipped weapons be trashed but not the
             // brand-new grid ones.
             bool isWeapon = GetString(data, "kind") == "weapon";
-            if (isWeapon && TryGetInt(data, "userWeaponId", out int weaponId))
-            {
+            if (isWeapon && TryGetInt(data, "userWeaponId", out int weaponId)) {
                 habbo.GetRpWeapons()?.RemoveWeapon(weaponId);
             }
             // Prefer an explicit list of ids (a stack); fall back to a single id.
-            else if (data.ValueKind == JsonValueKind.Object && data.TryGetProperty("ids", out JsonElement idsEl) && idsEl.ValueKind == JsonValueKind.Array)
-            {
-                foreach (JsonElement e in idsEl.EnumerateArray())
-                {
-                    if (e.TryGetInt32(out int iid))
-                    {
+            else if (data.ValueKind == JsonValueKind.Object && data.TryGetProperty("ids", out JsonElement idsEl) && idsEl.ValueKind == JsonValueKind.Array) {
+                foreach (JsonElement e in idsEl.EnumerateArray()) {
+                    if (e.TryGetInt32(out int iid)) {
                         UserRpItem it = items.GetItem(iid);
                         if (it != null)
                             items.Remove(it);
                     }
                 }
             }
-            else if (TryGetInt(data, "id", out int id))
-            {
+            else if (TryGetInt(data, "id", out int id)) {
                 UserRpItem it = items.GetItem(id);
                 if (it != null)
                     items.Remove(it);
@@ -781,11 +748,9 @@ namespace Plus.Communication.Packets.Incoming
             }
 
             // Destroying the equipped shield must also drop the live shield stat.
-            if (equippedShieldBefore != null && items.GetItem(equippedShieldBefore.Id) == null)
-            {
+            if (equippedShieldBefore != null && items.GetItem(equippedShieldBefore.Id) == null) {
                 UserRpStats stats = habbo.GetRpStats();
-                if (stats != null)
-                {
+                if (stats != null) {
                     stats.Shield = 0;
                     habbo.TrySendUserStatsUpdate(true);
                 }
@@ -824,18 +789,15 @@ namespace Plus.Communication.Packets.Incoming
                 !data.TryGetProperty("slots", out JsonElement slots) || slots.ValueKind != JsonValueKind.Array)
                 return;
 
-            foreach (JsonElement entry in slots.EnumerateArray())
-            {
+            foreach (JsonElement entry in slots.EnumerateArray()) {
                 if (entry.ValueKind != JsonValueKind.Object || !TryGetInt(entry, "slot", out int slot))
                     continue;
 
-                if (GetString(entry, "kind") == "weapon")
-                {
+                if (GetString(entry, "kind") == "weapon") {
                     if (weapons != null && TryGetInt(entry, "userWeaponId", out int uwid))
                         weapons.SetSlot(uwid, slot);
                 }
-                else if (TryGetInt(entry, "id", out int id) && id > 0)
-                {
+                else if (TryGetInt(entry, "id", out int id) && id > 0) {
                     items.SetSlot(id, slot);
                 }
             }
@@ -866,18 +828,15 @@ namespace Plus.Communication.Packets.Incoming
             // locked, otherwise the locked target. A bare command (":hit") auto-fills that
             // target as its argument; a command using the placeholder (":hit x") has the
             // placeholder swapped for it. Any other explicit argument is left untouched.
-            if (text.StartsWith(":", StringComparison.CurrentCulture))
-            {
+            if (text.StartsWith(":", StringComparison.CurrentCulture)) {
                 Habbo target = TargetLockService.GetTarget(habbo);
                 int space = text.IndexOf(' ');
 
-                if (space < 0)
-                {
+                if (space < 0) {
                     if (target != null)
                         text += " " + target.Username;
                 }
-                else
-                {
+                else {
                     string command = text.Substring(0, space);
                     string argument = text.Substring(space + 1).Trim();
 
@@ -912,8 +871,7 @@ namespace Plus.Communication.Packets.Incoming
 
             string name = GetString(data, "name");
             Dictionary<string, string> sets = new();
-            if (data.ValueKind == JsonValueKind.Object && data.TryGetProperty("sets", out JsonElement setsEl) && setsEl.ValueKind == JsonValueKind.Object)
-            {
+            if (data.ValueKind == JsonValueKind.Object && data.TryGetProperty("sets", out JsonElement setsEl) && setsEl.ValueKind == JsonValueKind.Object) {
                 foreach (JsonProperty prop in setsEl.EnumerateObject())
                     sets[prop.Name] = prop.Value.GetString() ?? "";
             }

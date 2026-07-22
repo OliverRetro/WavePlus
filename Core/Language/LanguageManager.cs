@@ -21,11 +21,9 @@ namespace Plus.Core.Language
             if (_values.Count > 0)
                 _values.Clear();
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 var rows = db.ServerLocales.Select(l => new { l.Key, l.Value }).ToList();
-                foreach (var row in rows)
-                {
+                foreach (var row in rows) {
                     _values.Add(row.Key, row.Value);
                 }
             }

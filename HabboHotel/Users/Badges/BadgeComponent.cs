@@ -20,8 +20,7 @@ namespace Plus.HabboHotel.Users.Badges
             _player = player;
             _badges = new Dictionary<string, Badge>();
 
-            foreach (Badge badge in data.Badges)
-            {
+            foreach (Badge badge in data.Badges) {
                 if (!PlusEnvironment.GetGame().GetBadgeManager().TryGetBadge(badge.Code, out BadgeDefinition badgeDefinition) ||
                     badgeDefinition.RequiredRight.Length > 0 && !player.GetPermissions().HasRight(badgeDefinition.RequiredRight))
                     continue;
@@ -39,10 +38,8 @@ namespace Plus.HabboHotel.Users.Badges
             {
                 int i = 0;
 
-                foreach (Badge badge in _badges.Values)
-                {
-                    if (badge.Slot <= 0)
-                    {
+                foreach (Badge badge in _badges.Values) {
+                    if (badge.Slot <= 0) {
                         continue;
                     }
 
@@ -81,8 +78,7 @@ namespace Plus.HabboHotel.Users.Badges
             if (!PlusEnvironment.GetGame().GetBadgeManager().TryGetBadge(code.ToUpper(), out BadgeDefinition badge) || badge.RequiredRight.Length > 0 && !session.GetHabbo().GetPermissions().HasRight(badge.RequiredRight))
                 return;
 
-            if (inDatabase)
-            {
+            if (inDatabase) {
                 using (WavePlusContext db = PlusEnvironment.GetDbContext())
                     db.UserBadges.Upsert(new UserBadgeEntity
                     {
@@ -94,8 +90,7 @@ namespace Plus.HabboHotel.Users.Badges
 
             _badges.Add(code, new Badge(code, 0));
 
-            if (session != null)
-            {
+            if (session != null) {
                 session.SendPacket(new BadgesComposer(session.GetHabbo().GetBadgeComponent().GetBadges()));
                 session.SendPacket(new FurniListNotificationComposer(1, 4));
             }
@@ -103,16 +98,14 @@ namespace Plus.HabboHotel.Users.Badges
 
         public void ResetSlots()
         {
-            foreach (Badge badge in _badges.Values)
-            {
+            foreach (Badge badge in _badges.Values) {
                 badge.Slot = 0;
             }
         }
 
         public void RemoveBadge(string badge)
         {
-            if (!HasBadge(badge))
-            {
+            if (!HasBadge(badge)) {
                 return;
             }
 

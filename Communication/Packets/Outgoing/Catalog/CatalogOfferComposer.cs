@@ -21,13 +21,11 @@ namespace Plus.Communication.Packets.Outgoing.Catalog
             packet.WriteBoolean(false); //IsRentable
             packet.WriteInteger(Item.CostCredits);
 
-            if (Item.CostDiamonds > 0)
-            {
+            if (Item.CostDiamonds > 0) {
                 packet.WriteInteger(Item.CostDiamonds);
                 packet.WriteInteger(5); // Diamonds
             }
-            else
-            {
+            else {
                 packet.WriteInteger(Item.CostPixels);
                 packet.WriteInteger(0); // Type of PixelCost
             }
@@ -35,8 +33,7 @@ namespace Plus.Communication.Packets.Outgoing.Catalog
             packet.WriteBoolean(ItemUtility.CanGiftItem(Item));
             packet.WriteInteger(string.IsNullOrEmpty(Item.Badge) ? 1 : 2); //Count 1 item if there is no badge, otherwise count as 2.
 
-            if (!string.IsNullOrEmpty(Item.Badge))
-            {
+            if (!string.IsNullOrEmpty(Item.Badge)) {
                 packet.WriteString("b");
                 packet.WriteString(Item.Badge);
             }
@@ -44,8 +41,7 @@ namespace Plus.Communication.Packets.Outgoing.Catalog
             packet.WriteString(Item.Data.Type.ToString());
             if (Item.Data.Type.ToString().ToLower() == "b")
                 packet.WriteString(Item.Data.ItemName); //Badge name.
-            else
-            {
+            else {
                 packet.WriteInteger(Item.Data.SpriteId);
                 if (Item.Data.InteractionType == InteractionType.Wallpaper || Item.Data.InteractionType == InteractionType.Floor || Item.Data.InteractionType == InteractionType.Landscape)
                     packet.WriteString(Item.Name.Split('_')[2]);
@@ -62,8 +58,7 @@ namespace Plus.Communication.Packets.Outgoing.Catalog
 
                 packet.WriteInteger(Item.Amount);
                 packet.WriteBoolean(Item.IsLimited); // IsLimited
-                if (Item.IsLimited)
-                {
+                if (Item.IsLimited) {
                     packet.WriteInteger(Item.LimitedEditionStack);
                     packet.WriteInteger(Item.LimitedEditionStack - Item.LimitedEditionSells);
                 }

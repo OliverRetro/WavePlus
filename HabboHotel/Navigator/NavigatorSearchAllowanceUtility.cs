@@ -4,8 +4,7 @@
     {
         public static NavigatorSearchAllowance GetSearchAllowanceByString(string type)
         {
-            switch (type.ToUpper())
-            {
+            switch (type.ToUpper()) {
                 default:
                 case "NOTHING":
                     return NavigatorSearchAllowance.Nothing;
@@ -18,8 +17,7 @@
 
         public static int GetIntegerValue(NavigatorSearchAllowance allowance)
         {
-            switch (allowance)
-            {
+            switch (allowance) {
                 default:
                 case NavigatorSearchAllowance.Nothing:
                     return 0;

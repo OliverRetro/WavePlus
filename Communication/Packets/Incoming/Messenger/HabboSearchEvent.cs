@@ -22,8 +22,7 @@ namespace Plus.Communication.Packets.Incoming.Messenger
             List<SearchResult> othersUsers = new();
 
             List<SearchResult> results = SearchResultFactory.GetSearchResult(query);
-            foreach (SearchResult result in results.ToList())
-            {
+            foreach (SearchResult result in results.ToList()) {
                 if (session.GetHabbo().GetMessenger().FriendshipExists(result.UserId))
                     friends.Add(result);
                 else

@@ -24,8 +24,7 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Engine
             packet.WriteString(item.Id.ToString());
             packet.WriteInteger(item.GetBaseItem().SpriteId);
             packet.WriteString(item.WallCoord);
-            switch (item.GetBaseItem().InteractionType)
-            {
+            switch (item.GetBaseItem().InteractionType) {
                 case InteractionType.PostIt:
                     packet.WriteString(item.ExtraData.Split(' ')[0]);
                     break;

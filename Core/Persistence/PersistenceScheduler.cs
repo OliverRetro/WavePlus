@@ -53,12 +53,10 @@ namespace Plus.Core.Persistence
             if (!Monitor.TryEnter(_userLock))
                 return;
 
-            try
-            {
+            try {
                 RunAll(_userSavers, "user");
             }
-            finally
-            {
+            finally {
                 Monitor.Exit(_userLock);
             }
         }
@@ -68,12 +66,10 @@ namespace Plus.Core.Persistence
             if (!Monitor.TryEnter(_worldLock))
                 return;
 
-            try
-            {
+            try {
                 RunAll(_worldSavers, "world");
             }
-            finally
-            {
+            finally {
                 Monitor.Exit(_worldLock);
             }
         }
@@ -83,26 +79,21 @@ namespace Plus.Core.Persistence
             if (!Monitor.TryEnter(_mirrorLock))
                 return;
 
-            try
-            {
+            try {
                 RunAll(_mirrors, "mirror");
             }
-            finally
-            {
+            finally {
                 Monitor.Exit(_mirrorLock);
             }
         }
 
         private static void RunAll(List<(string Name, Action Save)> savers, string label)
         {
-            foreach ((string name, Action save) in savers)
-            {
-                try
-                {
+            foreach ((string name, Action save) in savers) {
+                try {
                     save();
                 }
-                catch (Exception ex)
-                {
+                catch (Exception ex) {
                     // Include the inner exception: provider wrappers (e.g. the MySQL provider's
                     // "configure your entity type accordingly") hide the real cause otherwise.
                     string detail = ex.InnerException != null ? $"{ex.Message} -> {ex.InnerException.Message}" : ex.Message;

@@ -24,8 +24,7 @@ namespace Plus.Communication.Packets.Outgoing.Moderation
             packet.WriteString(Habbo.Username);
 
             packet.WriteInteger(ChatLogs.Count); // Room Visits Count
-            foreach (KeyValuePair<RoomData, List<ChatLogEntry>> chatlog in ChatLogs)
-            {
+            foreach (KeyValuePair<RoomData, List<ChatLogEntry>> chatlog in ChatLogs) {
                 packet.WriteByte(1);
                 packet.WriteShort(2); //Count
                 packet.WriteString("roomName");
@@ -36,11 +35,9 @@ namespace Plus.Communication.Packets.Outgoing.Moderation
                 packet.WriteInteger(chatlog.Key.Id);
 
                 packet.WriteShort(chatlog.Value.Count); // Chatlogs Count
-                foreach (ChatLogEntry entry in chatlog.Value)
-                {
+                foreach (ChatLogEntry entry in chatlog.Value) {
                     string username = "NOT FOUND";
-                    if (entry.PlayerNullable() != null)
-                    {
+                    if (entry.PlayerNullable() != null) {
                         username = entry.PlayerNullable().Username;
                     }
 

@@ -22,8 +22,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
             int type = packet.PopInt();
             int furniOptions = packet.PopInt();
 
-            switch (type)
-            {
+            switch (type) {
                 default:
                     group.Type = GroupType.Open;
                     break;
@@ -35,12 +34,9 @@ namespace Plus.Communication.Packets.Incoming.Groups
                     break;
             }
 
-            if (group.Type != GroupType.Locked)
-            {
-                if (group.GetRequests.Count > 0)
-                {
-                    foreach (int userId in group.GetRequests.ToList())
-                    {
+            if (group.Type != GroupType.Locked) {
+                if (group.GetRequests.Count > 0) {
+                    foreach (int userId in group.GetRequests.ToList()) {
                         group.HandleRequest(userId, false);
                     }
 
@@ -54,20 +50,17 @@ namespace Plus.Communication.Packets.Incoming.Groups
             if (!PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(group.RoomId, out Room room))
                 return;
 
-            foreach (RoomUser user in room.GetRoomUserManager().GetRoomUsers().ToList())
-            {
+            foreach (RoomUser user in room.GetRoomUserManager().GetRoomUsers().ToList()) {
                 if (room.OwnerId == user.UserId || group.IsAdmin(user.UserId) || !group.IsMember(user.UserId))
                     continue;
 
-                if (furniOptions == 1)
-                {
+                if (furniOptions == 1) {
                     user.RemoveStatus("flatctrl 1");
                     user.UpdateNeeded = true;
 
                     user.GetClient().SendPacket(new YouAreControllerComposer(0));
                 }
-                else if (furniOptions == 0 && !user.Statusses.ContainsKey("flatctrl 1"))
-                {
+                else if (furniOptions == 0 && !user.Statusses.ContainsKey("flatctrl 1")) {
                     user.SetStatus("flatctrl 1");
                     user.UpdateNeeded = true;
 

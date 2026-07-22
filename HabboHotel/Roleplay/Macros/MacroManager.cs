@@ -82,8 +82,7 @@ namespace Plus.HabboHotel.Roleplay.Macros
         {
             Dictionary<int, Macro> macros = GetUserMacros(userId);
             int id;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 var entity = new Database.EF.Entities.UsersMacroEntity { UserId = userId, Name = name, Configs = "{}" };
                 db.UsersMacros.Add(entity);
                 db.SaveChanges();
@@ -138,8 +137,7 @@ namespace Plus.HabboHotel.Roleplay.Macros
         {
             Dictionary<int, Macro> macros = new();
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            foreach (var row in db.UsersMacros.Where(m => m.UserId == userId).Select(m => new { m.Id, m.Name, m.Configs }).ToList())
-            {
+            foreach (var row in db.UsersMacros.Where(m => m.UserId == userId).Select(m => new { m.Id, m.Name, m.Configs }).ToList()) {
                 Dictionary<string, string> sets = ParseConfigs(row.Configs);
                 macros[row.Id] = new Macro(row.Id, userId, row.Name, sets);
             }
@@ -152,12 +150,10 @@ namespace Plus.HabboHotel.Roleplay.Macros
             if (string.IsNullOrWhiteSpace(json))
                 return new Dictionary<string, string>();
 
-            try
-            {
+            try {
                 return JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? new Dictionary<string, string>();
             }
-            catch
-            {
+            catch {
                 return new Dictionary<string, string>();
             }
         }

@@ -24,8 +24,7 @@ namespace Plus.Communication.Packets.Outgoing.Quests
             packet.WriteInteger(UserQuests.Count);
 
             // Active ones first
-            foreach (var userQuest in UserQuests)
-            {
+            foreach (var userQuest in UserQuests) {
                 if (userQuest.Value == null)
                     continue;
 
@@ -33,8 +32,7 @@ namespace Plus.Communication.Packets.Outgoing.Quests
             }
 
             // Dead ones last
-            foreach (var userQuest in UserQuests)
-            {
+            foreach (var userQuest in UserQuests) {
                 if (userQuest.Value != null)
                     continue;
 

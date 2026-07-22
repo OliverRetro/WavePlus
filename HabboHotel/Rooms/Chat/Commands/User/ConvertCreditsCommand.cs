@@ -21,21 +21,17 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
         {
             int totalValue = 0;
 
-            try
-            {
+            try {
                 int userId = session.GetHabbo().Id;
 
                 List<uint> itemIds;
-                using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                {
+                using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                     // NOTE: legacy query also matched room_id = '' which cannot occur for a uint column; kept room_id == 0 only.
                     itemIds = db.Items.Where(i => i.UserId == userId && i.RoomId == 0).Select(i => i.Id).ToList();
                 }
 
-                using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                {
-                    foreach (uint id in itemIds)
-                    {
+                using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
+                    foreach (uint id in itemIds) {
                         Item item = session.GetHabbo().GetInventoryComponent().GetItem(Convert.ToInt32(id));
                         if (item == null || item.RoomId > 0 || item.Data.InteractionType != InteractionType.Exchange)
                             continue;
@@ -49,8 +45,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
 
                         totalValue += value;
 
-                        if (value > 0)
-                        {
+                        if (value > 0) {
                             session.GetHabbo().Credits += value;
                             session.SendPacket(new CreditBalanceComposer(session.GetHabbo().Credits));
                         }
@@ -62,8 +57,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                 else
                     session.SendNotification("It appears you don't have any exchangeable items!");
             }
-            catch
-            {
+            catch {
                 session.SendNotification("Oops, an error occoured whilst converting your credits!");
             }
         }

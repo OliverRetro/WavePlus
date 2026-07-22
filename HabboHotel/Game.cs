@@ -164,8 +164,7 @@ namespace Plus.HabboHotel
 
         private void GameCycle()
         {
-            while (_cycleActive)
-            {
+            while (_cycleActive) {
                 _cycleEnded = false;
 
                 long nowMs = PlusEnvironment.Now();
@@ -174,32 +173,27 @@ namespace Plus.HabboHotel
                 PlusEnvironment.GetGame().GetClientManager().OnCycle();
                 PlusEnvironment.GetGame().GetGroupManager().OnCycle();
 
-                if (nowMs >= _nextHospitalCycleMs)
-                {
+                if (nowMs >= _nextHospitalCycleMs) {
                     _nextHospitalCycleMs = nowMs + HospitalCycleIntervalMs;
                     PlusEnvironment.GetHospitalManager().OnCycle();
                 }
 
-                if (nowMs >= _nextJailCycleMs)
-                {
+                if (nowMs >= _nextJailCycleMs) {
                     _nextJailCycleMs = nowMs + JailCycleIntervalMs;
                     PlusEnvironment.GetJailManager().OnCycle();
                 }
 
-                if (nowMs >= _nextPoliceCycleMs)
-                {
+                if (nowMs >= _nextPoliceCycleMs) {
                     _nextPoliceCycleMs = nowMs + PoliceCycleIntervalMs;
                     PlusEnvironment.GetPoliceManager()?.OnCycle();
                 }
 
-                if (nowMs >= _nextTrashCycleMs)
-                {
+                if (nowMs >= _nextTrashCycleMs) {
                     _nextTrashCycleMs = nowMs + TrashCycleIntervalMs;
                     PlusEnvironment.GetTrashSearchManager()?.OnCycle();
                 }
 
-                if (nowMs >= _nextAchievementFlushMs)
-                {
+                if (nowMs >= _nextAchievementFlushMs) {
                     _nextAchievementFlushMs = nowMs + AchievementFlushIntervalMs;
                     PlusEnvironment.GetGame().GetAchievementManager().FlushQueuedProgress();
                 }
@@ -215,8 +209,7 @@ namespace Plus.HabboHotel
         {
             _cycleActive = false;
 
-            while (!_cycleEnded)
-            {
+            while (!_cycleEnded) {
                 Thread.Sleep(CycleSleepTime);
             }
         }

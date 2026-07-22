@@ -13,17 +13,14 @@ namespace Plus.Core
             if (string.IsNullOrEmpty(inputData))
                 return;
 
-            try
-            {
+            try {
                 string[] parameters = inputData.Split(' ');
 
-                switch (parameters[0].ToLower())
-                {
+                switch (parameters[0].ToLower()) {
                     #region stop
 
                     case "stop":
-                    case "shutdown":
-                        {
+                    case "shutdown": {
                             Log.Warn("The server is saving users furniture, rooms, etc. WAIT FOR THE SERVER TO CLOSE, DO NOT EXIT THE PROCESS IN TASK MANAGER!!");
                             PlusEnvironment.PerformShutDown();
                             break;
@@ -33,8 +30,7 @@ namespace Plus.Core
 
                     #region alert
 
-                    case "alert":
-                        {
+                    case "alert": {
                             string notice = inputData.Substring(6);
 
                             PlusEnvironment.GetGame().GetClientManager().SendPacket(new BroadcastMessageAlertComposer(PlusEnvironment.GetLanguageManager().TryGetValue("server.console.alert") + "\n\n" + notice));
@@ -45,15 +41,13 @@ namespace Plus.Core
 
                     #endregion
 
-                    default:
-                        {
+                    default: {
                             Log.Error(parameters[0].ToLower() + " is an unknown or unsupported command. Type help for more information");
                             break;
                         }
                 }
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 Log.Error("Error in command [" + inputData + "]: " + e);
             }
         }

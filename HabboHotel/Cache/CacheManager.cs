@@ -38,21 +38,18 @@ namespace Plus.HabboHotel.Cache
                 return user;
 
             GameClient client = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(id);
-            if (client?.GetHabbo() != null)
-            {
+            if (client?.GetHabbo() != null) {
                 user = new UserCache(id, client.GetHabbo().Username, client.GetHabbo().Motto, client.GetHabbo().Look);
                 _usersCached[id] = user;
                 return user;
             }
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 var dRow = db.Users.Where(u => u.Id == id)
                     .Select(u => new { u.Username, u.Motto, u.Look })
                     .FirstOrDefault();
 
-                if (dRow != null)
-                {
+                if (dRow != null) {
                     user = new UserCache(id, dRow.Username, dRow.Motto, dRow.Look);
                     _usersCached[id] = user;
                 }
@@ -72,17 +69,14 @@ namespace Plus.HabboHotel.Cache
             var result = new List<UserCache>();
             var missing = new List<int>();
 
-            foreach (int id in ids.Distinct())
-            {
-                if (TryGetUser(id, out UserCache cached) && !string.IsNullOrEmpty(cached.Look) && !string.IsNullOrEmpty(cached.Username))
-                {
+            foreach (int id in ids.Distinct()) {
+                if (TryGetUser(id, out UserCache cached) && !string.IsNullOrEmpty(cached.Look) && !string.IsNullOrEmpty(cached.Username)) {
                     result.Add(cached);
                     continue;
                 }
 
                 GameClient client = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(id);
-                if (client?.GetHabbo() != null)
-                {
+                if (client?.GetHabbo() != null) {
                     UserCache user = new UserCache(id, client.GetHabbo().Username, client.GetHabbo().Motto, client.GetHabbo().Look);
                     _usersCached[id] = user;
                     result.Add(user);
@@ -92,15 +86,13 @@ namespace Plus.HabboHotel.Cache
                 missing.Add(id);
             }
 
-            if (missing.Count > 0)
-            {
+            if (missing.Count > 0) {
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
                 var rows = db.Users.Where(u => missing.Contains(u.Id))
                     .Select(u => new { u.Id, u.Username, u.Motto, u.Look })
                     .ToList();
 
-                foreach (var row in rows)
-                {
+                foreach (var row in rows) {
                     UserCache user = new UserCache(row.Id, row.Username, row.Motto, row.Look);
                     _usersCached[row.Id] = user;
                     result.Add(user);

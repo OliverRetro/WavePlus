@@ -16,14 +16,11 @@ namespace Plus.HabboHotel.Rooms
             string username = db.Users.Where(u => u.Id == ownerId).Select(u => u.Username).FirstOrDefault();
             List<Database.EF.Entities.RoomEntity> rooms = db.Rooms.Where(r => r.Owner == ownerStr).OrderBy(r => r.Caption).ToList();
 
-            foreach (Database.EF.Entities.RoomEntity r in rooms)
-            {
-                if (PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(r.Id, out Room room))
-                {
+            foreach (Database.EF.Entities.RoomEntity r in rooms) {
+                if (PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(r.Id, out Room room)) {
                     data.Add(room);
                 }
-                else
-                {
+                else {
                     if (!PlusEnvironment.GetGame().GetRoomManager().TryGetModel(r.ModelName, out RoomModel model))
                         continue;
 
@@ -36,8 +33,7 @@ namespace Plus.HabboHotel.Rooms
 
         public static bool TryGetData(int roomId, out RoomData data)
         {
-            if (PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(roomId, out Room room))
-            {
+            if (PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(roomId, out Room room)) {
                 data = room;
                 return true;
             }
@@ -45,10 +41,8 @@ namespace Plus.HabboHotel.Rooms
             using WavePlusContext db = PlusEnvironment.GetDbContext();
             Database.EF.Entities.RoomEntity r = db.Rooms.FirstOrDefault(x => x.Id == roomId);
 
-            if (r != null)
-            {
-                if (!PlusEnvironment.GetGame().GetRoomManager().TryGetModel(r.ModelName, out RoomModel model))
-                {
+            if (r != null) {
+                if (!PlusEnvironment.GetGame().GetRoomManager().TryGetModel(r.ModelName, out RoomModel model)) {
                     data = null;
                     return false;
                 }

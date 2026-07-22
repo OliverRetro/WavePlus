@@ -18,8 +18,7 @@ namespace Plus.Communication.Packets.Incoming.Quests
             uint questUserId = (uint)session.GetHabbo().Id;
             uint questId = (uint)quest.Id;
             int statsId = session.GetHabbo().Id;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.UserQuests.Where(q => q.UserId == questUserId && q.QuestId == questId).ExecuteDelete();
                 db.UserStats.Where(s => s.Id == statsId).ExecuteUpdate(x => x.SetProperty(s => s.QuestId, 0u));
             }

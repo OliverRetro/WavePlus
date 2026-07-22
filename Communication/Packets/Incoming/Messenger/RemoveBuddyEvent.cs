@@ -17,14 +17,11 @@ namespace Plus.Communication.Packets.Incoming.Messenger
                 amount = 100;
             else if (amount < 0)
                 return;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
-                for (int i = 0; i < amount; i++)
-                {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
+                for (int i = 0; i < amount; i++) {
                     int id = packet.PopInt();
 
-                    if (session.GetHabbo().Relationships.Count(x => x.Value.UserId == id) > 0)
-                    {
+                    if (session.GetHabbo().Relationships.Count(x => x.Value.UserId == id) > 0) {
                         int selfId = session.GetHabbo().Id;
                         int targetId = id;
                         // NOTE: preserves legacy precedence: (user_id=self AND target=id) OR (target=self AND user_id=id)
@@ -35,8 +32,7 @@ namespace Plus.Communication.Packets.Incoming.Messenger
                         session.GetHabbo().Relationships.Remove(id);
 
                     GameClient target = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(id);
-                    if (target != null)
-                    {
+                    if (target != null) {
                         if (target.GetHabbo().Relationships.ContainsKey(session.GetHabbo().Id))
                             target.GetHabbo().Relationships.Remove(session.GetHabbo().Id);
                     }

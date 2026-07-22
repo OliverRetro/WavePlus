@@ -20,8 +20,7 @@ namespace Plus.HabboHotel.Users.UserData
             using WavePlusContext db = PlusEnvironment.GetDbContext();
 
             UserEntity dUserInfo = db.Users.FirstOrDefault(u => u.AuthTicket == sessionTicket);
-            if (dUserInfo == null)
-            {
+            if (dUserInfo == null) {
                 errorCode = 1;
                 return null;
             }
@@ -30,8 +29,7 @@ namespace Plus.HabboHotel.Users.UserData
             uint uid = (uint)userId;
 
             GameClients.GameClient existing = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(userId);
-            if (existing != null)
-            {
+            if (existing != null) {
                 // A login is colliding with an existing session for this user. This is almost always
                 // a reconnect (page reload / socket re-open), so we take over rather than reject —
                 // otherwise a reload would kick the user out entirely.
@@ -54,8 +52,7 @@ namespace Plus.HabboHotel.Users.UserData
 
             ConcurrentDictionary<string, UserAchievement> achievements = new();
             foreach (var a in db.UserAchievements.Where(a => a.Userid == uid)
-                         .Select(a => new { a.Group, a.Level, a.Progress }).ToList())
-            {
+                         .Select(a => new { a.Group, a.Level, a.Progress }).ToList()) {
                 achievements.TryAdd(a.Group, new UserAchievement(a.Group, a.Level, a.Progress));
             }
 
@@ -73,8 +70,7 @@ namespace Plus.HabboHotel.Users.UserData
 
             Dictionary<int, MessengerBuddy> friends = new();
             foreach (var fr in db.Users.Where(u => friendIds.Contains(u.Id))
-                         .Select(u => new { u.Id, u.Username, u.Look, u.Motto, u.LastOnline, u.HideOnline, u.HideInroom }).ToList())
-            {
+                         .Select(u => new { u.Id, u.Username, u.Look, u.Motto, u.LastOnline, u.HideOnline, u.HideInroom }).ToList()) {
                 if (fr.Id == userId)
                     continue;
 
@@ -87,18 +83,15 @@ namespace Plus.HabboHotel.Users.UserData
             foreach (var rr in (from r in db.MessengerRequests
                                 where r.ToId == uid
                                 join u in db.Users on (int)r.FromId equals u.Id
-                                select new { from_id = (int)r.FromId, to_id = (int)r.ToId, u.Username }).ToList())
-            {
+                                select new { from_id = (int)r.FromId, to_id = (int)r.ToId, u.Username }).ToList()) {
                 int receiverId = rr.from_id;
                 int senderId = rr.to_id;
 
-                if (receiverId != userId)
-                {
+                if (receiverId != userId) {
                     if (!requests.ContainsKey(receiverId))
                         requests.Add(receiverId, new MessengerRequest(userId, receiverId, rr.Username));
                 }
-                else
-                {
+                else {
                     if (!requests.ContainsKey(senderId))
                         requests.Add(senderId, new MessengerRequest(userId, senderId, rr.Username));
                 }
@@ -106,14 +99,12 @@ namespace Plus.HabboHotel.Users.UserData
 
             Dictionary<int, int> quests = new();
             foreach (var q in db.UserQuests.Where(q => q.UserId == uid)
-                         .Select(q => new { q.QuestId, q.Progress }).ToList())
-            {
+                         .Select(q => new { q.QuestId, q.Progress }).ToList()) {
                 quests[(int)q.QuestId] = q.Progress ?? 0;
             }
 
             UserInfoEntity userInfo = db.UserInfos.FirstOrDefault(i => i.UserId == userId);
-            if (userInfo == null)
-            {
+            if (userInfo == null) {
                 userInfo = new UserInfoEntity { UserId = userId };
                 db.UserInfos.Add(userInfo);
                 db.SaveChanges();
@@ -121,8 +112,7 @@ namespace Plus.HabboHotel.Users.UserData
 
             Dictionary<int, Relationship> relationships = new();
             foreach (var rel in db.UserRelationships.Where(r => r.UserId == userId)
-                         .Select(r => new { r.Id, r.Target, r.Type }).ToList())
-            {
+                         .Select(r => new { r.Id, r.Target, r.Type }).ToList()) {
                 if (friends.ContainsKey(rel.Target))
                     relationships.Add(rel.Target, new Relationship(rel.Id, rel.Target, Convert.ToInt32(rel.Type)));
             }
@@ -149,8 +139,7 @@ namespace Plus.HabboHotel.Users.UserData
                 return null;
 
             UserInfoEntity userInfo = db.UserInfos.FirstOrDefault(i => i.UserId == userId);
-            if (userInfo == null)
-            {
+            if (userInfo == null) {
                 userInfo = new UserInfoEntity { UserId = userId };
                 db.UserInfos.Add(userInfo);
                 db.SaveChanges();
@@ -165,8 +154,7 @@ namespace Plus.HabboHotel.Users.UserData
 
             Dictionary<int, Relationship> relationships = new();
             foreach (var rel in db.UserRelationships.Where(r => r.UserId == userId)
-                         .Select(r => new { r.Id, r.Target, r.Type }).ToList())
-            {
+                         .Select(r => new { r.Id, r.Target, r.Type }).ToList()) {
                 if (!relationships.ContainsKey(rel.Id))
                     relationships.Add(rel.Target, new Relationship(rel.Id, rel.Target, Convert.ToInt32(rel.Type)));
             }

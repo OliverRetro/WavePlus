@@ -25,41 +25,35 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
                 .Select(o => new { o.State, o.Timestamp, o.TotalPrice, o.ExtraData, o.ItemId, o.FurniId, o.UserId, o.LimitedNumber, o.LimitedStack })
                 .FirstOrDefault();
 
-            if (row == null)
-            {
+            if (row == null) {
                 ReloadOffers(session);
                 return;
             }
 
-            if (row.State == "2")
-            {
+            if (row.State == "2") {
                 session.SendNotification("Oops, this offer is no longer available.");
                 ReloadOffers(session);
                 return;
             }
 
-            if (PlusEnvironment.GetGame().GetCatalog().GetMarketplace().FormatTimestamp() > row.Timestamp)
-            {
+            if (PlusEnvironment.GetGame().GetCatalog().GetMarketplace().FormatTimestamp() > row.Timestamp) {
                 session.SendNotification("Oops, this offer has expired..");
                 ReloadOffers(session);
                 return;
             }
 
-            if (!PlusEnvironment.GetGame().GetItemManager().GetItem((int)row.ItemId, out ItemData item))
-            {
+            if (!PlusEnvironment.GetGame().GetItemManager().GetItem((int)row.ItemId, out ItemData item)) {
                 session.SendNotification("Item isn't in the hotel anymore.");
                 ReloadOffers(session);
                 return;
             }
 
-            if (row.UserId == session.GetHabbo().Id)
-            {
+            if (row.UserId == session.GetHabbo().Id) {
                 session.SendNotification("To prevent average boosting you cannot purchase your own marketplace offers.");
                 return;
             }
 
-            if (row.TotalPrice > session.GetHabbo().Credits)
-            {
+            if (row.TotalPrice > session.GetHabbo().Credits) {
                 session.SendNotification("Oops, you do not have enough credits for this.");
                 return;
             }
@@ -67,10 +61,8 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
             session.GetHabbo().Credits -= row.TotalPrice;
             session.SendPacket(new CreditBalanceComposer(session.GetHabbo().Credits));
 
-
             HabboHotel.Items.Item giveItem = ItemFactory.CreateSingleItem(item, session.GetHabbo(), row.ExtraData, row.ExtraData, (int)row.FurniId, row.LimitedNumber, row.LimitedStack);
-            if (giveItem != null)
-            {
+            if (giveItem != null) {
                 session.GetHabbo().GetInventoryComponent().TryAddItem(giveItem);
                 session.SendPacket(new FurniListNotificationComposer(giveItem.Id, 1));
 
@@ -78,7 +70,6 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
                 session.SendPacket(new FurniListAddComposer(giveItem));
                 session.SendPacket(new FurniListUpdateComposer());
             }
-
 
             {
                 int spriteId = item.SpriteId;
@@ -91,15 +82,12 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
                     db.CatalogMarketplaceData.Where(d => d.Id == id).ExecuteUpdate(s => s
                         .SetProperty(d => d.Sold, d => d.Sold + 1)
                         .SetProperty(d => d.Avgprice, d => d.Avgprice + salePrice));
-                else
-                {
+                else {
                     db.CatalogMarketplaceData.Add(new CatalogMarketplaceDatumEntity { Sprite = spriteId, Sold = 1, Avgprice = salePrice });
                     db.SaveChanges();
                 }
 
-
-                if (PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketAverages.ContainsKey(item.SpriteId) && PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketCounts.ContainsKey(item.SpriteId))
-                {
+                if (PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketAverages.ContainsKey(item.SpriteId) && PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketCounts.ContainsKey(item.SpriteId)) {
                     int num3 = PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketCounts[item.SpriteId];
                     int num4 = (PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketAverages[item.SpriteId] += salePrice);
 
@@ -108,8 +96,7 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
                     PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketCounts.Remove(item.SpriteId);
                     PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketCounts.Add(item.SpriteId, num3 + 1);
                 }
-                else
-                {
+                else {
                     if (!PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketAverages.ContainsKey(item.SpriteId))
                         PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketAverages.Add(item.SpriteId, salePrice);
 
@@ -126,8 +113,7 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
             double minTimestamp = PlusEnvironment.GetGame().GetCatalog().GetMarketplace().FormatTimestamp();
 
             List<MarketOffer> offers;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 offers = db.CatalogMarketplaceOffers
                     .Where(o => o.State == "1" && o.Timestamp >= minTimestamp)
                     .OrderByDescending(o => o.AskingPrice)
@@ -140,10 +126,8 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
 
             PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItems.Clear();
             PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItemKeys.Clear();
-            foreach (MarketOffer offer in offers)
-            {
-                if (!PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItemKeys.Contains(offer.OfferId))
-                {
+            foreach (MarketOffer offer in offers) {
+                if (!PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItemKeys.Contains(offer.OfferId)) {
                     PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItemKeys.Add(offer.OfferId);
                     PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItems.Add(offer);
                 }
@@ -152,12 +136,9 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
             Dictionary<int, MarketOffer> dictionary = new();
             Dictionary<int, int> dictionary2 = new();
 
-            foreach (MarketOffer item in PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItems)
-            {
-                if (dictionary.ContainsKey(item.SpriteId))
-                {
-                    if (dictionary[item.SpriteId].TotalPrice > item.TotalPrice)
-                    {
+            foreach (MarketOffer item in PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketItems) {
+                if (dictionary.ContainsKey(item.SpriteId)) {
+                    if (dictionary[item.SpriteId].TotalPrice > item.TotalPrice) {
                         dictionary.Remove(item.SpriteId);
                         dictionary.Add(item.SpriteId, item);
                     }
@@ -166,8 +147,7 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
                     dictionary2.Remove(item.SpriteId);
                     dictionary2.Add(item.SpriteId, num + 1);
                 }
-                else
-                {
+                else {
                     dictionary.Add(item.SpriteId, item);
                     dictionary2.Add(item.SpriteId, 1);
                 }

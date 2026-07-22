@@ -25,18 +25,14 @@ namespace Plus.Core.Cache
                 ids = [.. db.Rooms.Where(r => r.Roomtype == "public").Select(r => r.Id)];
 
             int loaded = 0;
-            foreach (int id in ids)
-            {
-                try
-                {
-                    if (PlusEnvironment.GetGame().GetRoomManager().TryLoadRoom(id, out Room room))
-                    {
+            foreach (int id in ids) {
+                try {
+                    if (PlusEnvironment.GetGame().GetRoomManager().TryLoadRoom(id, out Room room)) {
                         Mirror(room);
                         loaded++;
                     }
                 }
-                catch (Exception ex)
-                {
+                catch (Exception ex) {
                     Log.Error($"Failed to preload public room {id}: {ex.Message}");
                 }
             }
@@ -47,8 +43,7 @@ namespace Plus.Core.Cache
         // Mirrors every loaded public room. Run by the 60-second Redis mirror.
         public static void MirrorAll()
         {
-            foreach (Room room in PlusEnvironment.GetGame().GetRoomManager().GetRooms())
-            {
+            foreach (Room room in PlusEnvironment.GetGame().GetRoomManager().GetRooms()) {
                 if (room != null && room.IsPublic)
                     Mirror(room);
             }

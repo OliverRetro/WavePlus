@@ -17,8 +17,7 @@ namespace Plus.Communication.Packets.Incoming.Moderation
             if (client == null || client.GetHabbo() == null || client.GetHabbo().CurrentRoomId < 1 || client.GetHabbo().Id == session.GetHabbo().Id)
                 return;
 
-            if (client.GetHabbo().Rank >= session.GetHabbo().Rank)
-            {
+            if (client.GetHabbo().Rank >= session.GetHabbo().Rank) {
                 session.SendNotification(PlusEnvironment.GetLanguageManager().TryGetValue("moderation.kick.disallowed"));
                 return;
             }

@@ -45,7 +45,6 @@ namespace Plus.Utilities.Enclosure
             if (p.Y < _mostDown.Y)
                 _mostDown = p;
 
-
             _pointList.Add(p);
         }
     }

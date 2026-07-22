@@ -12,8 +12,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
     {
         public void Parse(GameClient session, ClientPacket packet)
         {
-            if (!PlusEnvironment.GetGame().GetGroupManager().TryGetGroup(packet.PopInt(), out Group group))
-            {
+            if (!PlusEnvironment.GetGame().GetGroupManager().TryGetGroup(packet.PopInt(), out Group group)) {
                 session.SendNotification("Oops, we couldn't find that group!");
                 return;
             }
@@ -24,8 +23,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
                 return;
             }
 
-            if (group.MemberCount >= Convert.ToInt32(PlusEnvironment.GetSettingsManager().TryGetValue("group.delete.member.limit")) && !session.GetHabbo().GetPermissions().HasRight("group_delete_limit_override"))
-            {
+            if (group.MemberCount >= Convert.ToInt32(PlusEnvironment.GetSettingsManager().TryGetValue("group.delete.member.limit")) && !session.GetHabbo().GetPermissions().HasRight("group_delete_limit_override")) {
                 session.SendNotification("Oops, your group exceeds the maximum amount of members (" + Convert.ToInt32(PlusEnvironment.GetSettingsManager().TryGetValue("group.delete.member.limit")) + ") a group can exceed before being eligible for deletion. Seek assistance from a staff member.");
                 return;
             }
@@ -44,8 +42,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
             //Now the :S stuff.
             int groupIdInt = group.Id;
             uint groupIdUint = (uint)group.Id;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.Groups.Where(x => x.Id == groupIdUint).ExecuteDelete();
                 db.GroupMemberships.Where(x => x.GroupId == groupIdUint).ExecuteDelete();
                 db.GroupRoles.Where(x => x.GroupId == groupIdInt).ExecuteDelete();

@@ -47,7 +47,6 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
 
             //TODO: This needs finishing.
 
-
             return true;
         }
     }

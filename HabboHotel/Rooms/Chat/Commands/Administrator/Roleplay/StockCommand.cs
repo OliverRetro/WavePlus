@@ -15,8 +15,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (room == null)
-            {
+            if (room == null) {
                 session.SendWhisper("You need to be in a room to check its stock.", 1);
                 return;
             }
@@ -27,8 +26,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
                 stocks.GetRoomStock(room.Id, RoomStockManager.RoomScope);
             List<int> vendors = stocks.GetStockedFurniIds(room.Id);
 
-            if (roomStock.Count == 0 && vendors.Count == 0)
-            {
+            if (roomStock.Count == 0 && vendors.Count == 0) {
                 session.SendWhisper("This room has no stock. Add some with :addroomstock or :additemstock.", 1);
                 return;
             }
@@ -43,8 +41,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
             else
                 Append(message, roomStock);
 
-            foreach (int furniId in vendors)
-            {
+            foreach (int furniId in vendors) {
                 message.AppendLine();
                 message.AppendLine($"-- Vendor #{furniId} --");
                 Append(message, stocks.GetRoomStock(room.Id, furniId));
@@ -55,8 +52,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 
         private static void Append(StringBuilder message, List<(string StockType, int ItemId, int Amount, int Price)> stock)
         {
-            foreach ((string stockType, int itemId, int amount, int price) in stock)
-            {
+            foreach ((string stockType, int itemId, int amount, int price) in stock) {
                 StockCommandUtil.TryDescribe(stockType, itemId, out string name);
                 message.AppendLine($"{name ?? "#" + itemId} ({stockType} #{itemId}): {amount} @ {price} credits");
             }

@@ -17,8 +17,7 @@ namespace Plus.Communication.Packets.Outgoing.Marketplace
         public override void Compose(ServerPacket packet)
         {
             uint uid = (uint)UserId;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 var offers = db.CatalogMarketplaceOffers.Where(o => o.UserId == uid)
                     .Select(o => new { o.Timestamp, o.State, o.OfferId, o.SpriteId, o.TotalPrice, o.LimitedNumber, o.LimitedStack })
                     .ToList();
@@ -27,12 +26,10 @@ namespace Plus.Communication.Packets.Outgoing.Marketplace
 
                 packet.WriteInteger(i);
                 packet.WriteInteger(offers.Count);
-                foreach (var row in offers)
-                {
+                foreach (var row in offers) {
                     int num2 = Convert.ToInt32(Math.Floor((row.Timestamp + 172800.0 - PlusEnvironment.GetUnixTimestamp()) / 60.0));
                     int num3 = int.Parse(row.State);
-                    if ((num2 <= 0) && (num3 != 2))
-                    {
+                    if ((num2 <= 0) && (num3 != 2)) {
                         num3 = 3;
                         num2 = 0;
                     }

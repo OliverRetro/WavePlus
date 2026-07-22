@@ -17,11 +17,9 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Fun
             if (roomUser == null)
                 return;
 
-            if (!room.PetMorphsAllowed)
-            {
+            if (!room.PetMorphsAllowed) {
                 session.SendWhisper("The room owner has disabled the ability to use a pet morph in this room.");
-                if (session.GetHabbo().PetId > 0)
-                {
+                if (session.GetHabbo().PetId > 0) {
                     session.SendWhisper("Oops, you still have a morph, un-morphing you.");
                     //Change the users Pet Id.
                     session.GetHabbo().PetId = 0;
@@ -36,21 +34,18 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Fun
                 return;
             }
 
-            if (@params.Length == 1)
-            {
+            if (@params.Length == 1) {
                 session.SendWhisper("Oops, you forgot to choose the type of pet you'd like to turn into! Use :pet list to see the availiable morphs!");
                 return;
             }
 
-            if (@params[1].ToLower() == "list")
-            {
+            if (@params[1].ToLower() == "list") {
                 session.SendWhisper("Habbo, Dog, Cat, Terrier, Croc, Bear, Pig, Lion, Rhino, Spider, Turtle, Chick, Frog, Drag, Monkey, Horse, Bunny, Pigeon, Demon and Gnome.");
                 return;
             }
 
             int targetPetId = GetPetIdByString(@params[1]);
-            if (targetPetId == 0)
-            {
+            if (targetPetId == 0) {
                 session.SendWhisper("Oops, couldn't find a pet by that name!");
                 return;
             }
@@ -71,8 +66,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Fun
 
         private int GetPetIdByString(string pet)
         {
-            switch (pet.ToLower())
-            {
+            switch (pet.ToLower()) {
                 default:
                     return 0;
                 case "habbo":

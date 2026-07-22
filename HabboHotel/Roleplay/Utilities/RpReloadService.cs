@@ -11,8 +11,7 @@ namespace Plus.HabboHotel.Roleplay.Utilities
         /// <summary>Runs a reload for the given switch. Returns a status string, or null when unknown.</summary>
         public static string Reload(string sw)
         {
-            switch ((sw ?? string.Empty).Trim().ToLower())
-            {
+            switch ((sw ?? string.Empty).Trim().ToLower()) {
                 case "items":
                 case "rp_items":
                     PlusEnvironment.GetRpItemManager().Init();

@@ -35,8 +35,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
                 return;
 
             uint itemDbId = (uint)item.Id;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.RoomItemsToners.Where(t => t.Id == itemDbId).ExecuteUpdate(s => s
                     .SetProperty(t => t.Enabled, "1")
                     .SetProperty(t => t.Data1, int1)

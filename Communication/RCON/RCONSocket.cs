@@ -15,20 +15,17 @@ namespace Plus.Communication.Rcon
         public RconSocket(string host, int port, IEnumerable<string> allowedConnections)
         {
             _allowedConnections = new List<string>();
-            foreach (string ipAddress in allowedConnections)
-            {
+            foreach (string ipAddress in allowedConnections) {
                 _allowedConnections.Add(ipAddress);
             }
 
-            try
-            {
+            try {
                 _musSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 _musSocket.Bind(new IPEndPoint(IPAddress.Parse(host), port)); // SHould be host?
                 _musSocket.Listen(0);
                 _musSocket.BeginAccept(OnCallBack, _musSocket);
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 throw new ArgumentException("Could not set up Rcon socket:\n" + e);
             }
 
@@ -37,22 +34,18 @@ namespace Plus.Communication.Rcon
 
         private void OnCallBack(IAsyncResult iAr)
         {
-            try
-            {
+            try {
                 Socket socket = ((Socket)iAr.AsyncState).EndAccept(iAr);
 
                 string ip = socket.RemoteEndPoint.ToString().Split(':')[0];
-                if (_allowedConnections.Contains(ip))
-                {
+                if (_allowedConnections.Contains(ip)) {
                     new RconConnection(socket);
                 }
-                else
-                {
+                else {
                     socket.Close();
                 }
             }
-            catch (Exception)
-            {
+            catch (Exception) {
                 // ignored
             }
 

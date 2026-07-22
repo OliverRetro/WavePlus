@@ -8,7 +8,6 @@
         public int Index { get; set; }
         public int ColorIndex { get; set; }
 
-
         public Part(int id, SetType setType, bool colorable, int index, int colorIndex)
         {
             Id = id;

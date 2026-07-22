@@ -17,8 +17,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
             if (session?.GetHabbo() == null || room == null)
                 return;
 
-            if (@params.Length < 3)
-            {
+            if (@params.Length < 3) {
                 session.SendWhisper("Usage: :charge <username> <crime>", 1);
                 return;
             }
@@ -30,14 +29,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
             string crimeQuery = string.Join(" ", @params, 2, @params.Length - 2).Trim();
 
             RpCrime crime = PlusEnvironment.GetRpCrimeManager().ResolveCrime(crimeQuery);
-            if (crime == null)
-            {
+            if (crime == null) {
                 session.SendWhisper("There's no crime called '" + crimeQuery + "'.", 1);
                 return;
             }
 
-            if (crime.AutoCharge)
-            {
+            if (crime.AutoCharge) {
                 session.SendWhisper(crime.Name + " is charged automatically when it's committed — you can only charge crimes that go unreported.", 1);
                 return;
             }
@@ -45,8 +42,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
             int targetId = targetClient.GetHabbo().Id;
             (bool applied, int stars) = PlusEnvironment.GetRpCrimeManager().ChargeCrime(targetId, crime);
 
-            if (!applied)
-            {
+            if (!applied) {
                 session.SendWhisper(targetClient.GetHabbo().Username + " has no active " + crime.Name + " charge.", 1);
                 return;
             }

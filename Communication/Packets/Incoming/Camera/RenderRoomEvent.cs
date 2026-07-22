@@ -40,8 +40,7 @@ namespace Plus.Communication.Packets.Incoming.Camera
                 return;
 
             byte[] sanitized = PngSanitizer.Sanitize(raw, camera.MaxPhotoDimension, out int width, out int height);
-            if (sanitized == null)
-            {
+            if (sanitized == null) {
                 Log.Warn("[Camera] User " + session.GetHabbo().Id + " uploaded a malformed or malicious photo payload; rejected.");
                 return;
             }

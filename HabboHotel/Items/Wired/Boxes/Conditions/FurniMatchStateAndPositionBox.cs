@@ -41,8 +41,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Conditions
             string unknown2 = packet.PopString();
 
             int furniCount = packet.PopInt();
-            for (int i = 0; i < furniCount; i++)
-            {
+            for (int i = 0; i < furniCount; i++) {
                 Item selectedItem = Instance.GetRoomItemHandler().GetItem(packet.PopInt());
                 if (selectedItem != null)
                     SetItems.TryAdd(selectedItem.Id, selectedItem);
@@ -59,16 +58,14 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Conditions
             if (string.IsNullOrEmpty(StringData) || StringData == "0;0;0" || SetItems.Count == 0)
                 return false;
 
-            foreach (Item item in SetItems.Values.ToList())
-            {
+            foreach (Item item in SetItems.Values.ToList()) {
                 if (item == null)
                     continue;
 
                 if (!Instance.GetRoomItemHandler().GetFloor.Contains(item))
                     continue;
 
-                foreach (string I in ItemsData.Split(';'))
-                {
+                foreach (string I in ItemsData.Split(';')) {
                     if (string.IsNullOrEmpty(I))
                         continue;
 
@@ -81,38 +78,32 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Conditions
 
                     if (int.Parse(StringData.Split(';')[0]) == 1) //State
                     {
-                        try
-                        {
+                        try {
                             if (ii.ExtraData != part[4])
                                 return false;
                         }
-                        catch
-                        {
+                        catch {
                         }
                     }
 
                     if (int.Parse(StringData.Split(';')[1]) == 1) //Direction
                     {
-                        try
-                        {
+                        try {
                             if (ii.Rotation != Convert.ToInt32(part[3]))
                                 return false;
                         }
-                        catch
-                        {
+                        catch {
                         }
                     }
 
                     if (int.Parse(StringData.Split(';')[2]) == 1) //Position
                     {
-                        try
-                        {
+                        try {
                             if (ii.GetX != Convert.ToInt32(part[0]) || ii.GetY != Convert.ToInt32(part[1]) ||
                                 ii.GetZ != Convert.ToDouble(part[2]))
                                 return false;
                         }
-                        catch
-                        {
+                        catch {
                         }
                     }
                 }

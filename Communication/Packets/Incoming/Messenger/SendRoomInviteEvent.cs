@@ -9,8 +9,7 @@ namespace Plus.Communication.Packets.Incoming.Messenger
     {
         public void Parse(GameClient session, ClientPacket packet)
         {
-            if (session.GetHabbo().TimeMuted > 0)
-            {
+            if (session.GetHabbo().TimeMuted > 0) {
                 session.SendNotification("Oops, you're currently muted - you cannot send room invitations.");
                 return;
             }
@@ -20,8 +19,7 @@ namespace Plus.Communication.Packets.Incoming.Messenger
                 return; // don't send at all
 
             List<int> targets = new();
-            for (int i = 0; i < amount; i++)
-            {
+            for (int i = 0; i < amount; i++) {
                 int uid = packet.PopInt();
                 if (i < 100) // limit to 100 people, keep looping until we fulfil the request though
                 {
@@ -33,8 +31,7 @@ namespace Plus.Communication.Packets.Incoming.Messenger
             if (message.Length > 121)
                 message = message.Substring(0, 121);
 
-            foreach (int userId in targets)
-            {
+            foreach (int userId in targets) {
                 if (!session.GetHabbo().GetMessenger().FriendshipExists(userId))
                     continue;
 

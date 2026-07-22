@@ -43,11 +43,9 @@ namespace Plus.Utilities
 
             max++;
 
-            if (inst == null)
-            {
+            if (inst == null) {
                 int seed;
-                lock (globalRandom)
-                {
+                lock (globalRandom) {
                     seed = globalRandom.Next();
                 }
 

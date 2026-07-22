@@ -13,14 +13,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length < 2 || !int.TryParse(@params[1], out int targetRoomId) || targetRoomId <= 0)
-            {
+            if (@params.Length < 2 || !int.TryParse(@params[1], out int targetRoomId) || targetRoomId <= 0) {
                 session.SendWhisper("Usage: :taxi <targetroomid>");
                 return;
             }
 
-            if (session.GetHabbo().GetRpStats().Energy < 1)
-            {
+            if (session.GetHabbo().GetRpStats().Energy < 1) {
                 session.SendWhisper("You don't have enough energy!", 1);
                 return;
             }
@@ -29,20 +27,17 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
             if (roomUser == null)
                 return;
 
-            if (targetRoomId == room.Id)
-            {
+            if (targetRoomId == room.Id) {
                 session.SendWhisper("You cannot take a taxi to the room you are already in.");
                 return;
             }
 
-            if (!BotManager.IsNearTaxiPole(room, roomUser))
-            {
+            if (!BotManager.IsNearTaxiPole(room, roomUser)) {
                 session.SendWhisper("You need to be near a telephone or own one to call a taxi!");
                 return;
             }
 
-            if (!PlusEnvironment.GetGame().GetBotManager().TryCallTaxi(session, targetRoomId, out string error))
-            {
+            if (!PlusEnvironment.GetGame().GetBotManager().TryCallTaxi(session, targetRoomId, out string error)) {
                 session.SendWhisper(error);
                 return;
             }

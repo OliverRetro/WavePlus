@@ -16,8 +16,7 @@ namespace Plus.Communication.Packets.Outgoing.GameCenter
         public override void Compose(ServerPacket packet)
         {
             packet.WriteInteger(PlusEnvironment.GetGame().GetGameDataManager().GetCount()); //Game count
-            foreach (GameData game in Games)
-            {
+            foreach (GameData game in Games) {
                 packet.WriteInteger(game.Id);
                 packet.WriteString(game.Name);
                 packet.WriteString(game.ColourOne);

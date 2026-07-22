@@ -24,8 +24,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Bots
                 return;
 
             string botSpeech = "";
-            foreach (RandomSpeech speech in botUser.BotData.RandomSpeech.ToList())
-            {
+            foreach (RandomSpeech speech in botUser.BotData.RandomSpeech.ToList()) {
                 botSpeech += (speech.Message + "\n");
             }
 

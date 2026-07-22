@@ -22,14 +22,12 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Action
             if (client == null)
                 return;
 
-            if (accepted)
-            {
+            if (accepted) {
                 client.GetHabbo().RoomAuthOk = true;
                 client.SendPacket(new FlatAccessibleComposer(""));
                 room.SendPacket(new FlatAccessibleComposer(client.GetHabbo().Username), true);
             }
-            else
-            {
+            else {
                 client.SendPacket(new FlatAccessDeniedComposer(""));
                 room.SendPacket(new FlatAccessDeniedComposer(client.GetHabbo().Username), true);
             }

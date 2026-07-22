@@ -12,8 +12,7 @@
             packet.WriteBoolean(true);
             packet.WriteInteger(1);
             packet.WriteInteger(10);
-            for (int i = 3372; i < 3382;)
-            {
+            for (int i = 3372; i < 3382;) {
                 packet.WriteInteger(i);
                 i++;
             }
@@ -39,8 +38,7 @@
             packet.WriteInteger(9);
             packet.WriteInteger(10);
             packet.WriteInteger(7);
-            for (int i = 187; i < 194;)
-            {
+            for (int i = 187; i < 194;) {
                 packet.WriteInteger(i);
                 i++;
             }

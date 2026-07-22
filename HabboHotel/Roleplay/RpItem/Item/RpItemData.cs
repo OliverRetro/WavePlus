@@ -210,20 +210,17 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             if (string.IsNullOrWhiteSpace(json))
                 return result;
 
-            try
-            {
+            try {
                 using JsonDocument doc = JsonDocument.Parse(json);
                 if (doc.RootElement.ValueKind != JsonValueKind.Object)
                     return result;
 
-                foreach (JsonProperty prop in doc.RootElement.EnumerateObject())
-                {
+                foreach (JsonProperty prop in doc.RootElement.EnumerateObject()) {
                     if (prop.Value.ValueKind == JsonValueKind.Number && prop.Value.TryGetDouble(out double number))
                         result[prop.Name] = number;
                 }
             }
-            catch
-            {
+            catch {
                 // Malformed attribute JSON -> treat the item as having no attributes.
             }
 

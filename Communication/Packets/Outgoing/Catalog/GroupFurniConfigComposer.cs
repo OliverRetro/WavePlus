@@ -16,8 +16,7 @@ namespace Plus.Communication.Packets.Outgoing.Catalog
         public override void Compose(ServerPacket packet)
         {
             packet.WriteInteger(Groups.Count);
-            foreach (Group group in Groups)
-            {
+            foreach (Group group in Groups) {
                 packet.WriteInteger(group.Id);
                 packet.WriteString(group.Name);
                 packet.WriteString(group.Badge);

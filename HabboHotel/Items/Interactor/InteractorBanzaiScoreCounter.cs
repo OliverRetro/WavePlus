@@ -21,8 +21,7 @@ namespace Plus.HabboHotel.Items.Interactor
 
         public void OnTrigger(GameClient session, Item item, int request, bool hasRights)
         {
-            if (hasRights)
-            {
+            if (hasRights) {
                 item.GetRoom().GetGameManager().Points[Convert.ToInt32(item.Team)] = 0;
 
                 item.ExtraData = "0";

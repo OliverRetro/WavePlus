@@ -13,15 +13,13 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length == 1)
-            {
+            if (@params.Length == 1) {
                 session.SendWhisper("Please provide a reason to the users for this room kick.");
                 return;
             }
 
             string message = CommandManager.MergeParams(@params, 1);
-            foreach (RoomUser roomUser in room.GetRoomUserManager().GetUserList().ToList())
-            {
+            foreach (RoomUser roomUser in room.GetRoomUserManager().GetUserList().ToList()) {
                 if (roomUser == null || roomUser.IsBot || roomUser.GetClient() == null || roomUser.GetClient().GetHabbo() == null || roomUser.GetClient().GetHabbo().GetPermissions().HasRight("mod_tool") || roomUser.GetClient().GetHabbo().Id == session.GetHabbo().Id)
                     continue;
 

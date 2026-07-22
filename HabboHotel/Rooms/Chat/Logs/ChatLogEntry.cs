@@ -32,8 +32,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Logs
 
         public Habbo PlayerNullable()
         {
-            if (_playerReference.IsAlive)
-            {
+            if (_playerReference.IsAlive) {
                 Habbo playerObj = (Habbo)_playerReference.Target;
 
                 return playerObj;
@@ -44,8 +43,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Logs
 
         public Room RoomNullable()
         {
-            if (_roomReference.IsAlive)
-            {
+            if (_roomReference.IsAlive) {
                 Room roomObj = (Room)_roomReference.Target;
                 if (roomObj.mDisposed)
                     return null;

@@ -13,8 +13,7 @@ namespace Plus.Communication.Rcon.Commands.Hotel
         {
             PlusEnvironment.GetGame().GetPermissionManager().Init();
 
-            foreach (GameClient client in PlusEnvironment.GetGame().GetClientManager().GetClients.ToList())
-            {
+            foreach (GameClient client in PlusEnvironment.GetGame().GetClientManager().GetClients.ToList()) {
                 if (client == null || client.GetHabbo() == null || client.GetHabbo().GetPermissions() == null)
                     continue;
 

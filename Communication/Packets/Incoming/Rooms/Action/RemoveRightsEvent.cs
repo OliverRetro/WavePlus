@@ -22,25 +22,20 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Action
                 return;
 
             int amount = packet.PopInt();
-            for (int i = 0; (i < amount && i <= 100); i++)
-            {
+            for (int i = 0; (i < amount && i <= 100); i++) {
                 int userId = packet.PopInt();
-                if (userId > 0 && room.UsersWithRights.Contains(userId))
-                {
+                if (userId > 0 && room.UsersWithRights.Contains(userId)) {
                     RoomUser user = room.GetRoomUserManager().GetRoomUserByHabbo(userId);
-                    if (user != null && !user.IsBot)
-                    {
+                    if (user != null && !user.IsBot) {
                         user.RemoveStatus("flatctrl 1");
                         user.UpdateNeeded = true;
-
 
                         user.GetClient().SendPacket(new YouAreControllerComposer(0));
                     }
 
                     uint uid = (uint)userId;
                     uint rid = (uint)room.Id;
-                    using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                    {
+                    using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                         db.RoomRights.Where(r => r.UserId == uid && r.RoomId == rid).ExecuteDelete();
                     }
 

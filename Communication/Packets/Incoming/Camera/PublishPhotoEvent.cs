@@ -25,24 +25,21 @@ namespace Plus.Communication.Packets.Incoming.Camera
                 return;
 
             // Each photo can be published to the website exactly once.
-            if (photo.Published)
-            {
+            if (photo.Published) {
                 session.SendPacket(new CameraPublishStatusComposer(false, 0));
                 return;
             }
 
             int wait = camera.GetPublishWait(session.GetHabbo().Id);
 
-            if (wait > 0)
-            {
+            if (wait > 0) {
                 session.SendPacket(new CameraPublishStatusComposer(false, wait));
                 return;
             }
 
             int price = camera.PublishPrice;
 
-            if (session.GetHabbo().Credits < price)
-            {
+            if (session.GetHabbo().Credits < price) {
                 session.SendNotification("You do not have enough credits to publish this photo.");
                 session.SendPacket(new CameraPublishStatusComposer(false, 0));
                 return;
@@ -50,8 +47,7 @@ namespace Plus.Communication.Packets.Incoming.Camera
 
             string url = camera.PhotoUrl + "/" + photo.Filename;
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.CameraWeb.Add(new CameraWebEntity
                 {
                     UserId = session.GetHabbo().Id,

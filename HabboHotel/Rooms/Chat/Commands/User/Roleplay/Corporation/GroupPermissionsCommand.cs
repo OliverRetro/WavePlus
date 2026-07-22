@@ -20,8 +20,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
 
             Group group = room.Group;
             int userId = session.GetHabbo().Id;
-            if (!group.IsMember(userId))
-            {
+            if (!group.IsMember(userId)) {
                 session.SendWhisper("You are not a member of this group.", 1);
                 return;
             }
@@ -34,12 +33,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
             info.Append("Level: <b>" + level + "</b>\r\r");
 
             var permissions = group.GetActivePermissionsForUser(userId).ToList();
-            if (permissions.Count == 0)
-            {
+            if (permissions.Count == 0) {
                 info.Append("Permissions: none\r");
             }
-            else
-            {
+            else {
                 info.Append("<b>Permissions:</b>\r");
                 foreach (GroupPermissionKey permission in permissions)
                     info.Append(permission.Name + " (" + permission.Key + ")\r");

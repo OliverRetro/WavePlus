@@ -37,8 +37,7 @@ namespace Plus.Core.Persistence
 
         private static void SaveOnlineUserData()
         {
-            foreach (GameClient client in PlusEnvironment.GetGame().GetClientManager().GetClients)
-            {
+            foreach (GameClient client in PlusEnvironment.GetGame().GetClientManager().GetClients) {
                 Habbo habbo = client?.GetHabbo();
                 if (habbo == null)
                     continue;
@@ -50,8 +49,7 @@ namespace Plus.Core.Persistence
 
         private static void MirrorOnlineUsers()
         {
-            foreach (GameClient client in PlusEnvironment.GetGame().GetClientManager().GetClients)
-            {
+            foreach (GameClient client in PlusEnvironment.GetGame().GetClientManager().GetClients) {
                 Habbo habbo = client?.GetHabbo();
                 if (habbo != null)
                     RpStatsCache.MirrorAll(habbo);
@@ -65,8 +63,7 @@ namespace Plus.Core.Persistence
         private static void PersistRoomUserCounts()
         {
             List<Room> dirty = null;
-            foreach (Room room in PlusEnvironment.GetGame().GetRoomManager().GetRooms())
-            {
+            foreach (Room room in PlusEnvironment.GetGame().GetRoomManager().GetRooms()) {
                 if (room != null && room.UsersNow != room.LastPersistedUsersNow)
                     (dirty ??= []).Add(room);
             }
@@ -75,8 +72,7 @@ namespace Plus.Core.Persistence
                 return;
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
-            foreach (Room room in dirty)
-            {
+            foreach (Room room in dirty) {
                 int roomId = room.Id;
                 int usersNow = room.UsersNow;
                 db.Rooms.Where(r => r.Id == roomId)
@@ -87,8 +83,7 @@ namespace Plus.Core.Persistence
 
         private static void SaveLoadedRoomItems()
         {
-            foreach (Room room in PlusEnvironment.GetGame().GetRoomManager().GetRooms())
-            {
+            foreach (Room room in PlusEnvironment.GetGame().GetRoomManager().GetRooms()) {
                 room?.GetRoomItemHandler()?.FlushMovedItems();
             }
         }
@@ -97,13 +92,11 @@ namespace Plus.Core.Persistence
         {
             using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-            foreach (Room room in PlusEnvironment.GetGame().GetRoomManager().GetRooms())
-            {
+            foreach (Room room in PlusEnvironment.GetGame().GetRoomManager().GetRooms()) {
                 if (room?.GetRoomUserManager() == null)
                     continue;
 
-                foreach (RoomUser bot in room.GetRoomUserManager().GetBots())
-                {
+                foreach (RoomUser bot in room.GetRoomUserManager().GetBots()) {
                     if (bot?.BotData == null || bot.BotData.Id <= 0)
                         continue;
 

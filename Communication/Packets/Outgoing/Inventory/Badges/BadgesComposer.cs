@@ -18,8 +18,7 @@ namespace Plus.Communication.Packets.Outgoing.Inventory.Badges
             List<Badge> equippedBadges = new();
 
             packet.WriteInteger(Badges.Count);
-            foreach (Badge badge in Badges)
-            {
+            foreach (Badge badge in Badges) {
                 packet.WriteInteger(1);
                 packet.WriteString(badge.Code);
 
@@ -28,8 +27,7 @@ namespace Plus.Communication.Packets.Outgoing.Inventory.Badges
             }
 
             packet.WriteInteger(equippedBadges.Count);
-            foreach (Badge badge in equippedBadges)
-            {
+            foreach (Badge badge in equippedBadges) {
                 packet.WriteInteger(badge.Slot);
                 packet.WriteString(badge.Code);
             }

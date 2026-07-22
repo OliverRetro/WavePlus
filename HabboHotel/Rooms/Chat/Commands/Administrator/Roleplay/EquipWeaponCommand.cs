@@ -14,8 +14,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (!int.TryParse(Convert.ToString(@params[1]), out int weaponId))
-            {
+            if (!int.TryParse(Convert.ToString(@params[1]), out int weaponId)) {
                 session.SendWhisper("Please enter a valid ID. You can see these via :tempinventory.");
                 return;
             }

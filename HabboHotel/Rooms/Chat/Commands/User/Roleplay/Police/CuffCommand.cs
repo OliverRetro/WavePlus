@@ -14,8 +14,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Police
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length < 2)
-            {
+            if (@params.Length < 2) {
                 session.SendWhisper("Usage: :cuff <username>", 1);
                 return;
             }
@@ -25,14 +24,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Police
 
             Habbo target = targetClient.GetHabbo();
 
-            if (!PlusEnvironment.GetRpCrimeManager().IsCharged(target.Id))
-            {
+            if (!PlusEnvironment.GetRpCrimeManager().IsCharged(target.Id)) {
                 session.SendWhisper(target.Username + " hasn't been charged yet — use :charge first.", 1);
                 return;
             }
 
-            if (PlusEnvironment.GetPoliceManager().IsCuffed(target.Id))
-            {
+            if (PlusEnvironment.GetPoliceManager().IsCuffed(target.Id)) {
                 session.SendWhisper(target.Username + " is already cuffed.", 1);
                 return;
             }
@@ -40,8 +37,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Police
             if (!RpCommandUtil.RequireAdjacent(session, room, target, "You need to be beside the suspect to cuff them."))
                 return;
 
-            if (target.GetRpWeapons() != null && target.GetRpWeapons().GetActiveWeapon() != null)
-            {
+            if (target.GetRpWeapons() != null && target.GetRpWeapons().GetActiveWeapon() != null) {
                 target.GetRpWeapons().SetActiveWeaponId(0);
                 RpEffectService.Refresh(target);
             }

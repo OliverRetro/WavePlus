@@ -29,24 +29,21 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni.LoveLocks
             RoomUser userOne = room.GetRoomUserManager().GetRoomUserByHabbo(userOneId);
             RoomUser userTwo = room.GetRoomUserManager().GetRoomUserByHabbo(userTwoId);
 
-            if (userOne == null && userTwo == null)
-            {
+            if (userOne == null && userTwo == null) {
                 item.InteractingUser = 0;
                 item.InteractingUser2 = 0;
                 session.SendNotification("Your partner has left the room or has cancelled the love lock.");
                 return;
             }
 
-            if (userOne.GetClient() == null || userTwo.GetClient() == null)
-            {
+            if (userOne.GetClient() == null || userTwo.GetClient() == null) {
                 item.InteractingUser = 0;
                 item.InteractingUser2 = 0;
                 session.SendNotification("Your partner has left the room or has cancelled the love lock.");
                 return;
             }
 
-            if (userOne == null)
-            {
+            if (userOne == null) {
                 userTwo.CanWalk = true;
                 userTwo.GetClient().SendNotification("Your partner has left the room or has cancelled the love lock.");
                 userTwo.LLPartner = 0;
@@ -55,8 +52,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni.LoveLocks
                 return;
             }
 
-            if (userTwo == null)
-            {
+            if (userTwo == null) {
                 userOne.CanWalk = true;
                 userOne.GetClient().SendNotification("Your partner has left the room or has cancelled the love lock.");
                 userOne.LLPartner = 0;
@@ -65,8 +61,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni.LoveLocks
                 return;
             }
 
-            if (item.ExtraData.Contains(Convert.ToChar(5).ToString()))
-            {
+            if (item.ExtraData.Contains(Convert.ToChar(5).ToString())) {
                 userTwo.CanWalk = true;
                 userTwo.GetClient().SendNotification("It appears this love lock has already been locked.");
                 userTwo.LLPartner = 0;
@@ -80,8 +75,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni.LoveLocks
                 return;
             }
 
-            if (!isConfirmed)
-            {
+            if (!isConfirmed) {
                 item.InteractingUser = 0;
                 item.InteractingUser2 = 0;
 
@@ -93,13 +87,11 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni.LoveLocks
                 return;
             }
 
-            if (userOneId == session.GetHabbo().Id)
-            {
+            if (userOneId == session.GetHabbo().Id) {
                 session.SendPacket(new LoveLockDialogueSetLockedMessageComposer(pId));
                 userOne.LLPartner = userTwoId;
             }
-            else if (userTwoId == session.GetHabbo().Id)
-            {
+            else if (userTwoId == session.GetHabbo().Id) {
                 session.SendPacket(new LoveLockDialogueSetLockedMessageComposer(pId));
                 userTwo.LLPartner = userOneId;
             }
@@ -118,8 +110,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni.LoveLocks
 
             uint itemDbId = (uint)item.Id;
             string extraData = item.ExtraData;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.Items.Where(i => i.Id == itemDbId).ExecuteUpdate(s => s.SetProperty(i => i.ExtraData, extraData));
             }
 

@@ -15,8 +15,7 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
             using WavePlusContext db = PlusEnvironment.GetDbContext();
             int creditsOwed = db.CatalogMarketplaceOffers.Where(o => o.UserId == uid && o.State == "2").Sum(o => (int?)o.AskingPrice) ?? 0;
 
-            if (creditsOwed >= 1)
-            {
+            if (creditsOwed >= 1) {
                 session.GetHabbo().Credits += creditsOwed;
                 session.SendPacket(new CreditBalanceComposer(session.GetHabbo().Credits));
 

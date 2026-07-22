@@ -52,8 +52,7 @@ namespace Plus.HabboHotel.Camera
         /// <summary>Returns true when the user may render (photo or thumbnail) right now, and stamps the attempt.</summary>
         public bool TryConsumeRenderSlot(int userId)
         {
-            lock (_renderLock)
-            {
+            lock (_renderLock) {
                 long now = Environment.TickCount64;
 
                 if (_lastRender.TryGetValue(userId, out long last) && now - last < RenderCooldownMs)
@@ -70,8 +69,7 @@ namespace Plus.HabboHotel.Camera
         /// <summary>Returns true when the user may buy a photo right now, and stamps the attempt.</summary>
         public bool TryConsumePurchaseSlot(int userId)
         {
-            lock (_purchaseLock)
-            {
+            lock (_purchaseLock) {
                 long now = Environment.TickCount64;
 
                 if (_lastPurchase.TryGetValue(userId, out long last) && now - last < PurchaseCooldownMs)
@@ -137,15 +135,13 @@ namespace Plus.HabboHotel.Camera
         /// </summary>
         public static bool SavePng(string directory, string filename, byte[] pngBytes)
         {
-            try
-            {
+            try {
                 Directory.CreateDirectory(directory);
 
                 string fullDir = Path.GetFullPath(directory);
                 string fullPath = Path.GetFullPath(Path.Combine(fullDir, filename));
 
-                if (!fullPath.StartsWith(fullDir + Path.DirectorySeparatorChar, StringComparison.Ordinal))
-                {
+                if (!fullPath.StartsWith(fullDir + Path.DirectorySeparatorChar, StringComparison.Ordinal)) {
                     Log.Warn("[Camera] Refused to write outside the camera directory: " + fullPath);
                     return false;
                 }
@@ -153,8 +149,7 @@ namespace Plus.HabboHotel.Camera
                 File.WriteAllBytes(fullPath, pngBytes);
                 return true;
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 Log.Error("[Camera] Failed to save png: " + e.Message);
                 return false;
             }

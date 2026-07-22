@@ -73,8 +73,7 @@ namespace Plus.HabboHotel.Items
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
             var rows = new List<Database.EF.Entities.ItemEntity>();
-            for (int i = 0; i < amount; i++)
-            {
+            for (int i = 0; i < amount; i++) {
                 var row = new Database.EF.Entities.ItemEntity
                 {
                     BaseItem = (uint)data.Id,
@@ -92,8 +91,7 @@ namespace Plus.HabboHotel.Items
             }
             db.SaveChanges();
 
-            foreach (var row in rows)
-            {
+            foreach (var row in rows) {
                 Item item = new((int)row.Id, 0, data.Id, extraData, 0, 0, 0, 0, habbo.Id, groupId, 0, 0, "");
 
                 if (groupId > 0)

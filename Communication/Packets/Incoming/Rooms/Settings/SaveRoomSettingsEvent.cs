@@ -35,10 +35,8 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Settings
             List<string> tags = new();
             StringBuilder formattedTags = new();
 
-            for (int i = 0; i < tagCount; i++)
-            {
-                if (i > 0)
-                {
+            for (int i = 0; i < tagCount; i++) {
+                if (i > 0) {
                     formattedTags.Append(",");
                 }
 
@@ -156,8 +154,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Settings
             room.TradeSettings = tradeSettings;
 
             string accessStr;
-            switch (access)
-            {
+            switch (access) {
                 default:
                     accessStr = "open";
                     break;
@@ -177,8 +174,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Settings
 
             int roomIdVal = room.Id;
             string tagsStr = formattedTags.ToString();
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.Rooms.Where(r => r.Id == roomIdVal)
                     .ExecuteUpdate(s => s
                         .SetProperty(r => r.Caption, room.Name)
@@ -208,14 +204,12 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Settings
 
             room.GetGameMap().GenerateMaps();
 
-            if (session.GetHabbo().CurrentRoom == null)
-            {
+            if (session.GetHabbo().CurrentRoom == null) {
                 session.SendPacket(new RoomSettingsSavedComposer(room.RoomId));
                 session.SendPacket(new RoomInfoUpdatedComposer(room.RoomId));
                 session.SendPacket(new RoomVisualizationSettingsComposer(room.WallThickness, room.FloorThickness, PlusEnvironment.EnumToBool(room.HideWall.ToString())));
             }
-            else
-            {
+            else {
                 room.SendPacket(new RoomSettingsSavedComposer(room.RoomId));
                 room.SendPacket(new RoomInfoUpdatedComposer(room.RoomId));
                 room.SendPacket(new RoomVisualizationSettingsComposer(room.WallThickness, room.FloorThickness, PlusEnvironment.EnumToBool(room.HideWall.ToString())));

@@ -14,22 +14,19 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length < 2 || !int.TryParse(@params[1], out int userSkinId))
-            {
+            if (@params.Length < 2 || !int.TryParse(@params[1], out int userSkinId)) {
                 session.SendWhisper("Please enter a valid owned skin ID.", 1);
                 return;
             }
 
             UserRpWeaponSkins weaponSkins = session.GetHabbo().GetRpWeaponSkins();
             UserWeaponSkin userSkin = weaponSkins?.GetSkin(userSkinId);
-            if (userSkin == null)
-            {
+            if (userSkin == null) {
                 session.SendWhisper("You do not own that skin.", 1);
                 return;
             }
 
-            if (!weaponSkins.ToggleSkin(userSkinId))
-            {
+            if (!weaponSkins.ToggleSkin(userSkinId)) {
                 session.SendWhisper("That skin could not be toggled.", 1);
                 return;
             }

@@ -20,8 +20,7 @@ namespace Plus.Communication.Packets.Incoming.Quests
             if (nextQuest == null)
                 return;
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.UserQuests.Upsert(new UserQuestEntity
                 {
                     UserId = (uint)session.GetHabbo().Id,

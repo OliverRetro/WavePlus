@@ -18,12 +18,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Pets.Locale
         public void Init()
         {
             _values = new Dictionary<string, string[]>();
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 var pets = db.BotsPetResponses.Select(p => new { p.PetId, p.Responses }).ToList();
 
-                foreach (var row in pets)
-                {
+                foreach (var row in pets) {
                     _values.Add(row.PetId, row.Responses.Split(';'));
                 }
             }

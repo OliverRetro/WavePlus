@@ -46,38 +46,31 @@ namespace Plus.Communication.Encryption.Crypto.RSA
 
             int qs = b >> 1;
 
-            while (true)
-            {
-                while (true)
-                {
+            while (true) {
+                while (true) {
                     P = BigInteger.genPseudoPrime(b - qs, 1, new Random());
 
-                    if ((P - 1).gcd(this.e) == 1 && P.isProbablePrime(10))
-                    {
+                    if ((P - 1).gcd(this.e) == 1 && P.isProbablePrime(10)) {
                         break;
                     }
                 }
 
-                while (true)
-                {
+                while (true) {
                     Q = BigInteger.genPseudoPrime(qs, 1, new Random());
 
-                    if ((Q - 1).gcd(this.e) == 1 && P.isProbablePrime(10))
-                    {
+                    if ((Q - 1).gcd(this.e) == 1 && P.isProbablePrime(10)) {
                         break;
                     }
                 }
 
-                if (P < Q)
-                {
+                if (P < Q) {
                     BigInteger t = P;
                     P = Q;
                     Q = t;
                 }
 
                 BigInteger phi = (P - 1) * (Q - 1);
-                if (phi.gcd(this.e) == 1)
-                {
+                if (phi.gcd(this.e) == 1) {
                     N = P * Q;
                     D = this.e.modInverse(phi);
                     Dmp1 = D % (P - 1);
@@ -105,8 +98,7 @@ namespace Plus.Communication.Encryption.Crypto.RSA
             string dmp1 = null, string dmq1 = null,
             string coeff = null)
         {
-            if (p == null)
-            {
+            if (p == null) {
                 return new RSAKey(new BigInteger(n, 16), Convert.ToInt32(e, 16), new BigInteger(d, 16), 0, 0, 0, 0, 0);
             }
 
@@ -141,39 +133,33 @@ namespace Plus.Communication.Encryption.Crypto.RSA
 
         private byte[] DoEncrypt(DoCalculateionDelegate method, byte[] src, Pkcs1PadType type)
         {
-            try
-            {
+            try {
                 int bl = GetBlockSize();
 
                 byte[] paddedBytes = Pkcs1pad(src, bl, type);
                 BigInteger m = new(paddedBytes);
-                if (m == 0)
-                {
+                if (m == 0) {
                     return null;
                 }
 
                 BigInteger c = method(m);
-                if (c == 0)
-                {
+                if (c == 0) {
                     return null;
                 }
 
                 return c.getBytes();
             }
-            catch
-            {
+            catch {
                 return null;
             }
         }
 
         private byte[] DoDecrypt(DoCalculateionDelegate method, byte[] src, Pkcs1PadType type)
         {
-            try
-            {
+            try {
                 BigInteger c = new(src);
                 BigInteger m = method(c);
-                if (m == 0)
-                {
+                if (m == 0) {
                     return null;
                 }
 
@@ -183,8 +169,7 @@ namespace Plus.Communication.Encryption.Crypto.RSA
 
                 return bytes;
             }
-            catch
-            {
+            catch {
                 return null;
             }
         }
@@ -194,17 +179,14 @@ namespace Plus.Communication.Encryption.Crypto.RSA
             byte[] bytes = new byte[n];
 
             int i = src.Length - 1;
-            while (i >= 0 && n > 11)
-            {
+            while (i >= 0 && n > 11) {
                 bytes[--n] = src[i--];
             }
 
             bytes[--n] = 0;
-            while (n > 2)
-            {
+            while (n > 2) {
                 byte x = 0;
-                switch (type)
-                {
+                switch (type) {
                     case Pkcs1PadType.FullByte:
                         x = 0xFF;
                         break;
@@ -224,30 +206,25 @@ namespace Plus.Communication.Encryption.Crypto.RSA
         private byte[] Pkcs1unpad(byte[] src, int n, Pkcs1PadType type)
         {
             int i = 0;
-            while (i < src.Length && src[i] == 0)
-            {
+            while (i < src.Length && src[i] == 0) {
                 ++i;
             }
 
-            if (src.Length - i != n - 1 || src[i] > 2)
-            {
+            if (src.Length - i != n - 1 || src[i] > 2) {
                 Console.WriteLine("PKCS#1 unpad: i={0}, expected src[i]==[0,1,2], got src[i]={1}", i, src[i].ToString("X"));
                 return null;
             }
 
             ++i;
 
-            while (src[i] != 0)
-            {
-                if (++i >= src.Length)
-                {
+            while (src[i] != 0) {
+                if (++i >= src.Length) {
                     Console.WriteLine("PKCS#1 unpad: i={0}, src[i-1]!=0 (={1})", i, src[i - 1].ToString("X"));
                 }
             }
 
             byte[] bytes = new byte[src.Length - i - 1];
-            for (int p = 0; ++i < src.Length; p++)
-            {
+            for (int p = 0; ++i < src.Length; p++) {
                 bytes[p] = src[i];
             }
 
@@ -261,8 +238,7 @@ namespace Plus.Communication.Encryption.Crypto.RSA
 
         protected BigInteger DoPrivate(BigInteger m)
         {
-            if (P == 0 && Q == 0)
-            {
+            if (P == 0 && Q == 0) {
                 return m.modPow(D, N);
             }
 

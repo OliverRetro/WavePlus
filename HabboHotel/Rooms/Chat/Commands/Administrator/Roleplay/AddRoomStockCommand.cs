@@ -16,14 +16,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (room == null)
-            {
+            if (room == null) {
                 session.SendWhisper("You need to be in a room to stock it.", 1);
                 return;
             }
 
-            if (@params.Length < 4)
-            {
+            if (@params.Length < 4) {
                 session.SendWhisper("Usage: :addroomstock <rp_item|rp_weapon> <itemId> <amount> [price]", 1);
                 return;
             }
@@ -49,20 +47,17 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (room == null)
-            {
+            if (room == null) {
                 session.SendWhisper("You need to be in a room to stock its vendors.", 1);
                 return;
             }
 
-            if (@params.Length < 5)
-            {
+            if (@params.Length < 5) {
                 session.SendWhisper("Usage: :additemstock <furniId> <rp_item|rp_weapon|clothing> <itemId> <amount> [price]", 1);
                 return;
             }
 
-            if (!int.TryParse(Convert.ToString(@params[1]), out int furniId) || furniId <= 0)
-            {
+            if (!int.TryParse(Convert.ToString(@params[1]), out int furniId) || furniId <= 0) {
                 session.SendWhisper("Please enter a valid furni ID.", 1);
                 return;
             }
@@ -70,14 +65,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
             // The furni has to be in this room: stock is keyed by (room, furni), so stocking one
             // that lives elsewhere would create an entry nothing could ever open.
             Items.Item furni = room.GetRoomItemHandler().GetItem(furniId);
-            if (furni == null)
-            {
+            if (furni == null) {
                 session.SendWhisper($"There's no furni with ID {furniId} in this room.", 1);
                 return;
             }
 
-            if (furni.GetBaseItem()?.InteractionType != Items.InteractionType.StockVendor)
-            {
+            if (furni.GetBaseItem()?.InteractionType != Items.InteractionType.StockVendor) {
                 session.SendWhisper("That furni isn't a stock vendor.", 1);
                 return;
             }
@@ -110,28 +103,23 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
             itemName = null;
 
             stockType = @params[offset].ToLower();
-            if (!StockType.IsValid(stockType))
-            {
+            if (!StockType.IsValid(stockType)) {
                 session.SendWhisper("Unknown stock type. Use rp_item, rp_weapon or clothing.", 1);
                 return false;
             }
 
-            if (!int.TryParse(Convert.ToString(@params[offset + 1]), out itemId) || itemId <= 0)
-            {
+            if (!int.TryParse(Convert.ToString(@params[offset + 1]), out itemId) || itemId <= 0) {
                 session.SendWhisper("Please enter a valid item ID.", 1);
                 return false;
             }
 
-            if (!int.TryParse(Convert.ToString(@params[offset + 2]), out amount) || amount == 0)
-            {
+            if (!int.TryParse(Convert.ToString(@params[offset + 2]), out amount) || amount == 0) {
                 session.SendWhisper("Please enter a non-zero amount.", 1);
                 return false;
             }
 
-            if (@params.Length > offset + 3)
-            {
-                if (!int.TryParse(Convert.ToString(@params[offset + 3]), out int parsedPrice) || parsedPrice < 0)
-                {
+            if (@params.Length > offset + 3) {
+                if (!int.TryParse(Convert.ToString(@params[offset + 3]), out int parsedPrice) || parsedPrice < 0) {
                     session.SendWhisper("Please enter a price of 0 or more.", 1);
                     return false;
                 }
@@ -139,8 +127,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
                 price = parsedPrice;
             }
 
-            if (!TryDescribe(stockType, itemId, out itemName))
-            {
+            if (!TryDescribe(stockType, itemId, out itemName)) {
                 session.SendWhisper($"No {stockType} exists with ID {itemId}.", 1);
                 return false;
             }
@@ -152,8 +139,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
         {
             itemName = null;
 
-            switch (stockType)
-            {
+            switch (stockType) {
                 case StockType.RpItem:
                     if (!PlusEnvironment.GetRpItemManager().TryGetItem(itemId, out RpItemData item))
                         return false;

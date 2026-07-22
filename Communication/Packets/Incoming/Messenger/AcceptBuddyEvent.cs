@@ -16,8 +16,7 @@ namespace Plus.Communication.Packets.Incoming.Messenger
             else if (amount < 0)
                 return;
 
-            for (int i = 0; i < amount; i++)
-            {
+            for (int i = 0; i < amount; i++) {
                 int requestId = packet.PopInt();
 
                 if (!session.GetHabbo().GetMessenger().TryGetRequest(requestId, out MessengerRequest request))

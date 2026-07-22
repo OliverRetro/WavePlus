@@ -18,14 +18,12 @@ namespace Plus.Communication.Packets.Incoming.Moderation
 
             DataRow user;
             DataRow info;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 var userRow = db.Users.Where(u => u.Id == userId)
                     .Select(u => new { u.Id, u.Username, u.Online, u.Mail, u.IpLast, u.Look, u.AccountCreated, u.LastOnline })
                     .FirstOrDefault();
 
-                if (userRow == null)
-                {
+                if (userRow == null) {
                     session.SendNotification(PlusEnvironment.GetLanguageManager().TryGetValue("user.not_found"));
                     return;
                 }
@@ -34,8 +32,7 @@ namespace Plus.Communication.Packets.Incoming.Moderation
                     .Select(i => new { i.Cfhs, i.CfhsAbusive, i.Cautions, i.Bans, i.TradingLocked, i.TradingLocksCount })
                     .FirstOrDefault();
 
-                if (infoRow == null)
-                {
+                if (infoRow == null) {
                     db.Database.ExecuteSqlInterpolated($"INSERT INTO `user_info` (`user_id`) VALUES ({userId})");
                     infoRow = db.UserInfos.Where(i => i.UserId == userId)
                         .Select(i => new { i.Cfhs, i.CfhsAbusive, i.Cautions, i.Bans, i.TradingLocked, i.TradingLocksCount })

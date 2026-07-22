@@ -22,8 +22,7 @@ namespace Plus.Communication.Packets.Incoming.Moderation
             packet.PopInt(); //junk
             int roomId = packet.PopInt();
 
-            if (!PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(roomId, out Room room))
-            {
+            if (!PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(roomId, out Room room)) {
                 return;
             }
 
@@ -32,20 +31,17 @@ namespace Plus.Communication.Packets.Incoming.Moderation
             List<ChatLogEntry> chats = new();
 
             uint rid = (uint)roomId;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 var data = db.Chatlogs.Where(c => c.RoomId == rid)
                     .OrderByDescending(c => c.Id)
                     .Select(c => new { c.UserId, c.Message, c.Timestamp })
                     .Take(100)
                     .ToList();
 
-                foreach (var row in data)
-                {
+                foreach (var row in data) {
                     Habbo habbo = PlusEnvironment.GetHabboById((int)row.UserId);
 
-                    if (habbo != null)
-                    {
+                    if (habbo != null) {
                         chats.Add(new ChatLogEntry((int)row.UserId, roomId, row.Message, row.Timestamp, habbo));
                     }
                 }

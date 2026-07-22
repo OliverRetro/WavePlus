@@ -58,13 +58,11 @@ namespace Plus.HabboHotel.Cache.Process
         /// <param name="state"></param>
         public void Run(object state)
         {
-            try
-            {
+            try {
                 if (_disabled)
                     return;
 
-                if (_timerRunning)
-                {
+                if (_timerRunning) {
                     _timerLagging = true;
                     return;
                 }
@@ -73,32 +71,25 @@ namespace Plus.HabboHotel.Cache.Process
 
                 // BEGIN CODE
                 List<UserCache> cacheList = PlusEnvironment.GetGame().GetCacheManager().GetUserCache().ToList();
-                if (cacheList.Count > 0)
-                {
-                    foreach (UserCache cache in cacheList)
-                    {
-                        try
-                        {
+                if (cacheList.Count > 0) {
+                    foreach (UserCache cache in cacheList) {
+                        try {
                             if (cache == null)
                                 continue;
 
                             if (cache.IsExpired())
                                 PlusEnvironment.GetGame().GetCacheManager().TryRemoveUser(cache.Id, out _);
                         }
-                        catch (Exception e)
-                        {
+                        catch (Exception e) {
                             ExceptionLogger.LogException(e);
                         }
                     }
                 }
 
                 List<Habbo> cachedUsers = PlusEnvironment.GetUsersCached().ToList();
-                if (cachedUsers.Count > 0)
-                {
-                    foreach (Habbo data in cachedUsers)
-                    {
-                        try
-                        {
+                if (cachedUsers.Count > 0) {
+                    foreach (Habbo data in cachedUsers) {
+                        try {
                             if (data == null)
                                 continue;
 
@@ -109,8 +100,7 @@ namespace Plus.HabboHotel.Cache.Process
 
                             temp?.Dispose();
                         }
-                        catch (Exception e)
-                        {
+                        catch (Exception e) {
                             ExceptionLogger.LogException(e);
                         }
                     }
@@ -123,8 +113,7 @@ namespace Plus.HabboHotel.Cache.Process
 
                 _resetEvent.Set();
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
         }
@@ -135,24 +124,20 @@ namespace Plus.HabboHotel.Cache.Process
         public void Dispose()
         {
             // Wait until any processing is complete first.
-            try
-            {
+            try {
                 _resetEvent.WaitOne(TimeSpan.FromMinutes(5));
             }
-            catch
-            {
+            catch {
             } // give up
 
             // Set the timer to disabled
             _disabled = true;
 
             // Dispose the timer to disable it.
-            try
-            {
+            try {
                 _timer?.Dispose();
             }
-            catch
-            {
+            catch {
             }
 
             // Remove reference to the timer.

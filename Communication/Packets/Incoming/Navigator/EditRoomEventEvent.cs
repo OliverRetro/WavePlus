@@ -22,14 +22,12 @@ namespace Plus.Communication.Packets.Incoming.Navigator
             if (data.OwnerId != session.GetHabbo().Id)
                 return;
 
-            if (data.Promotion == null)
-            {
+            if (data.Promotion == null) {
                 session.SendNotification("Oops, it looks like there isn't a room promotion in this room?");
                 return;
             }
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.RoomPromotions.Where(p => p.RoomId == roomId)
                     .ExecuteUpdate(s => s.SetProperty(p => p.Title, name).SetProperty(p => p.Description, desc));
             }

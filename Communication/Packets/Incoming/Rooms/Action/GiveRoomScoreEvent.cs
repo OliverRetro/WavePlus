@@ -21,8 +21,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Action
                 return;
 
             int rating = packet.PopInt();
-            switch (rating)
-            {
+            switch (rating) {
                 case -1:
                     room.Score--;
                     break;
@@ -35,8 +34,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Action
 
             int roomId = room.RoomId;
             int score = room.Score;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.Rooms.Where(r => r.Id == roomId).ExecuteUpdate(s => s.SetProperty(r => r.Score, score));
             }
 

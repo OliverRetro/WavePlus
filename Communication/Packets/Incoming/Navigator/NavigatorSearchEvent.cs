@@ -14,22 +14,17 @@ namespace Plus.Communication.Packets.Incoming.Navigator
 
             ICollection<SearchResultList> categories = new List<SearchResultList>();
 
-            if (!string.IsNullOrEmpty(search))
-            {
-                if (PlusEnvironment.GetGame().GetNavigator().TryGetSearchResultList(0, out SearchResultList queryResult))
-                {
+            if (!string.IsNullOrEmpty(search)) {
+                if (PlusEnvironment.GetGame().GetNavigator().TryGetSearchResultList(0, out SearchResultList queryResult)) {
                     categories.Add(queryResult);
                 }
             }
-            else
-            {
+            else {
                 categories = PlusEnvironment.GetGame().GetNavigator().GetCategoriesForSearch(category);
-                if (categories.Count == 0)
-                {
+                if (categories.Count == 0) {
                     //Are we going in deep?!
                     categories = PlusEnvironment.GetGame().GetNavigator().GetResultByIdentifier(category);
-                    if (categories.Count > 0)
-                    {
+                    if (categories.Count > 0) {
                         session.SendPacket(new NavigatorSearchResultSetComposer(category, search, categories, session.GetHabbo(), 2, 100));
                         return;
                     }

@@ -66,8 +66,7 @@ namespace Plus.HabboHotel.Groups
             _permissions = new ConcurrentDictionary<string, GroupPermissionAssignment>(StringComparer.OrdinalIgnoreCase);
             _deletedPermissionIds = new List<int>();
 
-            if (Id > 0)
-            {
+            if (Id > 0) {
                 InitMembers();
                 InitRoles();
                 InitPermissions();
@@ -82,12 +81,10 @@ namespace Plus.HabboHotel.Groups
             var members = db.GroupMemberships.Where(m => m.GroupId == gid)
                 .Select(m => new { m.UserId, m.Level }).ToList();
 
-            foreach (var row in members)
-            {
+            foreach (var row in members) {
                 int userId = (int)row.UserId;
                 int level = row.Level;
-                if (userId == CreatorId)
-                {
+                if (userId == CreatorId) {
                     level = 0;
                     if (row.Level != 0)
                         MarkDirty(); // creator level correction; persisted on the next flush
@@ -96,15 +93,13 @@ namespace Plus.HabboHotel.Groups
                 _memberLevels[userId] = level;
             }
 
-            if (!_memberLevels.ContainsKey(CreatorId))
-            {
+            if (!_memberLevels.ContainsKey(CreatorId)) {
                 _memberLevels[CreatorId] = 0;
                 MarkDirty();
             }
 
             var requests = db.GroupRequests.Where(r => r.GroupId == gid).Select(r => (int)r.UserId).ToList();
-            foreach (int userId in requests)
-            {
+            foreach (int userId in requests) {
                 if (_memberLevels.ContainsKey(userId))
                     MarkDirty(); // stale request (already a member) is dropped on the next resync
                 else if (!_requests.Contains(userId))
@@ -120,8 +115,7 @@ namespace Plus.HabboHotel.Groups
             var roles = db.GroupRoles.Where(r => r.GroupId == gid).OrderBy(r => r.Level)
                 .Select(r => new { r.Id, r.GroupId, r.Level, r.Name, r.ShiftPay, r.ShiftCostume, r.ShiftDuration, r.ShiftMotto, r.CreatedAt }).ToList();
 
-            foreach (var row in roles)
-            {
+            foreach (var row in roles) {
                 GroupRole role = new(row.Id, row.GroupId, row.Level, row.Name, row.ShiftPay, row.ShiftCostume, row.ShiftDuration == null ? 5 : (int)row.ShiftDuration, row.ShiftMotto, row.CreatedAt);
 
                 _roles[role.Level] = role;
@@ -136,8 +130,7 @@ namespace Plus.HabboHotel.Groups
             var permissions = db.GroupPermissions.Where(p => p.GroupId == gid)
                 .Select(p => new { p.Id, p.GroupId, p.LevelId, p.PermissionId, p.CreatedAt }).ToList();
 
-            foreach (var row in permissions)
-            {
+            foreach (var row in permissions) {
                 GroupPermissionAssignment assignment = new(
                     row.Id, row.GroupId, row.LevelId, row.PermissionId, row.CreatedAt);
 
@@ -239,16 +232,14 @@ namespace Plus.HabboHotel.Groups
                 return false;
 
             string assignmentKey = BuildPermissionKey(levelId, permissionId);
-            if (!permission.SupportsGroupKind(Kind))
-            {
+            if (!permission.SupportsGroupKind(Kind)) {
                 if (!enabled)
                     return true;
 
                 return false;
             }
 
-            if (!enabled)
-            {
+            if (!enabled) {
                 if (!_permissions.TryRemove(assignmentKey, out GroupPermissionAssignment removed))
                     return true;
 
@@ -304,14 +295,12 @@ namespace Plus.HabboHotel.Groups
             if (!_memberLevels.TryGetValue(id, out int level))
                 return false;
 
-            if (id == CreatorId || level == 0)
-            {
+            if (id == CreatorId || level == 0) {
                 role = GetOwnerRole();
                 return true;
             }
 
-            if (_roles.TryGetValue(level, out GroupRole foundRole))
-            {
+            if (_roles.TryGetValue(level, out GroupRole foundRole)) {
                 role = foundRole;
                 return true;
             }
@@ -420,8 +409,7 @@ namespace Plus.HabboHotel.Groups
         {
             int groupId = Id;
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.UserStats.Where(u => u.Id == userId && u.Groupid == groupId)
                     .ExecuteUpdate(s => s.SetProperty(u => u.Groupid, 0));
             }
@@ -432,8 +420,7 @@ namespace Plus.HabboHotel.Groups
 
             habbo.GetStats().FavouriteGroupId = 0;
 
-            if (habbo.InRoom && habbo.CurrentRoom != null)
-            {
+            if (habbo.InRoom && habbo.CurrentRoom != null) {
                 RoomUser user = habbo.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(userId);
                 if (user != null)
                     habbo.CurrentRoom.SendPacket(new Communication.Packets.Outgoing.Groups.UpdateFavouriteGroupComposer(this, user.VirtualId));
@@ -471,8 +458,7 @@ namespace Plus.HabboHotel.Groups
 
         public RoomData GetRoom()
         {
-            if (_room == null)
-            {
+            if (_room == null) {
                 if (!RoomFactory.TryGetData(RoomId, out RoomData data))
                     return null;
 
@@ -528,18 +514,15 @@ namespace Plus.HabboHotel.Groups
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-            foreach (int deletedRoleId in _deletedRoleIds.ToList())
-            {
+            foreach (int deletedRoleId in _deletedRoleIds.ToList()) {
                 int rid = deletedRoleId;
                 db.GroupRoles.Where(r => r.Id == rid).ExecuteDelete();
             }
 
             _deletedRoleIds.Clear();
 
-            foreach (GroupRole role in _roles.Values.OrderBy(x => x.Level))
-            {
-                if (role.IsNew)
-                {
+            foreach (GroupRole role in _roles.Values.OrderBy(x => x.Level)) {
+                if (role.IsNew) {
                     var entity = new Database.EF.Entities.GroupRoleEntity
                     {
                         GroupId = role.GroupId,
@@ -583,16 +566,14 @@ namespace Plus.HabboHotel.Groups
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-            foreach (int deletedPermissionId in _deletedPermissionIds.ToList())
-            {
+            foreach (int deletedPermissionId in _deletedPermissionIds.ToList()) {
                 int pid = deletedPermissionId;
                 db.GroupPermissions.Where(p => p.Id == pid).ExecuteDelete();
             }
 
             _deletedPermissionIds.Clear();
 
-            foreach (GroupPermissionAssignment assignment in _permissions.Values.ToList())
-            {
+            foreach (GroupPermissionAssignment assignment in _permissions.Values.ToList()) {
                 if (!assignment.IsNew)
                     continue;
 
@@ -608,7 +589,6 @@ namespace Plus.HabboHotel.Groups
                 assignment.MarkPersisted(entity.Id);
             }
         }
-
 
         public void ClearRequests()
         {
@@ -629,11 +609,9 @@ namespace Plus.HabboHotel.Groups
             SaveRoles();
             SavePermissions();
 
-            if (_dirty)
-            {
+            if (_dirty) {
                 uint gid = (uint)Id;
-                using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                {
+                using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                     db.Groups.Where(g => g.Id == gid).ExecuteUpdate(s => s
                         .SetProperty(g => g.Name, Name)
                         .SetProperty(g => g.Desc, Description)
@@ -659,8 +637,7 @@ namespace Plus.HabboHotel.Groups
 
                     // group_requests is a keyless entity (no PK), so EF cannot track/Add it. Insert
                     // the (bounded) request set via raw SQL, mirroring the delete-all + re-insert above.
-                    foreach (int uid in _requests)
-                    {
+                    foreach (int uid in _requests) {
                         uint requestUserId = (uint)uid;
                         db.Database.ExecuteSqlInterpolated(
                             $"INSERT INTO `group_requests` (`group_id`, `user_id`) VALUES ({gid}, {requestUserId})");

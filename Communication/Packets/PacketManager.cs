@@ -152,8 +152,7 @@ namespace Plus.Communication.Packets
             if (session == null)
                 return;
 
-            if (!_incomingPackets.TryGetValue(packet.Id, out IPacketEvent pak))
-            {
+            if (!_incomingPackets.TryGetValue(packet.Id, out IPacketEvent pak)) {
                 if (Debugger.IsAttached)
                     Log.Debug("Unhandled Packet: " + packet.Id);
                 return;
@@ -161,8 +160,7 @@ namespace Plus.Communication.Packets
 
             // Guarded so the per-packet name lookup + string concatenation (this is the single
             // hottest code path in the server) only happens when debug logging is actually on.
-            if (Log.IsDebugEnabled)
-            {
+            if (Log.IsDebugEnabled) {
                 if (_packetNames.TryGetValue(packet.Id, out string packetName))
                     Log.Debug("Handled Packet: [" + packet.Id + "] " + packetName);
                 else
@@ -187,19 +185,14 @@ namespace Plus.Communication.Packets
 
             _runningTasks.TryAdd(t.Id, t);
 
-            try
-            {
-                if (!t.Wait(MaximumRunTimeInSec * 1000, token))
-                {
+            try {
+                if (!t.Wait(MaximumRunTimeInSec * 1000, token)) {
                     cancelSource.Cancel();
                 }
             }
-            catch (AggregateException ex)
-            {
-                foreach (Exception e in ex.Flatten().InnerExceptions)
-                {
-                    if (ThrowUserErrors)
-                    {
+            catch (AggregateException ex) {
+                foreach (Exception e in ex.Flatten().InnerExceptions) {
+                    if (ThrowUserErrors) {
                         throw e;
                     }
 
@@ -207,12 +200,10 @@ namespace Plus.Communication.Packets
                     session.Disconnect(immediate: true);
                 }
             }
-            catch (OperationCanceledException)
-            {
+            catch (OperationCanceledException) {
                 session.Disconnect();
             }
-            finally
-            {
+            finally {
                 _runningTasks.TryRemove(t.Id, out Task _);
 
                 cancelSource.Dispose();
@@ -223,8 +214,7 @@ namespace Plus.Communication.Packets
 
         public void WaitForAllToComplete()
         {
-            foreach (Task t in _runningTasks.Values.ToList())
-            {
+            foreach (Task t in _runningTasks.Values.ToList()) {
                 t.Wait();
             }
         }
@@ -453,7 +443,6 @@ namespace Plus.Communication.Packets
             _incomingPackets.Add(ClientPacketHeader.MemoryPerformanceMessageEvent, new MemoryPerformanceEvent());
             _incomingPackets.Add(ClientPacketHeader.SetFriendBarStateMessageEvent, new SetFriendBarStateEvent());
         }
-
 
         private void RegisterMessenger()
         {

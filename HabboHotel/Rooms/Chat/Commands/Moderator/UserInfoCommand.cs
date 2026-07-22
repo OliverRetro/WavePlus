@@ -17,8 +17,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length == 1)
-            {
+            if (@params.Length == 1) {
                 session.SendWhisper("Please enter the username of the user you wish to view.");
                 return;
             }
@@ -32,8 +31,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
                 .Select(u => new { u.Id, u.Username, u.Rank, u.RankVip, u.Credits, u.ActivityPoints, u.VipPoints, u.GotwPoints })
                 .FirstOrDefault();
 
-            if (userData == null)
-            {
+            if (userData == null) {
                 session.SendNotification("Oops, there is no user in the database with that username (" + username + ")!");
                 return;
             }
@@ -45,8 +43,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
                 .Select(ui => new { ui.Bans, ui.Cfhs, ui.CfhsAbusive, ui.TradingLocked, ui.TradingLocksCount })
                 .FirstOrDefault();
 
-            if (userInfo == null)
-            {
+            if (userInfo == null) {
                 db.Database.ExecuteSqlInterpolated($"INSERT INTO `user_info` (`user_id`) VALUES ({userId})");
 
                 userInfo = db.UserInfos
@@ -79,13 +76,11 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
             habboInfo.Append("Trading Locked: " + (Convert.ToInt32(userInfo.TradingLocked) == 0 ? "No outstanding lock" : "Expiry: " + (origin.ToString("dd/MM/yyyy")) + "") + "\r");
             habboInfo.Append("Amount of trading locks: " + userInfo.TradingLocksCount + "\r\r");
 
-            if (targetClient != null)
-            {
+            if (targetClient != null) {
                 habboInfo.Append("<b>Current Session:</b>\r");
                 if (!targetClient.GetHabbo().InRoom)
                     habboInfo.Append("Currently not in a room.\r");
-                else
-                {
+                else {
                     habboInfo.Append("Room: " + targetClient.GetHabbo().CurrentRoom.Name + " (" + targetClient.GetHabbo().CurrentRoom.RoomId + ")\r");
                     habboInfo.Append("Room Owner: " + targetClient.GetHabbo().CurrentRoom.OwnerName + "\r");
                     habboInfo.Append("Current Visitors: " + targetClient.GetHabbo().CurrentRoom.UsersNow + "/" + targetClient.GetHabbo().CurrentRoom.UsersMax);

@@ -61,8 +61,7 @@ namespace Plus.HabboHotel.Catalog
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
 
-            foreach (var row in db.CatalogItems.Select(c => new { c.Id, c.ItemId, c.CatalogName, c.CostCredits, c.CostPixels, c.CostDiamonds, c.Amount, c.PageId, c.LimitedSells, c.LimitedStack, c.OfferActive, c.Extradata, c.Badge, c.OfferId }).ToList())
-            {
+            foreach (var row in db.CatalogItems.Select(c => new { c.Id, c.ItemId, c.CatalogName, c.CostCredits, c.CostPixels, c.CostDiamonds, c.Amount, c.PageId, c.LimitedSells, c.LimitedStack, c.OfferActive, c.Extradata, c.Badge, c.OfferId }).ToList()) {
                 if (row.Amount <= 0)
                     continue;
 
@@ -71,8 +70,7 @@ namespace Plus.HabboHotel.Catalog
                 int baseId = Convert.ToInt32(row.ItemId);
                 int offerId = row.OfferId;
 
-                if (!itemDataManager.GetItem(baseId, out ItemData data))
-                {
+                if (!itemDataManager.GetItem(baseId, out ItemData data)) {
                     Log.Error("Couldn't load Catalog Item " + itemId + ", no furniture record found.");
                     continue;
                 }
@@ -89,16 +87,14 @@ namespace Plus.HabboHotel.Catalog
                     row.Extradata, row.Badge, row.OfferId));
             }
 
-            foreach (var row in db.CatalogDeals.Select(d => new { d.Id, d.Items, d.Name, d.RoomId }).ToList())
-            {
+            foreach (var row in db.CatalogDeals.Select(d => new { d.Id, d.Items, d.Name, d.RoomId }).ToList()) {
                 CatalogDeal deal = new(row.Id, row.Items, row.Name, row.RoomId, itemDataManager);
 
                 if (!_deals.ContainsKey(row.Id))
                     _deals.Add(deal.Id, deal);
             }
 
-            foreach (var row in db.CatalogPages.OrderBy(p => p.OrderNum).Select(p => new { p.Id, p.ParentId, p.Caption, p.PageLink, p.Visible, p.Enabled, p.MinRank, p.MinVip, p.IconImage, p.PageLayout, p.PageStrings1, p.PageStrings2 }).ToList())
-            {
+            foreach (var row in db.CatalogPages.OrderBy(p => p.OrderNum).Select(p => new { p.Id, p.ParentId, p.Caption, p.PageLink, p.Visible, p.Enabled, p.MinRank, p.MinVip, p.IconImage, p.PageLayout, p.PageStrings1, p.PageStrings2 }).ToList()) {
                 _pages.Add(row.Id, new CatalogPage(row.Id, row.ParentId, row.Enabled, row.Caption,
                     row.PageLink, row.IconImage, (int)row.MinRank, row.MinVip, row.Visible, row.PageLayout,
                     row.PageStrings1, row.PageStrings2,
@@ -108,8 +104,7 @@ namespace Plus.HabboHotel.Catalog
             foreach (var row in db.CatalogBotPresets.Select(b => new { b.Id, b.Name, b.Figure, b.Motto, b.Gender, b.AiType }).ToList())
                 _botPresets.Add(row.Id, new CatalogBot(row.Id, row.Name, row.Figure, row.Motto, row.Gender, row.AiType));
 
-            foreach (var row in db.CatalogPromotions.Select(p => new { p.Id, p.Title, p.Image, p.Unknown, p.PageLink, p.ParentId }).ToList())
-            {
+            foreach (var row in db.CatalogPromotions.Select(p => new { p.Id, p.Title, p.Image, p.Unknown, p.PageLink, p.ParentId }).ToList()) {
                 if (!_promotions.ContainsKey(row.Id))
                     _promotions.Add(row.Id, new CatalogPromotion(row.Id, row.Title, row.Image, row.Unknown ?? 0, row.PageLink, row.ParentId ?? 0));
             }

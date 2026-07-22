@@ -33,8 +33,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Conditions
                 SetItems.Clear();
 
             int furniCount = packet.PopInt();
-            for (int i = 0; i < furniCount; i++)
-            {
+            for (int i = 0; i < furniCount; i++) {
                 Item selectedItem = Instance.GetRoomItemHandler().GetItem(packet.PopInt());
                 if (selectedItem != null)
                     SetItems.TryAdd(selectedItem.Id, selectedItem);
@@ -53,8 +52,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Conditions
                 return false;
 
             List<Item> itemsOnSquare = Instance.GetGameMap().GetAllRoomItemForSquare(user.X, user.Y);
-            foreach (Item item in itemsOnSquare.ToList())
-            {
+            foreach (Item item in itemsOnSquare.ToList()) {
                 if (SetItems.ContainsKey(item.Id))
                     return false;
             }

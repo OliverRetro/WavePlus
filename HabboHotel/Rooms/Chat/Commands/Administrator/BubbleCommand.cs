@@ -17,32 +17,27 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator
             if (user == null)
                 return;
 
-            if (@params.Length == 1)
-            {
+            if (@params.Length == 1) {
                 session.SendWhisper("Oops, you forgot to enter a bubble ID!");
                 return;
             }
 
-            if (!int.TryParse(@params[1], out int bubble))
-            {
+            if (!int.TryParse(@params[1], out int bubble)) {
                 session.SendWhisper("Please enter a valid number.");
                 return;
             }
 
-            if (!session.GetHabbo().HasChatBubble(bubble))
-            {
+            if (!session.GetHabbo().HasChatBubble(bubble)) {
                 session.SendWhisper("Oops, you do not own that bubble.");
                 return;
             }
 
-            if (!PlusEnvironment.GetGame().GetChatManager().GetChatStyles().TryGetStyle(bubble, out ChatStyle style))
-            {
+            if (!PlusEnvironment.GetGame().GetChatManager().GetChatStyles().TryGetStyle(bubble, out ChatStyle style)) {
                 session.SendWhisper("Oops, that bubble does not exist.");
                 return;
             }
 
-            if (style.RequiredRight.Length > 0 && !session.GetHabbo().GetPermissions().HasRight(style.RequiredRight))
-            {
+            if (style.RequiredRight.Length > 0 && !session.GetHabbo().GetPermissions().HasRight(style.RequiredRight)) {
                 session.SendWhisper("Oops, you cannot use this bubble due to a rank requirement, sorry!");
                 return;
             }

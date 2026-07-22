@@ -17,21 +17,18 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length == 1)
-            {
+            if (@params.Length == 1) {
                 session.SendWhisper("Please enter the username of the user you'd like to IP ban & account ban.");
                 return;
             }
 
             Habbo habbo = PlusEnvironment.GetHabboByUsername(@params[1]);
-            if (habbo == null)
-            {
+            if (habbo == null) {
                 session.SendWhisper("An error occoured whilst finding that user in the database.");
                 return;
             }
 
-            if (habbo.GetPermissions().HasRight("mod_tool") && !session.GetHabbo().GetPermissions().HasRight("mod_ban_any"))
-            {
+            if (habbo.GetPermissions().HasRight("mod_tool") && !session.GetHabbo().GetPermissions().HasRight("mod_ban_any")) {
                 session.SendWhisper("Oops, you cannot ban that user.");
                 return;
             }
@@ -41,8 +38,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
             string username = habbo.Username;
 
             int habboId = habbo.Id;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.UserInfos.Where(ui => ui.UserId == habboId).ExecuteUpdate(s => s.SetProperty(ui => ui.Bans, ui => ui.Bans + 1));
 
                 ipAddress = db.Users.Where(u => u.Id == habboId).Select(u => u.IpLast).FirstOrDefault() ?? string.Empty;

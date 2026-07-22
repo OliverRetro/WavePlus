@@ -29,11 +29,9 @@ namespace Plus.Communication.Packets.Outgoing.Moderation
             packet.WriteInteger(Room.Id);
 
             packet.WriteShort(Chats.Count);
-            foreach (ChatLogEntry entry in Chats)
-            {
+            foreach (ChatLogEntry entry in Chats) {
                 string username = "Unknown";
-                if (entry.PlayerNullable() != null)
-                {
+                if (entry.PlayerNullable() != null) {
                     username = entry.PlayerNullable().Username;
                 }
 

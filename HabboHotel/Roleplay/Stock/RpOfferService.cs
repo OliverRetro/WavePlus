@@ -97,8 +97,7 @@ namespace Plus.HabboHotel.Roleplay.Stock
             Habbo habbo = buyer.GetHabbo();
 
             List<object> entries = new();
-            foreach ((string stockType, int itemId, int amount, int price) in stock)
-            {
+            foreach ((string stockType, int itemId, int amount, int price) in stock) {
                 if (!TryDescribe(stockType, itemId, out string name, out string image, out int rarity))
                     continue;
 
@@ -142,16 +141,14 @@ namespace Plus.HabboHotel.Roleplay.Stock
             if (!_pending.TryGetValue(habbo.Id, out PendingOffer offer) || offer.Id != offerId)
                 return;
 
-            if (offer.IsExpired)
-            {
+            if (offer.IsExpired) {
                 _pending.TryRemove(habbo.Id, out _);
                 buyer.SendWhisper("That offer has expired.", 1);
                 return;
             }
 
             // The window is tied to the room it was opened in; walking out ends it.
-            if (habbo.CurrentRoom == null || habbo.CurrentRoom.Id != offer.RoomId)
-            {
+            if (habbo.CurrentRoom == null || habbo.CurrentRoom.Id != offer.RoomId) {
                 _pending.TryRemove(habbo.Id, out _);
                 buyer.SendWhisper("You've left the room that offer came from.", 1);
                 return;
@@ -163,8 +160,7 @@ namespace Plus.HabboHotel.Roleplay.Stock
             RoomStockManager stocks = PlusEnvironment.GetRoomStockManager();
 
             int available = stocks.GetStock(offer.RoomId, stockType, itemId, offer.FurniId);
-            if (available <= 0)
-            {
+            if (available <= 0) {
                 Refresh(buyer, offer, TitleFor(offer), "That item is out of stock!");
                 return;
             }
@@ -177,8 +173,7 @@ namespace Plus.HabboHotel.Roleplay.Stock
             bool clamped = fits < amount;
             amount = fits;
 
-            if (amount <= 0)
-            {
+            if (amount <= 0) {
                 Refresh(buyer, offer, TitleFor(offer), "Your inventory is full.");
                 return;
             }
@@ -186,8 +181,7 @@ namespace Plus.HabboHotel.Roleplay.Stock
             int unitPrice = stocks.GetPrice(offer.RoomId, stockType, itemId, offer.FurniId);
             int total = unitPrice * amount;
 
-            if (total > habbo.Credits)
-            {
+            if (total > habbo.Credits) {
                 int affordable = unitPrice <= 0 ? amount : habbo.Credits / unitPrice;
                 Refresh(buyer, offer, TitleFor(offer),
                     affordable > 0
@@ -197,14 +191,12 @@ namespace Plus.HabboHotel.Roleplay.Stock
             }
 
             // Consume last, once every other check has passed, so a failure can't eat stock.
-            if (!stocks.TryConsume(offer.RoomId, stockType, itemId, amount, offer.FurniId))
-            {
+            if (!stocks.TryConsume(offer.RoomId, stockType, itemId, amount, offer.FurniId)) {
                 Refresh(buyer, offer, TitleFor(offer), "Someone beat you to the last of that stock!");
                 return;
             }
 
-            if (!Deliver(habbo, stockType, itemId, amount))
-            {
+            if (!Deliver(habbo, stockType, itemId, amount)) {
                 // Delivery failed after the stock was taken — put it straight back.
                 stocks.AddStock(offer.RoomId, stockType, itemId, amount, offer.FurniId);
                 Refresh(buyer, offer, TitleFor(offer), "That item couldn't be delivered.");
@@ -256,8 +248,7 @@ namespace Plus.HabboHotel.Roleplay.Stock
             int free = FreeSlots(habbo);
 
             if (stockType == StockType.RpItem &&
-                PlusEnvironment.GetRpItemManager().TryGetItem(itemId, out RpItemData def) && def.IsStackable)
-            {
+                PlusEnvironment.GetRpItemManager().TryGetItem(itemId, out RpItemData def) && def.IsStackable) {
                 // Room left in the partially-filled stack, plus a full stack for every free slot.
                 int owned = habbo.GetRpItems()?.GetItemsByItemId(itemId).Count() ?? 0;
                 int remainder = owned % def.StackLimit;
@@ -275,15 +266,13 @@ namespace Plus.HabboHotel.Roleplay.Stock
 
         private static bool Deliver(Habbo habbo, string stockType, int itemId, int amount)
         {
-            switch (stockType)
-            {
+            switch (stockType) {
                 case StockType.RpItem:
                     UserRpItems items = habbo.GetRpItems();
                     if (items == null)
                         return false;
 
-                    for (int i = 0; i < amount; i++)
-                    {
+                    for (int i = 0; i < amount; i++) {
                         if (items.AddItem(itemId) == null)
                             return i > 0; // partially delivered is still a sale
                     }
@@ -295,8 +284,7 @@ namespace Plus.HabboHotel.Roleplay.Stock
                     if (weapons == null)
                         return false;
 
-                    for (int i = 0; i < amount; i++)
-                    {
+                    for (int i = 0; i < amount; i++) {
                         if (weapons.AddWeapon(itemId) == null)
                             return i > 0;
                     }
@@ -319,8 +307,7 @@ namespace Plus.HabboHotel.Roleplay.Stock
             image = "";
             rarity = 1;
 
-            switch (stockType)
-            {
+            switch (stockType) {
                 case StockType.RpItem:
                     if (!PlusEnvironment.GetRpItemManager().TryGetItem(itemId, out RpItemData item))
                         return false;

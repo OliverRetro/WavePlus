@@ -93,8 +93,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             if (!message.StartsWith(_prefix))
                 return false;
 
-            if (message == _prefix + "commands")
-            {
+            if (message == _prefix + "commands") {
                 SendCommandList(session);
                 return true;
             }
@@ -105,13 +104,11 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             if (split.Length == 0)
                 return false;
 
-            if (_commands.TryGetValue(split[0].ToLower(), out IChatCommand cmd))
-            {
+            if (_commands.TryGetValue(split[0].ToLower(), out IChatCommand cmd)) {
                 if (session.GetHabbo().GetPermissions().HasRight("mod_tool"))
                     LogCommand(session.GetHabbo().Id, message, session.GetHabbo().MachineId);
 
-                if (!string.IsNullOrEmpty(cmd.PermissionRequired) || !string.IsNullOrEmpty(cmd.GroupPermissionRequired))
-                {
+                if (!string.IsNullOrEmpty(cmd.PermissionRequired) || !string.IsNullOrEmpty(cmd.GroupPermissionRequired)) {
                     if (!CanExecuteCommand(session, split[0].ToLower(), cmd))
                         return false;
                 }
@@ -202,8 +199,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             // Aliases point at shared singletons, so grouping by instance collapses every trigger
             // for a command into one entry instead of repeating it once per key.
             Dictionary<IChatCommand, List<string>> aliases = new();
-            foreach (KeyValuePair<string, IChatCommand> pair in _commands)
-            {
+            foreach (KeyValuePair<string, IChatCommand> pair in _commands) {
                 if (!aliases.TryGetValue(pair.Value, out List<string> keys))
                     aliases[pair.Value] = keys = new List<string>();
 
@@ -211,8 +207,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             }
 
             List<(string Name, object Payload)> commands = new();
-            foreach (KeyValuePair<IChatCommand, List<string>> pair in aliases)
-            {
+            foreach (KeyValuePair<IChatCommand, List<string>> pair in aliases) {
                 IChatCommand command = pair.Key;
 
                 if (!_categoryByCommand.TryGetValue(command.GetType().Name, out string category))
@@ -468,17 +463,14 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
 
             // Fuse -> instance, for rows that reference a command by its (unique) permission fuse.
             var byFuse = new Dictionary<string, IChatCommand>(StringComparer.OrdinalIgnoreCase);
-            foreach (IChatCommand cmd in _registry.Values)
-            {
+            foreach (IChatCommand cmd in _registry.Values) {
                 if (!string.IsNullOrEmpty(cmd.PermissionRequired) && !byFuse.ContainsKey(cmd.PermissionRequired))
                     byFuse[cmd.PermissionRequired] = cmd;
             }
 
-            try
-            {
+            try {
                 using WavePlusContext db = PlusEnvironment.GetDbContext();
-                foreach (var row in db.PermissionsCommands.Select(c => new { c.Command, c.Keys }).ToList())
-                {
+                foreach (var row in db.PermissionsCommands.Select(c => new { c.Command, c.Keys }).ToList()) {
                     if (string.IsNullOrWhiteSpace(row.Keys) || string.IsNullOrWhiteSpace(row.Command))
                         continue;
 
@@ -491,8 +483,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
                         Bind(alias, cmd);
                 }
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 // Most likely the permissions_commands.keys column hasn't been added yet. Without it
                 // no commands bind — log loudly so the missing migration is obvious.
                 Core.ExceptionLogger.LogException(e);
@@ -502,8 +493,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
         public static string MergeParams(string[] @params, int start)
         {
             var merged = new StringBuilder();
-            for (int i = start; i < @params.Length; i++)
-            {
+            for (int i = start; i < @params.Length; i++) {
                 if (i > start)
                     merged.Append(" ");
                 merged.Append(@params[i]);

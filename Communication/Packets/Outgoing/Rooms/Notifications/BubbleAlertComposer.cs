@@ -32,8 +32,7 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Notifications
             packet.WriteString(ErrorKey);
             packet.WriteInteger(Keys.Count);
 
-            foreach (var kvp in Keys)
-            {
+            foreach (var kvp in Keys) {
                 packet.WriteString(kvp.Key);
                 packet.WriteString(kvp.Value);
             }

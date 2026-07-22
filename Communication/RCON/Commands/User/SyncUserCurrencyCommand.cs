@@ -27,14 +27,12 @@ namespace Plus.Communication.Rcon.Commands.User
 
             string currency = Convert.ToString(parameters[1]);
 
-            switch (currency)
-            {
+            switch (currency) {
                 default:
                     return false;
 
                 case "coins":
-                case "credits":
-                    {
+                case "credits": {
                         int credits = client.GetHabbo().Credits;
                         using (WavePlusContext db = PlusEnvironment.GetDbContext())
                             db.Users.Where(u => u.Id == userId).ExecuteUpdate(s => s.SetProperty(u => u.Credits, credits));
@@ -43,8 +41,7 @@ namespace Plus.Communication.Rcon.Commands.User
                     }
 
                 case "pixels":
-                case "duckets":
-                    {
+                case "duckets": {
                         int duckets = client.GetHabbo().Duckets;
                         using (WavePlusContext db = PlusEnvironment.GetDbContext())
                             db.Users.Where(u => u.Id == userId).ExecuteUpdate(s => s.SetProperty(u => u.ActivityPoints, duckets));
@@ -52,8 +49,7 @@ namespace Plus.Communication.Rcon.Commands.User
                         break;
                     }
 
-                case "diamonds":
-                    {
+                case "diamonds": {
                         int diamonds = client.GetHabbo().Diamonds;
                         using (WavePlusContext db = PlusEnvironment.GetDbContext())
                             db.Users.Where(u => u.Id == userId).ExecuteUpdate(s => s.SetProperty(u => u.VipPoints, diamonds));
@@ -61,8 +57,7 @@ namespace Plus.Communication.Rcon.Commands.User
                         break;
                     }
 
-                case "gotw":
-                    {
+                case "gotw": {
                         int gotw = client.GetHabbo().GotwPoints;
                         using (WavePlusContext db = PlusEnvironment.GetDbContext())
                             db.Users.Where(u => u.Id == userId).ExecuteUpdate(s => s.SetProperty(u => u.GotwPoints, gotw));

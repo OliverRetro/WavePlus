@@ -13,8 +13,7 @@ namespace Plus.HabboHotel.Camera
         private static uint[] BuildCrcTable()
         {
             uint[] table = new uint[256];
-            for (uint n = 0; n < 256; n++)
-            {
+            for (uint n = 0; n < 256; n++) {
                 uint c = n;
                 for (int k = 0; k < 8; k++)
                     c = (c & 1) != 0 ? 0xEDB88320 ^ (c >> 1) : c >> 1;
@@ -64,8 +63,7 @@ namespace Plus.HabboHotel.Camera
             using MemoryStream idatStream = new();
 
             int pos = 8;
-            while (pos < input.Length)
-            {
+            while (pos < input.Length) {
                 if (seenIend)
                     return null; // trailing data after IEND -> polyglot attempt
 
@@ -84,8 +82,7 @@ namespace Plus.HabboHotel.Camera
                 if (declaredCrc != actualCrc)
                     return null;
 
-                switch (type)
-                {
+                switch (type) {
                     case "IHDR":
                         if (seenIhdr || length != 13)
                             return null;
@@ -143,8 +140,7 @@ namespace Plus.HabboHotel.Camera
                         continue;
                 }
 
-                if (type != "IEND")
-                {
+                if (type != "IEND") {
                     // Copy the whole verified chunk (length + type + data + crc) verbatim.
                     output.Write(input, pos, (int)length + 12);
                 }
@@ -175,23 +171,22 @@ namespace Plus.HabboHotel.Camera
             if (compressed.Length < 2)
                 return false;
 
-            try
-            {
+            try {
                 using MemoryStream source = new(compressed);
                 using ZLibStream inflater = new(source, CompressionMode.Decompress);
 
                 byte[] scratch = new byte[8192];
                 long total = 0;
                 int read;
-                while ((read = inflater.Read(scratch, 0, scratch.Length)) > 0)
-                {
+                while ((read = inflater.Read(scratch, 0, scratch.Length)) > 0) {
                     total += read;
                     if (total > maxDecompressed)
                         return false;
                 }
 
                 return total > 0;
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
                 Console.Write(e.ToString());
                 return false;
             }

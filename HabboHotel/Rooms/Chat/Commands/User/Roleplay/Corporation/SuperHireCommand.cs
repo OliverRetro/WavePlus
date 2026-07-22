@@ -24,8 +24,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
             if (session?.GetHabbo() == null || room?.Group == null)
                 return;
 
-            if (@params.Length < 2)
-            {
+            if (@params.Length < 2) {
                 session.SendWhisper("Please enter the username of the person you want to hire.", 1);
                 return;
             }
@@ -34,34 +33,29 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
 
             GameClient targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(@params[1]);
             Habbo targetHabbo = targetClient?.GetHabbo() ?? PlusEnvironment.GetHabboByUsername(@params[1]);
-            if (targetHabbo == null)
-            {
+            if (targetHabbo == null) {
                 session.SendWhisper("Oops, couldn't find that user.", 1);
                 return;
             }
 
-            if (group.IsMember(targetHabbo.Id))
-            {
+            if (group.IsMember(targetHabbo.Id)) {
                 session.SendWhisper("That user is already a member of this group.", 1);
                 return;
             }
 
-            if (GroupManager.IsWorkableKind(group.Kind) && targetHabbo.CorporationId != 0)
-            {
+            if (GroupManager.IsWorkableKind(group.Kind) && targetHabbo.CorporationId != 0) {
                 session.SendWhisper("That user already works for another corporation.", 1);
                 return;
             }
 
-            if (targetHabbo.GetStats().FavouriteGroupId == 0 && (group.Kind == GroupKind.Gang || group.Kind == GroupKind.Cartel || group.Kind == GroupKind.Mafia))
-            {
+            if (targetHabbo.GetStats().FavouriteGroupId == 0 && (group.Kind == GroupKind.Gang || group.Kind == GroupKind.Cartel || group.Kind == GroupKind.Mafia)) {
                 targetHabbo.GetStats().FavouriteGroupId = group.Id;
                 int favGroupId = targetHabbo.GetStats().FavouriteGroupId;
                 int targetId = targetHabbo.Id;
                 using (WavePlusContext db = PlusEnvironment.GetDbContext())
                     db.UserStats.Where(u => u.Id == targetId).ExecuteUpdate(s => s.SetProperty(u => u.Groupid, favGroupId));
 
-                if (targetHabbo.InRoom && targetHabbo.CurrentRoom != null)
-                {
+                if (targetHabbo.InRoom && targetHabbo.CurrentRoom != null) {
                     targetHabbo.CurrentRoom.SendPacket(new RefreshFavouriteGroupComposer(targetHabbo.Id));
                     targetHabbo.CurrentRoom.SendPacket(new HabboGroupBadgesComposer(group));
 

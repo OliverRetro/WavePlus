@@ -15,22 +15,19 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            if (@params.Length == 1)
-            {
+            if (@params.Length == 1) {
                 session.SendWhisper("Please enter the username of the user you would like to unmute.");
                 return;
             }
 
             GameClient targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(@params[1]);
-            if (targetClient == null || targetClient.GetHabbo() == null)
-            {
+            if (targetClient == null || targetClient.GetHabbo() == null) {
                 session.SendWhisper("An error occoured whilst finding that user, maybe they're not online.");
                 return;
             }
 
             int habboId = targetClient.GetHabbo().Id;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.Users.Where(u => u.Id == habboId).ExecuteUpdate(s => s.SetProperty(u => u.TimeMuted, 0d));
             }
 

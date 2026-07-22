@@ -19,19 +19,16 @@ namespace Plus.HabboHotel.Catalog
             RoomId = roomId;
             ItemDataList = new List<CatalogItem>();
 
-            if (roomId != 0)
-            {
+            if (roomId != 0) {
                 uint rid = (uint)roomId;
                 // NOTE: original query LEFT JOINed items_groups but only used items.base_item; group_id was never read.
                 List<uint> baseItems;
-                using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                {
+                using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                     baseItems = db.Items.Where(i => i.RoomId == rid).Select(i => i.BaseItem).ToList();
                 }
 
                 Dictionary<int, int> roomItems = new();
-                foreach (uint baseItem in baseItems)
-                {
+                foreach (uint baseItem in baseItems) {
                     int itemId = (int)baseItem;
                     if (roomItems.ContainsKey(itemId))
                         roomItems[itemId]++;
@@ -39,20 +36,17 @@ namespace Plus.HabboHotel.Catalog
                         roomItems.Add(itemId, 1);
                 }
 
-                foreach (var roomItem in roomItems)
-                {
+                foreach (var roomItem in roomItems) {
                     items += roomItem.Key + "*" + roomItem.Value + ";";
                 }
 
-                if (roomItems.Count > 0)
-                {
+                if (roomItems.Count > 0) {
                     items = items.Remove(items.Length - 1);
                 }
             }
 
             string[] splitItems = items.Split(';');
-            foreach (string split in splitItems)
-            {
+            foreach (string split in splitItems) {
                 string[] item = split.Split('*');
                 if (!int.TryParse(item[0], out int itemId) || !int.TryParse(item[1], out int amount))
                     continue;

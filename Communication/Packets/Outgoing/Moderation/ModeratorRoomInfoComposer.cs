@@ -26,8 +26,7 @@ namespace Plus.Communication.Packets.Outgoing.Moderation
             packet.WriteString(Data.Description);
 
             packet.WriteInteger(Data.Tags.Count);
-            foreach (string tag in Data.Tags)
-            {
+            foreach (string tag in Data.Tags) {
                 packet.WriteString(tag);
             }
 

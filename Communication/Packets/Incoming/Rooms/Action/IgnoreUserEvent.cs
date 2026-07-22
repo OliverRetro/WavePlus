@@ -28,10 +28,8 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Action
             if (session.GetHabbo().GetIgnores().TryGet(player.Id))
                 return;
 
-            if (session.GetHabbo().GetIgnores().TryAdd(player.Id))
-            {
-                using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                {
+            if (session.GetHabbo().GetIgnores().TryAdd(player.Id)) {
+                using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                     db.UserIgnores.Add(new UserIgnoreEntity { UserId = (uint)session.GetHabbo().Id, IgnoreId = (uint)player.Id });
                     db.SaveChanges();
                 }

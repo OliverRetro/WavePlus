@@ -17,8 +17,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 
             Habbo target = null;
 
-            if (@params.Length >= 2)
-            {
+            if (@params.Length >= 2) {
                 // Resolved by name across the whole hotel: a lock does not require the
                 // target to share your room, so RpCommandUtil.TryGetTarget's room check
                 // (which is right for :hit, :rob, cuffing) must not apply here.
@@ -26,25 +25,21 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 
                 target = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(username)?.GetHabbo();
 
-                if (target == null)
-                {
+                if (target == null) {
                     session.SendWhisper("That user could not be found.", 1);
                     return;
                 }
 
-                if (target.Id == session.GetHabbo().Id)
-                {
+                if (target.Id == session.GetHabbo().Id) {
                     session.SendWhisper("You cannot lock onto yourself.", 1);
                     return;
                 }
             }
-            else
-            {
+            else {
                 target = TargetLockService.GetTarget(session.GetHabbo());
             }
 
-            if (target == null)
-            {
+            if (target == null) {
                 session.SendWhisper("Click a player or use :locktarget <username>.", 1);
                 return;
             }

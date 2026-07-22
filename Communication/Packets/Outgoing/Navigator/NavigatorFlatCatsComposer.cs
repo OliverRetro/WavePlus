@@ -17,8 +17,7 @@ namespace Plus.Communication.Packets.Outgoing.Navigator
         public override void Compose(ServerPacket packet)
         {
             packet.WriteInteger(Categories.Count);
-            foreach (SearchResultList category in Categories.ToList())
-            {
+            foreach (SearchResultList category in Categories.ToList()) {
                 packet.WriteInteger(category.Id);
                 packet.WriteString(category.PublicName);
                 packet.WriteBoolean(true); // TODO

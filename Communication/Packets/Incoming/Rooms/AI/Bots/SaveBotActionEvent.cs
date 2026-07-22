@@ -46,12 +46,10 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Bots
              * 5 = Change Name
              */
 
-            switch (actionId)
-            {
+            switch (actionId) {
                 #region Copy Looks (1)
 
-                case 1:
-                    {
+                case 1: {
                         //Change the defaults
                         bot.BotData.Look = session.GetHabbo().Look;
                         bot.BotData.Gender = session.GetHabbo().Gender;
@@ -59,7 +57,6 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Bots
                         UserChangeComposer userChangeComposer = new(bot.VirtualId, bot.BotData);
 
                         room.SendPacket(userChangeComposer);
-
 
                         uint copyBotId = (uint)bot.BotData.Id;
                         string copyLook = session.GetHabbo().Look;
@@ -75,8 +72,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Bots
 
                 #region Setup Speech (2)
 
-                case 2:
-                    {
+                case 2: {
                         string[] configData = dataString.Split(new[]
                         {
                         ";#;"
@@ -99,8 +95,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Bots
                         roomBot.SpeakingInterval = Convert.ToInt32(speakingInterval);
                         roomBot.MixSentences = Convert.ToBoolean(mixChat);
 
-                        using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                        {
+                        using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                             uint deleteBotId = (uint)bot.BotData.Id;
                             db.BotsSpeeches.Where(sp => sp.BotId == deleteBotId).ExecuteDelete();
 
@@ -131,8 +126,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Bots
 
                 #region Relax (3)
 
-                case 3:
-                    {
+                case 3: {
                         if (bot.BotData.WalkingMode == "stand")
                             bot.BotData.WalkingMode = "freeroam";
                         else
@@ -150,12 +144,10 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Bots
 
                 #region Dance (4)
 
-                case 4:
-                    {
+                case 4: {
                         if (bot.BotData.DanceId > 0)
                             bot.BotData.DanceId = 0;
-                        else
-                        {
+                        else {
                             Random randomDance = new();
                             bot.BotData.DanceId = randomDance.Next(1, 4);
                         }
@@ -168,22 +160,18 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Bots
 
                 #region Change Name (5)
 
-                case 5:
-                    {
-                        if (dataString.Length == 0)
-                        {
+                case 5: {
+                        if (dataString.Length == 0) {
                             session.SendWhisper("Come on, atleast give the bot a name!");
                             return;
                         }
 
-                        if (dataString.Length >= 16)
-                        {
+                        if (dataString.Length >= 16) {
                             session.SendWhisper("Come on, the bot doesn't need a name that long!");
                             return;
                         }
 
-                        if (dataString.Contains("<img src") || dataString.Contains("<font ") || dataString.Contains("</font>") || dataString.Contains("</a>") || dataString.Contains("<i>"))
-                        {
+                        if (dataString.Contains("<img src") || dataString.Contains("<font ") || dataString.Contains("</font>") || dataString.Contains("</a>") || dataString.Contains("<i>")) {
                             session.SendWhisper("No HTML, please :<");
                             return;
                         }

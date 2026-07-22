@@ -35,8 +35,7 @@ namespace Plus.Communication.Packets.Outgoing.Moderation
             packet.WriteInteger(RoomData.Id);
 
             packet.WriteShort(ModerationTicket.ReportedChats.Count);
-            foreach (string chat in ModerationTicket.ReportedChats)
-            {
+            foreach (string chat in ModerationTicket.ReportedChats) {
                 packet.WriteString(UnixTimestamp.FromUnixTimestamp(Timestamp).ToShortTimeString());
                 packet.WriteInteger(ModerationTicket.Id);
                 packet.WriteString(ModerationTicket.Reported != null ? ModerationTicket.Reported.Username : "No username");

@@ -22,8 +22,7 @@ namespace Plus.Communication.Packets.Incoming.Moderation
             bool setName = packet.PopInt() == 1;
             bool kickAll = packet.PopInt() == 1;
 
-            if (setName)
-            {
+            if (setName) {
                 room.Name = "Inappropriate to Hotel Management";
                 room.Description = "Inappropriate to Hotel Management";
             }
@@ -38,8 +37,7 @@ namespace Plus.Communication.Packets.Incoming.Moderation
                 room.EndPromotion();
 
             int roomId = room.RoomId;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 // NOTE: legacy sets `state` = '1' even though the column is an enum('open','locked','password','invisible'); preserved as-is.
                 if (setName && setLock)
                     db.Rooms.Where(r => r.Id == roomId).ExecuteUpdate(s => s
@@ -61,10 +59,8 @@ namespace Plus.Communication.Packets.Incoming.Moderation
             room.SendPacket(new RoomSettingsSavedComposer(room.RoomId));
             room.SendPacket(new RoomInfoUpdatedComposer(room.RoomId));
 
-            if (kickAll)
-            {
-                foreach (RoomUser roomUser in room.GetRoomUserManager().GetUserList().ToList())
-                {
+            if (kickAll) {
+                foreach (RoomUser roomUser in room.GetRoomUserManager().GetUserList().ToList()) {
                     if (roomUser == null || roomUser.IsBot)
                         continue;
 

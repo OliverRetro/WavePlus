@@ -58,11 +58,9 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
                 return;
 
             bool changed = false;
-            foreach (UserWeapon weapon in weapons.GetWeaponsByWeaponId(tazerId))
-            {
+            foreach (UserWeapon weapon in weapons.GetWeaponsByWeaponId(tazerId)) {
                 int max = weapon.WeaponData?.Durability ?? 0;
-                if (weapon.DurabilityLeft < max)
-                {
+                if (weapon.DurabilityLeft < max) {
                     weapon.DurabilityLeft = max;
                     changed = true;
                 }
@@ -89,8 +87,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
             HashSet<int> rooms = [];
 
             string raw = PlusEnvironment.GetSettingsManager().TryGetValue("rp.police.station.rooms");
-            if (!string.IsNullOrWhiteSpace(raw))
-            {
+            if (!string.IsNullOrWhiteSpace(raw)) {
                 foreach (string part in raw.Split(';'))
                     if (int.TryParse(part.Trim(), out int id) && id > 0)
                         rooms.Add(id);

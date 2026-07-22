@@ -20,15 +20,13 @@ namespace Plus.HabboHotel.Users.Navigator.SavedSearches
                 _savedSearches.Clear();
 
             int userId = habbo.Id;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-            {
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 var searches = db.UserSavedSearches
                     .Where(s => s.UserId == userId)
                     .Select(s => new { s.Id, s.Filter, s.SearchCode })
                     .ToList();
 
-                foreach (var row in searches)
-                {
+                foreach (var row in searches) {
                     _savedSearches.TryAdd(row.Id, new SavedSearch(row.Id, row.Filter, row.SearchCode));
                 }
             }

@@ -35,10 +35,8 @@ namespace Plus.Communication.Packets.Outgoing.Groups
             packet.WriteInteger(MembersCount);
 
             packet.WriteInteger(Members.Count);
-            if (MembersCount > 0)
-            {
-                foreach (UserCache data in Members)
-                {
+            if (MembersCount > 0) {
+                foreach (UserCache data in Members) {
                     packet.WriteInteger(Group.CreatorId == data.Id ? 0 : Group.IsAdmin(data.Id) ? 1 : Group.IsMember(data.Id) ? 2 : 3);
                     packet.WriteInteger(data.Id);
                     packet.WriteString(data.Username ?? string.Empty);

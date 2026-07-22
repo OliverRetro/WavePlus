@@ -14,14 +14,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
-            foreach (RoomUser roomUser in room.GetRoomUserManager().GetRoomUsers())
-            {
+            foreach (RoomUser roomUser in room.GetRoomUserManager().GetRoomUsers()) {
                 if (roomUser == null || roomUser.GetClient() == null)
                     continue;
 
                 UserRpStats rpStats = roomUser.GetClient().GetHabbo().GetRpStats();
-                if (rpStats.Health < UserRpStats.GetMaxHealth(roomUser.GetClient().GetHabbo()))
-                {
+                if (rpStats.Health < UserRpStats.GetMaxHealth(roomUser.GetClient().GetHabbo())) {
                     if (rpStats.IsDead)
                         PlusEnvironment.GetHospitalManager().CancelDeath(roomUser.GetClient().GetHabbo());
 
