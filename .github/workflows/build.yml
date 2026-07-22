@@ -20,20 +20,23 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Restore
-        run: dotnet restore MySolution.sln
+        run: dotnet restore Plus.sln
+
+      - name: Check formatting
+        run: dotnet format Plus.sln --verify-no-changes --no-restore --verbosity diagnostic
 
       - name: Build
-        run: dotnet build MySolution.sln --configuration Release --no-restore
+        run: dotnet build Plus.sln --configuration Release --no-restore
 
       - name: Publish
-        run: dotnet publish MyProject/MyProject.csproj -c Release -o publish
+        run: dotnet publish Plus.csproj -c Release -o publish --no-restore
 
       - name: Create ZIP
-        run: Compress-Archive -Path publish\* -DestinationPath MyProject.zip
+        run: Compress-Archive -Path publish\* -DestinationPath Plus.zip
         shell: pwsh
 
       - name: Upload ZIP
         uses: actions/upload-artifact@v4
         with:
-          name: MyProject
-          path: MyProject.zip
+          name: WavePlus
+          path: WavePlus.zip
