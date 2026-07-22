@@ -34,8 +34,7 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Engine
                 packet.WriteString(User.GetClient().GetHabbo().Gender);
                 packet.WriteString(User.GetClient().GetHabbo().Motto);
                 packet.WriteInteger(User.GetClient().GetHabbo().GetStats().AchievementPoints);
-            }
-            else {
+            } else {
                 packet.WriteInteger(VirtualId);
                 packet.WriteString(BotData.Look);
                 packet.WriteString(BotData.Gender);

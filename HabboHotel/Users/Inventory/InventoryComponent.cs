@@ -52,12 +52,10 @@ namespace Plus.HabboHotel.Users.Inventory
                 if (item.IsFloorItem) {
                     if (!_floorItems.TryAdd(item.Id, item))
                         continue;
-                }
-                else if (item.IsWallItem) {
+                } else if (item.IsWallItem) {
                     if (!_wallItems.TryAdd(item.Id, item))
                         continue;
-                }
-                else
+                } else
                     continue;
             }
 
@@ -131,14 +129,12 @@ namespace Plus.HabboHotel.Users.Inventory
                     db.Items.Where(i => i.Id == fromRoomId).ExecuteUpdate(s => s
                         .SetProperty(i => i.RoomId, (uint)0)
                         .SetProperty(i => i.UserId, uid));
-                }
-                else {
+                } else {
                     using WavePlusContext db = PlusEnvironment.GetDbContext();
 
                     if (id > 0) {
                         db.Database.ExecuteSqlInterpolated($"INSERT INTO `items` (`id`,`base_item`, `user_id`, `limited_number`, `limited_stack`) VALUES ({id}, {baseItem}, {_userId}, {limitedNumber}, {limitedStack})");
-                    }
-                    else {
+                    } else {
                         var row = new Database.EF.Entities.ItemEntity { BaseItem = (uint)baseItem, UserId = _userId, LimitedNumber = limitedNumber, LimitedStack = limitedStack };
                         db.Items.Add(row);
                         db.SaveChanges();

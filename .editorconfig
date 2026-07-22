@@ -12,6 +12,11 @@ dotnet_diagnostic.IDE0052.severity = warning
 
 csharp_new_line_before_open_brace = accessors, anonymous_methods, anonymous_types, events, indexers, lambdas, local_functions, methods, object_collection_array_initializers, properties, types
 
+# Keep else/catch/finally on the same line as the preceding closing brace: "} else {".
+csharp_new_line_before_else = false
+csharp_new_line_before_catch = false
+csharp_new_line_before_finally = false
+
 insert_final_newline = false
 
 dotnet_style_allow_multiple_blank_lines_experimental = false

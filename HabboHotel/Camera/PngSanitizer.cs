@@ -185,8 +185,7 @@ namespace Plus.HabboHotel.Camera
                 }
 
                 return total > 0;
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 Console.Write(e.ToString());
                 return false;
             }

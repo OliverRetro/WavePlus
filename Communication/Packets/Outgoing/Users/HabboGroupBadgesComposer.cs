@@ -28,14 +28,12 @@ namespace Plus.Communication.Packets.Outgoing.Users
                     packet.WriteInteger(badge.Key);
                     packet.WriteString(badge.Value);
                 }
-            }
-            else if (Group != null) {
+            } else if (Group != null) {
                 packet.WriteInteger(1); //count
 
                 packet.WriteInteger(Group.Id);
                 packet.WriteString(Group.Badge);
-            }
-            else {
+            } else {
                 packet.WriteInteger(0);
             }
         }

@@ -32,12 +32,10 @@ namespace Plus.HabboHotel.Items.Interactor
                             if (newFig.ContainsKey(fig.Split('-')[0]) && !newFig.ContainsValue(man)) {
                                 newFig.Remove(fig.Split('-')[0]);
                                 newFig.Add(fig.Split('-')[0], man);
-                            }
-                            else if (!newFig.ContainsKey(fig.Split('-')[0]) && !newFig.ContainsValue(man)) {
+                            } else if (!newFig.ContainsKey(fig.Split('-')[0]) && !newFig.ContainsValue(man)) {
                                 newFig.Add(fig.Split('-')[0], man);
                             }
-                        }
-                        else {
+                        } else {
                             if (!newFig.ContainsKey(fig.Split('-')[0])) {
                                 newFig.Add(fig.Split('-')[0], fig);
                             }

@@ -26,8 +26,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Action
                 client.GetHabbo().RoomAuthOk = true;
                 client.SendPacket(new FlatAccessibleComposer(""));
                 room.SendPacket(new FlatAccessibleComposer(client.GetHabbo().Username), true);
-            }
-            else {
+            } else {
                 client.SendPacket(new FlatAccessDeniedComposer(""));
                 room.SendPacket(new FlatAccessDeniedComposer(client.GetHabbo().Username), true);
             }

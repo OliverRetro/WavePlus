@@ -79,8 +79,7 @@ namespace Plus.HabboHotel.Cache.Process
 
                             if (cache.IsExpired())
                                 PlusEnvironment.GetGame().GetCacheManager().TryRemoveUser(cache.Id, out _);
-                        }
-                        catch (Exception e) {
+                        } catch (Exception e) {
                             ExceptionLogger.LogException(e);
                         }
                     }
@@ -99,8 +98,7 @@ namespace Plus.HabboHotel.Cache.Process
                                 PlusEnvironment.RemoveFromCache(data.Id, out temp);
 
                             temp?.Dispose();
-                        }
-                        catch (Exception e) {
+                        } catch (Exception e) {
                             ExceptionLogger.LogException(e);
                         }
                     }
@@ -112,8 +110,7 @@ namespace Plus.HabboHotel.Cache.Process
                 _timerLagging = false;
 
                 _resetEvent.Set();
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
         }
@@ -126,8 +123,7 @@ namespace Plus.HabboHotel.Cache.Process
             // Wait until any processing is complete first.
             try {
                 _resetEvent.WaitOne(TimeSpan.FromMinutes(5));
-            }
-            catch {
+            } catch {
             } // give up
 
             // Set the timer to disabled
@@ -136,8 +132,7 @@ namespace Plus.HabboHotel.Cache.Process
             // Dispose the timer to disable it.
             try {
                 _timer?.Dispose();
-            }
-            catch {
+            } catch {
             }
 
             // Remove reference to the timer.

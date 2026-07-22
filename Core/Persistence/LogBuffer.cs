@@ -74,8 +74,7 @@ namespace Plus.Core.Persistence
 
                 if (dirty)
                     db.SaveChanges();
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 Log.Error($"LogBuffer flush failed: {ex.Message}");
             }
         }

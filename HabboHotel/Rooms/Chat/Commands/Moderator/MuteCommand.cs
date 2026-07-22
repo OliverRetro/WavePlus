@@ -47,8 +47,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
                 }
 
                 session.SendWhisper("You have successfully muted " + habbo.Username + " for " + time + " seconds.");
-            }
-            else
+            } else
                 session.SendWhisper("Please enter a valid integer.");
         }
     }

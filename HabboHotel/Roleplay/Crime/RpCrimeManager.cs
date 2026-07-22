@@ -107,8 +107,7 @@ namespace Plus.HabboHotel.Roleplay.Crime
                     existing.CommittedAt = now;
                     existing.ExpiresAt = expiresAt;
                     existing.Log = log;
-                }
-                else if (crime.AutoCharge || !rec.Charged) {
+                } else if (crime.AutoCharge || !rec.Charged) {
                     rec.Crimes.Add(new ActiveCrime
                     {
                         CrimeId = crime.Id,
@@ -346,8 +345,7 @@ namespace Plus.HabboHotel.Roleplay.Crime
                     });
                 }
                 db.SaveChanges();
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 Log.Error("Failed flushing crime logs for user " + userId, e);
             }
         }

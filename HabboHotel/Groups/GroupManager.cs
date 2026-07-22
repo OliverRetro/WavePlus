@@ -204,8 +204,7 @@ namespace Plus.HabboHotel.Groups
                 if (_symbolColours.ContainsKey(id)) {
                     return _symbolColours[id].Colour;
                 }
-            }
-            else {
+            } else {
                 if (_backgroundColours.ContainsKey(id)) {
                     return _backgroundColours[id].Colour;
                 }

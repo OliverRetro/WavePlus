@@ -69,8 +69,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Triggers
                     Instance.GetWired().OnEvent(randomBox.Item);
                     Instance.GetWired().OnEvent(selectedBox.Item);
                 }
-            }
-            else {
+            } else {
                 foreach (IWiredItem effect in effects) {
                     if (!effect.Execute(player))
                         return false;

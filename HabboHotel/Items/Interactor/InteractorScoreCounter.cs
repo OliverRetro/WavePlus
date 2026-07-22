@@ -32,11 +32,9 @@ namespace Plus.HabboHotel.Items.Interactor
 
             if (request == 1) {
                 oldValue++;
-            }
-            else if (request == 2) {
+            } else if (request == 2) {
                 oldValue--;
-            }
-            else if (request == 3) {
+            } else if (request == 3) {
                 oldValue = 0;
             }
 

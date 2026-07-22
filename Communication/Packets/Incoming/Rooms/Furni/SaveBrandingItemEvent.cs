@@ -34,8 +34,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
                     sb.Append(key).Append('=').Append(value).Append(';');
                 }
                 item.ExtraData = sb.ToString();
-            }
-            else if (item.Data.InteractionType == InteractionType.FxProvider) {
+            } else if (item.Data.InteractionType == InteractionType.FxProvider) {
                 /*int Unknown = Packet.PopInt();
                 string Data = Packet.PopString();
                 int EffectId = Packet.PopInt();

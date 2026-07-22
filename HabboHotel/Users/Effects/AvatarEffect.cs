@@ -78,8 +78,7 @@ namespace Plus.HabboHotel.Users.Effects
             using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 if (Quantity < 1) {
                     db.UserEffects.Where(e => e.Id == id).ExecuteDelete();
-                }
-                else {
+                } else {
                     int qt = Quantity;
                     db.UserEffects.Where(e => e.Id == id).ExecuteUpdate(s => s
                         .SetProperty(e => e.Quantity, qt)

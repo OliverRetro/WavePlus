@@ -80,8 +80,7 @@ namespace Plus.HabboHotel.Items.Interactor
                 user.TeleDelay = 2;
 
                 item.InteractingUser = user.GetClient().GetHabbo().Id;
-            }
-            else if (user.CanWalk) {
+            } else if (user.CanWalk) {
                 user.MoveTo(item.SquareInFront);
             }
         }

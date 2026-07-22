@@ -99,8 +99,7 @@ namespace Plus.HabboHotel.Users.Messenger
                         continue;
 
                     UpdateFriend(client.GetHabbo().Id, client, notification);
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     Console.WriteLine(e.ToString());
                 }
             }
@@ -191,8 +190,7 @@ namespace Plus.HabboHotel.Users.Messenger
                     newFriend = new MessengerBuddy(friendId, dRow.Username, dRow.Look, dRow.Motto, dRow.LastOnline ?? 0,
                         PlusEnvironment.EnumToBool(dRow.HideOnline), PlusEnvironment.EnumToBool(dRow.HideInroom));
                 }
-            }
-            else {
+            } else {
                 Habbo user = friend.GetHabbo();
 
                 newFriend = new MessengerBuddy(friendId, user.Username, user.Look, user.Motto, 0, user.AppearOffline, user.AllowPublicRoomStatus);
@@ -252,8 +250,7 @@ namespace Plus.HabboHotel.Users.Messenger
 
                 userId = foundId;
                 hasFqDisabled = PlusEnvironment.EnumToBool(foundBlock);
-            }
-            else {
+            } else {
                 userId = client.GetHabbo().Id;
                 hasFqDisabled = client.GetHabbo().AllowFriendRequests;
             }

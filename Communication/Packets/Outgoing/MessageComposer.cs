@@ -11,8 +11,7 @@ namespace Plus.Communication.Packets.Outgoing
             ServerPacket packet = new(Id, buf);
             try {
                 Compose(packet);
-            }
-            finally {
+            } finally {
                 Dispose();
             }
 

@@ -179,8 +179,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
                             if (rotation > 6) {
                                 rotation = 0;
                             }
-                        }
-                        else {
+                        } else {
                             rotation -= 2;
                             if (rotation < 0) {
                                 rotation = 6;
@@ -223,8 +222,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
                 case 2: {
                         if (RandomNumber.GenerateRandom(0, 2) == 1) {
                             newPos = new Point(position.X - 1, position.Y);
-                        }
-                        else {
+                        } else {
                             newPos = new Point(position.X + 1, position.Y);
                         }
 
@@ -233,8 +231,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
                 case 3: {
                         if (RandomNumber.GenerateRandom(0, 2) == 1) {
                             newPos = new Point(position.X, position.Y - 1);
-                        }
-                        else {
+                        } else {
                             newPos = new Point(position.X, position.Y + 1);
                         }
 

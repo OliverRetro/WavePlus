@@ -58,8 +58,7 @@ namespace Plus.HabboHotel.Items
 
                         if (!Items.ContainsKey(id))
                             Items.Add(id, new ItemData(id, spriteId, itemName, publicName, type, width, length, height, allowStack, allowWalk, allowSit, allowRecycle, allowTrade, allowMarketplace, allowGift, allowInventoryStack, interactionType, behaviourData, cycleCount, vendingIds, heightAdjustable, effectId, isRare, extraRot));
-                    }
-                    catch (Exception e) {
+                    } catch (Exception e) {
                         Console.WriteLine($"Error loading furniture ID {row.Id}");
                         Console.WriteLine(e);
                         Console.ReadKey();

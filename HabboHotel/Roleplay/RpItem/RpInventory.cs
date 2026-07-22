@@ -53,8 +53,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem
                         if (!stackable.TryGetValue(item.ItemId, out List<UserRpItem> list))
                             stackable[item.ItemId] = list = new List<UserRpItem>();
                         list.Add(item);
-                    }
-                    else {
+                    } else {
                         entries.Add(new RpInventoryEntry
                         {
                             Kind = item.ItemData == null ? "item"

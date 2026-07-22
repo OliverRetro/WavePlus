@@ -26,8 +26,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
             if (item.ExtraData.Contains(Convert.ToChar(5))) {
                 string[] flags = item.ExtraData.Split(Convert.ToChar(5));
                 item.ExtraData = gender + Convert.ToChar(5) + figure + Convert.ToChar(5) + flags[2];
-            }
-            else
+            } else
                 item.ExtraData = gender + Convert.ToChar(5) + figure + Convert.ToChar(5) + "Default";
 
             item.UpdateState(true, true);

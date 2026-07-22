@@ -43,8 +43,7 @@ namespace Plus.Communication.Packets.Incoming.Users
 
                 if (session.GetHabbo().Relationships.ContainsKey(user))
                     session.GetHabbo().Relationships.Remove(user);
-            }
-            else {
+            } else {
                 int id = db.UserRelationships.Where(r => r.UserId == myId && r.Target == user).Select(r => r.Id).FirstOrDefault();
 
                 if (id > 0) {

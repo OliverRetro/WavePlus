@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Drawing;
+using System.Linq;
 using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.HabboHotel.GameClients;
+using Plus.HabboHotel.Items;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Fun
 {
@@ -41,9 +44,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Fun
                 return;
             }
 
-            if (targetUser.TeleportEnabled) {
-                session.SendWhisper("Oops, you cannot push a user whilst they have their teleport mode enabled.");
-                return;
+            if (targetUser.IsAsleep) {
+                session.SendWhisper("Let's not bully the sleeping.", 1);
             }
 
             RoomUser thisUser = room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id);
@@ -51,50 +53,22 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Fun
                 return;
 
             if (!((Math.Abs(targetUser.X - thisUser.X) >= 2) || (Math.Abs(targetUser.Y - thisUser.Y) >= 2))) {
-                if (targetUser.SetX - 1 == room.GetGameMap().Model.DoorX) {
-                    session.SendWhisper("Please don't push that user out of the room :(!");
+                int[] stepX = [0, 1, 1, 1, 0, -1, -1, -1];
+                int[] stepY = [-1, -1, 0, 1, 1, 1, 0, -1];
+                int rot = thisUser.RotBody & 7;
+                int dx = stepX[rot];
+                int dy = stepY[rot];
+
+                Point tile = new(targetUser.X + dx, targetUser.Y + dy);
+                if (room.GetGameMap().GetCoordinatedItems(tile).Any(i => i.GetBaseItem()?.InteractionType == InteractionType.Arrow)) {
+                    session.SendWhisper("Please don't push that user onto an Arrow :(!");
                     return;
                 }
 
-                if (targetUser.RotBody == 4) {
-                    targetUser.MoveTo(targetUser.X, targetUser.Y + 1);
-                }
-
-                if (thisUser.RotBody == 0) {
-                    targetUser.MoveTo(targetUser.X, targetUser.Y - 1);
-                }
-
-                if (thisUser.RotBody == 6) {
-                    targetUser.MoveTo(targetUser.X - 1, targetUser.Y);
-                }
-
-                if (thisUser.RotBody == 2) {
-                    targetUser.MoveTo(targetUser.X + 1, targetUser.Y);
-                }
-
-                if (thisUser.RotBody == 3) {
-                    targetUser.MoveTo(targetUser.X + 1, targetUser.Y);
-                    targetUser.MoveTo(targetUser.X, targetUser.Y + 1);
-                }
-
-                if (thisUser.RotBody == 1) {
-                    targetUser.MoveTo(targetUser.X + 1, targetUser.Y);
-                    targetUser.MoveTo(targetUser.X, targetUser.Y - 1);
-                }
-
-                if (thisUser.RotBody == 7) {
-                    targetUser.MoveTo(targetUser.X - 1, targetUser.Y);
-                    targetUser.MoveTo(targetUser.X, targetUser.Y - 1);
-                }
-
-                if (thisUser.RotBody == 5) {
-                    targetUser.MoveTo(targetUser.X - 1, targetUser.Y);
-                    targetUser.MoveTo(targetUser.X, targetUser.Y + 1);
-                }
+                targetUser.MoveTo(tile.X, tile.Y);
 
                 room.SendPacket(new ShoutComposer(thisUser.VirtualId, "*pushes " + @params[1] + " away from them*", 0, thisUser.LastBubble, isRpAction: true));
-            }
-            else {
+            } else {
                 session.SendWhisper("Oops, " + @params[1] + " is not close enough!");
             }
         }

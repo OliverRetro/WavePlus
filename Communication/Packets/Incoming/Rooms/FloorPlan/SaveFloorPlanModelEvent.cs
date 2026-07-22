@@ -79,8 +79,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.FloorPlan
 
             try {
                 doorZ = Parse(modelData[doorY][doorX]);
-            }
-            catch {
+            } catch {
                 //ignored
             }
 
@@ -114,8 +113,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.FloorPlan
                 {
                     // Partial insert (relies on DB defaults for public_items/club_only/poolmap), so raw insert is used.
                     db.Database.ExecuteSqlInterpolated($"INSERT INTO `room_models` (`id`,`door_x`,`door_y`, `door_z`, `door_dir`,`heightmap`,`custom`,`wall_height`) VALUES ({modelName}, {doorX}, {doorY}, {doorZ}, {doorDirection}, {map}, '1', {wallHeight})");
-                }
-                else {
+                } else {
                     double doorZd = doorZ;
                     db.RoomModels.Where(m => m.Id == modelName).ExecuteUpdate(s => s
                         .SetProperty(m => m.Heightmap, map)

@@ -304,8 +304,7 @@ namespace Plus.HabboHotel.Roleplay.Police
                 Point ahead = officerUser.SquareInFront;
                 if ((targetUser.X != ahead.X || targetUser.Y != ahead.Y) && room.GetGameMap().ValidTile(ahead.X, ahead.Y)) {
                     SnapTo(room, targetUser, ahead.X, ahead.Y, officerUser.RotBody);
-                }
-                else if (targetUser.RotBody != officerUser.RotBody || targetUser.RotHead != officerUser.RotHead) {
+                } else if (targetUser.RotBody != officerUser.RotBody || targetUser.RotHead != officerUser.RotHead) {
                     targetUser.RotBody = officerUser.RotBody;
                     targetUser.RotHead = officerUser.RotHead;
                     targetUser.UpdateNeeded = true;

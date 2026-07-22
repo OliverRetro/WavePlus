@@ -65,11 +65,9 @@ namespace Plus.HabboHotel.Items.Interactor
                         userOne.GetClient().SendPacket(new LoveLockDialogueMessageComposer(item.Id));
                         userTwo.GetClient().SendPacket(new LoveLockDialogueMessageComposer(item.Id));
                     }
-                }
-                else
+                } else
                     return;
-            }
-            else {
+            } else {
                 user.MoveTo(item.SquareInFront);
             }
         }

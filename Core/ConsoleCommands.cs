@@ -46,8 +46,7 @@ namespace Plus.Core
                             break;
                         }
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 Log.Error("Error in command [" + inputData + "]: " + e);
             }
         }

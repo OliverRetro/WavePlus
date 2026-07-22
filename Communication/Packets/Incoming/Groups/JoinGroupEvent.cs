@@ -56,8 +56,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
                 }
 
                 session.SendPacket(new GroupInfoComposer(group, session));
-            }
-            else {
+            } else {
                 if (session.GetHabbo().GetStats().FavouriteGroupId == 0 && (group.Kind == GroupKind.Gang || group.Kind == GroupKind.Cartel || group.Kind == GroupKind.Mafia)) {
                     session.GetHabbo().GetStats().FavouriteGroupId = group.Id;
                     int favGroupId = session.GetHabbo().GetStats().FavouriteGroupId;
@@ -74,8 +73,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
                             .GetRoomUserByHabbo(session.GetHabbo().Id);
                         if (user != null)
                             session.GetHabbo().CurrentRoom.SendPacket(new UpdateFavouriteGroupComposer(group, user.VirtualId));
-                    }
-                    else
+                    } else
                         session.SendPacket(new RefreshFavouriteGroupComposer(session.GetHabbo().Id));
                 }
 

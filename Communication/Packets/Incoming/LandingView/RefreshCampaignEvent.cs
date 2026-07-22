@@ -24,8 +24,7 @@ namespace Plus.Communication.Packets.Incoming.LandingView
                 }
 
                 session.SendPacket(new CampaignComposer(parseCampaigns, campaignName));
-            }
-            catch {
+            } catch {
                 //ignored
             }
         }

@@ -25,8 +25,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
                         targetClient.SendNotification("You have just been given a badge!");
                     else
                         session.SendWhisper("You have successfully given yourself the badge " + @params[2] + "!");
-                }
-                else
+                } else
                     session.SendWhisper("Oops, that user already has this badge (" + @params[2] + ") !");
 
                 return;

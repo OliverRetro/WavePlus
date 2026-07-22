@@ -35,8 +35,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
             var permissions = group.GetActivePermissionsForUser(userId).ToList();
             if (permissions.Count == 0) {
                 info.Append("Permissions: none\r");
-            }
-            else {
+            } else {
                 info.Append("<b>Permissions:</b>\r");
                 foreach (GroupPermissionKey permission in permissions)
                     info.Append(permission.Name + " (" + permission.Key + ")\r");

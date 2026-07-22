@@ -69,8 +69,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
 
                 if (user.IsWalking)
                     user.ClearMovement(true);
-            }
-            else if (followMode == 1) {
+            } else if (followMode == 1) {
                 user.BotData.ForcedUserTargetMovement = player.Id;
 
                 if (user.IsWalking)

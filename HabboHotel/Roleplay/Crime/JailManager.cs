@@ -36,8 +36,7 @@ namespace Plus.HabboHotel.Roleplay.Crime
                     JailSpawn spawn = JsonSerializer.Deserialize<JailSpawn>(raw);
                     if (spawn != null && spawn.roomid > 0)
                         return spawn;
-                }
-                catch { /* malformed setting — fall through to the plain room id */ }
+                } catch { /* malformed setting — fall through to the plain room id */ }
             }
 
             int roomId = GetJailRoomId();
@@ -131,8 +130,7 @@ namespace Plus.HabboHotel.Roleplay.Crime
                     stats.JailReleaseTime = now + jailMinutes * 60.0;
                     if (stats.JailRoomId <= 0)
                         stats.JailRoomId = GetJailRoomId();
-                }
-                else {
+                } else {
                     stats.JailReleaseTime = 0;
                 }
                 habbo.SaveRpStats();
@@ -270,8 +268,7 @@ namespace Plus.HabboHotel.Roleplay.Crime
                     selectedFigure = fig;
                 else if (figures.TryGetValue("m", out fig))
                     selectedFigure = fig;
-            }
-            else {
+            } else {
                 selectedFigure = figureString;
             }
 

@@ -114,8 +114,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
                 // Achievements (batched: a fight can produce bursts of these).
                 PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(attacker.GetClient(), "ACH_Kill", 1);
                 PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(target.GetClient(), "ACH_Death", 1);
-            }
-            else {
+            } else {
                 attacker.ResetAggressionTimer();
 
                 // A non-lethal hit is an assault (or a more specific variant).

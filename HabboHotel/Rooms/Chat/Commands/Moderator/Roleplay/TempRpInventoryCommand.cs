@@ -51,8 +51,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
 
                     habboInfo.Append($"ID: {item.Id} - {item.ItemData.Name} - Used: {item.Uses} / {item.ItemData.MaxUses}\r");
                 }
-            }
-            else {
+            } else {
                 habboInfo.Append("It appears you're offline. This is a bug. Please inform Oliver.\r");
             }
 

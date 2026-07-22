@@ -406,8 +406,7 @@ namespace Plus.HabboHotel.Users
                                 .SetProperty(x => x.DailyPetRespectPoints, dailyRespects)
                                 .SetProperty(x => x.RespectsTimestamp, respectsTimestamp));
                     }
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     ExceptionLogger.LogException(e);
                 }
 
@@ -471,8 +470,7 @@ namespace Plus.HabboHotel.Users
                         statRow.JailRoomId,
                         statRow.JailTimeLeft
                     );
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     ExceptionLogger.LogException(e);
                 }
             }
@@ -624,8 +622,7 @@ namespace Plus.HabboHotel.Users
             try {
                 HomeRoomData = JsonSerializer.Deserialize<HomeRoomDataState>(data);
                 PendingReconnectPlacement = HomeRoomData?.roomid > 0;
-            }
-            catch {
+            } catch {
                 HomeRoomData = null;
                 PendingReconnectPlacement = false;
             }
@@ -795,8 +792,7 @@ namespace Plus.HabboHotel.Users
                     HasCachedSkillHealth = true;
                     _rpStats.Health = 100;
                 }
-            }
-            else if (HasCachedSkillHealth) {
+            } else if (HasCachedSkillHealth) {
                 if (CachedSkillHealth > _rpStats.Health)
                     _rpStats.Health = CachedSkillHealth;
 
@@ -850,8 +846,7 @@ namespace Plus.HabboHotel.Users
                 })
                 .On(s => s.UserId)
                 .Run();
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
         }
@@ -919,8 +914,7 @@ namespace Plus.HabboHotel.Users
                         .SetProperty(x => x.QuestProgress, _habboStats.QuestProgress)
                         .SetProperty(x => x.Groupid, _habboStats.FavouriteGroupId)
                         .SetProperty(x => x.ForumPosts, _habboStats.ForumPosts));
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
         }
@@ -947,8 +941,7 @@ namespace Plus.HabboHotel.Users
                 }
 
                 _rpSkills.MarkSaved();
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
         }
@@ -994,8 +987,7 @@ namespace Plus.HabboHotel.Users
                 }
 
                 _rpWeapons.MarkSaved();
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
         }
@@ -1039,8 +1031,7 @@ namespace Plus.HabboHotel.Users
                 }
 
                 _rpItems.MarkSaved();
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
         }
@@ -1079,8 +1070,7 @@ namespace Plus.HabboHotel.Users
                 }
 
                 _rpWeaponSkins.MarkSaved();
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
         }
@@ -1250,8 +1240,7 @@ namespace Plus.HabboHotel.Users
                     CaptureHomeRoomData();
 
                 _process?.Dispose();
-            }
-            catch {
+            } catch {
             }
 
             _disconnected = true;
@@ -1331,8 +1320,7 @@ namespace Plus.HabboHotel.Users
 
                     CreditsUpdateTick = Convert.ToInt32(PlusEnvironment.GetSettingsManager().TryGetValue("user.currency_scheduler.tick"));
                 }
-            }
-            catch {
+            } catch {
             }
         }
 
@@ -1345,8 +1333,7 @@ namespace Plus.HabboHotel.Users
 
                 SaveBank();
                 BankSaveTick = 900;
-            }
-            catch {
+            } catch {
             }
         }
 
@@ -1378,8 +1365,7 @@ namespace Plus.HabboHotel.Users
 
                     await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
                 }
-            }
-            catch (TaskCanceledException) {
+            } catch (TaskCanceledException) {
             }
         }
 
@@ -1488,8 +1474,7 @@ namespace Plus.HabboHotel.Users
                 if (!PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(GetClient().GetHabbo().CurrentRoomId, out Rooms.Room oldRoom)) {
                     // Old room no longer loaded (unloaded while idle) — clear the stale room ID and continue.
                     GetClient().GetHabbo().CurrentRoomId = 0;
-                }
-                else if (oldRoom.GetRoomUserManager() != null) {
+                } else if (oldRoom.GetRoomUserManager() != null) {
                     oldRoom.GetRoomUserManager().RemoveUserFromRoom(GetClient(), false);
                 }
             }

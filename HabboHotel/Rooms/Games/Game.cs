@@ -62,16 +62,13 @@ namespace Plus.HabboHotel.Rooms.Games
                 if (team == Team.Blue && item.Data.InteractionType == InteractionType.BanzaiScoreBlue) {
                     item.ExtraData = Points[Convert.ToInt32(team)].ToString();
                     item.UpdateState();
-                }
-                else if (team == Team.Red && item.Data.InteractionType == InteractionType.BanzaiScoreRed) {
+                } else if (team == Team.Red && item.Data.InteractionType == InteractionType.BanzaiScoreRed) {
                     item.ExtraData = Points[Convert.ToInt32(team)].ToString();
                     item.UpdateState();
-                }
-                else if (team == Team.Green && item.Data.InteractionType == InteractionType.BanzaiScoreGreen) {
+                } else if (team == Team.Green && item.Data.InteractionType == InteractionType.BanzaiScoreGreen) {
                     item.ExtraData = Points[Convert.ToInt32(team)].ToString();
                     item.UpdateState();
-                }
-                else if (team == Team.Yellow && item.Data.InteractionType == InteractionType.BanzaiScoreYellow) {
+                } else if (team == Team.Yellow && item.Data.InteractionType == InteractionType.BanzaiScoreYellow) {
                     item.ExtraData = Points[Convert.ToInt32(team)].ToString();
                     item.UpdateState();
                 }

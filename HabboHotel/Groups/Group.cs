@@ -426,8 +426,7 @@ namespace Plus.HabboHotel.Groups
                     habbo.CurrentRoom.SendPacket(new Communication.Packets.Outgoing.Groups.UpdateFavouriteGroupComposer(this, user.VirtualId));
 
                 habbo.CurrentRoom.SendPacket(new Communication.Packets.Outgoing.Groups.RefreshFavouriteGroupComposer(userId));
-            }
-            else
+            } else
                 habbo.GetClient()?.SendPacket(new Communication.Packets.Outgoing.Groups.RefreshFavouriteGroupComposer(userId));
         }
 

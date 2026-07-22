@@ -346,8 +346,7 @@ namespace Plus.HabboHotel.Rooms
                             return true;
                     }
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
 
@@ -413,24 +412,21 @@ namespace Plus.HabboHotel.Rooms
 
                     try {
                         GetRoomItemHandler().OnCycle();
-                    }
-                    catch (Exception e) {
+                    } catch (Exception e) {
                         ExceptionLogger.LogException(e);
                     }
                 }
 
                 try {
                     GetRoomUserManager().OnCycle(fullCycle);
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     ExceptionLogger.LogException(e);
                 }
 
                 if (fullCycle) {
                     try {
                         Roleplay.Utilities.FurnitureAchievementService.Tick(this);
-                    }
-                    catch (Exception e) {
+                    } catch (Exception e) {
                         ExceptionLogger.LogException(e);
                     }
                 }
@@ -440,8 +436,7 @@ namespace Plus.HabboHotel.Rooms
                 try {
                     // Runs on every 50ms tick so freshly-issued steps reach clients immediately.
                     GetRoomUserManager().SerializeStatusUpdates();
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     ExceptionLogger.LogException(e);
                 }
 
@@ -452,8 +447,7 @@ namespace Plus.HabboHotel.Rooms
 
                     try {
                         _gameItemHandler?.OnCycle();
-                    }
-                    catch (Exception e) {
+                    } catch (Exception e) {
                         ExceptionLogger.LogException(e);
                     }
 
@@ -461,13 +455,11 @@ namespace Plus.HabboHotel.Rooms
 
                     try {
                         GetWired().OnCycle();
-                    }
-                    catch (Exception e) {
+                    } catch (Exception e) {
                         ExceptionLogger.LogException(e);
                     }
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 ExceptionLogger.LogException(e);
                 OnRoomCrash(e);
             }
@@ -484,13 +476,11 @@ namespace Plus.HabboHotel.Rooms
 
                     try {
                         GetRoomUserManager().RemoveUserFromRoom(user.GetClient(), true);
-                    }
-                    catch (Exception e2) {
+                    } catch (Exception e2) {
                         ExceptionLogger.LogException(e2);
                     }
                 }
-            }
-            catch (Exception e3) {
+            } catch (Exception e3) {
                 ExceptionLogger.LogException(e3);
             }
 
@@ -503,8 +493,7 @@ namespace Plus.HabboHotel.Rooms
             if (MutedUsers.ContainsKey(session.GetHabbo().Id)) {
                 if (MutedUsers[session.GetHabbo().Id] < PlusEnvironment.GetUnixTimestamp()) {
                     MutedUsers.Remove(session.GetHabbo().Id);
-                }
-                else {
+                } else {
                     return true;
                 }
             }
@@ -640,8 +629,7 @@ namespace Plus.HabboHotel.Rooms
 
                     user.GetClient().SendPacket(message);
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
         }
@@ -665,8 +653,7 @@ namespace Plus.HabboHotel.Rooms
 
                     user.GetClient().SendPacket(message);
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
         }
@@ -714,8 +701,7 @@ namespace Plus.HabboHotel.Rooms
                 try {
                     if (ProcessTask != null && ProcessTask.IsCompleted)
                         ProcessTask.Dispose();
-                }
-                catch {
+                } catch {
                 }
 
                 if (ActiveTrades.Count > 0)

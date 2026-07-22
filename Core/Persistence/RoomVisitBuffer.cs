@@ -78,8 +78,7 @@ namespace Plus.Core.Persistence
                             .ExecuteUpdate(s => s.SetProperty(v => v.ExitTimestamp, exitTimestamp));
                     }
                 }
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 Log.Error($"RoomVisitBuffer flush failed: {ex.Message}");
             }
         }

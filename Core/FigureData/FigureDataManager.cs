@@ -133,15 +133,12 @@ namespace Plus.Core.FigureData
                                             if (figureSet.PalletId != palette.Id) {
                                                 colorId = GetRandomColor(figureSet.PalletId);
                                             }
-                                        }
-                                        else if (palette == null && colorId != 0) {
+                                        } else if (palette == null && colorId != 0) {
                                             colorId = GetRandomColor(figureSet.PalletId);
                                         }
-                                    }
-                                    else
+                                    } else
                                         colorId = 0;
-                                }
-                                else
+                                } else
                                     colorId = 0;
 
                                 #endregion
@@ -159,21 +156,17 @@ namespace Plus.Core.FigureData
                                             if (figureSet.PalletId != palette.Id) {
                                                 secondColorId = GetRandomColor(figureSet.PalletId);
                                             }
-                                        }
-                                        else if (palette == null && secondColorId != 0) {
+                                        } else if (palette == null && secondColorId != 0) {
                                             secondColorId = GetRandomColor(figureSet.PalletId);
                                         }
-                                    }
-                                    else
+                                    } else
                                         secondColorId = 0;
-                                }
-                                else
+                                } else
                                     secondColorId = 0;
 
                                 #endregion
                             }
-                        }
-                        else {
+                        } else {
                             string[] ignore = { "ca", "wa" };
 
                             if (ignore.Contains(type)) {

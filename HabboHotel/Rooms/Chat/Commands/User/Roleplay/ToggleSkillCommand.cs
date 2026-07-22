@@ -25,8 +25,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
                 Skill skill = PlusEnvironment.GetSkillManager().GetSkillById(skillId);
 
                 session.SendWhisper($"{skill.Name} is now {(session.GetHabbo().GetRpSkills().IsEquipped(skillId) ? "equipped" : "unequipped")}.", 1);
-            }
-            else {
+            } else {
                 session.SendWhisper("Skill couldn't be toggled. Please note you need to have the skill unlocked and the limit is 4.", 1);
             }
         }

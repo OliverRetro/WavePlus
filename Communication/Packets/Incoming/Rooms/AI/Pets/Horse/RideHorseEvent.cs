@@ -40,11 +40,9 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Pets.Horse
                     string[] speech2 = PlusEnvironment.GetGame().GetChatManager().GetPetLocale().GetValue("pet.alreadymounted");
                     var randomSpeech2 = new Random();
                     pet.Chat(speech2[randomSpeech2.Next(0, speech2.Length - 1)]);
-                }
-                else if (user.RidingHorse) {
+                } else if (user.RidingHorse) {
                     session.SendNotification("You are already riding a horse!");
-                }
-                else {
+                } else {
                     if (pet.Statusses.Count > 0)
                         pet.Statusses.Clear();
 
@@ -70,8 +68,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Pets.Horse
                     user.UpdateNeeded = true;
                     pet.UpdateNeeded = true;
                 }
-            }
-            else {
+            } else {
                 if (user.VirtualId == pet.HorseId) {
                     pet.Statusses.Remove("sit");
                     pet.Statusses.Remove("lay");
@@ -87,8 +84,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Pets.Horse
                     user.ApplyEffect(-1);
                     user.UpdateNeeded = true;
                     pet.UpdateNeeded = true;
-                }
-                else {
+                } else {
                     session.SendNotification("Could not dismount this horse - You are not riding it!");
                 }
             }

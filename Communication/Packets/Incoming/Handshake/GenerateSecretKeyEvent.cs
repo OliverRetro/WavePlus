@@ -14,8 +14,7 @@ namespace Plus.Communication.Packets.Incoming.Handshake
             if (sharedKey != 0) {
                 session.SendPacket(new SecretKeyComposer(HabboEncryptionV2.GetRsaDiffieHellmanPublicKey()));
                 session.EnableEncryption(sharedKey.getBytes());
-            }
-            else {
+            } else {
                 session.SendNotification("There was an error logging you in, please try again!");
             }
         }

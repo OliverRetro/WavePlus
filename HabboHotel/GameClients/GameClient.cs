@@ -148,8 +148,7 @@ namespace Plus.HabboHotel.GameClients
                     Plus.HabboHotel.Roleplay.Utilities.RpAchievementHooks.OnEnterHotel(this);
                     return true;
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
 
@@ -216,15 +215,13 @@ namespace Plus.HabboHotel.GameClients
                     try {
                         using WavePlusContext db = PlusEnvironment.GetDbContext();
                         db.Database.ExecuteSql(GetHabbo().GetQueryString);
-                    }
-                    catch (Exception e) {
+                    } catch (Exception e) {
                         ExceptionLogger.LogException(e);
                     }
 
                     GetHabbo()?.OnDisconnect();
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
 

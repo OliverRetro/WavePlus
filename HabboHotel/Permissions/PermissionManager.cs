@@ -53,8 +53,7 @@ namespace Plus.HabboHotel.Permissions
 
                 if (_permissionGroupRights.ContainsKey(groupId)) {
                     _permissionGroupRights[groupId].Add(permission.PermissionName);
-                }
-                else {
+                } else {
                     List<string> rightsSet = new()
                     {
                         permission.PermissionName
@@ -73,8 +72,7 @@ namespace Plus.HabboHotel.Permissions
 
                 if (_permissionSubscriptionRights.ContainsKey(subscriptionId)) {
                     _permissionSubscriptionRights[subscriptionId].Add(permission.PermissionName);
-                }
-                else {
+                } else {
                     List<string> rightsSet = new()
                     {
                         permission.PermissionName

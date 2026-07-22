@@ -40,8 +40,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Fun
                         u.ApplyEffect(enableId);
                     }
                 }
-            }
-            else {
+            } else {
                 session.SendWhisper("Please enter an effect ID.");
             }
         }

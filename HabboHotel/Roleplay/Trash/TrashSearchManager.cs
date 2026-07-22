@@ -49,8 +49,7 @@ namespace Plus.HabboHotel.Roleplay.Trash
                         row.MinAmount,
                         row.MaxAmount));
                 }
-            }
-            catch {
+            } catch {
                 // Table is optional. If it does not exist, the manager falls back to all rp_items.
             }
         }
@@ -293,8 +292,7 @@ namespace Plus.HabboHotel.Roleplay.Trash
             try {
                 habbo.ProgressSkill("Scavenge", amount);
                 habbo.SaveRpSkills();
-            }
-            catch {
+            } catch {
             }
         }
 

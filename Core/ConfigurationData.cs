@@ -37,9 +37,7 @@ namespace Plus.Core
                         }
                     }
                 }
-            }
-
-            catch (Exception e) {
+            } catch (Exception e) {
                 throw new ArgumentException("Could not process configuration file: " + e.Message);
             }
         }

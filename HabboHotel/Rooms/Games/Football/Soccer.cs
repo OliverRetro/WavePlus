@@ -64,32 +64,25 @@ namespace Plus.HabboHotel.Rooms.Games.Football
                     if (user.RotBody == 4) {
                         newX = user.X;
                         newY = user.Y + 2;
-                    }
-                    else if (user.RotBody == 6) {
+                    } else if (user.RotBody == 6) {
                         newX = user.X - 2;
                         newY = user.Y;
-                    }
-                    else if (user.RotBody == 0) {
+                    } else if (user.RotBody == 0) {
                         newX = user.X;
                         newY = user.Y - 2;
-                    }
-                    else if (user.RotBody == 2) {
+                    } else if (user.RotBody == 2) {
                         newX = user.X + 2;
                         newY = user.Y;
-                    }
-                    else if (user.RotBody == 1) {
+                    } else if (user.RotBody == 1) {
                         newX = user.X + 2;
                         newY = user.Y - 2;
-                    }
-                    else if (user.RotBody == 7) {
+                    } else if (user.RotBody == 7) {
                         newX = user.X - 2;
                         newY = user.Y - 2;
-                    }
-                    else if (user.RotBody == 3) {
+                    } else if (user.RotBody == 3) {
                         newX = user.X + 2;
                         newY = user.Y + 2;
-                    }
-                    else if (user.RotBody == 5) {
+                    } else if (user.RotBody == 5) {
                         newX = user.X - 2;
                         newY = user.Y + 2;
                     }
@@ -98,39 +91,31 @@ namespace Plus.HabboHotel.Rooms.Games.Football
                         if (user.RotBody == 0) {
                             newX = user.X;
                             newY = user.Y + 1;
-                        }
-                        else if (user.RotBody == 2) {
+                        } else if (user.RotBody == 2) {
                             newX = user.X - 1;
                             newY = user.Y;
-                        }
-                        else if (user.RotBody == 4) {
+                        } else if (user.RotBody == 4) {
                             newX = user.X;
                             newY = user.Y - 1;
-                        }
-                        else if (user.RotBody == 6) {
+                        } else if (user.RotBody == 6) {
                             newX = user.X + 1;
                             newY = user.Y;
-                        }
-                        else if (user.RotBody == 5) {
+                        } else if (user.RotBody == 5) {
                             newX = user.X + 1;
                             newY = user.Y - 1;
-                        }
-                        else if (user.RotBody == 3) {
+                        } else if (user.RotBody == 3) {
                             newX = user.X - 1;
                             newY = user.Y - 1;
-                        }
-                        else if (user.RotBody == 7) {
+                        } else if (user.RotBody == 7) {
                             newX = user.X + 1;
                             newY = user.Y + 1;
-                        }
-                        else if (user.RotBody == 1) {
+                        } else if (user.RotBody == 1) {
                             newX = user.X - 1;
                             newY = user.Y + 1;
                         }
                     }
-                }
-                else if (differenceX <= 1 && differenceX >= -1 && differenceY <= 1 && differenceY >= -1 && VerifyBall(user, item.Coordinate.X, item.Coordinate.Y)) //VERYFIC BALL CHECAR SI ESTA EN DIRECCION ASIA LA PELOTA
-                {
+                } else if (differenceX <= 1 && differenceX >= -1 && differenceY <= 1 && differenceY >= -1 && VerifyBall(user, item.Coordinate.X, item.Coordinate.Y)) //VERYFIC BALL CHECAR SI ESTA EN DIRECCION ASIA LA PELOTA
+                  {
                     newX = differenceX * -1;
                     newY = differenceY * -1;
 
@@ -154,16 +139,13 @@ namespace Plus.HabboHotel.Rooms.Games.Football
             if (_gates[0] == null) {
                 item.Team = Team.Blue;
                 _gates[0] = item;
-            }
-            else if (_gates[1] == null) {
+            } else if (_gates[1] == null) {
                 item.Team = Team.Red;
                 _gates[1] = item;
-            }
-            else if (_gates[2] == null) {
+            } else if (_gates[2] == null) {
                 item.Team = Team.Green;
                 _gates[2] = item;
-            }
-            else if (_gates[3] == null) {
+            } else if (_gates[3] == null) {
                 item.Team = Team.Yellow;
                 _gates[3] = item;
             }

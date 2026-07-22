@@ -47,8 +47,7 @@ namespace Plus.HabboHotel.GameClients
                     PlusEnvironment.GetPoliceManager().StopEscort(habbo.Id);
                     PlusEnvironment.GetRpCrimeManager()?.Commit(habbo, "logout", habbo.CurrentRoom);
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
 
@@ -63,8 +62,7 @@ namespace Plus.HabboHotel.GameClients
                     _lastAnnounce[habbo.Id] = now;
                     room.SendPacket(new ShoutComposer(roomUser.VirtualId, "*disconnecting in " + GraceSeconds + " seconds*", 0, habbo.CustomBubbleId, isRpAction: true));
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
 
@@ -78,8 +76,7 @@ namespace Plus.HabboHotel.GameClients
 
             try {
                 PlusEnvironment.GetGame().GetClientManager().CompleteGhostDisconnect(pending.Client, pending.ChannelId);
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
         }

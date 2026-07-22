@@ -143,8 +143,7 @@ namespace Plus
                 try {
                     using WavePlusContext db = GetDbContext();
                     dbConnected = db.Database.CanConnect();
-                }
-                catch {
+                } catch {
                     dbConnected = false;
                 }
 
@@ -227,21 +226,18 @@ namespace Plus
                 Console.WriteLine();
 
                 Log.Info("EMULATOR -> READY! (" + timeUsed.Seconds + " s, " + timeUsed.Milliseconds + " ms)");
-            }
-            catch (KeyNotFoundException) {
+            } catch (KeyNotFoundException) {
                 Log.Error("Please check your configuration file - some values appear to be missing.");
                 Log.Error("Press any key to shut down ...");
 
                 Console.ReadKey(true);
                 Environment.Exit(1);
-            }
-            catch (InvalidOperationException e) {
+            } catch (InvalidOperationException e) {
                 Log.Error("Failed to initialize PlusEmulator: " + e.Message);
                 Log.Error("Press any key to shut down ...");
                 Console.ReadKey(true);
                 Environment.Exit(1);
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 Log.Error("Fatal error during startup: " + e);
                 Log.Error("Press a key to exit");
 
@@ -351,8 +347,7 @@ namespace Plus
                 generated.InitInformation(data);
                 UsersCached.TryAdd(userId, generated);
                 return generated;
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 // Swallowing this silently is why the failure only ever surfaced as "an error
                 // occurred while finding that user's profile" with nothing to go on.
                 ExceptionLogger.LogException(e);
@@ -370,8 +365,7 @@ namespace Plus
                 }
 
                 return null;
-            }
-            catch {
+            } catch {
                 return null;
             }
         }

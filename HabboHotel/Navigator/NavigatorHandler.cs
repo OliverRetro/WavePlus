@@ -52,8 +52,7 @@ namespace Plus.HabboHotel.Navigator
                                     RoomAppender.WriteRoom(packet, data, data.Promotion);
                                 }
                             }
-                        }
-                        else if (query.ToLower().StartsWith("tag:")) {
+                        } else if (query.ToLower().StartsWith("tag:")) {
                             query = query.Remove(0, 4);
                             ICollection<Room> tagMatches = PlusEnvironment.GetGame().GetRoomManager().SearchTaggedRooms(query);
 
@@ -61,8 +60,7 @@ namespace Plus.HabboHotel.Navigator
                             foreach (RoomData data in tagMatches.ToList()) {
                                 RoomAppender.WriteRoom(packet, data, data.Promotion);
                             }
-                        }
-                        else if (query.ToLower().StartsWith("group:")) {
+                        } else if (query.ToLower().StartsWith("group:")) {
                             query = query.Remove(0, 6);
                             ICollection<Room> groupRooms = PlusEnvironment.GetGame().GetRoomManager().SearchGroupRooms(query);
 
@@ -70,8 +68,7 @@ namespace Plus.HabboHotel.Navigator
                             foreach (RoomData data in groupRooms.ToList()) {
                                 RoomAppender.WriteRoom(packet, data, data.Promotion);
                             }
-                        }
-                        else {
+                        } else {
                             if (query.Length > 0) {
                                 string like = query + "%";
                                 var rows = new List<(int Id, string State)>();

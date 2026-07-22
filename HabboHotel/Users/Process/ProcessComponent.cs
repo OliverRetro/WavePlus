@@ -159,8 +159,7 @@ namespace Plus.HabboHotel.Users.Process
                 _timerLagging = false;
 
                 _resetEvent.Set();
-            }
-            catch {
+            } catch {
             }
         }
 
@@ -172,8 +171,7 @@ namespace Plus.HabboHotel.Users.Process
             // Wait until any processing is complete first.
             try {
                 _resetEvent.WaitOne(TimeSpan.FromMinutes(5));
-            }
-            catch {
+            } catch {
             } // give up
 
             // Set the timer to disabled
@@ -182,8 +180,7 @@ namespace Plus.HabboHotel.Users.Process
             // Dispose the timer to disable it.
             try {
                 _timer?.Dispose();
-            }
-            catch {
+            } catch {
             }
 
             // Remove reference to the timer.

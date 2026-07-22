@@ -72,8 +72,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
                             effectItem.Execute(player);
                         }
                     }
-                }
-                else continue;
+                } else continue;
             }
 
             return true;

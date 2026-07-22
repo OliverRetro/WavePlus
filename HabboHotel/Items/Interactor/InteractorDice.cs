@@ -33,15 +33,13 @@ namespace Plus.HabboHotel.Items.Interactor
                     if (request == -1) {
                         item.ExtraData = "0";
                         item.UpdateState();
-                    }
-                    else {
+                    } else {
                         item.ExtraData = "-1";
                         item.UpdateState(false, true);
                         item.RequestUpdate(3, true);
                     }
                 }
-            }
-            else {
+            } else {
                 user.MoveTo(item.SquareInFront);
             }
         }

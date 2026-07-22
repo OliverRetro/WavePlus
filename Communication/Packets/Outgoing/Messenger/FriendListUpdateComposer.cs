@@ -31,8 +31,7 @@ namespace Plus.Communication.Packets.Outgoing.Messenger
                 packet.WriteInteger(0); //Update
 
                 Buddy.Serialize(packet, Habbo);
-            }
-            else {
+            } else {
                 packet.WriteInteger(0); //Category Count
                 packet.WriteInteger(1); //Updates Count
                 packet.WriteInteger(-1); //Update

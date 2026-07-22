@@ -222,8 +222,7 @@ namespace Plus.HabboHotel.Items.Wired
                     if (!blockedItems.Contains(item.Item.GetBaseItem().SpriteId))
                         blockedItems.Add(item.Item.GetBaseItem().SpriteId);
                     else continue;
-                }
-                else continue;
+                } else continue;
             }
 
             return blockedItems;
@@ -244,8 +243,7 @@ namespace Plus.HabboHotel.Items.Wired
                     if (!blockedItems.Contains(item.Item.GetBaseItem().SpriteId))
                         blockedItems.Add(item.Item.GetBaseItem().SpriteId);
                     else continue;
-                }
-                else if ((item.Type == WiredBoxType.EffectMoveFurniToNearestUser && hasMoveRotate) || (item.Type == WiredBoxType.EffectMoveAndRotate && hasMoveNear)) {
+                } else if ((item.Type == WiredBoxType.EffectMoveFurniToNearestUser && hasMoveRotate) || (item.Type == WiredBoxType.EffectMoveAndRotate && hasMoveNear)) {
                     if (!blockedItems.Contains(item.Item.GetBaseItem().SpriteId))
                         blockedItems.Add(item.Item.GetBaseItem().SpriteId);
                     else continue;

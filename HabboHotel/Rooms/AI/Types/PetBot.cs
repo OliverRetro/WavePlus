@@ -89,14 +89,12 @@ namespace Plus.HabboHotel.Rooms.AI.Types
 
                     if (rSpeech.Length != 3) {
                         pet.Chat(rSpeech);
-                    }
-                    else
+                    } else
                         pet.Statusses.Add(rSpeech, TextHandling.GetString(pet.Z));
                 }
 
                 _speechTimer = PlusEnvironment.GetRandomNumber(20, 120);
-            }
-            else {
+            } else {
                 _speechTimer--;
             }
 
@@ -116,12 +114,10 @@ namespace Plus.HabboHotel.Rooms.AI.Types
                         if (GetRoomUser().CanWalk)
                             GetRoomUser().MoveTo(nextCoord.X, nextCoord.Y);
                     }
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     ExceptionLogger.LogException(e);
                 }
-            }
-            else {
+            } else {
                 _actionTimer--;
             }
 
@@ -135,8 +131,7 @@ namespace Plus.HabboHotel.Rooms.AI.Types
                 pet.PetData.PetEnergy(true); // Add Energy
 
                 _energyTimer = RandomNumber.GenerateRandom(30, 120); // 2 Min Max
-            }
-            else {
+            } else {
                 _energyTimer--;
             }
 
@@ -205,29 +200,22 @@ namespace Plus.HabboHotel.Rooms.AI.Types
 
                             if (user.RotBody == 4) {
                                 newY = user.Y + 1;
-                            }
-                            else if (user.RotBody == 0) {
+                            } else if (user.RotBody == 0) {
                                 newY = user.Y - 1;
-                            }
-                            else if (user.RotBody == 6) {
+                            } else if (user.RotBody == 6) {
                                 newX = user.X - 1;
-                            }
-                            else if (user.RotBody == 2) {
+                            } else if (user.RotBody == 2) {
                                 newX = user.X + 1;
-                            }
-                            else if (user.RotBody == 3) {
+                            } else if (user.RotBody == 3) {
                                 newX = user.X + 1;
                                 newY = user.Y + 1;
-                            }
-                            else if (user.RotBody == 1) {
+                            } else if (user.RotBody == 1) {
                                 newX = user.X + 1;
                                 newY = user.Y - 1;
-                            }
-                            else if (user.RotBody == 7) {
+                            } else if (user.RotBody == 7) {
                                 newX = user.X - 1;
                                 newY = user.Y - 1;
-                            }
-                            else if (user.RotBody == 5) {
+                            } else if (user.RotBody == 5) {
                                 newX = user.X - 1;
                                 newY = user.Y + 1;
                             }
@@ -352,8 +340,7 @@ namespace Plus.HabboHotel.Rooms.AI.Types
                     }
 
                     pet.PetData.PetEnergy(false); // Remove Energy
-                }
-                else {
+                } else {
                     RemovePetStatus(); // Remove Status
 
                     if (pet.PetData.Energy < 10) {
@@ -368,8 +355,7 @@ namespace Plus.HabboHotel.Rooms.AI.Types
                         _speechTimer = 50;
                         _actionTimer = 45;
                         _energyTimer = 5;
-                    }
-                    else {
+                    } else {
                         string[] speech = PlusEnvironment.GetGame().GetChatManager().GetPetLocale().GetValue("pet.lazy");
 
                         var randomSpeech = new Random();

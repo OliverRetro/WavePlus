@@ -18,8 +18,7 @@ namespace Plus.Communication.Packets.Incoming.Inventory.Furni
 
             if (!items.Any()) {
                 session.SendPacket(new FurniListComposer(items.ToList(), 1, 0));
-            }
-            else {
+            } else {
                 foreach (ICollection<Item> batch in items.Batch(700)) {
                     session.SendPacket(new FurniListComposer(batch.ToList(), pages, page));
 

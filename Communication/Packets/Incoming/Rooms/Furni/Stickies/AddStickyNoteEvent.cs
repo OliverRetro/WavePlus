@@ -31,8 +31,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni.Stickies
                 Item roomItem = new(item.Id, room.RoomId, item.BaseItem, item.ExtraData, 0, 0, 0, 0, session.GetHabbo().Id, item.GroupId, 0, 0, wallPosition, room);
                 if (room.GetRoomItemHandler().SetWallItem(session, roomItem))
                     session.GetHabbo().GetInventoryComponent().RemoveItem(itemId);
-            }
-            catch {
+            } catch {
                 //TODO: Send a packet
             }
         }
@@ -65,8 +64,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni.Stickies
                 if (lengthX < 0 || lengthY < 0 || lengthX > 200 || lengthY > 200)
                     return null;
                 return ":w=" + widthX + "," + widthY + " " + "l=" + lengthX + "," + lengthY + " " + posD[2];
-            }
-            catch {
+            } catch {
                 return null;
             }
         }

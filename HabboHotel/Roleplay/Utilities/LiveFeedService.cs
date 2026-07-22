@@ -149,8 +149,7 @@ namespace Plus.HabboHotel.Roleplay.Utilities
                 string json = JsonConvert.SerializeObject(payload);
 
                 await WebhookClient.PostAsync(webhookUrl, new StringContent(json, Encoding.UTF8, "application/json"));
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 Console.WriteLine($"Error while sending live feed webhook message: {ex}");
             }
         }

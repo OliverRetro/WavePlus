@@ -24,8 +24,7 @@ namespace Plus.Communication.Rcon
                 _musSocket.Bind(new IPEndPoint(IPAddress.Parse(host), port)); // SHould be host?
                 _musSocket.Listen(0);
                 _musSocket.BeginAccept(OnCallBack, _musSocket);
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 throw new ArgumentException("Could not set up Rcon socket:\n" + e);
             }
 
@@ -40,12 +39,10 @@ namespace Plus.Communication.Rcon
                 string ip = socket.RemoteEndPoint.ToString().Split(':')[0];
                 if (_allowedConnections.Contains(ip)) {
                     new RconConnection(socket);
-                }
-                else {
+                } else {
                     socket.Close();
                 }
-            }
-            catch (Exception) {
+            } catch (Exception) {
                 // ignored
             }
 

@@ -71,8 +71,7 @@ namespace Plus.HabboHotel.Quests
         {
             if (_questCount.TryGetValue(category, out int count)) {
                 _questCount[category] = count + 1;
-            }
-            else {
+            } else {
                 _questCount.Add(category, 1);
             }
         }

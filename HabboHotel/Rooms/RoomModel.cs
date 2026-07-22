@@ -56,8 +56,7 @@ namespace Plus.HabboHotel.Rooms
                     foreach (char square in line) {
                         if (square == 'x') {
                             SqState[x, y] = SquareState.Blocked;
-                        }
-                        else {
+                        } else {
                             SqState[x, y] = SquareState.Open;
                             SqFloorHeight[x, y] = Parse(square);
                         }
@@ -65,9 +64,8 @@ namespace Plus.HabboHotel.Rooms
                         x++;
                     }
                 }
-            }
-            catch //(Exception e)
-            {
+            } catch //(Exception e)
+              {
                 //Console.WriteLine("Note: " + id + " failed to load properly.");
                 //Console.WriteLine("Error during room modeldata loading for model " + Heightmap);
                 //throw e;

@@ -31,8 +31,7 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.AI.Pets
                 packet.WriteInteger(4);
                 packet.WriteInteger(PetUser.PetData.Saddle);
                 packet.WriteInteger(0);
-            }
-            else {
+            } else {
                 packet.WriteInteger(1);
                 packet.WriteInteger(2);
                 packet.WriteInteger(2);

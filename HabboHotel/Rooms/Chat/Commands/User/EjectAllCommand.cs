@@ -30,8 +30,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                         room.GetRoomItemHandler().RemoveFurniture(targetClient, item.Id);
                         targetClient.GetHabbo().GetInventoryComponent().AddNewItem(item.Id, item.BaseItem, item.ExtraData, item.GroupId, true, true, item.LimitedNo, item.LimitedTot);
                         targetClient.GetHabbo().GetInventoryComponent().UpdateItems(false);
-                    }
-                    else {
+                    } else {
                         room.GetRoomItemHandler().RemoveFurniture(null, item.Id);
                         uint itemId = (uint)item.Id;
                         using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
@@ -39,8 +38,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                         }
                     }
                 }
-            }
-            else {
+            } else {
                 foreach (Item item in room.GetRoomItemHandler().GetWallAndFloor.ToList()) {
                     if (item == null || item.UserId != session.GetHabbo().Id)
                         continue;
@@ -50,8 +48,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                         room.GetRoomItemHandler().RemoveFurniture(targetClient, item.Id);
                         targetClient.GetHabbo().GetInventoryComponent().AddNewItem(item.Id, item.BaseItem, item.ExtraData, item.GroupId, true, true, item.LimitedNo, item.LimitedTot);
                         targetClient.GetHabbo().GetInventoryComponent().UpdateItems(false);
-                    }
-                    else {
+                    } else {
                         room.GetRoomItemHandler().RemoveFurniture(null, item.Id);
                         uint itemId = (uint)item.Id;
                         using (WavePlusContext db = PlusEnvironment.GetDbContext()) {

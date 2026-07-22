@@ -28,13 +28,11 @@ namespace Plus.HabboHotel.Items.Interactor
 
             if (request == 0 && oldValue == 0) {
                 oldValue = 30;
-            }
-            else if (request == 2) {
+            } else if (request == 2) {
                 if (item.GetRoom().GetBanzai().IsBanzaiActive && item.PendingReset && oldValue > 0) {
                     oldValue = 0;
                     item.PendingReset = false;
-                }
-                else {
+                } else {
                     if (oldValue < 30)
                         oldValue = 30;
                     else if (oldValue == 30)
@@ -51,8 +49,7 @@ namespace Plus.HabboHotel.Items.Interactor
                         oldValue = 0;
                     item.UpdateNeeded = false;
                 }
-            }
-            else if (request == 1 || request == 0) {
+            } else if (request == 1 || request == 0) {
                 if (request == 1 && oldValue == 0) {
                     item.ExtraData = "30";
                     oldValue = 30;
@@ -66,8 +63,7 @@ namespace Plus.HabboHotel.Items.Interactor
                     }
 
                     item.PendingReset = true;
-                }
-                else {
+                } else {
                     item.UpdateNeeded = !item.UpdateNeeded;
 
                     if (item.UpdateNeeded) {

@@ -27,12 +27,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                 if (maxAmount == 0) {
                     maxAmount = 10;
                     session.SendWhisper("visitor amount too low, visitor amount has been set to 10.");
-                }
-                else if (maxAmount > 200 && !session.GetHabbo().GetPermissions().HasRight("override_command_setmax_limit")) {
+                } else if (maxAmount > 200 && !session.GetHabbo().GetPermissions().HasRight("override_command_setmax_limit")) {
                     maxAmount = 200;
                     session.SendWhisper("visitor amount too high for your rank, visitor amount has been set to 200.");
-                }
-                else
+                } else
                     session.SendWhisper("visitor amount set to " + maxAmount + ".");
 
                 room.UsersMax = maxAmount;
@@ -40,8 +38,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                 using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                     db.Rooms.Where(r => r.Id == roomId).ExecuteUpdate(s => s.SetProperty(r => r.UsersMax, maxAmount));
                 }
-            }
-            else
+            } else
                 session.SendWhisper("Invalid amount, please enter a valid number.");
         }
     }

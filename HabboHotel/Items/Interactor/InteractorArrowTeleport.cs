@@ -83,8 +83,7 @@ namespace Plus.HabboHotel.Items.Interactor
 
             if (user.X == item.GetX && user.Y == item.GetY) {
                 BeginDelayedTeleport(user, item);
-            }
-            else if (user.CanWalk) {
+            } else if (user.CanWalk) {
                 user.MoveTo(item.GetX, item.GetY);
             }
         }
@@ -183,8 +182,7 @@ namespace Plus.HabboHotel.Items.Interactor
                     return;
 
                 TriggerInstantTeleport(user, item);
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 Plus.Core.ExceptionLogger.LogException(e);
             }
         }

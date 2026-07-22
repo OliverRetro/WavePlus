@@ -24,8 +24,7 @@ namespace Plus.Communication.Packets.Outgoing.Catalog
             if (Item.CostDiamonds > 0) {
                 packet.WriteInteger(Item.CostDiamonds);
                 packet.WriteInteger(5); // Diamonds
-            }
-            else {
+            } else {
                 packet.WriteInteger(Item.CostPixels);
                 packet.WriteInteger(0); // Type of PixelCost
             }
@@ -52,8 +51,7 @@ namespace Plus.Communication.Packets.Outgoing.Catalog
                         packet.WriteString("hd-180-7.ea-1406-62.ch-210-1321.hr-831-49.ca-1813-62.sh-295-1321.lg-285-92");
                     else
                         packet.WriteString(cataBot.Figure);
-                }
-                else if (Item.ExtraData != null)
+                } else if (Item.ExtraData != null)
                     packet.WriteString(Item.ExtraData != null ? Item.ExtraData : string.Empty);
 
                 packet.WriteInteger(Item.Amount);

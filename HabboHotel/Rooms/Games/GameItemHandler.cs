@@ -49,8 +49,7 @@ namespace Plus.HabboHotel.Rooms.Games
                         item.ExtraData = "1";
                         item.UpdateState();
                         _room.GetGameMap().RemoveFromMap(item, false);
-                    }
-                    else {
+                    } else {
                         if (_room.GetGameMap().ItemCanBePlaced(item.GetX, item.GetY)) {
                             item.ExtraData = "0";
                             item.UpdateState();

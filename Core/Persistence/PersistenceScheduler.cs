@@ -55,8 +55,7 @@ namespace Plus.Core.Persistence
 
             try {
                 RunAll(_userSavers, "user");
-            }
-            finally {
+            } finally {
                 Monitor.Exit(_userLock);
             }
         }
@@ -68,8 +67,7 @@ namespace Plus.Core.Persistence
 
             try {
                 RunAll(_worldSavers, "world");
-            }
-            finally {
+            } finally {
                 Monitor.Exit(_worldLock);
             }
         }
@@ -81,8 +79,7 @@ namespace Plus.Core.Persistence
 
             try {
                 RunAll(_mirrors, "mirror");
-            }
-            finally {
+            } finally {
                 Monitor.Exit(_mirrorLock);
             }
         }
@@ -92,8 +89,7 @@ namespace Plus.Core.Persistence
             foreach ((string name, Action save) in savers) {
                 try {
                     save();
-                }
-                catch (Exception ex) {
+                } catch (Exception ex) {
                     // Include the inner exception: provider wrappers (e.g. the MySQL provider's
                     // "configure your entity type accordingly") hide the real cause otherwise.
                     string detail = ex.InnerException != null ? $"{ex.Message} -> {ex.InnerException.Message}" : ex.Message;

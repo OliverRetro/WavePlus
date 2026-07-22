@@ -113,16 +113,13 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
                     if (roomItem.IsWired) {
                         try {
                             room.GetWired().LoadWiredBox(roomItem);
-                        }
-                        catch {
+                        } catch {
                         }
                     }
-                }
-                else {
+                } else {
                     session.SendPacket(new RoomNotificationComposer("furni_placement_error", "message", "${room.error.cant_set_item}"));
                 }
-            }
-            else if (item.IsWallItem) {
+            } else if (item.IsWallItem) {
                 string[] correctedData = new string[data.Length - 1];
 
                 for (int i = 1; i < data.Length; i++) {
@@ -138,12 +135,10 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
                             if (session.GetHabbo().Id == room.OwnerId)
                                 PlusEnvironment.GetGame().GetAchievementManager().ProgressAchievement(session, "ACH_RoomDecoFurniCount", 1);
                         }
-                    }
-                    catch {
+                    } catch {
                         session.SendPacket(new RoomNotificationComposer("furni_placement_error", "message", "${room.error.cant_set_item}"));
                     }
-                }
-                else {
+                } else {
                     session.SendPacket(new RoomNotificationComposer("furni_placement_error", "message", "${room.error.cant_set_item}"));
                 }
             }
@@ -211,8 +206,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
                     return null;
 
                 return ":w=" + widthX + "," + widthY + " " + "l=" + lengthX + "," + lengthY + " " + posD[2];
-            }
-            catch {
+            } catch {
                 return null;
             }
         }

@@ -63,8 +63,7 @@ namespace Plus.Communication.Packets.Incoming
 
                 if (IsDebugEnabled()) Console.WriteLine("[WebOverlay] dispatching header: '" + header + "'");
                 Dispatch(header, data, session);
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 if (IsDebugEnabled()) Console.WriteLine("[WebOverlay] malformed message: " + ex.Message);
             }
         }
@@ -322,8 +321,7 @@ namespace Plus.Communication.Packets.Incoming
                 Skill skill = PlusEnvironment.GetSkillManager().GetSkillById(skillId);
                 if (skill != null)
                     session.SendWhisper($"{skill.Name} is now {(habbo.GetRpSkills().IsEquipped(skillId) ? "equipped" : "unequipped")}.", 1);
-            }
-            else {
+            } else {
                 session.SendWhisper("Skill couldn't be toggled. Please note you need to have the skill unlocked and the limit is " +
                     UserRpSkills.MaxEquippedSkills + ".", 1);
             }
@@ -494,8 +492,7 @@ namespace Plus.Communication.Packets.Incoming
                     blockedReason = ItemBlockReason(equippedPrimary.ItemData, dead, passive),
                     health = hasBar ? (int)Math.Round(100.0 * equippedPrimary.EffectiveDurability / Math.Max(1, equippedPrimary.ItemData.MaxDurability)) : 100
                 });
-            }
-            else {
+            } else {
                 UserWeapon weapon = habbo.GetRpWeapons()?.GetActiveWeapon();
                 if (weapon?.WeaponData != null && weapon.WeaponData.Id != 0) {
                     items.Add(new
@@ -738,8 +735,7 @@ namespace Plus.Communication.Packets.Incoming
                             items.Remove(it);
                     }
                 }
-            }
-            else if (TryGetInt(data, "id", out int id)) {
+            } else if (TryGetInt(data, "id", out int id)) {
                 UserRpItem it = items.GetItem(id);
                 if (it != null)
                     items.Remove(it);
@@ -796,8 +792,7 @@ namespace Plus.Communication.Packets.Incoming
                 if (GetString(entry, "kind") == "weapon") {
                     if (weapons != null && TryGetInt(entry, "userWeaponId", out int uwid))
                         weapons.SetSlot(uwid, slot);
-                }
-                else if (TryGetInt(entry, "id", out int id) && id > 0) {
+                } else if (TryGetInt(entry, "id", out int id) && id > 0) {
                     items.SetSlot(id, slot);
                 }
             }
@@ -835,8 +830,7 @@ namespace Plus.Communication.Packets.Incoming
                 if (space < 0) {
                     if (target != null)
                         text += " " + target.Username;
-                }
-                else {
+                } else {
                     string command = text.Substring(0, space);
                     string argument = text.Substring(space + 1).Trim();
 

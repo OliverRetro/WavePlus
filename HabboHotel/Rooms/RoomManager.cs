@@ -45,8 +45,7 @@ namespace Plus.HabboHotel.Rooms
                         if (room.ProcessTask == null || room.ProcessTask.IsCompleted) {
                             room.ProcessTask = Task.Run(room.ProcessRoom);
                             room.IsLagging = 0;
-                        }
-                        else {
+                        } else {
                             room.IsLagging++;
                             // 300 consecutive busy 50ms ticks ≈ 15s of continuous stall — the same
                             // tolerance the old 30 × 500ms check gave.
@@ -57,8 +56,7 @@ namespace Plus.HabboHotel.Rooms
                         }
                     }
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
         }

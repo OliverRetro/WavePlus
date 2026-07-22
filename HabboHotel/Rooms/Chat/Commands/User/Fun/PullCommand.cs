@@ -74,6 +74,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Fun
 
                 room.SendPacket(new ShoutComposer(thisUser.VirtualId, "*pulls " + @params[1] + " to them*", 0, thisUser.LastBubble, isRpAction: true));
                 targetUser.MoveTo(destination.X, destination.Y);
+                return;
             }
 
             session.SendWhisper("That user is not close enough to you to be pulled, try getting closer!", 1);

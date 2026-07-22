@@ -32,8 +32,7 @@ namespace Plus.Communication.Packets.Outgoing.Inventory.Trading
                         packet.WriteString("");
                         packet.WriteInteger(item.LimitedNo);
                         packet.WriteInteger(item.LimitedTot);
-                    }
-                    else {
+                    } else {
                         packet.WriteBoolean(true); //Stackable
                         packet.WriteInteger(0);
                         packet.WriteString("");

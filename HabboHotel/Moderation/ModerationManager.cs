@@ -109,8 +109,7 @@ namespace Plus.HabboHotel.Moderation
                 if (expires > PlusEnvironment.GetUnixTimestamp()) {
                     if (value != null && !_bans.ContainsKey(value))
                         _bans.Add(value, ban);
-                }
-                else {
+                } else {
                     string banType = BanTypeUtility.FromModerationBanType(ban.Type);
                     db.Bans.Where(b => b.Bantype == banType && b.Value == value).ExecuteDelete();
                 }

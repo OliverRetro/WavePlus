@@ -106,8 +106,7 @@ namespace Plus.HabboHotel.Rewards
                         session.SendNotification(reward.Message);
 
                     LogReward(session.GetHabbo().Id, id);
-                }
-                else
+                } else
                     continue;
             }
         }

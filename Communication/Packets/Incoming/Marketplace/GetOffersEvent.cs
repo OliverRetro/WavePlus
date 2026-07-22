@@ -59,8 +59,7 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
                             dictionary.Add(item.OfferId, item);
                         if (!dictionary2.ContainsKey(item.OfferId))
                             dictionary2.Add(item.OfferId, 1);
-                    }
-                    else {
+                    } else {
                         if (dictionary[item.SpriteId].TotalPrice > item.TotalPrice) {
                             dictionary.Remove(item.SpriteId);
                             dictionary.Add(item.SpriteId, item);
@@ -70,8 +69,7 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
                         dictionary2.Remove(item.SpriteId);
                         dictionary2.Add(item.SpriteId, num + 1);
                     }
-                }
-                else {
+                } else {
                     if (!dictionary.ContainsKey(item.SpriteId))
                         dictionary.Add(item.SpriteId, item);
                     if (!dictionary2.ContainsKey(item.SpriteId))

@@ -33,11 +33,9 @@ namespace Plus.HabboHotel.Items.Interactor
 
             if (currentMode <= 0) {
                 newMode = 1;
-            }
-            else if (currentMode >= modes) {
+            } else if (currentMode >= modes) {
                 newMode = 0;
-            }
-            else {
+            } else {
                 newMode = currentMode + 1;
             }
 
@@ -71,11 +69,9 @@ namespace Plus.HabboHotel.Items.Interactor
 
             if (currentMode <= 0) {
                 newMode = 1;
-            }
-            else if (currentMode >= modes) {
+            } else if (currentMode >= modes) {
                 newMode = 0;
-            }
-            else {
+            } else {
                 newMode = currentMode + 1;
             }
 

@@ -28,12 +28,10 @@ namespace Plus.HabboHotel.Rooms.AI.Responses
                 foreach (string vendingId in responseBeverages.Split(',')) {
                     try {
                         BeverageIds.Add(int.Parse(vendingId));
-                    }
-                    catch {
+                    } catch {
                     }
                 }
-            }
-            else if (!string.IsNullOrEmpty(responseBeverages) && (int.Parse(responseBeverages)) > 0)
+            } else if (!string.IsNullOrEmpty(responseBeverages) && (int.Parse(responseBeverages)) > 0)
                 BeverageIds.Add(int.Parse(responseBeverages));
         }
 

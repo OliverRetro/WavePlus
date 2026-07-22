@@ -59,8 +59,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
                     user.UpdateNeeded = true;
 
                     user.GetClient().SendPacket(new YouAreControllerComposer(0));
-                }
-                else if (furniOptions == 0 && !user.Statusses.ContainsKey("flatctrl 1")) {
+                } else if (furniOptions == 0 && !user.Statusses.ContainsKey("flatctrl 1")) {
                     user.SetStatus("flatctrl 1");
                     user.UpdateNeeded = true;
 

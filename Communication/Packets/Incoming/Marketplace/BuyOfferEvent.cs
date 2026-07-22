@@ -95,8 +95,7 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
                     PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketAverages.Add(item.SpriteId, num4);
                     PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketCounts.Remove(item.SpriteId);
                     PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketCounts.Add(item.SpriteId, num3 + 1);
-                }
-                else {
+                } else {
                     if (!PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketAverages.ContainsKey(item.SpriteId))
                         PlusEnvironment.GetGame().GetCatalog().GetMarketplace().MarketAverages.Add(item.SpriteId, salePrice);
 
@@ -146,8 +145,7 @@ namespace Plus.Communication.Packets.Incoming.Marketplace
                     int num = dictionary2[item.SpriteId];
                     dictionary2.Remove(item.SpriteId);
                     dictionary2.Add(item.SpriteId, num + 1);
-                }
-                else {
+                } else {
                     dictionary.Add(item.SpriteId, item);
                     dictionary2.Add(item.SpriteId, 1);
                 }

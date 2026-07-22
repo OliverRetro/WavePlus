@@ -35,8 +35,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Avatar
                     // visually). Cancel any pending gesture re-apply so it doesn't fire mid-dance.
                     room.SendPacket(new AvatarEffectComposer(user.VirtualId, 0));
                     user.EffectReapplyTimer = 0;
-                }
-                else {
+                } else {
                     // Stopping the dance: restore whatever effect they had on.
                     room.SendPacket(new AvatarEffectComposer(user.VirtualId, currentEffect));
                 }

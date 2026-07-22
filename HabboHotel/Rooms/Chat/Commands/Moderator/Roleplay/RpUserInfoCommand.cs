@@ -89,8 +89,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
 
                     habboInfo.Append($"{skill.Name}: Level {level} {(equipped ? "[Equipped]" : "")}\r");
                 }
-            }
-            else {
+            } else {
                 habboInfo.Append("Username: " + userData.Username + "" + " (ID: <b>" + userData.Id + "</b>\r\r");
                 habboInfo.Append("Online Status: " + (targetClient != null ? "True" : "False") + "\r\r");
                 habboInfo.Append("Health: " + userRpInfo.Health + "\r");

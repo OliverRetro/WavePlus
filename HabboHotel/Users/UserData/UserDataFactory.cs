@@ -90,8 +90,7 @@ namespace Plus.HabboHotel.Users.UserData
                 if (receiverId != userId) {
                     if (!requests.ContainsKey(receiverId))
                         requests.Add(receiverId, new MessengerRequest(userId, receiverId, rr.Username));
-                }
-                else {
+                } else {
                     if (!requests.ContainsKey(senderId))
                         requests.Add(senderId, new MessengerRequest(userId, senderId, rr.Username));
                 }

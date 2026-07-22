@@ -110,8 +110,7 @@ namespace Plus.HabboHotel.Roleplay.Banking
                     AccountOpened = opened
                 });
                 db.SaveChanges();
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 ExceptionLogger.LogException(e);
                 return false;
             }
@@ -235,8 +234,7 @@ namespace Plus.HabboHotel.Roleplay.Banking
                     db.SaveChanges();
                     account.PendingLogs.RemoveRange(0, logs.Count);
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 // Left dirty on purpose — the next save cycle retries it.
                 ExceptionLogger.LogException(e);
             }

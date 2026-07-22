@@ -126,8 +126,7 @@ namespace Plus.HabboHotel.Roleplay.Utilities
                     RoomUser user = target.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(target.Id);
                     if (user != null)
                         target.CurrentRoom.SendPacket(new UpdateFavouriteGroupComposer(group, user.VirtualId));
-                }
-                else
+                } else
                     targetClient?.SendPacket(new RefreshFavouriteGroupComposer(target.Id));
             }
 

@@ -148,8 +148,7 @@ namespace Plus.HabboHotel.Camera
 
                 File.WriteAllBytes(fullPath, pngBytes);
                 return true;
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 Log.Error("[Camera] Failed to save png: " + e.Message);
                 return false;
             }

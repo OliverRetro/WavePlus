@@ -162,8 +162,7 @@ namespace Plus.HabboHotel.Rooms.Trading
 
                     uint delId = (uint)item.Id;
                     db.Items.Where(i => i.Id == delId).ExecuteDelete();
-                }
-                else {
+                } else {
                     if (roomUserTwo.GetClient().GetHabbo().GetInventoryComponent().TryAddItem(item)) {
                         roomUserTwo.GetClient().SendPacket(new FurniListAddComposer(item));
                         roomUserTwo.GetClient().SendPacket(new FurniListNotificationComposer(item.Id, 1));
@@ -184,8 +183,7 @@ namespace Plus.HabboHotel.Rooms.Trading
 
                     uint delId = (uint)item.Id;
                     db.Items.Where(i => i.Id == delId).ExecuteDelete();
-                }
-                else {
+                } else {
                     if (roomUserOne.GetClient().GetHabbo().GetInventoryComponent().TryAddItem(item)) {
                         roomUserOne.GetClient().SendPacket(new FurniListAddComposer(item));
                         roomUserOne.GetClient().SendPacket(new FurniListNotificationComposer(item.Id, 1));

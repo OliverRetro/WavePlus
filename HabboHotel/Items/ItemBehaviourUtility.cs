@@ -62,8 +62,7 @@ namespace Plus.HabboHotel.Items
                         packet.WriteInteger(1);
                         packet.WriteInteger(0);
                         packet.WriteString(item.ExtraData);
-                    }
-                    else {
+                    } else {
                         packet.WriteInteger(0);
                         packet.WriteInteger(2);
                         packet.WriteInteger(5);
@@ -108,8 +107,7 @@ namespace Plus.HabboHotel.Items
                             packet.WriteInteger(0);
                             packet.WriteInteger(0);
                             packet.WriteString(item.ExtraData);
-                        }
-                        else {
+                        } else {
                             int style = int.Parse(extraData[6]) * 1000 + int.Parse(extraData[6]);
 
                             UserCache purchaser = PlusEnvironment.GetGame().GetCacheManager().GenerateUser(Convert.ToInt32(extraData[2]));
@@ -117,8 +115,7 @@ namespace Plus.HabboHotel.Items
                                 packet.WriteInteger(0);
                                 packet.WriteInteger(0);
                                 packet.WriteString(item.ExtraData);
-                            }
-                            else {
+                            } else {
                                 packet.WriteInteger(style);
                                 packet.WriteInteger(1);
                                 packet.WriteInteger(6);
@@ -151,8 +148,7 @@ namespace Plus.HabboHotel.Items
                         packet.WriteString(stuff[1]);
                         packet.WriteString("OUTFIT_NAME");
                         packet.WriteString(stuff[2]);
-                    }
-                    else {
+                    } else {
                         packet.WriteString("GENDER");
                         packet.WriteString("");
                         packet.WriteString("FIGURE");
@@ -175,8 +171,7 @@ namespace Plus.HabboHotel.Items
                         packet.WriteInteger(item.GetRoom().TonerData.Hue);
                         packet.WriteInteger(item.GetRoom().TonerData.Saturation);
                         packet.WriteInteger(item.GetRoom().TonerData.Lightness);
-                    }
-                    else {
+                    } else {
                         packet.WriteInteger(0);
                         packet.WriteInteger(0);
                         packet.WriteString(string.Empty);
@@ -195,8 +190,7 @@ namespace Plus.HabboHotel.Items
                         packet.WriteString(badgeData[0]); //Badge name
                         packet.WriteString(badgeData[1]); //Owner
                         packet.WriteString(badgeData[2]); //Date
-                    }
-                    else {
+                    } else {
                         packet.WriteString("0"); //No idea
                         packet.WriteString("DEV"); //Badge name
                         packet.WriteString("Sledmore"); //Owner
@@ -226,8 +220,7 @@ namespace Plus.HabboHotel.Items
                             packet.WriteString(eData[I]);
                             I++;
                         }
-                    }
-                    else {
+                    } else {
                         packet.WriteInteger(0);
                         packet.WriteInteger(0);
                         packet.WriteString("0");

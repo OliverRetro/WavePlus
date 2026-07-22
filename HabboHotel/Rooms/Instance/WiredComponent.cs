@@ -38,8 +38,7 @@ namespace Plus.HabboHotel.Rooms.Instance
                 if (item.Value is IWiredCycle cycle) {
                     if (cycle.TickCount <= 0) {
                         cycle.OnCycle();
-                    }
-                    else {
+                    } else {
                         cycle.TickCount--;
                     }
                 }
@@ -98,8 +97,7 @@ namespace Plus.HabboHotel.Rooms.Instance
                             newBox.SetItems.TryAdd(selectedItem.Id, selectedItem);
                         }
                     }
-                }
-                else {
+                } else {
                     newBox.ItemsData = "";
                     newBox.StringData = "";
                     newBox.BoolData = false;
@@ -322,8 +320,7 @@ namespace Plus.HabboHotel.Rooms.Instance
                         finished = box.Execute(@params);
                     }
                 }
-            }
-            catch {
+            } catch {
                 //log.Error("Error when triggering Wired Event: " + e);
                 return false;
             }
@@ -376,11 +373,9 @@ namespace Plus.HabboHotel.Rooms.Instance
 
                             item.UserFurniCollision(user);
                         }
-                    }
-                    else
+                    } else
                         continue;
-                }
-                else
+                } else
                     continue;
             }
 

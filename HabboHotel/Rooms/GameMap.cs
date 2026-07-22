@@ -164,11 +164,9 @@ namespace Plus.HabboHotel.Rooms
 
             if (x == Model.DoorX && y == Model.DoorY) {
                 GameMap[x, y] = 3;
-            }
-            else if (Model.SqState[x, y] == SquareState.Open) {
+            } else if (Model.SqState[x, y] == SquareState.Open) {
                 GameMap[x, y] = 1;
-            }
-            else if (Model.SqState[x, y] == SquareState.Seat) {
+            } else if (Model.SqState[x, y] == SquareState.Seat) {
                 GameMap[x, y] = 2;
             }
         }
@@ -226,20 +224,16 @@ namespace Plus.HabboHotel.Rooms
 
                         if (chr == Model.DoorX && line == Model.DoorY) {
                             GameMap[chr, line] = 3;
-                        }
-                        else if (Model.SqState[chr, line] == SquareState.Open) {
+                        } else if (Model.SqState[chr, line] == SquareState.Open) {
                             GameMap[chr, line] = 1;
-                        }
-                        else if (Model.SqState[chr, line] == SquareState.Seat) {
+                        } else if (Model.SqState[chr, line] == SquareState.Seat) {
                             GameMap[chr, line] = 2;
-                        }
-                        else if (Model.SqState[chr, line] == SquareState.Pool) {
+                        } else if (Model.SqState[chr, line] == SquareState.Pool) {
                             EffectMap[chr, line] = 6;
                         }
                     }
                 }
-            }
-            else {
+            } else {
                 EffectMap = new byte[Model.MapSizeX, Model.MapSizeY];
                 GameMap = new byte[Model.MapSizeX, Model.MapSizeY];
 
@@ -252,14 +246,11 @@ namespace Plus.HabboHotel.Rooms
 
                         if (chr == Model.DoorX && line == Model.DoorY) {
                             GameMap[chr, line] = 3;
-                        }
-                        else if (Model.SqState[chr, line] == SquareState.Open) {
+                        } else if (Model.SqState[chr, line] == SquareState.Open) {
                             GameMap[chr, line] = 1;
-                        }
-                        else if (Model.SqState[chr, line] == SquareState.Seat) {
+                        } else if (Model.SqState[chr, line] == SquareState.Seat) {
                             GameMap[chr, line] = 2;
-                        }
-                        else if (Model.SqState[chr, line] == SquareState.Pool) {
+                        } else if (Model.SqState[chr, line] == SquareState.Pool) {
                             EffectMap[chr, line] = 6;
                         }
                     }
@@ -289,8 +280,7 @@ namespace Plus.HabboHotel.Rooms
 
             try {
                 GameMap[Model.DoorX, Model.DoorY] = 3;
-            }
-            catch {
+            } catch {
             }
         }
 
@@ -340,17 +330,14 @@ namespace Plus.HabboHotel.Rooms
                     {
                         if (GameMap[coord.X, coord.Y] != 3)
                             GameMap[coord.X, coord.Y] = 1;
-                    }
-                    else if (item.GetZ <= (Model.SqFloorHeight[item.GetX, item.GetY] + 0.1) && item.GetBaseItem().InteractionType == InteractionType.Gate && item.ExtraData == "1") // If this item is a gate, open, and on the floor, allow users to walk here.
-                    {
+                    } else if (item.GetZ <= (Model.SqFloorHeight[item.GetX, item.GetY] + 0.1) && item.GetBaseItem().InteractionType == InteractionType.Gate && item.ExtraData == "1") // If this item is a gate, open, and on the floor, allow users to walk here.
+                      {
                         if (GameMap[coord.X, coord.Y] != 3)
                             GameMap[coord.X, coord.Y] = 1;
-                    }
-                    else if (item.GetBaseItem().IsSeat || item.GetBaseItem().InteractionType == InteractionType.Bed || item.GetBaseItem().InteractionType == InteractionType.TentSmall) {
+                    } else if (item.GetBaseItem().IsSeat || item.GetBaseItem().InteractionType == InteractionType.Bed || item.GetBaseItem().InteractionType == InteractionType.TentSmall) {
                         GameMap[coord.X, coord.Y] = 3;
-                    }
-                    else // Finally, if it's none of those, block the square.
-                    {
+                    } else // Finally, if it's none of those, block the square.
+                      {
                         if (GameMap[coord.X, coord.Y] != 3)
                             GameMap[coord.X, coord.Y] = 0;
                     }
@@ -359,8 +346,7 @@ namespace Plus.HabboHotel.Rooms
                 // Set bad maps
                 if (item.GetBaseItem().InteractionType == InteractionType.Bed || item.GetBaseItem().InteractionType == InteractionType.TentSmall)
                     GameMap[coord.X, coord.Y] = 3;
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
 
@@ -377,8 +363,7 @@ namespace Plus.HabboHotel.Rooms
 
                 if (!_coordinatedItems.ContainsKey(coord))
                     _coordinatedItems.TryAdd(coord, items);
-            }
-            else {
+            } else {
                 if (!items.Contains(item.Id)) {
                     items.Add(item.Id);
                     _coordinatedItems[coord] = items;
@@ -435,8 +420,7 @@ namespace Plus.HabboHotel.Rooms
                                 item.Figure = "lg-275-108.hr-115-61.hd-180-3.ch-265-108.sh-305-62";
                                 break;
                         }
-                    }
-                    else {
+                    } else {
                         item.Gender = splittedExtraData[0];
                         item.Figure = splittedExtraData[1];
                     }
@@ -645,8 +629,7 @@ namespace Plus.HabboHotel.Rooms
             foreach (Point coord in item.GetCoords) {
                 if (!ConstructMapForItem(item, coord)) {
                     @return = false;
-                }
-                else {
+                } else {
                     @return = true;
                 }
             }
@@ -742,8 +725,7 @@ namespace Plus.HabboHotel.Rooms
                         item = uItem;
                     }
                 }
-            }
-            else
+            } else
                 return false;
 
             return true;
@@ -775,8 +757,7 @@ namespace Plus.HabboHotel.Rooms
                             coord = user.Coordinate;
                             x = false;
                         }
-                    }
-                    else if (user.Y == item.GetY) {
+                    } else if (user.Y == item.GetY) {
                         int difference = Math.Abs(user.X - item.GetX);
                         if (difference < distance) {
                             distance = difference;
@@ -1001,8 +982,7 @@ namespace Plus.HabboHotel.Rooms
                             if (item.GetBaseItem().IsSeat || item.GetBaseItem().InteractionType == InteractionType.Bed || item.GetBaseItem().InteractionType == InteractionType.TentSmall) {
                                 deduct = true;
                                 deductible = item.GetBaseItem().Height;
-                            }
-                            else
+                            } else
                                 deduct = false;
 
                             highestStack = item.TotalHeight;
@@ -1020,8 +1000,7 @@ namespace Plus.HabboHotel.Rooms
                     stackHeight = 0;
 
                 return floorHeight + stackHeight;
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 ExceptionLogger.LogException(e);
                 return 0;
             }
@@ -1050,8 +1029,7 @@ namespace Plus.HabboHotel.Rooms
                             pointList.Add(x++, new ThreeDCoord(posX + j, posY + i, (i < j) ? j : i));
                         }
                     }
-                }
-                else if (rotation == 2 || rotation == 6) {
+                } else if (rotation == 2 || rotation == 6) {
                     for (int i = 1; i < length; i++) {
                         pointList.Add(x++, new ThreeDCoord(posX + i, posY, i));
 
@@ -1071,8 +1049,7 @@ namespace Plus.HabboHotel.Rooms
                             pointList.Add(x++, new ThreeDCoord(posX + i, posY + j, (i < j) ? j : i));
                         }
                     }
-                }
-                else if (rotation == 2 || rotation == 6) {
+                } else if (rotation == 2 || rotation == 6) {
                     for (int i = 1; i < width; i++) {
                         pointList.Add(x++, new ThreeDCoord(posX, posY + i, i));
 

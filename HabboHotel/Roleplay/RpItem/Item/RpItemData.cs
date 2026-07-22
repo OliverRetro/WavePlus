@@ -219,8 +219,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
                     if (prop.Value.ValueKind == JsonValueKind.Number && prop.Value.TryGetDouble(out double number))
                         result[prop.Name] = number;
                 }
-            }
-            catch {
+            } catch {
                 // Malformed attribute JSON -> treat the item as having no attributes.
             }
 

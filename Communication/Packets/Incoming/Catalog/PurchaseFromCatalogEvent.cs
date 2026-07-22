@@ -48,8 +48,7 @@ namespace Plus.Communication.Packets.Incoming.Catalog
                     item = page.ItemOffers[itemId];
                     if (item == null)
                         return;
-                }
-                else
+                } else
                     return;
             }
 
@@ -98,8 +97,7 @@ namespace Plus.Communication.Packets.Incoming.Catalog
                             return;
 
                         PlusEnvironment.GetGame().GetAchievementManager().ProgressAchievement(session, "ACH_PetLover", 1);
-                    }
-                    catch (Exception e) {
+                    } catch (Exception e) {
                         ExceptionLogger.LogException(e);
                         return;
                     }
@@ -116,8 +114,7 @@ namespace Plus.Communication.Packets.Incoming.Catalog
 
                     try {
                         number = string.IsNullOrEmpty(extraData) ? 0 : double.Parse(extraData, PlusEnvironment.CultureInfo);
-                    }
-                    catch (Exception e) {
+                    } catch (Exception e) {
                         ExceptionLogger.LogException(e);
                     }
 
@@ -211,8 +208,7 @@ namespace Plus.Communication.Packets.Incoming.Catalog
                                 if (items != null) {
                                     generatedGenericItems.AddRange(items);
                                 }
-                            }
-                            else {
+                            } else {
                                 newItem = ItemFactory.CreateSingleItemNullable(item.Data, session.GetHabbo(), extraData, extraData, 0, limitedEditionSells, limitedEditionStack);
 
                                 if (newItem != null) {
@@ -231,8 +227,7 @@ namespace Plus.Communication.Packets.Incoming.Catalog
                                 if (items != null) {
                                     generatedGenericItems.AddRange(items);
                                 }
-                            }
-                            else {
+                            } else {
                                 newItem = ItemFactory.CreateSingleItemNullable(item.Data, session.GetHabbo(), extraData, extraData, Convert.ToInt32(extraData));
 
                                 if (newItem != null) {
@@ -264,8 +259,7 @@ namespace Plus.Communication.Packets.Incoming.Catalog
                                             ItemFactory.CreateMoodlightData(I);
                                         }
                                     }
-                                }
-                                else {
+                                } else {
                                     newItem = ItemFactory.CreateSingleItemNullable(item.Data, session.GetHabbo(), extraData, extraData);
 
                                     if (newItem != null) {
@@ -286,8 +280,7 @@ namespace Plus.Communication.Packets.Incoming.Catalog
                                             ItemFactory.CreateTonerData(I);
                                         }
                                     }
-                                }
-                                else {
+                                } else {
                                     newItem = ItemFactory.CreateSingleItemNullable(item.Data, session.GetHabbo(), extraData, extraData);
 
                                     if (newItem != null) {
@@ -329,8 +322,7 @@ namespace Plus.Communication.Packets.Incoming.Catalog
                         effect = session.GetHabbo().Effects().GetEffectNullable(item.Data.SpriteId);
 
                         effect?.AddToQuantity();
-                    }
-                    else
+                    } else
                         effect = AvatarEffectFactory.CreateNullable(session.GetHabbo(), item.Data.SpriteId, 3600);
 
                     if (effect != null) // && Session.GetHabbo().Effects().TryAdd(Effect))
@@ -346,8 +338,7 @@ namespace Plus.Communication.Packets.Incoming.Catalog
                         session.GetHabbo().GetInventoryComponent().TryAddBot(bot);
                         session.SendPacket(new BotInventoryComposer(session.GetHabbo().GetInventoryComponent().GetBots()));
                         session.SendPacket(new FurniListNotificationComposer(bot.Id, 5));
-                    }
-                    else
+                    } else
                         session.SendNotification("Oops! There was an error whilst purchasing this bot. It seems that there is no bot data for the bot!");
 
                     break;

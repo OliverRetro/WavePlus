@@ -158,8 +158,7 @@ namespace Plus.HabboHotel.Users.Roleplay
                 int loss = Random.Shared.Next(1, 6);
                 Hunger = Math.Max(0, Hunger - loss);
                 NextHungerTick = DateTime.UtcNow.AddMinutes(10);
-            }
-            else {
+            } else {
                 int damage = Random.Shared.Next(5, 51);
                 Health = Math.Max(0, Health - damage);
                 NextHungerTick = DateTime.UtcNow.AddMinutes(1);

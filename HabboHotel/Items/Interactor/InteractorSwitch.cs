@@ -46,8 +46,7 @@ namespace Plus.HabboHotel.Items.Interactor
 
                 item.ExtraData = newMode.ToString();
                 item.UpdateState();
-            }
-            else
+            } else
                 user.MoveTo(item.SquareInFront);
         }
 

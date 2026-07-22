@@ -46,9 +46,8 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Settings
                     room.GetRoomItemHandler().RemoveFurniture(targetClient, item.Id);
                     targetClient.GetHabbo().GetInventoryComponent().AddNewItem(item.Id, item.BaseItem, item.ExtraData, item.GroupId, true, true, item.LimitedNo, item.LimitedTot);
                     targetClient.GetHabbo().GetInventoryComponent().UpdateItems(false);
-                }
-                else //No, query time.
-                {
+                } else //No, query time.
+                  {
                     room.GetRoomItemHandler().RemoveFurniture(null, item.Id);
                     uint moveItemId = (uint)item.Id;
                     using (WavePlusContext db = PlusEnvironment.GetDbContext())

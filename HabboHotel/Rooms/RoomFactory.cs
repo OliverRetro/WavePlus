@@ -19,8 +19,7 @@ namespace Plus.HabboHotel.Rooms
             foreach (Database.EF.Entities.RoomEntity r in rooms) {
                 if (PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(r.Id, out Room room)) {
                     data.Add(room);
-                }
-                else {
+                } else {
                     if (!PlusEnvironment.GetGame().GetRoomManager().TryGetModel(r.ModelName, out RoomModel model))
                         continue;
 

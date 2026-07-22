@@ -208,8 +208,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Settings
                 session.SendPacket(new RoomSettingsSavedComposer(room.RoomId));
                 session.SendPacket(new RoomInfoUpdatedComposer(room.RoomId));
                 session.SendPacket(new RoomVisualizationSettingsComposer(room.WallThickness, room.FloorThickness, PlusEnvironment.EnumToBool(room.HideWall.ToString())));
-            }
-            else {
+            } else {
                 room.SendPacket(new RoomSettingsSavedComposer(room.RoomId));
                 room.SendPacket(new RoomInfoUpdatedComposer(room.RoomId));
                 room.SendPacket(new RoomVisualizationSettingsComposer(room.WallThickness, room.FloorThickness, PlusEnvironment.EnumToBool(room.HideWall.ToString())));

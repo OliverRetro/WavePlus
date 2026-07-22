@@ -31,19 +31,16 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Fun
                         user.Z -= 0.35;
                         user.IsSitting = true;
                         user.UpdateNeeded = true;
+                    } catch {
                     }
-                    catch {
-                    }
-                }
-                else {
+                } else {
                     user.RotBody--;
                     user.Statusses.Add("sit", "1.0");
                     user.Z -= 0.35;
                     user.IsSitting = true;
                     user.UpdateNeeded = true;
                 }
-            }
-            else if (user.IsSitting) {
+            } else if (user.IsSitting) {
                 user.Z += 0.35;
                 user.Statusses.Remove("sit");
                 user.Statusses.Remove("1.0");

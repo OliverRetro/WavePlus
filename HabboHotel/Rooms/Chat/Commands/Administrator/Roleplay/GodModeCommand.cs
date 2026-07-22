@@ -23,8 +23,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 
             if (stats.IsGodMode) {
                 roomUser.ApplyEffect(59);
-            }
-            else {
+            } else {
                 roomUser.ApplyEffect(0);
             }
         }

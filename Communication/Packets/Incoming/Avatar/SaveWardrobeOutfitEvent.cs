@@ -29,8 +29,7 @@ namespace Plus.Communication.Packets.Incoming.Avatar
                     .ExecuteUpdate(s => s
                         .SetProperty(x => x.Look, look)
                         .SetProperty(x => x.Gender, genderUpper));
-            }
-            else {
+            } else {
                 db.UserWardrobes.Add(new UserWardrobeEntity
                 {
                     UserId = uid,

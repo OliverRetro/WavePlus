@@ -44,8 +44,7 @@ namespace Plus.Communication.Packets.Outgoing.Catalog
                     if (item.CostDiamonds > 0) {
                         packet.WriteInteger(item.CostDiamonds);
                         packet.WriteInteger(5); // Diamonds
-                    }
-                    else {
+                    } else {
                         packet.WriteInteger(item.CostPixels);
                         packet.WriteInteger(0); // Type of PixelCost
                     }
@@ -56,8 +55,7 @@ namespace Plus.Communication.Packets.Outgoing.Catalog
                         CatalogDeal deal = null;
                         if (!PlusEnvironment.GetGame().GetCatalog().TryGetDeal(item.Data.BehaviourData, out deal)) {
                             packet.WriteInteger(0); //Count
-                        }
-                        else {
+                        } else {
                             packet.WriteInteger(deal.ItemDataList.Count);
 
                             foreach (CatalogItem dealItem in deal.ItemDataList.ToList()) {
@@ -68,8 +66,7 @@ namespace Plus.Communication.Packets.Outgoing.Catalog
                                 packet.WriteBoolean(false);
                             }
                         }
-                    }
-                    else {
+                    } else {
                         packet.WriteInteger(string.IsNullOrEmpty(item.Badge) ? 1 : 2); //Count 1 item if there is no badge, otherwise count as 2.
 
                         if (!string.IsNullOrEmpty(item.Badge)) {
@@ -81,21 +78,18 @@ namespace Plus.Communication.Packets.Outgoing.Catalog
                         if (item.Data.Type.ToString().ToLower() == "b") {
                             //This is just a badge, append the name.
                             packet.WriteString(item.Data.ItemName);
-                        }
-                        else {
+                        } else {
                             packet.WriteInteger(item.Data.SpriteId);
                             if (item.Data.InteractionType == InteractionType.Wallpaper || item.Data.InteractionType == InteractionType.Floor || item.Data.InteractionType == InteractionType.Landscape) {
                                 packet.WriteString(item.Name.Split('_')[2]);
-                            }
-                            else if (item.Data.InteractionType == InteractionType.Bot) //Bots
-                            {
+                            } else if (item.Data.InteractionType == InteractionType.Bot) //Bots
+                              {
                                 CatalogBot catalogBot = null;
                                 if (!PlusEnvironment.GetGame().GetCatalog().TryGetBot(item.ItemId, out catalogBot))
                                     packet.WriteString("hd-180-7.ea-1406-62.ch-210-1321.hr-831-49.ca-1813-62.sh-295-1321.lg-285-92");
                                 else
                                     packet.WriteString(catalogBot.Figure);
-                            }
-                            else if (item.ExtraData != null) {
+                            } else if (item.ExtraData != null) {
                                 packet.WriteString(item.ExtraData != null ? item.ExtraData : string.Empty);
                             }
 
@@ -114,8 +108,7 @@ namespace Plus.Communication.Packets.Outgoing.Catalog
                     packet.WriteBoolean(false); // TODO: Figure out
                     packet.WriteString(""); //previewImage -> e.g; catalogue/pet_lion.png
                 }
-            }
-            else
+            } else
                 packet.WriteInteger(0);
 
             packet.WriteInteger(-1);

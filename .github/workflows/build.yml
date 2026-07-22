@@ -32,7 +32,7 @@ jobs:
         run: dotnet publish Plus.csproj -c Release -o publish --no-restore
 
       - name: Create ZIP
-        run: Compress-Archive -Path publish\* -DestinationPath Plus.zip
+        run: Compress-Archive -Path publish\* -DestinationPath WavePlus.zip
         shell: pwsh
 
       - name: Upload ZIP

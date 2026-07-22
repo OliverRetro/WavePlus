@@ -34,8 +34,7 @@ namespace Plus.Communication.Packets.Outgoing.Pets
                 packet.WriteInteger(0);
                 packet.WriteInteger(0); //Count - 3 ints.
                 packet.WriteInteger(1);
-            }
-            else if (RoomUser != null) {
+            } else if (RoomUser != null) {
                 //TODO: Structure
                 packet.WriteInteger(RoomUser.VirtualId);
                 packet.WriteInteger(RoomUser.VirtualId);

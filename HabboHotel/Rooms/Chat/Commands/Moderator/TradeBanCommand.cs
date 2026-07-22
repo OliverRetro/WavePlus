@@ -61,8 +61,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
                 }
 
                 session.SendWhisper("You have successfully trade banned " + habbo.Username + " for " + days + " day(s).");
-            }
-            else
+            } else
                 session.SendWhisper("Please enter a valid integer.");
         }
     }

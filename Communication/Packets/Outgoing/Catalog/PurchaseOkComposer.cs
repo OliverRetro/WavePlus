@@ -38,8 +38,7 @@ namespace Plus.Communication.Packets.Outgoing.Catalog
                 packet.WriteInteger(0);
                 packet.WriteString("");
                 packet.WriteInteger(1);
-            }
-            else {
+            } else {
                 packet.WriteInteger(0);
                 packet.WriteString("");
                 packet.WriteBoolean(false);

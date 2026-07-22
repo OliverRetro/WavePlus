@@ -59,8 +59,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Pets
                     userRiding.RidingHorse = false;
                     userRiding.ApplyEffect(-1);
                     userRiding.MoveTo(new Point(userRiding.X + 1, userRiding.Y + 1));
-                }
-                else
+                } else
                     pet.RidingHorse = false;
             }
 

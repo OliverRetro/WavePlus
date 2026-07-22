@@ -63,8 +63,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation
                         .GetRoomUserByHabbo(targetHabbo.Id);
                     if (user != null)
                         targetHabbo.CurrentRoom.SendPacket(new UpdateFavouriteGroupComposer(group, user.VirtualId));
-                }
-                else
+                } else
                     session.SendPacket(new RefreshFavouriteGroupComposer(targetHabbo.Id));
             }
 

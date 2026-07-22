@@ -97,8 +97,7 @@ namespace Plus.Utilities
             try {
                 int i = Convert.ToInt32(Convert.ToChar(v.Substring(0, 1)));
                 return i == 1;
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 Console.WriteLine(e);
                 return false;
             }

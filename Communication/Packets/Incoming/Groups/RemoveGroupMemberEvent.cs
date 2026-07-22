@@ -76,8 +76,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
                                 .SendPacket(new UpdateFavouriteGroupComposer(group, user.VirtualId));
                         session.GetHabbo().CurrentRoom
                             .SendPacket(new RefreshFavouriteGroupComposer(session.GetHabbo().Id));
-                    }
-                    else
+                    } else
                         session.SendPacket(new RefreshFavouriteGroupComposer(session.GetHabbo().Id));
                 }
 

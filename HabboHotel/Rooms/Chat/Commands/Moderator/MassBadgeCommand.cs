@@ -25,8 +25,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
                 if (!client.GetHabbo().GetBadgeComponent().HasBadge(@params[1])) {
                     client.GetHabbo().GetBadgeComponent().GiveBadge(@params[1], true, client);
                     client.SendNotification("You have just been given a badge!");
-                }
-                else
+                } else
                     client.SendWhisper(session.GetHabbo().Username + " tried to give you a badge, but you already have it!");
             }
 

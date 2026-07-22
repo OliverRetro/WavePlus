@@ -93,8 +93,7 @@ namespace Plus.HabboHotel.Bots
             foreach (TaxiRideRequest request in _activeTaxiRequests.Values.ToList()) {
                 try {
                     ProcessRequest(request);
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     Console.WriteLine(e);
                     CancelTaxi(request.UserId, false);
                 }

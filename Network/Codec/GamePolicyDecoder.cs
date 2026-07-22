@@ -21,8 +21,7 @@ namespace Plus.Network.Codec
                              + "<allow-access-from domain=\"*\" to-ports=\"*\" />\r\n"
                              + "</cross-domain-policy>\0)";
                 context.WriteAndFlushAsync(Unpooled.CopiedBuffer(Encoding.Default.GetBytes(policy)));
-            }
-            else {
+            } else {
                 context.Channel.Pipeline.Remove(this);
             }
         }

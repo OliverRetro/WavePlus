@@ -49,8 +49,7 @@ namespace Plus.Communication.Packets.Incoming.Groups
                         .GetRoomUserByHabbo(habbo.Id);
                     if (user != null)
                         habbo.CurrentRoom.SendPacket(new UpdateFavouriteGroupComposer(group, user.VirtualId));
-                }
-                else
+                } else
                     session.SendPacket(new RefreshFavouriteGroupComposer(habbo.Id));
             }
 

@@ -102,8 +102,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
                     try {
                         if (string.IsNullOrEmpty(partsString[0]) || string.IsNullOrEmpty(partsString[1]))
                             continue;
-                    }
-                    catch {
+                    } catch {
                         continue;
                     }
 
@@ -117,24 +116,21 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Effects
                             else
                                 SetState(ii, "1");
                         }
-                    }
-                    catch (Exception e) {
+                    } catch (Exception e) {
                         ExceptionLogger.LogWiredException(e);
                     }
 
                     try {
                         if (int.Parse(StringData.Split(';')[1]) == 1) //Direction
                             SetRotation(ii, Convert.ToInt32(part[3]));
-                    }
-                    catch (Exception e) {
+                    } catch (Exception e) {
                         ExceptionLogger.LogWiredException(e);
                     }
 
                     try {
                         if (int.Parse(StringData.Split(';')[2]) == 1) //Position
                             SetPosition(ii, Convert.ToInt32(part[0]), Convert.ToInt32(part[1]), Convert.ToDouble(part[2]));
-                    }
-                    catch (Exception e) {
+                    } catch (Exception e) {
                         ExceptionLogger.LogWiredException(e);
                     }
                 }

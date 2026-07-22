@@ -67,8 +67,7 @@ namespace Plus.Core
         {
             try {
                 PlusEnvironment.GetGame()?.GetClientManager()?.ModAlert(message);
-            }
-            catch {
+            } catch {
                 // Never let the failsafe notification become a new point of failure.
             }
         }
@@ -111,8 +110,7 @@ namespace Plus.Core
                     Log.Info($"Connected to Redis at {hostname}:{port} (db {database})!");
                 else
                     Log.Warn($"Could not connect to Redis at {hostname}:{port}.");
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 Log.Error($"Failed to initialise Redis: {ex.Message}");
                 _connection = null;
                 _database = null;
@@ -138,8 +136,7 @@ namespace Plus.Core
             try {
                 _database.ListRightPush(key, value);
                 MarkHealthy();
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 TripBreaker(ex);
             }
         }
@@ -156,8 +153,7 @@ namespace Plus.Core
             try {
                 _database.ListRightPush(key, value, flags: CommandFlags.FireAndForget);
                 MarkHealthy();
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 TripBreaker(ex);
             }
         }
@@ -177,8 +173,7 @@ namespace Plus.Core
                 bool result = _database.StringSet(key, json, expiry);
                 MarkHealthy();
                 return result;
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 TripBreaker(ex);
                 return false;
             }
@@ -196,8 +191,7 @@ namespace Plus.Core
                     return default;
 
                 return JsonConvert.DeserializeObject<T>(value);
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 TripBreaker(ex);
                 return default;
             }
@@ -212,8 +206,7 @@ namespace Plus.Core
                 bool result = _database.KeyExists(key);
                 MarkHealthy();
                 return result;
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 TripBreaker(ex);
                 return false;
             }
@@ -227,8 +220,7 @@ namespace Plus.Core
             try {
                 _database.KeyDelete(key);
                 MarkHealthy();
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 TripBreaker(ex);
             }
         }
@@ -245,8 +237,7 @@ namespace Plus.Core
             try {
                 _database.SetAdd(setKey, member);
                 MarkHealthy();
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 TripBreaker(ex);
             }
         }
@@ -259,8 +250,7 @@ namespace Plus.Core
             try {
                 _database.SetRemove(setKey, member);
                 MarkHealthy();
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 TripBreaker(ex);
             }
         }
@@ -275,8 +265,7 @@ namespace Plus.Core
                 foreach (RedisValue member in _database.SetMembers(setKey))
                     result.Add(member);
                 MarkHealthy();
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 TripBreaker(ex);
             }
 

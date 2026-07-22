@@ -33,8 +33,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Filter
             foreach (WordFilter filter in _filteredWords.ToList()) {
                 if (message.ToLower().Contains(filter.Word) && filter.IsStrict || message == filter.Word) {
                     message = Regex.Replace(message, filter.Word, filter.Replacement, RegexOptions.IgnoreCase);
-                }
-                else if (message.ToLower().Contains(filter.Word) && !filter.IsStrict || message == filter.Word) {
+                } else if (message.ToLower().Contains(filter.Word) && !filter.IsStrict || message == filter.Word) {
                     string[] words = message.Split(' ');
 
                     message = "";

@@ -70,8 +70,7 @@ namespace Plus.HabboHotel.Rooms
             if ((bot.X > 0 && bot.Y > 0) && bot.X < model.MapSizeX && bot.Y < model.MapSizeY) {
                 user.SetPos(bot.X, bot.Y, bot.Z);
                 user.SetRot(bot.Rot, false);
-            }
-            else {
+            } else {
                 bot.X = model.DoorX;
                 bot.Y = model.DoorY;
 
@@ -86,8 +85,7 @@ namespace Plus.HabboHotel.Rooms
                 user.BotAI.Init(bot.BotId, user.VirtualId, _room.RoomId, user, _room);
                 user.PetData = pet;
                 user.PetData.VirtualId = user.VirtualId;
-            }
-            else
+            } else
                 user.BotAI.Init(bot.BotId, user.VirtualId, _room.RoomId, user, _room);
 
             user.UpdateNeeded = true;
@@ -101,8 +99,7 @@ namespace Plus.HabboHotel.Rooms
                     _pets.TryAdd(user.PetData.PetId, user);
 
                 PetCount++;
-            }
-            else if (user.IsBot) {
+            } else if (user.IsBot) {
                 if (_bots.ContainsKey(user.BotData.BotId))
                     _bots[user.BotData.BotId] = user;
                 else
@@ -126,8 +123,7 @@ namespace Plus.HabboHotel.Rooms
             if (user.IsPet) {
                 _pets.TryRemove(user.PetData.PetId, out RoomUser pet);
                 PetCount--;
-            }
-            else {
+            } else {
                 _bots.TryRemove(user.BotData.Id, out RoomUser bot);
             }
 
@@ -200,8 +196,7 @@ namespace Plus.HabboHotel.Rooms
 
                 user.SetPos(model.DoorX, model.DoorY, model.DoorZ);
                 user.SetRot(model.DoorOrientation, false);
-            }
-            else if (!user.IsBot && (user.GetClient().GetHabbo().IsTeleporting || user.GetClient().GetHabbo().IsHopping)) {
+            } else if (!user.IsBot && (user.GetClient().GetHabbo().IsTeleporting || user.GetClient().GetHabbo().IsHopping)) {
                 Item item = null;
                 bool handledArrowArrival = false;
                 if (session.GetHabbo().IsTeleporting) {
@@ -222,8 +217,7 @@ namespace Plus.HabboHotel.Rooms
 
                     if (item == null)
                         item = _room.GetRoomItemHandler().GetItem(session.GetHabbo().TeleportId);
-                }
-                else if (session.GetHabbo().IsHopping)
+                } else if (session.GetHabbo().IsHopping)
                     item = _room.GetRoomItemHandler().GetItem(session.GetHabbo().HopperId);
 
                 if (item != null) {
@@ -241,8 +235,7 @@ namespace Plus.HabboHotel.Rooms
                         session.GetHabbo().IsTeleporting = false;
                         session.GetHabbo().TeleportId = 0;
                         session.GetHabbo().TeleportingRoomId = 0;
-                    }
-                    else if (session.GetHabbo().IsHopping) {
+                    } else if (session.GetHabbo().IsHopping) {
                         item.ExtraData = "1";
                         item.UpdateState(false, true);
                         user.SetPos(item.GetX, item.GetY, item.GetZ);
@@ -252,8 +245,7 @@ namespace Plus.HabboHotel.Rooms
                         item.ExtraData = "2";
                         item.UpdateState(false, true);
                     }
-                }
-                else {
+                } else {
                     user.SetPos(model.DoorX, model.DoorY, model.DoorZ - 1);
                     user.SetRot(model.DoorOrientation, false);
                 }
@@ -265,16 +257,13 @@ namespace Plus.HabboHotel.Rooms
                 user.SetStatus("flatctrl", "useradmin");
                 session.SendPacket(new YouAreOwnerComposer());
                 session.SendPacket(new YouAreControllerComposer(5));
-            }
-            else if (_room.CheckRights(session, false) && _room.Group == null) {
+            } else if (_room.CheckRights(session, false) && _room.Group == null) {
                 user.SetStatus("flatctrl", "1");
                 session.SendPacket(new YouAreControllerComposer(1));
-            }
-            else if (_room.Group != null && _room.CheckRights(session, false, true)) {
+            } else if (_room.Group != null && _room.CheckRights(session, false, true)) {
                 user.SetStatus("flatctrl", "3");
                 session.SendPacket(new YouAreControllerComposer(3));
-            }
-            else
+            } else
                 session.SendPacket(new YouAreNotControllerComposer());
 
             user.UpdateNeeded = true;
@@ -384,8 +373,7 @@ namespace Plus.HabboHotel.Rooms
 
                     user.Dispose();
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
         }
@@ -411,8 +399,7 @@ namespace Plus.HabboHotel.Rooms
                                 bots.Add(roomUser);
                         }
                     }
-                }
-                catch {
+                } catch {
                 }
 
                 List<RoomUser> petsToRemove = new();
@@ -444,8 +431,7 @@ namespace Plus.HabboHotel.Rooms
                 }
 
                 _room.GetGameMap().RemoveUserFromMap(user, new Point(user.X, user.Y));
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 ExceptionLogger.LogCriticalException(e);
             }
         }
@@ -560,8 +546,7 @@ namespace Plus.HabboHotel.Rooms
                     // (pet.PetId + "race"/"color"), so they never bound to the query and were inserted empty.
                     // Binding them correctly here to the pet's race/color (the evident intent).
                     db.Database.ExecuteSqlInterpolated($"INSERT INTO `bots_petdata` (`type`,`race`,`color`,`experience`,`energy`,`createstamp`,`nutrition`,`respect`) VALUES ({pet.Type},{pet.Race},{pet.Color},'0','100',{pet.CreationStamp},'0','0')");
-                }
-                else if (pet.DbState == PetDatabaseUpdateState.NeedsUpdate) {
+                } else if (pet.DbState == PetDatabaseUpdateState.NeedsUpdate) {
                     //Surely this can be *99 better? // TODO
                     RoomUser user = GetRoomUserByVirtualId(pet.VirtualId);
 
@@ -749,8 +734,7 @@ namespace Plus.HabboHotel.Rooms
                             if (user.RollerDelay <= 0) {
                                 UpdateUserStatus(user, false);
                                 user.IsRolling = false;
-                            }
-                            else
+                            } else
                                 user.RollerDelay--;
                         }
                     }
@@ -773,8 +757,7 @@ namespace Plus.HabboHotel.Rooms
                                 user.X = user.SetX;
                                 user.Y = user.SetY;
                                 user.Z = user.SetZ;
-                            }
-                            else if (user.IsBot && !user.RidingHorse) {
+                            } else if (user.IsBot && !user.RidingHorse) {
                                 user.X = user.SetX;
                                 user.Y = user.SetY;
                                 user.Z = user.SetZ;
@@ -805,8 +788,7 @@ namespace Plus.HabboHotel.Rooms
                             }
 
                             UpdateUserStatus(user, true);
-                        }
-                        else
+                        } else
                             invalidStep = true;
 
                         user.SetStep = false;
@@ -822,8 +804,7 @@ namespace Plus.HabboHotel.Rooms
                             user.PathStep = 1;
                             user.IsWalking = true;
                             user.PathRecalcNeeded = false;
-                        }
-                        else {
+                        } else {
                             user.PathRecalcNeeded = false;
                             if (user.Path.Count > 1)
                                 user.Path.Clear();
@@ -862,8 +843,7 @@ namespace Plus.HabboHotel.Rooms
                                     mascotaVinculada.UpdateNeeded = true;
                                 }
                             }
-                        }
-                        else {
+                        } else {
                             Vector2D nextStep = user.Path[(user.Path.Count - user.PathStep) - 1];
                             user.PathStep++;
 
@@ -893,8 +873,7 @@ namespace Plus.HabboHotel.Rooms
                                         user.Z += 0.35;
                                         user.IsSitting = false;
                                         user.UpdateNeeded = true;
-                                    }
-                                    else if (user.IsLying) {
+                                    } else if (user.IsLying) {
                                         user.Statusses.Remove("sit");
                                         user.Z += 0.35;
                                         user.IsLying = false;
@@ -922,8 +901,7 @@ namespace Plus.HabboHotel.Rooms
 
                                     user.UpdateNeeded = true;
                                     horse.UpdateNeeded = true;
-                                }
-                                else
+                                } else
                                     user.SetStatus("mv", nextX + "," + nextY + "," + TextHandling.GetString(nextZ));
 
                                 int newRot = Rotation.Calculate(user.X, user.Y, nextX, nextY, user.MoonwalkEnabled);
@@ -963,16 +941,14 @@ namespace Plus.HabboHotel.Rooms
                                     RoomUser users = _room.GetRoomUserManager().GetUserForSquare(nextX, nextY);
                                     if (users != null)
                                         _room.GetGameMap().GameMap[nextX, nextY] = 0;
-                                }
-                                else
+                                } else
                                     _room.GetGameMap().GameMap[nextX, nextY] = 1;
                             }
                         }
 
                         if (!user.RidingHorse)
                             user.UpdateNeeded = true;
-                    }
-                    else if (canStep) {
+                    } else if (canStep) {
                         if (user.Statusses.ContainsKey("mv")) {
                             user.RemoveStatus("mv");
                             user.UpdateNeeded = true;
@@ -1013,16 +989,14 @@ namespace Plus.HabboHotel.Rooms
                         GameClient client = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(toRemove.HabboId);
                         if (client != null) {
                             RemoveUserFromRoom(client, true);
-                        }
-                        else
+                        } else
                             RemoveRoomUser(toRemove);
                     }
 
                     if (UserCount != userCounter)
                         UpdateUserCount(userCounter);
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 ExceptionLogger.LogCriticalException(e);
             }
         }
@@ -1050,8 +1024,7 @@ namespace Plus.HabboHotel.Rooms
                     if (user.Statusses.ContainsKey("sit"))
                         user.Statusses.Remove("sit");
                     user.UpdateNeeded = true;
-                }
-                else if (user.IsLying || user.IsSitting)
+                } else if (user.IsLying || user.IsSitting)
                     return;
 
                 double newZ;
@@ -1061,8 +1034,7 @@ namespace Plus.HabboHotel.Rooms
                         newZ = _room.GetGameMap().SqAbsoluteHeight(user.X, user.Y, itemsOnSquare.ToList()) + 1;
                     else
                         newZ = _room.GetGameMap().SqAbsoluteHeight(user.X, user.Y, itemsOnSquare.ToList());
-                }
-                else {
+                } else {
                     newZ = 1;
                 }
 
@@ -1140,13 +1112,11 @@ namespace Plus.HabboHotel.Rooms
                                             if (user.GetClient().GetHabbo().Effects().CurrentEffect != effectId)
                                                 user.GetClient().GetHabbo().Effects().ApplyEffect(effectId);
                                         }
-                                    }
-                                    else if (user.Team != Team.None && user.Team != item.Team) {
+                                    } else if (user.Team != Team.None && user.Team != item.Team) {
                                         t.OnUserLeave(user);
                                         user.Team = Team.None;
                                         user.GetClient().GetHabbo().Effects().ApplyEffect(0);
-                                    }
-                                    else {
+                                    } else {
                                         //usersOnTeam--;
                                         t.OnUserLeave(user);
                                         if (user.GetClient().GetHabbo().Effects().CurrentEffect == effectId)
@@ -1182,13 +1152,11 @@ namespace Plus.HabboHotel.Rooms
                                             if (user.GetClient().GetHabbo().Effects().CurrentEffect != effectId)
                                                 user.GetClient().GetHabbo().Effects().ApplyEffect(effectId);
                                         }
-                                    }
-                                    else if (user.Team != Team.None && user.Team != item.Team) {
+                                    } else if (user.Team != Team.None && user.Team != item.Team) {
                                         t.OnUserLeave(user);
                                         user.Team = Team.None;
                                         user.GetClient().GetHabbo().Effects().ApplyEffect(0);
-                                    }
-                                    else {
+                                    } else {
                                         //usersOnTeam--;
                                         t.OnUserLeave(user);
                                         if (user.GetClient().GetHabbo().Effects().CurrentEffect == effectId)
@@ -1260,8 +1228,7 @@ namespace Plus.HabboHotel.Rooms
                     if (_room.GotFreeze())
                         _room.GetFreeze().OnUserWalk(user);
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
         }
@@ -1314,13 +1281,11 @@ namespace Plus.HabboHotel.Rooms
                                 }
                         }
                     }
-                }
-                else if (user.CurrentItemEffect != ItemEffectType.None && newCurrentUserItemEffect == 0) {
+                } else if (user.CurrentItemEffect != ItemEffectType.None && newCurrentUserItemEffect == 0) {
                     user.GetClient().GetHabbo().Effects().ApplyEffect(-1);
                     user.CurrentItemEffect = ItemEffectType.None;
                 }
-            }
-            catch {
+            } catch {
             }
         }
 

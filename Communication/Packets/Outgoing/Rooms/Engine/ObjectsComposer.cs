@@ -48,8 +48,7 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Engine
                 packet.WriteString(item.ExtraData);
                 packet.WriteInteger(item.LimitedNo);
                 packet.WriteInteger(item.LimitedTot);
-            }
-            else {
+            } else {
                 ItemBehaviourUtility.GenerateExtradata(item, packet);
             }
 

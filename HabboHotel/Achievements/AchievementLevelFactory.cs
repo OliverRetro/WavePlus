@@ -23,8 +23,7 @@ namespace Plus.HabboHotel.Achievements
                     Achievement achievement = new(id, groupName, category, row.GameId);
                     achievement.AddLevel(level);
                     achievements.Add(groupName, achievement);
-                }
-                else
+                } else
                     value.AddLevel(level);
             }
         }

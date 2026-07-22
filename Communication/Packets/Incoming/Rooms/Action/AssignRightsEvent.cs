@@ -44,8 +44,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Action
                 roomUser.GetClient()?.SendPacket(new YouAreControllerComposer(1));
 
                 session.SendPacket(new FlatControllerAddedComposer(room.RoomId, roomUser.GetClient().GetHabbo().Id, roomUser.GetClient().GetHabbo().Username));
-            }
-            else {
+            } else {
                 UserCache user = PlusEnvironment.GetGame().GetCacheManager().GenerateUser(userId);
                 if (user != null)
                     session.SendPacket(new FlatControllerAddedComposer(room.RoomId, user.Id, user.Username));

@@ -482,8 +482,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
                     foreach (string alias in row.Keys.Split(';'))
                         Bind(alias, cmd);
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 // Most likely the permissions_commands.keys column hasn't been added yet. Without it
                 // no commands bind — log loudly so the missing migration is obvious.
                 Core.ExceptionLogger.LogException(e);

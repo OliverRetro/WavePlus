@@ -189,8 +189,7 @@ namespace Plus.Communication.Packets
                 if (!t.Wait(MaximumRunTimeInSec * 1000, token)) {
                     cancelSource.Cancel();
                 }
-            }
-            catch (AggregateException ex) {
+            } catch (AggregateException ex) {
                 foreach (Exception e in ex.Flatten().InnerExceptions) {
                     if (ThrowUserErrors) {
                         throw e;
@@ -199,11 +198,9 @@ namespace Plus.Communication.Packets
                     //log.Fatal("Unhandled Error: " + e.Message + " - " + e.StackTrace);
                     session.Disconnect(immediate: true);
                 }
-            }
-            catch (OperationCanceledException) {
+            } catch (OperationCanceledException) {
                 session.Disconnect();
-            }
-            finally {
+            } finally {
                 _runningTasks.TryRemove(t.Id, out Task _);
 
                 cancelSource.Dispose();

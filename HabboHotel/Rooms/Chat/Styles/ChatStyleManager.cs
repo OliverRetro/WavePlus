@@ -29,8 +29,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Styles
                     try {
                         if (!_styles.ContainsKey(row.Id))
                             _styles.Add(row.Id, new ChatStyle(row.Id, row.Name, row.RequiredRight, row.Url, row.FontColor));
-                    }
-                    catch (Exception ex) {
+                    } catch (Exception ex) {
                         Log.Error("Unable to load ChatBubble for ID [" + row.Id + "]", ex);
                     }
                 }

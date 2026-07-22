@@ -56,8 +56,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                     session.SendNotification("All credits have successfully been converted!\r\r(Total value: " + totalValue + " credits!");
                 else
                     session.SendNotification("It appears you don't have any exchangeable items!");
-            }
-            catch {
+            } catch {
                 session.SendNotification("Oops, an error occoured whilst converting your credits!");
             }
         }

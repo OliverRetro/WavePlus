@@ -71,32 +71,25 @@ namespace Plus.HabboHotel.Rooms.Games.Banzai
                     if (user.RotBody == 4) {
                         newX = user.X;
                         newY = user.Y + 2;
-                    }
-                    else if (user.RotBody == 6) {
+                    } else if (user.RotBody == 6) {
                         newX = user.X - 2;
                         newY = user.Y;
-                    }
-                    else if (user.RotBody == 0) {
+                    } else if (user.RotBody == 0) {
                         newX = user.X;
                         newY = user.Y - 2;
-                    }
-                    else if (user.RotBody == 2) {
+                    } else if (user.RotBody == 2) {
                         newX = user.X + 2;
                         newY = user.Y;
-                    }
-                    else if (user.RotBody == 1) {
+                    } else if (user.RotBody == 1) {
                         newX = user.X + 2;
                         newY = user.Y - 2;
-                    }
-                    else if (user.RotBody == 7) {
+                    } else if (user.RotBody == 7) {
                         newX = user.X - 2;
                         newY = user.Y - 2;
-                    }
-                    else if (user.RotBody == 3) {
+                    } else if (user.RotBody == 3) {
                         newX = user.X + 2;
                         newY = user.Y + 2;
-                    }
-                    else if (user.RotBody == 5) {
+                    } else if (user.RotBody == 5) {
                         newX = user.X - 2;
                         newY = user.Y + 2;
                     }
@@ -105,39 +98,31 @@ namespace Plus.HabboHotel.Rooms.Games.Banzai
                         if (user.RotBody == 0) {
                             newX = user.X;
                             newY = user.Y + 1;
-                        }
-                        else if (user.RotBody == 2) {
+                        } else if (user.RotBody == 2) {
                             newX = user.X - 1;
                             newY = user.Y;
-                        }
-                        else if (user.RotBody == 4) {
+                        } else if (user.RotBody == 4) {
                             newX = user.X;
                             newY = user.Y - 1;
-                        }
-                        else if (user.RotBody == 6) {
+                        } else if (user.RotBody == 6) {
                             newX = user.X + 1;
                             newY = user.Y;
-                        }
-                        else if (user.RotBody == 5) {
+                        } else if (user.RotBody == 5) {
                             newX = user.X + 1;
                             newY = user.Y - 1;
-                        }
-                        else if (user.RotBody == 3) {
+                        } else if (user.RotBody == 3) {
                             newX = user.X - 1;
                             newY = user.Y - 1;
-                        }
-                        else if (user.RotBody == 7) {
+                        } else if (user.RotBody == 7) {
                             newX = user.X + 1;
                             newY = user.Y + 1;
-                        }
-                        else if (user.RotBody == 1) {
+                        } else if (user.RotBody == 1) {
                             newX = user.X - 1;
                             newY = user.Y + 1;
                         }
                     }
-                }
-                else if (differenceX <= 1 && differenceX >= -1 && differenceY <= 1 && differenceY >= -1 && VerifyPuck(user, item.Coordinate.X, item.Coordinate.Y)) //VERYFIC BALL CHECAR SI ESTA EN DIRECCION ASIA LA PELOTA
-                {
+                } else if (differenceX <= 1 && differenceX >= -1 && differenceY <= 1 && differenceY >= -1 && VerifyPuck(user, item.Coordinate.X, item.Coordinate.Y)) //VERYFIC BALL CHECAR SI ESTA EN DIRECCION ASIA LA PELOTA
+                  {
                     newX = differenceX * -1;
                     newY = differenceY * -1;
 
@@ -224,8 +209,7 @@ namespace Plus.HabboHotel.Rooms.Games.Banzai
                     tile.InteractionCount = 0;
                     tile.InteractionCountHelper = 0;
                     tile.UpdateNeeded = true;
-                }
-                else if (tile.Team == Team.None) {
+                } else if (tile.Team == Team.None) {
                     tile.ExtraData = "0";
                     tile.UpdateState();
                 }
@@ -248,22 +232,19 @@ namespace Plus.HabboHotel.Rooms.Games.Banzai
                                 PlusEnvironment.GetGame().GetAchievementManager().ProgressAchievement(user.GetClient(), "ACH_BattleBallWinner", 1);
                             _room.SendPacket(new ActionComposer(user.VirtualId, 1));
                         }
-                    }
-                    else if (winner == Team.Red) {
+                    } else if (winner == Team.Red) {
                         if (user.CurrentEffect == 33) {
                             if (PlusEnvironment.GetUnixTimestamp() - _timeStarted > 5)
                                 PlusEnvironment.GetGame().GetAchievementManager().ProgressAchievement(user.GetClient(), "ACH_BattleBallWinner", 1);
                             _room.SendPacket(new ActionComposer(user.VirtualId, 1));
                         }
-                    }
-                    else if (winner == Team.Green) {
+                    } else if (winner == Team.Green) {
                         if (user.CurrentEffect == 34) {
                             if (PlusEnvironment.GetUnixTimestamp() - _timeStarted > 5)
                                 PlusEnvironment.GetGame().GetAchievementManager().ProgressAchievement(user.GetClient(), "ACH_BattleBallWinner", 1);
                             _room.SendPacket(new ActionComposer(user.VirtualId, 1));
                         }
-                    }
-                    else if (winner == Team.Yellow) {
+                    } else if (winner == Team.Yellow) {
                         if (user.CurrentEffect == 36) {
                             if (PlusEnvironment.GetUnixTimestamp() - _timeStarted > 5)
                                 PlusEnvironment.GetGame().GetAchievementManager().ProgressAchievement(user.GetClient(), "ACH_BattleBallWinner", 1);
@@ -325,8 +306,7 @@ namespace Plus.HabboHotel.Rooms.Games.Banzai
                         }
                     }
                 }
-            }
-            else {
+            } else {
                 if (item.Value < 3) {
                     item.Team = team;
                     item.Value = 1;

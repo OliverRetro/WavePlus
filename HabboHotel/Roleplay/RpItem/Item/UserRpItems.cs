@@ -444,8 +444,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             if (Random.Shared.Next(1, 101) <= chance) {
                 police.BreakFree(habbo);
                 habbo.GetClient()?.SendWhisper("You picked your cuffs and slipped free!", 1);
-            }
-            else {
+            } else {
                 habbo.GetClient()?.SendWhisper("The lockpick slipped — you're still cuffed.", 1);
             }
 

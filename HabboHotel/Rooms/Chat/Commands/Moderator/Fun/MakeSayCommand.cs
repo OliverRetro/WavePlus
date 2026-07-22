@@ -28,8 +28,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Fun
                             room.SendPacket(new ChatComposer(targetUser.VirtualId, message, 0, targetUser.LastBubble));
                         else
                             session.SendWhisper("You cannot use makesay on this user.");
-                }
-                else
+                } else
                     session.SendWhisper("This user could not be found in the room");
             }
         }

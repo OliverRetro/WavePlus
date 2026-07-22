@@ -122,8 +122,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
 
                         itemIsInRoom = false;
                     }
-                }
-                else {
+                } else {
                     using (WavePlusContext db = PlusEnvironment.GetDbContext())
                         db.Items.Where(i => i.Id == itemId).ExecuteUpdate(s => s.SetProperty(i => i.RoomId, (uint)0));
 
@@ -133,8 +132,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
                 session.SendPacket(new OpenGiftComposer(present.Data, present.ExtraData, present, itemIsInRoom));
 
                 session.GetHabbo().GetInventoryComponent().UpdateItems(true);
-            }
-            catch {
+            } catch {
                 //ignored
             }
         }

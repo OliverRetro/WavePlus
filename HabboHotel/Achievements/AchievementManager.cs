@@ -136,8 +136,7 @@ namespace Plus.HabboHotel.Achievements
                 foreach (KeyValuePair<string, int> entry in userPending) {
                     try {
                         ProgressAchievement(session, entry.Key, entry.Value);
-                    }
-                    catch (System.Exception e) {
+                    } catch (System.Exception e) {
                         Log.Error($"Failed to flush achievement '{entry.Key}' for user {userId}: {e}");
                     }
                 }

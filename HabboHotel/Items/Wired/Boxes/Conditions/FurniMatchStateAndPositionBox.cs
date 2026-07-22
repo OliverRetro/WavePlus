@@ -81,8 +81,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Conditions
                         try {
                             if (ii.ExtraData != part[4])
                                 return false;
-                        }
-                        catch {
+                        } catch {
                         }
                     }
 
@@ -91,8 +90,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Conditions
                         try {
                             if (ii.Rotation != Convert.ToInt32(part[3]))
                                 return false;
-                        }
-                        catch {
+                        } catch {
                         }
                     }
 
@@ -102,8 +100,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Conditions
                             if (ii.GetX != Convert.ToInt32(part[0]) || ii.GetY != Convert.ToInt32(part[1]) ||
                                 ii.GetZ != Convert.ToDouble(part[2]))
                                 return false;
-                        }
-                        catch {
+                        } catch {
                         }
                     }
                 }

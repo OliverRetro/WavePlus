@@ -18,8 +18,7 @@ namespace Plus.Communication.Rcon
 
             try {
                 _socket.BeginReceive(_buffer, 0, _buffer.Length, SocketFlags.None, OnCallBack, _socket);
-            }
-            catch {
+            } catch {
                 Dispose();
             }
         }
@@ -36,8 +35,7 @@ namespace Plus.Communication.Rcon
                 if (!PlusEnvironment.GetRconSocket().GetCommands().Parse(data)) {
                     Log.Error("Failed to execute a MUS command. Raw data: " + data);
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 Console.WriteLine(e.ToString());
             }
 

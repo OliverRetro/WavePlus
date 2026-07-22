@@ -24,8 +24,7 @@ namespace Plus.Communication.Encryption
                 byte[] c = Rsa.Sign(m);
 
                 return Converter.BytesToHexString(c);
-            }
-            catch {
+            } catch {
                 return "0";
             }
         }
@@ -55,8 +54,7 @@ namespace Plus.Communication.Encryption
                 byte[] publicKeyBytes = Rsa.Verify(cbytes);
                 string publicKeyString = Encoding.Default.GetString(publicKeyBytes);
                 return DiffieHellman.CalculateSharedKey(new BigInteger(publicKeyString, 10));
-            }
-            catch {
+            } catch {
                 return 0;
             }
         }

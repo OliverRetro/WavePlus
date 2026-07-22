@@ -15,8 +15,7 @@ namespace Plus.Communication.Packets.Incoming.Messenger
             if (!declineAll) {
                 int requestId = packet.PopInt();
                 session.GetHabbo().GetMessenger().HandleRequest(requestId);
-            }
-            else
+            } else
                 session.GetHabbo().GetMessenger().HandleAllRequests();
         }
     }

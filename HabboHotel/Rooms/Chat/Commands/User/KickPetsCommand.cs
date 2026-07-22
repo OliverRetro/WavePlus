@@ -37,8 +37,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
                         rider.RidingHorse = false;
                         rider.ApplyEffect(-1);
                         rider.MoveTo(new Point(rider.X + 1, rider.Y + 1));
-                    }
-                    else
+                    } else
                         bot.RidingHorse = false;
                 }
 

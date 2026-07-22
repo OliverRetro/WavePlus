@@ -73,8 +73,7 @@ namespace Plus.HabboHotel.Items.Interactor
 
                     item.GetRoom().GetRoomItemHandler().SetFloorItem(user.GetClient(), item, newPoint.X, newPoint.Y, item.Rotation, false, false, false);
                 }
-            }
-            else {
+            } else {
                 user.MoveTo(item.GetX + 1, item.GetY);
             }
         }

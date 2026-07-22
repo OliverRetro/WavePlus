@@ -18,8 +18,7 @@ namespace Plus.Communication.Packets.Incoming.Navigator
                 if (PlusEnvironment.GetGame().GetNavigator().TryGetSearchResultList(0, out SearchResultList queryResult)) {
                     categories.Add(queryResult);
                 }
-            }
-            else {
+            } else {
                 categories = PlusEnvironment.GetGame().GetNavigator().GetCategoriesForSearch(category);
                 if (categories.Count == 0) {
                     //Are we going in deep?!

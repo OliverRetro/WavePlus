@@ -84,8 +84,7 @@ namespace Plus.HabboHotel.Rooms
                     return null;
 
                 return ":w=" + widthX + "," + widthY + " " + "l=" + lengthX + "," + lengthY + " " + posD[2];
-            }
-            catch {
+            } catch {
                 return null;
             }
         }
@@ -129,8 +128,7 @@ namespace Plus.HabboHotel.Rooms
 
                     if (!_floorItems.ContainsKey(item.Id))
                         _floorItems.TryAdd(item.Id, item);
-                }
-                else if (item.IsWallItem) {
+                } else if (item.IsWallItem) {
                     if (string.IsNullOrWhiteSpace(item.WallCoord)) {
                         uint wallItemId = (uint)item.Id;
                         using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
@@ -142,8 +140,7 @@ namespace Plus.HabboHotel.Rooms
 
                     try {
                         item.WallCoord = WallPositionCheck(":" + item.WallCoord.Split(':')[1]);
-                    }
-                    catch {
+                    } catch {
                         uint wallItemId = (uint)item.Id;
                         using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                             db.Items.Where(i => i.Id == wallItemId).ExecuteUpdate(s => s.SetProperty(i => i.WallPos, ":w=0,2 l=11,53 l"));
@@ -160,20 +157,16 @@ namespace Plus.HabboHotel.Rooms
             foreach (Item item in _floorItems.Values.ToList()) {
                 if (item.IsRoller) {
                     GotRollers = true;
-                }
-                else if (item.GetBaseItem().InteractionType == InteractionType.Moodlight) {
+                } else if (item.GetBaseItem().InteractionType == InteractionType.Moodlight) {
                     room.MoodlightData ??= new MoodlightData(item.Id);
-                }
-                else if (item.GetBaseItem().InteractionType == InteractionType.Toner) {
+                } else if (item.GetBaseItem().InteractionType == InteractionType.Toner) {
                     room.TonerData ??= new TonerData(item.Id);
-                }
-                else if (item.IsWired) {
+                } else if (item.IsWired) {
                     if (room?.GetWired() == null)
                         continue;
 
                     room.GetWired().LoadWiredBox(item);
-                }
-                else if (item.GetBaseItem().InteractionType == InteractionType.Hopper)
+                } else if (item.GetBaseItem().InteractionType == InteractionType.Hopper)
                     HopperCount++;
             }
         }
@@ -183,8 +176,7 @@ namespace Plus.HabboHotel.Rooms
             if (_floorItems != null && _floorItems.ContainsKey(pId)) {
                 if (_floorItems.TryGetValue(pId, out Item item))
                     return item;
-            }
-            else if (_wallItems != null && _wallItems.ContainsKey(pId)) {
+            } else if (_wallItems != null && _wallItems.ContainsKey(pId)) {
                 if (_wallItems.TryGetValue(pId, out Item item))
                     return item;
             }
@@ -394,8 +386,7 @@ namespace Plus.HabboHotel.Rooms
                             .SetProperty(i => i.Rot, rot));
                     }
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 ExceptionLogger.LogCriticalException(e);
             }
         }
@@ -539,8 +530,7 @@ namespace Plus.HabboHotel.Rooms
                     }
                 }
 
-            }
-            else
+            } else
                 newZ = height;
 
             item.Rotation = newRot;
@@ -565,8 +555,7 @@ namespace Plus.HabboHotel.Rooms
 
                 if (sendMessage)
                     room.SendPacket(new ObjectAddComposer(item));
-            }
-            else {
+            } else {
                 UpdateItem(item);
                 if (!onRoller && sendMessage)
                     room.SendPacket(new ObjectUpdateComposer(item, room.OwnerId));
@@ -695,9 +684,8 @@ namespace Plus.HabboHotel.Rooms
             if (GotRollers) {
                 try {
                     room.SendPacket(CycleRollers());
-                }
-                catch //(Exception e)
-                {
+                } catch //(Exception e)
+                  {
                     // Logging.LogThreadException(e.ToString(), "rollers for room with ID " + room.RoomId);
                     GotRollers = false;
                 }
@@ -735,8 +723,7 @@ namespace Plus.HabboHotel.Rooms
                     _floorItems.TryRemove(item.Id, out Item I);
                     session.GetHabbo().GetInventoryComponent().TryAddFloorItem(item.Id, I);
                     room.SendPacket(new ObjectRemoveComposer(item, item.UserId));
-                }
-                else if (item.IsWallItem) {
+                } else if (item.IsWallItem) {
                     _wallItems.TryRemove(item.Id, out Item I);
                     session.GetHabbo().GetInventoryComponent().TryAddWallItem(item.Id, I);
                     room.SendPacket(new ItemRemoveComposer(item, item.UserId));
@@ -816,8 +803,7 @@ namespace Plus.HabboHotel.Rooms
                 }
 
                 return true;
-            }
-            catch {
+            } catch {
                 return false;
             }
         }

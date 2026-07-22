@@ -37,8 +37,7 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Engine
 
             try {
                 packet.WriteString(item.WallCoord);
-            }
-            catch {
+            } catch {
                 packet.WriteString("");
             }
 

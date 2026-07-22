@@ -173,8 +173,7 @@ namespace Plus.HabboHotel.Roleplay.Corporation
                     selectedFigure = fig;
                 else if (figures.TryGetValue("m", out fig))
                     selectedFigure = fig;
-            }
-            else {
+            } else {
                 selectedFigure = figureString;
             }
 
@@ -385,8 +384,7 @@ namespace Plus.HabboHotel.Roleplay.Corporation
                     .Select(x => x.ShiftFinished)
                     .ToList()
                     .Count(ts => IsCurrentWeek(DateTimeOffset.FromUnixTimeSeconds(ts).LocalDateTime));
-            }
-            catch { }
+            } catch { }
 
             _countCache[(groupId, userId)] = (weekly, total);
         }
@@ -415,8 +413,7 @@ namespace Plus.HabboHotel.Roleplay.Corporation
                     });
                 }
                 db.SaveChanges();
-            }
-            catch { }
+            } catch { }
         }
 
         private static bool IsCurrentWeek(DateTime dt)

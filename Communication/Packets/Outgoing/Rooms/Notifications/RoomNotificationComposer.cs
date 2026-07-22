@@ -52,16 +52,14 @@
                     packet.WriteString("linkTitle");
                     packet.WriteString(HotelName);
                 }
-            }
-            else if (!string.IsNullOrEmpty(Key)) {
+            } else if (!string.IsNullOrEmpty(Key)) {
                 packet.WriteString(Type);
                 packet.WriteInteger(1); //Count
                 {
                     packet.WriteString(Key); //Type of message
                     packet.WriteString(Value);
                 }
-            }
-            else {
+            } else {
                 packet.WriteString(Type);
                 packet.WriteInteger(0); //Count
             }

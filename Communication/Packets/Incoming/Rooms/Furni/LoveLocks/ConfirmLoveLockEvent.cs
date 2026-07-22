@@ -90,8 +90,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni.LoveLocks
             if (userOneId == session.GetHabbo().Id) {
                 session.SendPacket(new LoveLockDialogueSetLockedMessageComposer(pId));
                 userOne.LLPartner = userTwoId;
-            }
-            else if (userTwoId == session.GetHabbo().Id) {
+            } else if (userTwoId == session.GetHabbo().Id) {
                 session.SendPacket(new LoveLockDialogueSetLockedMessageComposer(pId));
                 userTwo.LLPartner = userOneId;
             }

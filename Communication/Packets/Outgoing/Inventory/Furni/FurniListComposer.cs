@@ -42,8 +42,7 @@ namespace Plus.Communication.Packets.Outgoing.Inventory.Furni
                 packet.WriteString(item.ExtraData);
                 packet.WriteInteger(item.LimitedNo);
                 packet.WriteInteger(item.LimitedTot);
-            }
-            else
+            } else
                 ItemBehaviourUtility.GenerateExtradata(item, packet);
 
             packet.WriteBoolean(item.GetBaseItem().AllowEcotronRecycle);

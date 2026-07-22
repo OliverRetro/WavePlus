@@ -49,8 +49,7 @@ namespace Plus.Communication.Packets.Incoming.Catalog
                     item = page.ItemOffers[itemId];
                     if (item == null)
                         return;
-                }
-                else
+                } else
                     return;
             }
 
@@ -134,8 +133,7 @@ namespace Plus.Communication.Packets.Incoming.Catalog
                                 return;
 
                             PlusEnvironment.GetGame().GetAchievementManager().ProgressAchievement(session, "ACH_PetLover", 1);
-                        }
-                        catch {
+                        } catch {
                             return;
                         }
 
@@ -150,8 +148,7 @@ namespace Plus.Communication.Packets.Incoming.Catalog
                         double number = 0;
                         try {
                             number = string.IsNullOrEmpty(data) ? 0 : double.Parse(data, PlusEnvironment.CultureInfo);
-                        }
-                        catch {
+                        } catch {
                             //ignored
                         }
 

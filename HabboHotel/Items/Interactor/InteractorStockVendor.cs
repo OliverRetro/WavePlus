@@ -1,5 +1,4 @@
 using Plus.HabboHotel.GameClients;
-using Plus.HabboHotel.Roleplay.Stock;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
 
@@ -27,9 +26,6 @@ namespace Plus.HabboHotel.Items.Interactor
             RoomUser user = item.GetRoom().GetRoomUserManager().GetRoomUserByHabbo(habbo.Id);
             if (user == null || !Gamemap.TilesTouching(item.GetX, item.GetY, user.X, user.Y))
                 return;
-
-            if (!RpOfferService.Open(session, item.GetRoom().Id, item.Id, null, "Vendor"))
-                session.SendWhisper("This vendor has nothing in stock.", 1);
         }
 
         public void OnWiredTrigger(Item item)

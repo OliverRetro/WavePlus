@@ -43,8 +43,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Pets.Horse
 
                 //We only want to use this if we're successful. 
                 room.GetRoomItemHandler().RemoveFurniture(session, item.Id);
-            }
-            else if (item.Data.InteractionType == InteractionType.HorseSaddle2) {
+            } else if (item.Data.InteractionType == InteractionType.HorseSaddle2) {
                 petUser.PetData.Saddle = 10;
                 using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                     uint petDataId = (uint)petUser.PetData.PetId;
@@ -55,8 +54,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Pets.Horse
 
                 //We only want to use this if we're successful. 
                 room.GetRoomItemHandler().RemoveFurniture(session, item.Id);
-            }
-            else if (item.Data.InteractionType == InteractionType.HorseHairstyle) {
+            } else if (item.Data.InteractionType == InteractionType.HorseHairstyle) {
                 int parse = 100;
                 string hairType = item.GetBaseItem().ItemName.Split('_')[2];
 
@@ -73,8 +71,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Pets.Horse
 
                 //We only want to use this if we're successful. 
                 room.GetRoomItemHandler().RemoveFurniture(session, item.Id);
-            }
-            else if (item.Data.InteractionType == InteractionType.HorseHairDye) {
+            } else if (item.Data.InteractionType == InteractionType.HorseHairDye) {
                 int hairDye = 48;
                 string hairType = item.GetBaseItem().ItemName.Split('_')[2];
 
@@ -91,8 +88,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Pets.Horse
 
                 //We only want to use this if we're successful. 
                 room.GetRoomItemHandler().RemoveFurniture(session, item.Id);
-            }
-            else if (item.Data.InteractionType == InteractionType.HorseBodyDye) {
+            } else if (item.Data.InteractionType == InteractionType.HorseBodyDye) {
                 string race = item.GetBaseItem().ItemName.Split('_')[2];
                 int parse = int.Parse(race);
                 int raceLast = 2 + (parse * 4) - 4;

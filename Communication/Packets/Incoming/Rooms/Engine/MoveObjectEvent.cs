@@ -30,8 +30,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
                     session.SendPacket(new ObjectUpdateComposer(item, room.OwnerId));
                     return;
                 }
-            }
-            else {
+            } else {
                 if (!room.CheckRights(session)) {
                     return;
                 }

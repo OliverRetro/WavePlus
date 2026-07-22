@@ -22,8 +22,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
 
             if (int.TryParse(@params[1], out int speed)) {
                 session.GetHabbo().CurrentRoom.GetRoomItemHandler().SetSpeed(speed);
-            }
-            else
+            } else
                 session.SendWhisper("Invalid amount, please enter a valid number.");
         }
     }

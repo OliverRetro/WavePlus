@@ -54,8 +54,7 @@ namespace Plus.HabboHotel.Items.Wired.Boxes.Triggers
                     Instance.GetWired().OnEvent(randomBox.Item);
                     Instance.GetWired().OnEvent(selectedBox.Item);
                 }
-            }
-            else {
+            } else {
                 foreach (IWiredItem effect in effects) {
                     foreach (RoomUser user in Instance.GetRoomUserManager().GetRoomUsers().ToList()) {
                         if (user == null || user.GetClient() == null || user.GetClient().GetHabbo() == null)

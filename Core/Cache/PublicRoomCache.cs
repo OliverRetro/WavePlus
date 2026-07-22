@@ -31,8 +31,7 @@ namespace Plus.Core.Cache
                         Mirror(room);
                         loaded++;
                     }
-                }
-                catch (Exception ex) {
+                } catch (Exception ex) {
                     Log.Error($"Failed to preload public room {id}: {ex.Message}");
                 }
             }

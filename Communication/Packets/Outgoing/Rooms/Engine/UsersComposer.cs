@@ -56,8 +56,7 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Engine
                         packet.WriteInteger(group.Id);
                         packet.WriteInteger(0);
                         packet.WriteString(group.Name);
-                    }
-                    else {
+                    } else {
                         packet.WriteInteger(0);
                         packet.WriteInteger(0);
                         packet.WriteString("");
@@ -66,8 +65,7 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Engine
                     packet.WriteString(""); //Whats this?
                     packet.WriteInteger(habbo.GetStats().AchievementPoints); //Achievement score
                     packet.WriteBoolean(false); //Builders club?
-                }
-                else if (habbo?.PetId > 0 && habbo.PetId != 100) {
+                } else if (habbo?.PetId > 0 && habbo.PetId != 100) {
                     packet.WriteInteger(habbo.Id);
                     packet.WriteString(habbo.Username);
                     packet.WriteString(habbo.Motto);
@@ -89,8 +87,7 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Engine
                     packet.WriteInteger(0);
                     packet.WriteInteger(0);
                     packet.WriteString("");
-                }
-                else if (habbo?.PetId > 0 && habbo.PetId == 100) {
+                } else if (habbo?.PetId > 0 && habbo.PetId == 100) {
                     packet.WriteInteger(habbo.Id);
                     packet.WriteString(habbo.Username);
                     packet.WriteString(habbo.Motto);
@@ -107,8 +104,7 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Engine
                     packet.WriteString(habbo.Username); // Owner name
                     packet.WriteInteger(0); //Action Count
                 }
-            }
-            else if (user.IsPet) {
+            } else if (user.IsPet) {
                 packet.WriteInteger(user.BotAI.BaseId);
                 packet.WriteString(user.BotData.Name);
                 packet.WriteString(user.BotData.Motto);
@@ -131,8 +127,7 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Engine
                 packet.WriteInteger(0);
                 packet.WriteInteger(0);
                 packet.WriteString("");
-            }
-            else if (user.IsBot) {
+            } else if (user.IsBot) {
                 packet.WriteInteger(user.BotAI.BaseId);
                 packet.WriteString(user.BotData.Name);
                 packet.WriteString(user.BotData.Motto);
@@ -664,8 +659,7 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Engine
                 foreach (RoomUser user in Users.ToList()) {
                     WriteUser(user, packet);
                 }
-            }
-            else {
+            } else {
                 packet.WriteInteger(1); //1 avatar
                 WriteUser(User, packet);
             }

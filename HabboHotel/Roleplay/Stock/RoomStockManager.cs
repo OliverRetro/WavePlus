@@ -178,8 +178,7 @@ namespace Plus.HabboHotel.Roleplay.Stock
                     db.SaveChanges();
                     entry.RowId = row.Id;
                 }
-            }
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 // Put the entries back so the next flush retries them rather than losing the stock.
                 lock (_sync) {
                     foreach ((var key, StockEntry _) in pending)

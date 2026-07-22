@@ -152,8 +152,7 @@ namespace Plus.HabboHotel.Roleplay.Macros
 
             try {
                 return JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? new Dictionary<string, string>();
-            }
-            catch {
+            } catch {
                 return new Dictionary<string, string>();
             }
         }

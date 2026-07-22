@@ -27,8 +27,7 @@ namespace Plus.Communication.Packets.Outgoing.Users
                     packet.WriteInteger(0); // Their ID
                     packet.WriteString("Placeholder");
                     packet.WriteString("hr-115-42.hd-190-1.ch-215-62.lg-285-91.sh-290-62");
-                }
-                else {
+                } else {
                     packet.WriteInteger(relationship.Type);
                     packet.WriteInteger(Habbo.Relationships.Count(x => x.Value.Type == relationship.Type));
                     packet.WriteInteger(relationship.UserId); // Their ID

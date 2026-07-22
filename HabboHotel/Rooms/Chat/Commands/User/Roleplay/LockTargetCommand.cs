@@ -34,8 +34,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
                     session.SendWhisper("You cannot lock onto yourself.", 1);
                     return;
                 }
-            }
-            else {
+            } else {
                 target = TargetLockService.GetTarget(session.GetHabbo());
             }
 

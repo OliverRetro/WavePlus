@@ -109,8 +109,7 @@ namespace Plus.HabboHotel.Rooms.AI
                     maxE = MaxEnergy - Energy;
                 else
                     maxE = 10;
-            }
-            else
+            } else
                 maxE = 15; // Remove Max Energy as 15
 
             if (maxE <= 4)
@@ -125,8 +124,7 @@ namespace Plus.HabboHotel.Rooms.AI
                     Energy = 1;
                     r = 1;
                 }
-            }
-            else
+            } else
 
                 Energy += r;
 

@@ -17,7 +17,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
                 return;
 
             if (@params.Length == 1) {
-                session.SendWhisper("Please enter the username of the user you wish to rob.");
+                session.SendWhisper("Please enter the username of the user you wish to rob.", 1);
                 return;
             }
 
@@ -41,6 +41,11 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
             }
 
             GameClient targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(@params[1]);
+            RoomUser targetUser = room.GetRoomUserManager().GetRoomUserByHabbo(targetClient.GetHabbo().Id);
+
+            if (targetUser.IsAsleep) {
+                session.SendWhisper("Let's not bully the sleeping.", 1);
+            }
 
             if (targetClient == null) {
                 session.SendWhisper("The user could not be found.", 1);
@@ -63,7 +68,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
             }
 
             if (session.GetHabbo().GetRpStats().PassiveMode || targetClient.GetHabbo().GetRpStats().PassiveMode || targetClient.GetHabbo().GetRpStats().IsGodMode) {
-                session.SendWhisper("You cannot rob other users whilst either user is in passive mode.");
+                session.SendWhisper("You cannot rob other users whilst either user is in passive mode.", 1);
                 return;
             }
 

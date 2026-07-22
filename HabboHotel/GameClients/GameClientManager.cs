@@ -122,8 +122,7 @@ namespace Plus.HabboHotel.GameClients
                     !client.GetHabbo().GetPermissions().HasRight("staff_ignore_mod_alert")) {
                     try {
                         client.SendWhisper(message, 5);
-                    }
-                    catch {
+                    } catch {
                     }
                 }
             }
@@ -179,8 +178,7 @@ namespace Plus.HabboHotel.GameClients
             GameClient client = new(connection);
             if (_clients.TryAdd(connection.Channel.Id, client)) {
                 //Hmmmmm?
-            }
-            else
+            } else
                 connection.CloseAsync();
         }
 
@@ -226,8 +224,7 @@ namespace Plus.HabboHotel.GameClients
             try {
                 if (room != null && habbo != null && room.GetRoomUserManager()?.GetRoomUserByHabbo(habbo.Id) != null)
                     room.GetRoomUserManager().RemoveUserFromRoom(client, false);
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
 
@@ -283,8 +280,7 @@ namespace Plus.HabboHotel.GameClients
                     // shift end, crime-log flush, user row) — the same path a normal logout takes.
                     habbo.OnDisconnect();
                     Log.Info(habbo.Username + " has been disconnected.");
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     ExceptionLogger.LogException(e);
                 }
             }
@@ -298,15 +294,13 @@ namespace Plus.HabboHotel.GameClients
 
                     try {
                         client.Dispose();
-                    }
-                    catch {
+                    } catch {
                     }
                 }
 
                 Console.Clear();
                 Log.Info("<<- SERVER SHUTDOWN ->> CLOSING CONNECTIONS");
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 ExceptionLogger.LogException(e);
             }
 
@@ -328,8 +322,7 @@ namespace Plus.HabboHotel.GameClients
                         client.PingCount++;
 
                         toPing.Add(client);
-                    }
-                    else {
+                    } else {
                         lock (_timedOutConnections.SyncRoot) {
                             _timedOutConnections.Enqueue(client);
                         }
@@ -341,8 +334,7 @@ namespace Plus.HabboHotel.GameClients
                 foreach (GameClient client in toPing) {
                     try {
                         client.SendPacket(new PongComposer());
-                    }
-                    catch {
+                    } catch {
                         lock (_timedOutConnections.SyncRoot) {
                             _timedOutConnections.Enqueue(client);
                         }

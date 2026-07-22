@@ -116,8 +116,7 @@ namespace Plus.HabboHotel.Rooms.AI.Types
                 }
 
                 _speechTimer = GetBotData().SpeakingInterval;
-            }
-            else
+            } else
                 _speechTimer--;
 
             if (_actionTimer <= 0) {
@@ -135,20 +134,17 @@ namespace Plus.HabboHotel.Rooms.AI.Types
 
                                 GetRoomUser().MoveTo(GetBotData().TargetCoordinate.X, GetBotData().TargetCoordinate.Y);
                             }
-                        }
-                        else if (GetBotData().ForcedUserTargetMovement > 0) {
+                        } else if (GetBotData().ForcedUserTargetMovement > 0) {
                             RoomUser target = GetRoom().GetRoomUserManager().GetRoomUserByHabbo(GetBotData().ForcedUserTargetMovement);
                             if (target == null) {
                                 GetBotData().ForcedUserTargetMovement = 0;
                                 GetRoomUser().ClearMovement(true);
-                            }
-                            else {
+                            } else {
                                 Point? sq = GetBestAdjacentSquare(target);
                                 if (sq.HasValue)
                                     GetRoomUser().MoveTo(sq.Value);
                             }
-                        }
-                        else if (GetBotData().TargetUser == 0) {
+                        } else if (GetBotData().TargetUser == 0) {
                             Point nextCoord = GetRoom().GetGameMap().GetRandomWalkableSquare();
                             GetRoomUser().MoveTo(nextCoord.X, nextCoord.Y);
                         }
@@ -161,8 +157,7 @@ namespace Plus.HabboHotel.Rooms.AI.Types
                 }
 
                 _actionTimer = new Random((DateTime.Now.Millisecond + _virtualId) ^ 2).Next(5, 15);
-            }
-            else
+            } else
                 _actionTimer--;
         }
     }

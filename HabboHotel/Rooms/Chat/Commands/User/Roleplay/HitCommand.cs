@@ -47,8 +47,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
                 }
 
                 targetClient = lockedTarget.GetClient();
-            }
-            else if (@params.Length < 2) {
+            } else if (@params.Length < 2) {
                 Habbo clickedTarget = TargetLockService.GetTarget(session.GetHabbo());
                 targetClient = clickedTarget?.GetClient();
 
@@ -56,8 +55,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
                     session.SendWhisper("Enter a username, click a player, or use :locktarget <username>.", 1);
                     return;
                 }
-            }
-            else {
+            } else {
                 targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(@params[1]);
             }
 

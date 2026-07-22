@@ -148,8 +148,7 @@ namespace Plus.Communication.Encryption.Crypto.RSA
                 }
 
                 return c.getBytes();
-            }
-            catch {
+            } catch {
                 return null;
             }
         }
@@ -168,8 +167,7 @@ namespace Plus.Communication.Encryption.Crypto.RSA
                 byte[] bytes = Pkcs1unpad(m.getBytes(), bl, type);
 
                 return bytes;
-            }
-            catch {
+            } catch {
                 return null;
             }
         }
