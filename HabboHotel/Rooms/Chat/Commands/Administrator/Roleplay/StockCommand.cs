@@ -7,7 +7,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 {
     internal class StockCommand : IChatCommand
     {
-        public string PermissionRequired => "command_rp_add_item_stock";
+        public string PermissionRequired => "command_rp_get_stock";
 
         public string Parameters => "";
 

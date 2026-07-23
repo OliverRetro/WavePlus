@@ -8,6 +8,7 @@ namespace Plus.HabboHotel.Roleplay.Utilities
         public const int StaffEffect = 102;
         public const int PassiveEffect = 1057;
         public const int GodModeEffect = 59;
+        public const int CuffedEffect = 590;
         public static int GetStaffCorporationId() => int.TryParse(PlusEnvironment.GetSettingsManager().TryGetValue("rp.staff.corporation.id"), out int id) ? id : 0;
 
         public static bool IsWorkingStaff(Habbo habbo)
@@ -23,6 +24,9 @@ namespace Plus.HabboHotel.Roleplay.Utilities
         {
             if (habbo == null)
                 return 0;
+
+            if (PlusEnvironment.GetPoliceManager().IsCuffed(habbo.Id) && !PlusEnvironment.GetJailManager().IsJailed(habbo.Id))
+                return CuffedEffect;
 
             if (IsWorkingStaff(habbo))
                 return StaffEffect;

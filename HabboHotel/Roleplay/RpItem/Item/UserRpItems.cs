@@ -115,6 +115,9 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             if (IsBlockedByDeath(habbo, item.ItemData))
                 return false;
 
+            if (IsBlockedByCuffs(habbo, item.ItemData))
+                return false;
+
             if (item.ItemData.BlockedWhilePassive && habbo?.GetRpStats()?.PassiveMode == true) {
                 habbo.GetClient()?.SendWhisper($"You can't equip {item.ItemData.Name} while passive!", 1);
                 return false;
@@ -157,6 +160,9 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
                 return false;
 
             if (IsBlockedByDeath(habbo, item.ItemData))
+                return false;
+
+            if (IsBlockedByCuffs(habbo, item.ItemData))
                 return false;
 
             if (item.ItemData.BlockedWhilePassive && habbo?.GetRpStats()?.PassiveMode == true) {
@@ -264,6 +270,18 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             return true;
         }
 
+        private static bool IsBlockedByCuffs(Habbo habbo, RpItemData data)
+        {
+            if (data == null || data.UsableWhileCuffed || data.Has("handpick"))
+                return false;
+
+            if (habbo == null || !PlusEnvironment.GetPoliceManager().IsCuffed(habbo.Id))
+                return false;
+
+            habbo.GetClient()?.SendWhisper($"You can't use {data.Name} while cuffed.", 1);
+            return true;
+        }
+
         /// <summary>Count of distinct stackable item-ids the user owns (for stack limits).</summary>
         public int DistinctStackCount() =>
             _items.Values.Where(x => !x.Equipped).Select(x => x.ItemId).Distinct().Count();
@@ -304,6 +322,9 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
                 habbo.GetClient()?.SendWhisper($"You can't use {data.Name} while passive!", 1);
                 return false;
             }
+
+            if (IsBlockedByCuffs(habbo, data))
+                return false;
 
             // Lockpick: attempt to break free of cuffs instead of the usual consumable effects.
             if (data.Has("handpick"))

@@ -39,6 +39,12 @@ namespace Plus.HabboHotel.Roleplay.Stock
             /// <summary>0 for a vendor furni — nobody earns commission on those.</summary>
             public int SellerId { get; init; }
             public string SellerName { get; init; }
+
+            /// <summary>
+            /// Heading the window opened with (the corporation name, or the vendor furni's name).
+            /// Kept so a re-send after a purchase doesn't silently retitle the window.
+            /// </summary>
+            public string Title { get; init; }
             public DateTime SentAt { get; init; }
 
             public bool IsExpired => (DateTime.UtcNow - SentAt).TotalSeconds > ExpirySeconds;
@@ -75,23 +81,24 @@ namespace Plus.HabboHotel.Roleplay.Stock
                 FurniId = furniId,
                 SellerId = seller?.Id ?? 0,
                 SellerName = seller?.Username ?? "",
+                Title = title,
                 SentAt = DateTime.UtcNow
             };
 
             _pending[habbo.Id] = offer;
 
-            SendWindow(buyer, offer, title, stock, "");
+            SendWindow(buyer, offer, stock, "");
             return true;
         }
 
         /// <summary>Re-sends the window with fresh stock/credits, optionally with a message.</summary>
-        private static void Refresh(GameClient buyer, PendingOffer offer, string title, string message)
+        private static void Refresh(GameClient buyer, PendingOffer offer, string message)
         {
-            SendWindow(buyer, offer, title,
+            SendWindow(buyer, offer,
                 PlusEnvironment.GetRoomStockManager().GetRoomStock(offer.RoomId, offer.FurniId), message);
         }
 
-        private static void SendWindow(GameClient buyer, PendingOffer offer, string title,
+        private static void SendWindow(GameClient buyer, PendingOffer offer,
             List<(string StockType, int ItemId, int Amount, int Price)> stock, string message)
         {
             Habbo habbo = buyer.GetHabbo();
@@ -116,7 +123,7 @@ namespace Plus.HabboHotel.Roleplay.Stock
             WebOverlay.Send(buyer, "pre_offer", new
             {
                 offerId = offer.Id,
-                title,
+                title = offer.Title,
                 sellerName = offer.SellerName,
                 // Vendor furni sales pay nobody, so the window shouldn't advertise a commission.
                 commissionPercent = offer.SellerId == 0 ? 0 : CommissionPercent,
@@ -161,7 +168,7 @@ namespace Plus.HabboHotel.Roleplay.Stock
 
             int available = stocks.GetStock(offer.RoomId, stockType, itemId, offer.FurniId);
             if (available <= 0) {
-                Refresh(buyer, offer, TitleFor(offer), "That item is out of stock!");
+                Refresh(buyer, offer, "That item is out of stock!");
                 return;
             }
 
@@ -174,7 +181,7 @@ namespace Plus.HabboHotel.Roleplay.Stock
             amount = fits;
 
             if (amount <= 0) {
-                Refresh(buyer, offer, TitleFor(offer), "Your inventory is full.");
+                Refresh(buyer, offer, "Your inventory is full.");
                 return;
             }
 
@@ -183,7 +190,7 @@ namespace Plus.HabboHotel.Roleplay.Stock
 
             if (total > habbo.Credits) {
                 int affordable = unitPrice <= 0 ? amount : habbo.Credits / unitPrice;
-                Refresh(buyer, offer, TitleFor(offer),
+                Refresh(buyer, offer,
                     affordable > 0
                         ? $"You can't afford {amount} of those — you can afford {affordable}."
                         : "You can't afford that.");
@@ -192,14 +199,14 @@ namespace Plus.HabboHotel.Roleplay.Stock
 
             // Consume last, once every other check has passed, so a failure can't eat stock.
             if (!stocks.TryConsume(offer.RoomId, stockType, itemId, amount, offer.FurniId)) {
-                Refresh(buyer, offer, TitleFor(offer), "Someone beat you to the last of that stock!");
+                Refresh(buyer, offer, "Someone beat you to the last of that stock!");
                 return;
             }
 
             if (!Deliver(habbo, stockType, itemId, amount)) {
                 // Delivery failed after the stock was taken — put it straight back.
                 stocks.AddStock(offer.RoomId, stockType, itemId, amount, offer.FurniId);
-                Refresh(buyer, offer, TitleFor(offer), "That item couldn't be delivered.");
+                Refresh(buyer, offer, "That item couldn't be delivered.");
                 return;
             }
 
@@ -218,7 +225,7 @@ namespace Plus.HabboHotel.Roleplay.Stock
             if (clamped)
                 note += " Your inventory only had room for that many.";
 
-            Refresh(buyer, offer, TitleFor(offer), note);
+            Refresh(buyer, offer, note);
         }
 
         /// <summary>Pays the selling employee their cut. Vendor furni sales pay nobody.</summary>
@@ -296,9 +303,6 @@ namespace Plus.HabboHotel.Roleplay.Stock
                     return false;
             }
         }
-
-        private static string TitleFor(PendingOffer offer) =>
-            offer.SellerId == 0 ? "Vendor" : $"{offer.SellerName}'s offer";
 
         /// <summary>Name/image/rarity for a stock line, or false when the id no longer resolves.</summary>
         private static bool TryDescribe(string stockType, int itemId, out string name, out string image, out int rarity)

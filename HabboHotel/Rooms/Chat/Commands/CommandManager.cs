@@ -108,6 +108,11 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
                 if (session.GetHabbo().GetPermissions().HasRight("mod_tool"))
                     LogCommand(session.GetHabbo().Id, message, session.GetHabbo().MachineId);
 
+                if (IsRoleplayCommand(cmd) && PlusEnvironment.GetPoliceManager().IsCuffed(session.GetHabbo().Id)) {
+                    session.SendWhisper("You can't do that while cuffed.", 1);
+                    return false;
+                }
+
                 if (!string.IsNullOrEmpty(cmd.PermissionRequired) || !string.IsNullOrEmpty(cmd.GroupPermissionRequired)) {
                     if (!CanExecuteCommand(session, split[0].ToLower(), cmd))
                         return false;
@@ -279,6 +284,11 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
 
             return true;
         }
+
+        private bool IsRoleplayCommand(IChatCommand command) =>
+            command != null
+            && _categoryByCommand.TryGetValue(command.GetType().Name, out string category)
+            && category == CommandCategory.Roleplay;
 
         private static bool CanExecuteCommand(GameClient session, string commandKey, IChatCommand command)
         {

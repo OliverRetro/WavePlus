@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using Plus.Communication.Packets.Outgoing.Rooms.Engine;
 using Plus.HabboHotel.GameClients;
+using Plus.HabboHotel.Roleplay.Utilities;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
 using Plus.HabboHotel.Users.Roleplay;
@@ -11,11 +12,12 @@ namespace Plus.HabboHotel.Roleplay.Police
 {
     /// <summary>
     /// In-memory police state for cuffs and escorts, mirrored to the suspect's rp statistics so
-    /// cuffs survive relog/restart. A cuffed suspect is either <b>frozen</b> (fresh cuff or being
-    /// escorted — can't move) or <b>free to move</b> (their escorting officer left/died, or they
-    /// relogged). Either way the cuffs stay: they can't equip weapons, hit or rob, and can only
-    /// escape via a lockpick (the `handpick` item) or by being killed. Escorting a suspect into a
-    /// jail room hands them to the JailManager, which owns the jail outfit while they serve time.
+    /// cuffs survive relog/restart. Being cuffed leaves a suspect <b>free to move</b> — they wear
+    /// the cuffs effect and lose the use of items, weapons and roleplay commands, but can walk. A
+    /// suspect is only <b>frozen</b> (immobile) while actively being escorted, when their movement
+    /// is mirrored one-for-one from the escorting officer. Cuffs come off via a lockpick (the
+    /// `handpick` item) or by being killed. Escorting a suspect into a jail room hands them to the
+    /// JailManager, which owns the jail outfit while they serve time.
     /// </summary>
     public sealed class PoliceManager
     {
@@ -27,7 +29,7 @@ namespace Plus.HabboHotel.Roleplay.Police
         public bool IsEscorted(int userId) =>
             _states.TryGetValue(userId, out PoliceState state) && state.EscortedBy > 0;
 
-        /// <summary>True while the suspect is held immobile (fresh cuff, escort, or jail).</summary>
+        /// <summary>True while the suspect is held immobile — i.e. actively being escorted.</summary>
         public bool IsFrozen(int userId) =>
             _states.TryGetValue(userId, out PoliceState state) && state.Frozen;
 
@@ -39,7 +41,6 @@ namespace Plus.HabboHotel.Roleplay.Police
                 ? state.OriginalLook
                 : null;
 
-        /// <summary>Cuffs a suspect: snapshots their look, swaps the cuff shirt and freezes them.</summary>
         public void Cuff(Habbo officer, Habbo target)
         {
             if (officer == null || target == null)
@@ -47,13 +48,12 @@ namespace Plus.HabboHotel.Roleplay.Police
 
             PoliceState state = _states.GetOrAdd(target.Id, _ => new PoliceState());
             state.Cuffed = true;
-            state.Frozen = true;
+            state.Frozen = false;
             state.CuffedBy = officer.Id;
             if (string.IsNullOrEmpty(state.OriginalLook))
                 state.OriginalLook = target.Look;
 
-            ApplyCuffLook(target, state.OriginalLook);
-            ApplyFrozen(target, true);
+            RpEffectService.Refresh(target);
             Persist(target, state);
         }
 
@@ -71,7 +71,7 @@ namespace Plus.HabboHotel.Roleplay.Police
             state.Frozen = false;
             state.OriginalLook = string.IsNullOrEmpty(originalLook) ? target.Look : originalLook;
 
-            ApplyCuffLook(target, state.OriginalLook);
+            RpEffectService.Refresh(target);
         }
 
         /// <summary>
@@ -110,6 +110,8 @@ namespace Plus.HabboHotel.Roleplay.Police
 
             ApplyFastwalk(target, false);
             ApplyFrozen(target, false);
+            // Now jailed — drop the cuffs effect so it doesn't double up on the jail outfit.
+            RpEffectService.Refresh(target);
             Persist(target, state);
         }
 
@@ -120,9 +122,12 @@ namespace Plus.HabboHotel.Roleplay.Police
                 return;
 
             if (_states.TryRemove(target.Id, out PoliceState state)) {
+                EndEscortMovement(target);
                 RestoreLook(target, state.OriginalLook);
                 ApplyFastwalk(target, false);
                 ApplyFrozen(target, false);
+                // State's gone, so this resolves to whatever they'd normally show (drops the cuffs).
+                RpEffectService.Refresh(target);
                 ClearCuffPersistence(target);
             }
         }
@@ -152,9 +157,12 @@ namespace Plus.HabboHotel.Roleplay.Police
                 return;
 
             _states.TryRemove(target.Id, out PoliceState state);
+            EndEscortMovement(target);
             RestoreLook(target, state?.OriginalLook);
             ApplyFastwalk(target, false);
             ApplyFrozen(target, false);
+            // State's gone, so this resolves to whatever they'd normally show (drops the cuffs).
+            RpEffectService.Refresh(target);
 
             PlusEnvironment.GetJailManager().Forget(target);
             if (wipeCrimes)
@@ -163,9 +171,10 @@ namespace Plus.HabboHotel.Roleplay.Police
         }
 
         /// <summary>
-        /// Begins escorting a cuffed suspect to jail, carrying the star sentence captured at
-        /// <c>:arrest</c>. The suspect is dragged one tile ahead of the officer (with fastwalk)
-        /// until they reach a jail room.
+        /// Begins escorting a cuffed suspect, carrying the star sentence captured at <c>:arrest</c>
+        /// (0 for a plain <c>:escort</c>). The suspect is frozen and, from here on, mirrors the
+        /// officer's movement one-for-one — holding the tile offset they were stood at when the
+        /// escort began (see <see cref="SyncEscorts"/>). Reaching a jail room ends it.
         /// </summary>
         public void StartArrestEscort(Habbo officer, Habbo target, int pendingStars)
         {
@@ -177,6 +186,7 @@ namespace Plus.HabboHotel.Roleplay.Police
             state.Frozen = true;
             state.EscortedBy = officer.Id;
             state.PendingStars = pendingStars;
+            CaptureEscortFormation(officer, target, state);
             ApplyFrozen(target, true);
             Persist(target, state);
         }
@@ -185,9 +195,13 @@ namespace Plus.HabboHotel.Roleplay.Police
         {
             if (_states.TryGetValue(targetId, out PoliceState state)) {
                 state.EscortedBy = 0;
+                state.Frozen = false;
                 GameClient client = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(targetId);
-                if (client?.GetHabbo() != null)
+                if (client?.GetHabbo() != null) {
+                    EndEscortMovement(client.GetHabbo());
                     ApplyFastwalk(client.GetHabbo(), false);
+                    ApplyFrozen(client.GetHabbo(), false);
+                }
             }
         }
 
@@ -235,6 +249,11 @@ namespace Plus.HabboHotel.Roleplay.Police
                 RemoveCuffs(habbo, wipeCrimes: false);
         }
 
+        /// <summary>
+        /// Slow (250ms) escort housekeeping: pull suspects into the officer's room when he changes
+        /// rooms, jail them on reaching a jail room, and release suspects whose officer vanished.
+        /// The tile-by-tile mirroring itself runs on the room cycle in <see cref="SyncEscorts"/>.
+        /// </summary>
         public void OnCycle()
         {
             HashSet<int> jailRooms = GetJailRoomIds();
@@ -243,22 +262,16 @@ namespace Plus.HabboHotel.Roleplay.Police
                 int targetId = kv.Key;
                 PoliceState state = kv.Value;
 
+                if (state.EscortedBy <= 0)
+                    continue;
+
                 GameClient targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(targetId);
                 Habbo target = targetClient?.GetHabbo();
 
-                if (target == null) {
-                    // Don't remove the state here: the client-manager lookup can fail mid-disconnect
-                    // before OnDisconnect has persisted the cuffs, and removing the state first would
-                    // silently release the suspect. OnDisconnect owns the cleanup.
-                    continue;
-                }
-
-                // Keep frozen suspects pinned — but not while escorted, or the ClearMovement inside
-                // would cancel the escort's MoveTo every tick and make them bounce in place.
-                if (state.Frozen && state.EscortedBy <= 0)
-                    ApplyFrozen(target, true);
-
-                if (state.EscortedBy <= 0)
+                // Don't remove the state here: the client-manager lookup can fail mid-disconnect
+                // before OnDisconnect has persisted the cuffs, and removing the state first would
+                // silently release the suspect. OnDisconnect owns the cleanup.
+                if (target == null)
                     continue;
 
                 GameClient officerClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(state.EscortedBy);
@@ -268,12 +281,14 @@ namespace Plus.HabboHotel.Roleplay.Police
                     // Officer vanished without a clean disconnect — free but keep cuffed.
                     state.EscortedBy = 0;
                     state.Frozen = false;
+                    EndEscortMovement(target);
                     ApplyFastwalk(target, false);
                     ApplyFrozen(target, false);
                     continue;
                 }
 
-                // Follow the officer across rooms.
+                // Follow the officer across rooms — mirror his room swaps too. SyncEscorts snaps
+                // the suspect back into formation once they've loaded into the officer's room.
                 if (officer.CurrentRoomId != target.CurrentRoomId) {
                     target.PrepareRoom(officer.CurrentRoomId, string.Empty);
                     continue;
@@ -283,41 +298,23 @@ namespace Plus.HabboHotel.Roleplay.Police
                 if (jailRooms.Contains(officer.CurrentRoomId)) {
                     if (PlusEnvironment.GetJailManager().JailFromEscort(target, officer, state.PendingStars, state.OriginalLook)) {
                         state.EscortedBy = 0;
+                        state.Frozen = false;
                         state.PendingStars = 0;
+                        EndEscortMovement(target);
                         ApplyFastwalk(target, false);
                     }
-                    continue;
-                }
-
-                Room room = officer.CurrentRoom;
-                RoomUser officerUser = room.GetRoomUserManager().GetRoomUserByHabbo(officer.Id);
-                RoomUser targetUser = room.GetRoomUserManager().GetRoomUserByHabbo(target.Id);
-                if (officerUser == null || targetUser == null)
-                    continue;
-
-                // Movement is mirrored step-for-step in OnOfficerStep (zero-delay lockstep).
-                // Here we only correct drift while the officer stands still — snap the suspect
-                // onto the officer's front tile and mirror their facing.
-                if (officerUser.IsWalking || targetUser.Statusses.ContainsKey("mv"))
-                    continue;
-
-                Point ahead = officerUser.SquareInFront;
-                if ((targetUser.X != ahead.X || targetUser.Y != ahead.Y) && room.GetGameMap().ValidTile(ahead.X, ahead.Y)) {
-                    SnapTo(room, targetUser, ahead.X, ahead.Y, officerUser.RotBody);
-                } else if (targetUser.RotBody != officerUser.RotBody || targetUser.RotHead != officerUser.RotHead) {
-                    targetUser.RotBody = officerUser.RotBody;
-                    targetUser.RotHead = officerUser.RotHead;
-                    targetUser.UpdateNeeded = true;
                 }
             }
         }
 
         /// <summary>
-        /// Called by the room engine at the end of every user-processing cycle, after all walkers
-        /// have committed their step for this tick. Any suspect being escorted by an officer who
-        /// stepped this tick is given the exact same movement — same rotation, one tile ahead of
-        /// the officer's next position — fusing the pair together. It must run after the user loop
-        /// so the suspect's own (idle) pass can't strip the "mv" status before it's serialized.
+        /// Called by the room engine at the end of every user-processing cycle (50ms), after all
+        /// walkers have committed their step. Each escorted suspect is kept a rigid mirror of their
+        /// officer: they hold the tile offset captured when the escort began and copy his movement
+        /// one-for-one. A normal walk step is mirrored as an animated step so the pair walks
+        /// together; a teleport (arrow / room swap / big jump) snaps the suspect across instantly,
+        /// colliding onto the officer's tile if there's no open tile to hold. It must run after the
+        /// user loop so the suspect's own (idle) pass can't strip the "mv" before it's serialised.
         /// </summary>
         public void SyncEscorts(Room room)
         {
@@ -325,60 +322,194 @@ namespace Plus.HabboHotel.Roleplay.Police
                 return;
 
             foreach (var kv in _states) {
-                if (kv.Value.EscortedBy <= 0)
+                PoliceState state = kv.Value;
+                if (state.EscortedBy <= 0)
                     continue;
 
-                RoomUser officerUser = room.GetRoomUserManager().GetRoomUserByHabbo(kv.Value.EscortedBy);
-                if (officerUser == null || !officerUser.Statusses.ContainsKey("mv"))
-                    continue; // officer isn't in this room / didn't step this tick
+                RoomUser officerUser = room.GetRoomUserManager().GetRoomUserByHabbo(state.EscortedBy);
+                if (officerUser == null)
+                    continue; // officer isn't in this room (cross-room follow is handled in OnCycle)
 
                 RoomUser suspect = room.GetRoomUserManager().GetRoomUserByHabbo(kv.Key);
                 if (suspect == null)
                     continue;
 
-                // The officer's committed step this tick: SetX/SetY, facing RotBody.
-                int nextX = officerUser.SetX;
-                int nextY = officerUser.SetY;
                 int rot = officerUser.RotBody;
 
-                // One tile ahead of where the officer is stepping to, in the step's direction.
-                Point front = SquareInDirection(nextX, nextY, rot);
-                int stepX = front.X;
-                int stepY = front.Y;
+                // The officer's authoritative tile this tick: the tile he's stepping onto while
+                // walking, otherwise where he stands.
+                bool officerWalking = officerUser.IsWalking || officerUser.Statusses.ContainsKey("mv");
+                int ox = officerWalking ? officerUser.SetX : officerUser.X;
+                int oy = officerWalking ? officerUser.SetY : officerUser.Y;
 
-                // Front tile unusable — fall back to the tile the officer is vacating.
-                if (!room.GetGameMap().ValidTile(stepX, stepY)) {
-                    stepX = officerUser.X;
-                    stepY = officerUser.Y;
-                }
+                bool sameRoom = state.LastOfficerRoomId == room.RoomId;
+                bool firstSight = state.LastOfficerX == int.MinValue;
 
-                if (suspect.X == stepX && suspect.Y == stepY) {
-                    suspect.RotBody = rot;
-                    suspect.RotHead = rot;
-                    suspect.UpdateNeeded = true;
+                // Officer hasn't moved since we last mirrored — keep facings synced and let the
+                // suspect's last step finish, but do NOT re-issue it. Re-issuing every 50ms tick
+                // (the old bug) reset the step's pacing forever, so it never committed until the
+                // officer stopped — the stutter-then-teleport the escort used to show.
+                if (sameRoom && !firstSight && ox == state.LastOfficerX && oy == state.LastOfficerY) {
+                    SettleSuspect(suspect, rot);
                     continue;
                 }
 
-                double stepZ = room.GetGameMap().SqAbsoluteHeight(stepX, stepY);
+                int stepDist = firstSight || !sameRoom
+                    ? int.MaxValue
+                    : Chebyshev(state.LastOfficerX, state.LastOfficerY, ox, oy);
+                bool roomChanged = !sameRoom;
 
-                suspect.Statusses.Remove("lay");
-                suspect.Statusses.Remove("sit");
-                suspect.RemoveStatus("mv");
-                suspect.SetStatus("mv", stepX + "," + stepY + "," + Plus.Utilities.TextHandling.GetString(stepZ));
-                suspect.RotBody = rot;
-                suspect.RotHead = rot;
-                suspect.AllowOverride = true; // the fused step must always land, even on "blocked" tiles
-                suspect.SetStep = true;
-                suspect.SetX = stepX;
-                suspect.SetY = stepY;
-                suspect.SetZ = stepZ;
-                // Pace the fused step like a real one: without this the 50ms movement tick
-                // would commit it (and strip the "mv") almost immediately, cutting the walk
-                // animation short.
-                suspect.NextStepMs = PlusEnvironment.Now() + 500;
-                suspect.UpdateNeeded = true;
+                state.LastOfficerX = ox;
+                state.LastOfficerY = oy;
+                state.LastOfficerRoomId = room.RoomId;
+
+                // Where the suspect should be: officer tile + held offset (its meaning is gone
+                // across a room swap, so re-form beside him there).
+                Point desired = roomChanged
+                    ? ReformNextToOfficer(room, ox, oy, rot, state)
+                    : ResolveSuspectTile(room, ox, oy, rot, state);
+
+                if (suspect.X == desired.X && suspect.Y == desired.Y) {
+                    SettleSuspect(suspect, rot);
+                    continue;
+                }
+
+                // A walk step is mirrored as an animated step; anything larger — a teleport, a room
+                // swap, first placement, or a drift bigger than a fast-walk hop — snaps instantly.
+                bool teleport = roomChanged || firstSight || !officerWalking || stepDist > 2;
+                if (teleport)
+                    SnapTo(room, suspect, desired.X, desired.Y, rot);
+                else
+                    IssueMirrorStep(room, suspect, desired.X, desired.Y, rot);
             }
         }
+
+        /// <summary>
+        /// Snapshots the suspect's tile offset from the officer when the escort starts, plus the
+        /// officer's tile/room so <see cref="SyncEscorts"/> can tell a fresh step from a repeat.
+        /// </summary>
+        private static void CaptureEscortFormation(Habbo officer, Habbo target, PoliceState state)
+        {
+            state.HasOffset = false;
+            state.LastOfficerX = int.MinValue;
+            state.LastOfficerY = int.MinValue;
+            state.LastOfficerRoomId = 0;
+
+            Room room = officer.CurrentRoom;
+            if (room == null || officer.CurrentRoomId != target.CurrentRoomId)
+                return;
+
+            RoomUser officerUser = room.GetRoomUserManager().GetRoomUserByHabbo(officer.Id);
+            RoomUser suspectUser = room.GetRoomUserManager().GetRoomUserByHabbo(target.Id);
+            if (officerUser == null || suspectUser == null)
+                return;
+
+            state.OffsetX = suspectUser.X - officerUser.X;
+            state.OffsetY = suspectUser.Y - officerUser.Y;
+            state.HasOffset = true;
+            state.LastOfficerX = officerUser.X;
+            state.LastOfficerY = officerUser.Y;
+            state.LastOfficerRoomId = room.RoomId;
+        }
+
+        /// <summary>
+        /// The tile the suspect should hold this tick: the officer's tile plus the escort offset
+        /// when that lands on solid floor, else the tile in front of him, else the officer's own
+        /// tile (they collide / stack — "no open tile in front").
+        /// </summary>
+        private static Point ResolveSuspectTile(Room room, int ox, int oy, int rot, PoliceState state)
+        {
+            if (state.HasOffset) {
+                int cx = ox + state.OffsetX;
+                int cy = oy + state.OffsetY;
+                if (room.GetGameMap().ValidTile(cx, cy))
+                    return new Point(cx, cy);
+            }
+
+            Point front = SquareInDirection(ox, oy, rot);
+            if (room.GetGameMap().ValidTile(front.X, front.Y))
+                return front;
+
+            return new Point(ox, oy);
+        }
+
+        /// <summary>
+        /// Re-forms the suspect beside the officer after a room swap (where the stored offset is
+        /// meaningless) and re-captures the offset from that fresh spot.
+        /// </summary>
+        private static Point ReformNextToOfficer(Room room, int ox, int oy, int rot, PoliceState state)
+        {
+            Point tile = FindHoldTile(room, ox, oy, rot);
+            state.OffsetX = tile.X - ox;
+            state.OffsetY = tile.Y - oy;
+            state.HasOffset = true;
+            return tile;
+        }
+
+        /// <summary>A free tile beside the officer: in front if possible, else any neighbour, else his own tile.</summary>
+        private static Point FindHoldTile(Room room, int ox, int oy, int rot)
+        {
+            Point front = SquareInDirection(ox, oy, rot);
+            if (room.GetGameMap().ValidTile(front.X, front.Y))
+                return front;
+
+            for (int r = 0; r < 8; r++) {
+                Point p = SquareInDirection(ox, oy, r);
+                if (room.GetGameMap().ValidTile(p.X, p.Y))
+                    return p;
+            }
+
+            return new Point(ox, oy);
+        }
+
+        /// <summary>Issues one animated proxy step for the suspect, paced like a real walk.</summary>
+        private static void IssueMirrorStep(Room room, RoomUser suspect, int x, int y, int rot)
+        {
+            double stepZ = room.GetGameMap().SqAbsoluteHeight(x, y);
+
+            suspect.Statusses.Remove("lay");
+            suspect.Statusses.Remove("sit");
+            suspect.RemoveStatus("mv");
+            suspect.SetStatus("mv", x + "," + y + "," + Plus.Utilities.TextHandling.GetString(stepZ));
+            suspect.RotBody = rot;
+            suspect.RotHead = rot;
+            suspect.AllowOverride = true; // the fused step must always land, even on "blocked" tiles
+            suspect.SetStep = true;
+            suspect.SetX = x;
+            suspect.SetY = y;
+            suspect.SetZ = stepZ;
+            // Pace the fused step like a real one: without this the 50ms movement tick would commit
+            // it (and strip the "mv") almost immediately, cutting the walk animation short.
+            suspect.NextStepMs = PlusEnvironment.Now() + 500;
+            suspect.UpdateNeeded = true;
+        }
+
+        /// <summary>
+        /// Keeps a stationary suspect's facing on the officer and, once their last proxy step has
+        /// committed, drops the lingering "mv" so they settle out of the walk pose.
+        /// </summary>
+        private static void SettleSuspect(RoomUser suspect, int rot)
+        {
+            bool changed = false;
+
+            if (suspect.RotBody != rot || suspect.RotHead != rot) {
+                suspect.RotBody = rot;
+                suspect.RotHead = rot;
+                changed = true;
+            }
+
+            if (!suspect.SetStep && suspect.Statusses.ContainsKey("mv")) {
+                suspect.RemoveStatus("mv");
+                changed = true;
+            }
+
+            if (changed)
+                suspect.UpdateNeeded = true;
+        }
+
+        /// <summary>Chebyshev (king-move) distance between two tiles.</summary>
+        private static int Chebyshev(int x1, int y1, int x2, int y2) =>
+            System.Math.Max(System.Math.Abs(x1 - x2), System.Math.Abs(y1 - y2));
 
         /// <summary>The tile one square from (x, y) in the given rotation (8 directions).</summary>
         private static Point SquareInDirection(int x, int y, int rot)
@@ -397,13 +528,16 @@ namespace Plus.HabboHotel.Roleplay.Police
             };
         }
 
-        /// <summary>Instantly places a suspect on a tile facing the given rotation (drift correction).</summary>
+        /// <summary>Instantly places a suspect on a tile facing the given rotation (teleport / room swap).</summary>
         private static void SnapTo(Room room, RoomUser roomUser, int x, int y, int rot)
         {
             roomUser.ClearMovement(true);
+            roomUser.Statusses.Remove("lay");
+            roomUser.Statusses.Remove("sit");
             room.GetGameMap().UpdateUserMovement(new Point(roomUser.X, roomUser.Y), new Point(x, y), roomUser);
             roomUser.SetPos(x, y, room.GetGameMap().SqAbsoluteHeight(x, y));
-            roomUser.SetRot(rot, false);
+            roomUser.RotBody = rot;
+            roomUser.RotHead = rot;
             roomUser.UpdateNeeded = true;
         }
 
@@ -421,6 +555,7 @@ namespace Plus.HabboHotel.Roleplay.Police
 
                 GameClient client = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(kv.Key);
                 if (client?.GetHabbo() != null) {
+                    EndEscortMovement(client.GetHabbo());
                     ApplyFastwalk(client.GetHabbo(), false);
                     ApplyFrozen(client.GetHabbo(), false);
                     if (wasControlled)
@@ -513,39 +648,25 @@ namespace Plus.HabboHotel.Roleplay.Police
             }
         }
 
+        /// <summary>Stops any in-flight escort proxy step so a released suspect settles cleanly.</summary>
+        private static void EndEscortMovement(Habbo target)
+        {
+            RoomUser roomUser = target?.CurrentRoom?.GetRoomUserManager().GetRoomUserByHabbo(target.Id);
+            if (roomUser == null)
+                return;
+
+            roomUser.RemoveStatus("mv");
+            roomUser.SetStep = false;
+            roomUser.AllowOverride = false;
+            roomUser.UpdateNeeded = true;
+        }
+
         private static void RestoreLook(Habbo target, string originalLook)
         {
             if (string.IsNullOrEmpty(originalLook))
                 return;
 
             target.Look = originalLook;
-            BroadcastLook(target);
-        }
-
-        /// <summary>Replaces the shirt (.ch) part of <paramref name="originalLook"/> with the cuff figure.</summary>
-        private static void ApplyCuffLook(Habbo target, string originalLook)
-        {
-            string cuffFigure = target.Gender != null && target.Gender.ToLower() == "f"
-                ? PlusEnvironment.GetSettingsManager().TryGetValue("rp.cuff.figure.female")
-                : PlusEnvironment.GetSettingsManager().TryGetValue("rp.cuff.figure.male");
-
-            if (string.IsNullOrWhiteSpace(cuffFigure) || string.IsNullOrWhiteSpace(originalLook))
-                return;
-
-            Dictionary<string, string> lookParts = new();
-            foreach (string part in originalLook.Split('.')) {
-                if (string.IsNullOrWhiteSpace(part))
-                    continue;
-                lookParts[part.Split('-')[0]] = part;
-            }
-
-            foreach (string part in cuffFigure.Split('.')) {
-                if (string.IsNullOrWhiteSpace(part))
-                    continue;
-                lookParts[part.Split('-')[0]] = part;
-            }
-
-            target.Look = string.Join(".", lookParts.Values);
             BroadcastLook(target);
         }
 
@@ -565,6 +686,16 @@ namespace Plus.HabboHotel.Roleplay.Police
             public string OriginalLook;
             public int EscortedBy;
             public int PendingStars;
+
+            // Escort formation. The suspect holds OffsetX/OffsetY tiles from the officer and mirrors
+            // his movement as a rigid pair. LastOfficerX/Y/RoomId is the officer tile we last acted
+            // on, so a single step issues one mirror step instead of one per 50ms tick.
+            public int OffsetX;
+            public int OffsetY;
+            public bool HasOffset;
+            public int LastOfficerX = int.MinValue;
+            public int LastOfficerY = int.MinValue;
+            public int LastOfficerRoomId;
         }
     }
 }

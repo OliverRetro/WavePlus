@@ -135,6 +135,13 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
         /// </summary>
         public bool UsableWhileDead => GetInt("zombie", 0) > 0;
 
+        /// <summary>
+        /// Whether a cuffed owner may still use this item. Off unless the attribute JSON carries
+        /// `"usable_cuffed": 1` — cuffed suspects are otherwise blocked from every item. Weapons
+        /// are never usable while cuffed (they carry no such opt-in and are blocked separately).
+        /// </summary>
+        public bool UsableWhileCuffed => GetInt("usable_cuffed", 0) > 0;
+
         /// <summary>Back-compat alias: the secondary slot behaves as a shield (durability + shield stat).</summary>
         public bool IsShield => IsSecondary;
 

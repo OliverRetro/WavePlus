@@ -443,7 +443,7 @@ namespace Plus.Communication.Packets.Incoming
         /// mirrors the gates in <see cref="UserRpItems.Use"/> — the icon and the server have to
         /// agree, or the user clicks something that looks fine and gets a refusal whisper.
         /// </summary>
-        private static string ItemBlockReason(RpItemData data, bool dead, bool passive)
+        private static string ItemBlockReason(RpItemData data, bool dead, bool passive, bool cuffed)
         {
             if (data == null)
                 return "";
@@ -453,6 +453,9 @@ namespace Plus.Communication.Packets.Incoming
 
             if (dead && !data.UsableWhileDead)
                 return "dead";
+
+            if (cuffed && !data.UsableWhileCuffed && !data.Has("handpick"))
+                return "cuffed";
 
             if (passive && data.BlockedWhilePassive)
                 return "passive";
@@ -472,8 +475,9 @@ namespace Plus.Communication.Packets.Incoming
             // Passive mode is surfaced so the overlay can grey out / block equipping combat gear.
             bool passive = habbo.GetRpStats()?.PassiveMode == true;
             bool dead = habbo.GetRpStats()?.IsDead == true;
+            bool cuffed = PlusEnvironment.GetPoliceManager().IsCuffed(habbo.Id);
 
-            List<object> items = new();
+            List<object> items = [];
 
             // Primary equipped slot (0): a primary item if one is equipped, otherwise the weapon.
             UserRpItem equippedPrimary = habbo.GetRpItems()?.GetEquippedPrimaryItem();
@@ -489,7 +493,7 @@ namespace Plus.Communication.Packets.Incoming
                     image = equippedPrimary.ItemData.ImageUrl ?? "",
                     weapon = hasBar,
                     rarity = equippedPrimary.ItemData.Rarity,
-                    blockedReason = ItemBlockReason(equippedPrimary.ItemData, dead, passive),
+                    blockedReason = ItemBlockReason(equippedPrimary.ItemData, dead, passive, cuffed),
                     health = hasBar ? (int)Math.Round(100.0 * equippedPrimary.EffectiveDurability / Math.Max(1, equippedPrimary.ItemData.MaxDurability)) : 100
                 });
             } else {
@@ -507,8 +511,9 @@ namespace Plus.Communication.Packets.Incoming
                         image = weapon.WeaponData.Image ?? "",
                         weapon = true,
                         passiveBlock = true,
-                        // Weapons aren't RP items, so the reason is derived from state alone.
-                        blockedReason = dead ? "dead" : (passive ? "passive" : ""),
+                        // Weapons aren't RP items, so the reason is derived from state alone. A
+                        // weapon can never be used while cuffed, so cuffs always block it.
+                        blockedReason = dead ? "dead" : (cuffed ? "cuffed" : (passive ? "passive" : "")),
                         rarity = (int)weapon.WeaponData.Rarity,
                         health = weapon.WeaponData.Durability <= 0 ? 100
                             : (int)Math.Round(100.0 * weapon.DurabilityLeft / weapon.WeaponData.Durability)
@@ -534,7 +539,7 @@ namespace Plus.Communication.Packets.Incoming
                     shield = !isSuicide,
                     suicide = isSuicide,
                     passiveBlock = isSuicide || equippedShield.ItemData.BlockedWhilePassive,
-                    blockedReason = ItemBlockReason(equippedShield.ItemData, dead, passive),
+                    blockedReason = ItemBlockReason(equippedShield.ItemData, dead, passive, cuffed),
                     rarity = equippedShield.ItemData.Rarity,
                     health = isSuicide ? 100 : (int)Math.Round(100.0 * equippedShield.EffectiveDurability / maxShield)
                 });
@@ -564,7 +569,7 @@ namespace Plus.Communication.Packets.Incoming
                         weapon = true,
                         canEquip = true,
                         passiveBlock = true,
-                        blockedReason = dead ? "dead" : (passive ? "passive" : ""),
+                        blockedReason = dead ? "dead" : (cuffed ? "cuffed" : (passive ? "passive" : "")),
                         rarity = w.WeaponData?.Rarity ?? 0,
                         slot,
                         health = w.WeaponData == null || w.WeaponData.Durability <= 0 ? 100
@@ -596,7 +601,7 @@ namespace Plus.Communication.Packets.Incoming
                     canEquip = isSecondary || isPrimary,
                     suicide = rep.ItemData?.IsSuicideVest ?? false,
                     passiveBlock = rep.ItemData?.BlockedWhilePassive ?? false,
-                    blockedReason = ItemBlockReason(rep.ItemData, dead, passive),
+                    blockedReason = ItemBlockReason(rep.ItemData, dead, passive, cuffed),
                     rarity = rep.ItemData?.Rarity ?? 1,
                     slot,
                     count = entry.Count,
@@ -606,7 +611,7 @@ namespace Plus.Communication.Packets.Incoming
                 });
             }
 
-            WebOverlay.Send(session, "inventory", new { items, open, passive, dead });
+            WebOverlay.Send(session, "inventory", new { items, open, passive, dead, cuffed });
         }
 
         // Unequip the active weapon — it returns to the grid, so it needs a free slot.
