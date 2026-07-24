@@ -12,6 +12,11 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
 
         public string Description => "Give everyone online HP!";
 
+        // Heals cancel death, so they're useless if death blocks them.
+        public bool UsableWhileDead => true;
+
+        public bool UsableWhileCuffed => true;
+
         public void Execute(GameClient session, Room room, string[] @params)
         {
             foreach (RoomUser user in PlusEnvironment.GetGame().GetRoomManager().GetAllRoomUsers()) {

@@ -133,6 +133,12 @@ namespace Plus.HabboHotel.Roleplay.Hospital
             if (stats == null)
                 return;
 
+            if (!stats.IsDead && stats.Health <= 0) {
+                RoomUser downed = habbo.CurrentRoom?.GetRoomUserManager().GetRoomUserByHabbo(habbo.Id);
+                if (downed != null)
+                    UserRpStats.Kill(habbo, downed);
+            }
+
             if (stats.IsDead) {
                 _deadUsers[habbo.Id] = 0;
                 if (stats.HospitalReleaseTime > 0)

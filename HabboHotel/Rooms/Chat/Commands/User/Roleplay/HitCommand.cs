@@ -7,6 +7,9 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 {
     internal class HitCommand : IChatCommand
     {
+        /// <summary>Cooldown for a swing that never connected. Set to 3 to charge the full one.</summary>
+        private const int WhiffCooldownSeconds = 1;
+
         public string PermissionRequired => "command_rp_hit";
 
         public string Parameters => "%username%";
@@ -84,8 +87,11 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
                 return;
             }
 
-            session.GetHabbo().LastHitTime = now + 3;
-            PlusEnvironment.GetCombatManager().AttackUser(session.GetHabbo(), targetClient.GetHabbo());
+            // A swing that never landed (out of reach, target idle/down) costs a short beat rather
+            // than the full 3s — otherwise one mistimed press against a moving target locks you
+            // out of the fight for three seconds.
+            bool swung = PlusEnvironment.GetCombatManager().AttackUser(session.GetHabbo(), targetClient.GetHabbo());
+            session.GetHabbo().LastHitTime = now + (swung ? 3 : WhiffCooldownSeconds);
         }
     }
 }

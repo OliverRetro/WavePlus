@@ -16,16 +16,12 @@ using Plus.HabboHotel.Users.Roleplay;
 
 namespace Plus.HabboHotel.Roleplay.Trash
 {
-    /// <summary>
-    /// Handles RP trashbin searches. Search is time-gated, has per-user and per-bin cooldowns,
-    /// awards RP items/credits, and progresses the Scavenge skill.
-    /// </summary>
     public sealed class TrashSearchManager
     {
         private readonly ConcurrentDictionary<int, ActiveTrashSearch> _activeSearches = new();
         private readonly ConcurrentDictionary<int, double> _userCooldowns = new();
         private readonly ConcurrentDictionary<int, BinCooldown> _binCooldowns = new();
-        private readonly List<TrashReward> _rewards = new();
+        private readonly List<TrashReward> _rewards = [];
         private readonly Random _random = new();
         private double _nextCooldownPurgeUnix;
         private static readonly ConcurrentDictionary<int, bool> TrashItemCache = new();
@@ -114,7 +110,7 @@ namespace Plus.HabboHotel.Roleplay.Trash
             }
 
             int duration = GetDurationSeconds(habbo);
-            ActiveTrashSearch activeSearch = new ActiveTrashSearch
+            ActiveTrashSearch activeSearch = new()
             {
                 UserId = habbo.Id,
                 ItemId = item.Id,
@@ -127,8 +123,6 @@ namespace Plus.HabboHotel.Roleplay.Trash
                 return false;
             }
 
-            // Searching no longer pins the user in place — they stay free to walk while the
-            // interaction timer runs.
             WebOverlay.SendInteractionTimer(session, "Dumpster diving finished in %seconds% seconds", duration);
 
             UserRpStats stats = habbo.GetRpStats();
@@ -149,25 +143,25 @@ namespace Plus.HabboHotel.Roleplay.Trash
         {
             double now = PlusEnvironment.GetUnixTimestamp();
 
-            foreach (var kv in _activeSearches) {
-                ActiveTrashSearch search = kv.Value;
+            foreach (var shit in _activeSearches) {
+                ActiveTrashSearch search = shit.Value;
                 if (search.FinishUnix > now)
                     continue;
 
-                if (_activeSearches.TryRemove(kv.Key, out ActiveTrashSearch completed))
+                if (_activeSearches.TryRemove(shit.Key, out ActiveTrashSearch completed))
                     CompleteSearch(completed);
             }
 
             if (now >= _nextCooldownPurgeUnix) {
                 _nextCooldownPurgeUnix = now + 60;
 
-                foreach (var kv in _userCooldowns) {
-                    if (kv.Value <= now)
-                        _userCooldowns.TryRemove(kv.Key, out _);
+                foreach (var shit in _userCooldowns) {
+                    if (shit.Value <= now)
+                        _userCooldowns.TryRemove(shit.Key, out _);
                 }
 
-                foreach (var kv in _binCooldowns) {
-                    if (kv.Value.ReadyUnix <= now && _binCooldowns.TryRemove(kv.Key, out BinCooldown expired))
+                foreach (var shit in _binCooldowns) {
+                    if (shit.Value.ReadyUnix <= now && _binCooldowns.TryRemove(shit.Key, out BinCooldown expired))
                         RestoreBinState(expired);
                 }
             }
@@ -196,13 +190,13 @@ namespace Plus.HabboHotel.Roleplay.Trash
 
             _userCooldowns[habbo.Id] = PlusEnvironment.GetUnixTimestamp() + GetUserCooldownSeconds(habbo);
 
-            // Achievement: searched a trashbin (any bin counts once its cooldown allows).
+            // Achievement n skill
             PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(client, "ACH_Trashbin", 1);
+            ProgressScavenge(habbo, 1);
 
             int chance = GetFindChance(habbo);
             if (_random.Next(1, 101) <= chance && TryGiveReward(habbo, out string rewardText)) {
                 room.SendPacket(new ShoutComposer(roomUser.VirtualId, "*finds " + rewardText + " inside of the bin*", 0, 4, isRpAction: true));
-                ProgressScavenge(habbo, 1);
                 return;
             }
 
@@ -211,12 +205,10 @@ namespace Plus.HabboHotel.Roleplay.Trash
                 habbo.Credits += credits;
                 client.SendPacket(new CreditBalanceComposer(habbo.Credits));
                 room.SendPacket(new ShoutComposer(roomUser.VirtualId, "*finds " + credits + " credits inside of the bin*", 0, 4, isRpAction: true));
-                ProgressScavenge(habbo, 1);
                 return;
             }
 
             room.SendPacket(new ShoutComposer(roomUser.VirtualId, "*fails to find anything in the bin*", 0, 4, isRpAction: true));
-            ProgressScavenge(habbo, 1);
         }
 
         private bool TryGiveReward(Habbo habbo, out string rewardText)
@@ -420,18 +412,11 @@ namespace Plus.HabboHotel.Roleplay.Trash
             public double FinishUnix;
         }
 
-        private readonly struct BinCooldown
+        private readonly struct BinCooldown(int roomId, int itemId, double readyUnix)
         {
-            public BinCooldown(int roomId, int itemId, double readyUnix)
-            {
-                RoomId = roomId;
-                ItemId = itemId;
-                ReadyUnix = readyUnix;
-            }
-
-            public int RoomId { get; }
-            public int ItemId { get; }
-            public double ReadyUnix { get; }
+            public int RoomId { get; } = roomId;
+            public int ItemId { get; } = itemId;
+            public double ReadyUnix { get; } = readyUnix;
         }
 
         private sealed class TrashReward

@@ -10,6 +10,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 
         public string Description => "Give up and go straight to hospital.";
 
+        public bool UsableWhileDead => true;
+
         public void Execute(GameClient session, Room room, string[] @params)
         {
             if (session?.GetHabbo()?.GetRpStats()?.IsDead != true) {

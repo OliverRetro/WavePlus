@@ -16,8 +16,8 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
         public int Effect { get; set; }
 
         /// <summary>
-        /// Reach in tiles (Chebyshev rings): 1 = same/adjacent tile, 2 = one tile of gap
-        /// between attacker and target, and so on.
+        /// Reach in tiles (Chebyshev rings): 0 = the same tile only, 1 = same/adjacent tile,
+        /// 2 = one tile of gap between attacker and target, and so on.
         /// </summary>
         public int Range { get; set; }
 
@@ -42,7 +42,8 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
             CriticalChance = criticalChance;
             CriticalMultiplier = criticalMultiplier;
             Effect = effect;
-            Range = Math.Max(1, range);
+            // 0 is a real setting — "must be standing on the same tile" — not a missing value.
+            Range = Math.Max(0, range);
             AllowDiagonal = allowDiagonal;
             Durability = durability;
             StunChance = stunChance;

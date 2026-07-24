@@ -35,6 +35,27 @@ namespace Plus.HabboHotel.GameClients
         public int PingCount { get; set; }
         public long PingRequestedAt { get; set; }
 
+        /// <summary>Stopwatch stamp of the last keep-alive probe, 0 when none is outstanding.</summary>
+        public long KeepAlivePingAt { get; set; }
+
+        /// <summary>
+        /// Smoothed round-trip time in ms, refreshed from the 30s keep-alive (and from :ping).
+        /// 0 until the first sample lands. Combat uses it to rewind the world to the frame the
+        /// attacker was actually looking at when they swung — see RpProximity.
+        /// </summary>
+        public double LatencyMs { get; private set; }
+
+        /// <summary>Folds a round-trip sample into <see cref="LatencyMs"/>, ignoring nonsense.</summary>
+        public void RecordLatencySample(double sampleMs)
+        {
+            // A negative or absurd sample means the reply didn't belong to the probe we timed
+            // (the client also pings unprompted) — better no data than bad data.
+            if (sampleMs <= 0 || sampleMs > 2000)
+                return;
+
+            LatencyMs = LatencyMs <= 0 ? sampleMs : (LatencyMs * 0.7) + (sampleMs * 0.3);
+        }
+
         public GameClient(IChannelHandlerContext context)
         {
             _channel = context;

@@ -108,15 +108,13 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
                 if (session.GetHabbo().GetPermissions().HasRight("mod_tool"))
                     LogCommand(session.GetHabbo().Id, message, session.GetHabbo().MachineId);
 
-                if (IsRoleplayCommand(cmd) && PlusEnvironment.GetPoliceManager().IsCuffed(session.GetHabbo().Id)) {
-                    session.SendWhisper("You can't do that while cuffed.", 1);
-                    return false;
-                }
-
                 if (!string.IsNullOrEmpty(cmd.PermissionRequired) || !string.IsNullOrEmpty(cmd.GroupPermissionRequired)) {
                     if (!CanExecuteCommand(session, split[0].ToLower(), cmd))
                         return false;
                 }
+
+                if (IsBlockedByState(session, cmd))
+                    return false;
 
                 session.GetHabbo().ChatCommand = cmd;
                 session.GetHabbo().CurrentRoom.GetWired().TriggerEvent(WiredBoxType.TriggerUserSaysCommand, session.GetHabbo(), this);
@@ -285,10 +283,39 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             return true;
         }
 
-        private bool IsRoleplayCommand(IChatCommand command) =>
+        private bool IsStaffCommand(IChatCommand command) =>
             command != null
             && _categoryByCommand.TryGetValue(command.GetType().Name, out string category)
-            && category == CommandCategory.Roleplay;
+            && category == CommandCategory.Staff;
+
+        /// <summary>
+        /// Death and cuffs block <b>every</b> command, not just the roleplay ones — a corpse and a
+        /// suspect in handcuffs can't act at all. Two escape hatches: Staff-category commands (a
+        /// moderator has to be able to moderate whatever state their character is in) and commands
+        /// that opt in via <see cref="IChatCommand.UsableWhileDead"/> /
+        /// <see cref="IChatCommand.UsableWhileCuffed"/>.
+        ///
+        /// Deliberately mirrors the item gates in <see cref="Roleplay.RpItem.Item.UserRpItems.Use"/>
+        /// so the two halves of the RP surface refuse the same things for the same reasons.
+        /// </summary>
+        private bool IsBlockedByState(GameClient session, IChatCommand command)
+        {
+            Habbo habbo = session?.GetHabbo();
+            if (habbo == null || command == null || IsStaffCommand(command))
+                return false;
+
+            if (!command.UsableWhileDead && habbo.GetRpStats()?.IsDead == true) {
+                session.SendWhisper("You're dead — you can't do that.", 1);
+                return true;
+            }
+
+            if (!command.UsableWhileCuffed && PlusEnvironment.GetPoliceManager().IsCuffed(habbo.Id)) {
+                session.SendWhisper("You can't do that while cuffed.", 1);
+                return true;
+            }
+
+            return false;
+        }
 
         private static bool CanExecuteCommand(GameClient session, string commandKey, IChatCommand command)
         {

@@ -8,6 +8,9 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
         string GroupPermissionRequired => string.Empty;
         string Parameters { get; }
         string Description { get; }
+        bool UsableWhileDead => false;
+        bool UsableWhileCuffed => false;
+
         void Execute(GameClient session, Room room, string[] @params);
     }
 }

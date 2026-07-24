@@ -31,6 +31,13 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
                 return false;
             }
 
+            // Neither can a corpse. The overlay already greys weapons out while dead (blockedReason
+            // "dead"), so without this the server silently disagreed with its own inventory.
+            if (weaponId != 0 && habbo.GetRpStats()?.IsDead == true) {
+                error = "You're dead — you can't equip weapons.";
+                return false;
+            }
+
             // A cuffed suspect can't arm themselves.
             if (weaponId != 0 && PlusEnvironment.GetPoliceManager().IsCuffed(habbo.Id)) {
                 error = "You can't equip weapons while cuffed.";

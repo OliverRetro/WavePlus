@@ -14,6 +14,11 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 
         public string Description => "Unlock all skins, weapons, or skills for yourself.";
 
+        // Staff setup tool — unlocking things changes nothing about the RP state.
+        public bool UsableWhileDead => true;
+
+        public bool UsableWhileCuffed => true;
+
         public void Execute(GameClient session, Room room, string[] @params)
         {
             if (session?.GetHabbo() == null || @params.Length < 2) {

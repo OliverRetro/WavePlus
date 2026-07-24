@@ -333,6 +333,8 @@ namespace Plus.HabboHotel.GameClients
 
                 foreach (GameClient client in toPing) {
                     try {
+                        // Time the probe: the reply (PingEvent) turns it into a latency sample.
+                        client.KeepAlivePingAt = System.Diagnostics.Stopwatch.GetTimestamp();
                         client.SendPacket(new PongComposer());
                     } catch {
                         lock (_timedOutConnections.SyncRoot) {

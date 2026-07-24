@@ -46,6 +46,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Fun
 
             if (targetUser.IsAsleep) {
                 session.SendWhisper("Let's not bully the sleeping.", 1);
+                return;
             }
 
             RoomUser thisUser = room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id);

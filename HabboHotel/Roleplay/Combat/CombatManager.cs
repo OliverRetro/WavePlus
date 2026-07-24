@@ -16,41 +16,42 @@ namespace Plus.HabboHotel.Roleplay.Combat
     {
         private static readonly TimeSpan StunDuration = TimeSpan.FromSeconds(2);
 
-        public void AttackUser(Habbo attacker, Habbo target)
+        /// <summary>
+        /// Resolves one swing. Returns false when the swing never happened (idle, dead, out of
+        /// reach) — the caller uses that to avoid charging a full attack cooldown for nothing.
+        /// </summary>
+        public bool AttackUser(Habbo attacker, Habbo target)
         {
             if (attacker == null || target == null)
-                return;
+                return false;
 
             // Rp Stats
             var attackerStats = attacker.GetRpStats();
             var targetStats = target.GetRpStats();
             if (attackerStats == null || targetStats == null)
-                return;
-
-            // take away energy
-            attackerStats.InteractionEnergy();
+                return false;
 
             // Room users
             RoomUser targetRoomUser = target.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(target.Id);
             RoomUser attackerRoomUser = attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id);
             if (targetRoomUser == null || attackerRoomUser == null)
-                return;
+                return false;
 
             // No fighting while idle — an idle attacker can't swing, and an idle player can't be
             // jumped (stops people getting killed while AFK, and stops idlers from attacking).
             if (attackerRoomUser.IsAsleep) {
                 attacker.GetClient()?.SendWhisper("You can't attack while you're idle.", 1);
-                return;
+                return false;
             }
 
             if (targetRoomUser.IsAsleep) {
                 attacker.GetClient()?.SendWhisper(target.Username + " is idle — you can't attack them right now.", 1);
-                return;
+                return false;
             }
 
             if (attackerStats.IsDead || targetStats.IsDead) {
                 attacker.GetClient().SendWhisper("User is already knocked out!", 1);
-                return;
+                return false;
             }
 
             UserWeapon activeWeapon = attackerStats.ActiveWeapon();
@@ -63,15 +64,19 @@ namespace Plus.HabboHotel.Roleplay.Combat
             bool allowDiagonal = weapon?.AllowDiagonal ?? true;
 
             if (!RpProximity.IsWithinWeaponRange(attackerRoomUser, targetRoomUser, range, allowDiagonal)) {
-                attacker.CurrentRoom.SendPacket(new ShoutComposer(attacker.CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(attacker.Id).VirtualId, "*swings at " + target.Username + ", but misses*", 0, 29, isRpAction: true));
-                return;
+                attacker.CurrentRoom.SendPacket(new ShoutComposer(attackerRoomUser.VirtualId, "*swings at " + target.Username + ", but misses*", 0, 29, isRpAction: true));
+                return false;
             }
+
+            // Everything that could refuse the swing has passed, so it costs stamina from here on
+            // — an out-of-reach swing shouldn't drain the attacker.
+            attackerStats.InteractionEnergy();
 
             // The tazer is a pure-stun police tool: no damage, guaranteed 2s stun, limited charges,
             // and tazing is not treated as an assault crime.
             if (TazerService.IsTazer(weapon)) {
                 HandleTazer(attacker, target, attackerStats, attackerRoomUser, targetRoomUser);
-                return;
+                return true;
             }
 
             // Damage user
@@ -138,6 +143,8 @@ namespace Plus.HabboHotel.Roleplay.Combat
 
             targetStats.Attacked++;
             targetStats.DamageTaken += actualDamageDealt;
+
+            return true;
         }
 
         /// <summary>Murder-family crime tags — exactly one of these applies to any given kill.</summary>

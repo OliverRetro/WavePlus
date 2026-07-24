@@ -62,6 +62,16 @@ namespace Plus.HabboHotel.Rooms
         // movement loop runs every 50ms so clicks register almost instantly, but actual
         // steps stay on the classic 500ms-per-tile cadence via this gate.
         public long NextStepMs;
+
+        // Tile the avatar stepped off, and the moment (unix ms) the current step was committed.
+        // The client animates X,Y -> SetX,SetY linearly over one step interval, so together with
+        // SetX/SetY these let combat reconstruct where the avatar actually WAS ON SCREEN at any
+        // point in the last two steps, instead of guessing from whole-tile snapshots.
+        // See RpProximity.IsWithinWeaponRange.
+        public int PrevX;
+        public int PrevY;
+        public long StepCommittedMs;
+
         public Pet PetData;
 
         public int PrevTime;
@@ -560,6 +570,12 @@ namespace Plus.HabboHotel.Rooms
 
         public void SetPos(int pX, int pY, double pZ)
         {
+            // A teleport/placement isn't a walked step — drop the interpolation history so combat
+            // never lerps a hitbox across the jump.
+            PrevX = pX;
+            PrevY = pY;
+            StepCommittedMs = 0;
+
             X = pX;
             Y = pY;
             Z = pZ;

@@ -1,6 +1,8 @@
 ﻿using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Roleplay.Skill;
+using Plus.HabboHotel.Users;
+using Plus.HabboHotel.Users.Roleplay;
 using System;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
@@ -12,6 +14,11 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
         public string Parameters => "%user% %attr% %amount%";
 
         public string Description => "Use a custom bubble to chat with.";
+
+        // Staff repair tool — editing stats (including someone's health) can't be state-gated.
+        public bool UsableWhileDead => true;
+
+        public bool UsableWhileCuffed => true;
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
@@ -35,13 +42,23 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
                             break;
                         }
 
-                        if (Convert.ToInt32(@params[3]) > 125 || Convert.ToInt32(@params[3]) < 0) {
+                        int health = Convert.ToInt32(@params[3]);
+                        if (health > 125 || health < 0) {
                             session.SendWhisper("Health must be between 0 and 125.");
                             break;
                         }
 
-                        targetClient.GetHabbo().GetRpStats().Health = +Convert.ToInt32(@params[3]);
-                        room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*sets " + targetClient.GetHabbo().Username + "'s Health to " + @params[3] + "*", 0, 23, isRpAction: true));
+                        Habbo target = targetClient.GetHabbo();
+                        target.GetRpStats().Health = health;
+
+                        RoomUser targetUser = target.CurrentRoom?.GetRoomUserManager().GetRoomUserByHabbo(target.Id);
+                        if (health <= 0 && !target.GetRpStats().IsDead && targetUser != null)
+                            UserRpStats.Kill(target, targetUser);
+                        else if (health > 0 && target.GetRpStats().IsDead)
+                            PlusEnvironment.GetHospitalManager().CancelDeath(target);
+
+                        target.TrySendUserStatsUpdate(true);
+                        room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*sets " + target.Username + "'s Health to " + @params[3] + "*", 0, 23, isRpAction: true));
                         break;
                     }
 

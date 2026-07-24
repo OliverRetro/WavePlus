@@ -280,3 +280,4 @@ __pycache__/
 # !tools/packages.config
 
 .DS_Store
+Resources/SQLs/Stock Vendor (Furni Scope, Price).sql

@@ -30,12 +30,10 @@ namespace Plus.HabboHotel.Rooms
         private ConcurrentDictionary<int, RoomUser> _bots;
         private ConcurrentDictionary<int, RoomUser> _pets;
 
-        // O(1) lookup for the hottest query in the emulator (every walk click, chat line and
-        // combat action resolves a habbo id to its room user). Human users only.
         private ConcurrentDictionary<int, RoomUser> _usersByHabboId = new();
 
-        /// <summary>Milliseconds between walking steps — the classic Habbo tile cadence.</summary>
-        private const int StepIntervalMs = 500;
+        // how long it takes to animate a tile
+        public const int StepIntervalMs = 500;
 
         private int _primaryPrivateUserId;
         private int _secondaryPrivateUserId;
@@ -753,6 +751,10 @@ namespace Plus.HabboHotel.Rooms
                                 item.UserWalksOffFurni(user);
                             }
 
+                            user.PrevX = user.X;
+                            user.PrevY = user.Y;
+                            user.StepCommittedMs = nowMs;
+
                             if (!user.IsBot) {
                                 user.X = user.SetX;
                                 user.Y = user.SetY;
@@ -914,6 +916,13 @@ namespace Plus.HabboHotel.Rooms
                                 user.SetY = nextY;
                                 user.SetZ = nextZ;
                                 user.NextStepMs = nowMs + StepIntervalMs;
+
+                                if (user.StepCommittedMs != nowMs) {
+                                    user.PrevX = user.X;
+                                    user.PrevY = user.Y;
+                                }
+                                user.StepCommittedMs = nowMs;
+
                                 UpdateUserEffect(user, user.SetX, user.SetY);
 
                                 updated = true;

@@ -5,62 +5,60 @@ namespace Plus.HabboHotel.Roleplay.Utilities
 {
     public static class RpProximity
     {
-        /// <summary>
-        /// Tile-based weapon reach check used by combat.
-        ///
-        /// Both users may be mid-step when the attack packet lands (the client renders them
-        /// between their committed tile and the tile they are stepping onto), so each user is
-        /// evaluated at both the tile they are leaving and the tile they are entering. This is
-        /// what fixes the "walking side-by-side / criss-cross swings miss" problem.
-        ///
-        /// The two users are compared PHASE BY PHASE - before-step against before-step, and
-        /// after-step against after-step - never as a full cross product. Testing every
-        /// combination would pit the attacker's next tile against the target's previous tile,
-        /// two positions that never exist at the same instant, which silently stretched reach
-        /// by an extra tile (and two, diagonally) whenever both parties were walking.
-        ///
-        /// Range semantics (Chebyshev rings):
-        ///   range 1 → same tile ("inside" the target) or any adjacent tile,
-        ///   range 2 → the above plus one full tile of gap, etc.
-        /// When <paramref name="allowDiagonal"/> is false the target must additionally share a
-        /// row or column with the attacker (cardinal-only weapons).
-        /// </summary>
+        // added reach for non-diagonal attacks
+        private const double Tolerance = 0.5;
+        // ping compensation
+        private const double MaxLagCompensationMs = 300;
+
         public static bool IsWithinWeaponRange(RoomUser attacker, RoomUser target, int range, bool allowDiagonal)
         {
             if (attacker == null || target == null)
                 return false;
 
-            if (range < 1)
-                range = 1;
+            if (range < 0)
+                range = 0;
 
-            // Phase 0 = the tile each user currently occupies.
-            // Phase 1 = the tile they are stepping onto (identical to phase 0 when standing still).
-            (int X, int Y) attackerFrom = (attacker.X, attacker.Y);
-            (int X, int Y) targetFrom = (target.X, target.Y);
+            long at = PlusEnvironment.Now() - (long)LagCompensationMs(attacker);
 
-            (int X, int Y) attackerTo = StepTile(attacker);
-            (int X, int Y) targetTo = StepTile(target);
+            (double X, double Y) a = PositionAt(attacker, at);
+            (double X, double Y) b = PositionAt(target, at);
 
-            return InRange(attackerFrom, targetFrom, range, allowDiagonal)
-                || InRange(attackerTo, targetTo, range, allowDiagonal);
-        }
+            double dx = Math.Abs(a.X - b.X);
+            double dy = Math.Abs(a.Y - b.Y);
 
-        private static bool InRange((int X, int Y) a, (int X, int Y) b, int range, bool allowDiagonal)
-        {
-            int dx = Math.Abs(a.X - b.X);
-            int dy = Math.Abs(a.Y - b.Y);
-
-            // Standing on the exact same tile always counts, whatever the weapon.
-            if (dx == 0 && dy == 0)
-                return true;
-
-            if (Math.Max(dx, dy) > range)
+            if (!allowDiagonal && Math.Min(dx, dy) > Tolerance)
                 return false;
 
-            return allowDiagonal || dx == 0 || dy == 0;
+            return Math.Max(dx, dy) <= range + Tolerance;
         }
 
-        private static (int X, int Y) StepTile(RoomUser user) =>
-            user.SetStep ? (user.SetX, user.SetY) : (user.X, user.Y);
+        private static double LagCompensationMs(RoomUser attacker)
+        {
+            double latency = attacker.GetClient()?.LatencyMs ?? 0;
+            return Math.Clamp(latency, 0, MaxLagCompensationMs);
+        }
+
+        private static (double X, double Y) PositionAt(RoomUser user, long atMs)
+        {
+            if (user.StepCommittedMs <= 0)
+                return (user.X, user.Y);
+
+            double sinceCommit = atMs - user.StepCommittedMs;
+
+            if (sinceCommit >= 0) {
+                if (!user.SetStep)
+                    return (user.X, user.Y);
+
+                return Lerp(user.X, user.Y, user.SetX, user.SetY, sinceCommit / RoomUserManager.StepIntervalMs);
+            }
+
+            return Lerp(user.PrevX, user.PrevY, user.X, user.Y, 1 + (sinceCommit / RoomUserManager.StepIntervalMs));
+        }
+
+        private static (double X, double Y) Lerp(double fromX, double fromY, double toX, double toY, double progress)
+        {
+            progress = Math.Clamp(progress, 0, 1);
+            return (fromX + ((toX - fromX) * progress), fromY + ((toY - fromY) * progress));
+        }
     }
 }

@@ -11,6 +11,11 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 
         public string Description => "You know it g.";
 
+        // Staff recovery tool — has to work from the grave and in cuffs, or there's no way out.
+        public bool UsableWhileDead => true;
+
+        public bool UsableWhileCuffed => true;
+
         public void Execute(GameClient session, Room room, string[] @params)
         {
             var stats = session.GetHabbo().GetRpStats();
