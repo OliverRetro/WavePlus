@@ -40,6 +40,10 @@ namespace Plus
             AppDomain currentDomain = AppDomain.CurrentDomain;
             currentDomain.UnhandledException += MyHandler;
 
+            PosixSignalRegistration.Create(PosixSignal.SIGTERM, HandleShutdownSignal);
+            PosixSignalRegistration.Create(PosixSignal.SIGINT, HandleShutdownSignal);
+            PosixSignalRegistration.Create(PosixSignal.SIGQUIT, HandleShutdownSignal);
+
             PlusEnvironment.Initialize();
 
             if (Environment.UserInteractive && !Console.IsInputRedirected) {
@@ -59,6 +63,13 @@ namespace Plus
             } else {
                 Thread.Sleep(Timeout.Infinite);
             }
+        }
+
+        private static void HandleShutdownSignal(PosixSignalContext context)
+        {
+            context.Cancel = true;
+            log.Info($"Received {context.Signal}, performing graceful shutdown...");
+            PlusEnvironment.PerformShutDown();
         }
 
         private static void MyHandler(object sender, UnhandledExceptionEventArgs args)

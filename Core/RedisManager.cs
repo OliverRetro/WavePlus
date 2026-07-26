@@ -14,7 +14,9 @@ namespace Plus.Core
         private IDatabase _database;
 
         private static readonly TimeSpan BreakerCooldown = TimeSpan.FromSeconds(30);
+        private const int FailureThreshold = 3;
         private volatile bool _healthy = true;
+        private int _consecutiveFailures;
         private DateTime _nextProbeUtc = DateTime.MinValue;
         private readonly object _breakerLock = new();
 
@@ -36,15 +38,22 @@ namespace Plus.Core
 
         private void TripBreaker(Exception ex)
         {
-            bool wasHealthy;
+            bool justTripped = false;
             lock (_breakerLock) {
-                wasHealthy = _healthy;
-                _healthy = false;
+                _consecutiveFailures++;
+
+                if (_healthy && _consecutiveFailures < FailureThreshold)
+                    return;
+
+                if (_healthy) {
+                    _healthy = false;
+                    justTripped = true;
+                }
                 _nextProbeUtc = DateTime.UtcNow.Add(BreakerCooldown);
             }
 
-            if (wasHealthy) {
-                Log.Error($"Redis went unavailable — degrading to database-only for {BreakerCooldown.TotalSeconds:0}s. ({ex.Message})");
+            if (justTripped) {
+                Log.Error($"Redis went unavailable after {FailureThreshold} consecutive failures — degrading to database-only for {BreakerCooldown.TotalSeconds:0}s. ({ex.Message})");
                 NotifyStaff("[REDIS] Cache is unavailable — running on the database failsafe. Play continues; performance may dip until it recovers.");
             }
         }
@@ -53,6 +62,7 @@ namespace Plus.Core
         {
             bool wasUnhealthy;
             lock (_breakerLock) {
+                _consecutiveFailures = 0;
                 wasUnhealthy = !_healthy;
                 _healthy = true;
             }
@@ -92,9 +102,8 @@ namespace Plus.Core
                     EndPoints = { { hostname, port } },
                     AbortOnConnectFail = false,
                     ConnectTimeout = 2000,
-                    // Keep synchronous ops short so a Redis stall can't hang the game loop; the
-                    // circuit breaker then skips Redis entirely until it recovers.
-                    SyncTimeout = 1000,
+                    // Keep synchronous ops short so a Redis stall can't hang the game loop
+                    SyncTimeout = 5000,
                     ConnectRetry = 3,
                     KeepAlive = 5,
                     DefaultDatabase = database

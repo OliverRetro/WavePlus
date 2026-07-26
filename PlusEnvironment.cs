@@ -370,8 +370,13 @@ namespace Plus
             }
         }
 
+        private static int _shuttingDown;
+
         public static void PerformShutDown()
         {
+            if (Interlocked.CompareExchange(ref _shuttingDown, 1, 0) != 0)
+                return;
+
             Console.Clear();
             Log.Info("Server shutting down...");
             Console.Title = "PLUS EMULATOR: SHUTTING DOWN!";
