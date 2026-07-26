@@ -894,8 +894,14 @@ namespace Plus.HabboHotel.Rooms
              * 3 = door
              * */
 
-            if (_room.RoomBlockingEnabled == 0 && SquareHasUsers(to.X, to.Y))
-                return false;
+            if (_room.RoomBlockingEnabled == 0 && SquareHasUsers(to.X, to.Y)) {
+                if (!endOfPath)
+                    return false;
+
+                RoomUser occupant = _room.GetRoomUserManager().GetUserForSquare(to.X, to.Y);
+                if (occupant != null && !occupant.IsWalking)
+                    return false;
+            }
 
             // This runs for every neighbour probe of every pathfind, so the (allocating) item
             // lookup is deferred until the tile-state check actually fails — a guild gate on a

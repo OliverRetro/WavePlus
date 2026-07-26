@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
+using Plus.HabboHotel.Roleplay.Level;
 using Plus.HabboHotel.Roleplay.Skill;
 using Plus.HabboHotel.Users;
 

@@ -5,6 +5,7 @@ using Plus.HabboHotel.Roleplay.Skill;
 using System.Linq;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
+using Plus.HabboHotel.Roleplay.Level;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator.Roleplay
 {

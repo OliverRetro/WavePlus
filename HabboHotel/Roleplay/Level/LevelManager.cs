@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 
-public static class LevelManager
+namespace Plus.HabboHotel.Roleplay.Level
 {
-    public static readonly Dictionary<int, int> Levels = new()
+    public static class LevelManager
+    {
+        public static readonly Dictionary<int, int> Levels = new()
     {
         {0, 0},
         {1, 100},
@@ -29,20 +31,21 @@ public static class LevelManager
         {20, 5000}
     };
 
-    public static (int Level, int NextLevelXP, int XPRemaining) GetXPInfo(int xp)
-    {
-        int level = 0;
-        int nextLevelXP = Levels[Levels.Keys.Max()];
+        public static (int Level, int NextLevelXP, int XPRemaining) GetXPInfo(int xp)
+        {
+            int level = 0;
+            int nextLevelXP = Levels[Levels.Keys.Max()];
 
-        foreach (var entry in Levels.OrderBy(l => l.Key)) {
-            if (xp >= entry.Value) {
-                level = entry.Key;
-            } else {
-                nextLevelXP = entry.Value;
-                break;
+            foreach (var entry in Levels.OrderBy(l => l.Key)) {
+                if (xp >= entry.Value) {
+                    level = entry.Key;
+                } else {
+                    nextLevelXP = entry.Value;
+                    break;
+                }
             }
-        }
 
-        return (level, nextLevelXP, Math.Max(0, nextLevelXP - xp));
+            return (level, nextLevelXP, Math.Max(0, nextLevelXP - xp));
+        }
     }
 }

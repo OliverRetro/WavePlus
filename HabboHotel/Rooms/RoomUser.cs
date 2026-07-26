@@ -442,6 +442,7 @@ namespace Plus.HabboHotel.Rooms
             if (!IsBot && GetClient()?.GetHabbo() != null && (X != pX || Y != pY)) {
                 InteractorArrowTeleport.CancelDelayedTeleport(GetClient().GetHabbo().Id);
                 PassiveModeCommand.CancelPendingToggle(GetClient());
+                PlusEnvironment.GetTrashSearchManager()?.CancelForMovement(GetClient().GetHabbo().Id);
             }
 
             if (TeleportEnabled) {

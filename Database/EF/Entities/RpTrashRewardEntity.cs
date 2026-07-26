@@ -13,6 +13,9 @@ public partial class RpTrashRewardEntity
     [Column("id", TypeName = "int(11)")]
     public int Id { get; set; }
 
+    [Column("reward_type", TypeName = "tinyint(4)")]
+    public int RewardType { get; set; }
+
     [Column("item_id", TypeName = "int(11)")]
     public int ItemId { get; set; }
 

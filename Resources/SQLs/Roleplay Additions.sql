@@ -162,7 +162,6 @@ INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.ambula
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.ambulance.heal.amount', '25', 'HP restored by the :heal command.');
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.ambulance.revive.health', '35', 'HP restored when an EMS revives a dead user.');
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.ambulance.heal.energy.cost', '2', 'Energy cost for EMS heal/revive.');
-INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.trash.search.duration.seconds', '5', 'Seconds a player must wait while searching a trashbin.');
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.trash.search.cooldown.seconds', '60', 'Per-user cooldown after searching trash.');
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.trash.bin.cooldown.seconds', '120', 'Per-bin cooldown after it has been searched.');
 INSERT INTO `server_settings` (`key`, `value`, `description`) VALUES ('rp.trash.search.energy.cost', '2', 'Energy cost for searching a trashbin.');
@@ -469,7 +468,8 @@ INSERT INTO `rp_items` VALUES (2, 'Red Bull', '14', '0', 12, '{\"hp\": -1, \"ene
 DROP TABLE IF EXISTS `rp_trash_rewards`;
 CREATE TABLE `rp_trash_rewards` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `item_id` int NOT NULL,
+  `reward_type` tinyint(4) NOT NULL DEFAULT 0 COMMENT '0 = rp_items id, 1 = weapon id',
+  `item_id` int NOT NULL COMMENT 'rp_items id or weapon id, per reward_type',
   `chance_weight` int NOT NULL DEFAULT 1,
   `min_amount` int NOT NULL DEFAULT 1,
   `max_amount` int NOT NULL DEFAULT 1,
@@ -477,8 +477,8 @@ CREATE TABLE `rp_trash_rewards` (
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci ROW_FORMAT=Dynamic;
 
-INSERT INTO `rp_trash_rewards` (`item_id`, `chance_weight`, `min_amount`, `max_amount`, `enabled`) VALUES (1, 5, 1, 1, 1);
-INSERT INTO `rp_trash_rewards` (`item_id`, `chance_weight`, `min_amount`, `max_amount`, `enabled`) VALUES (2, 3, 1, 1, 1);
+INSERT INTO `rp_trash_rewards` (`reward_type`, `item_id`, `chance_weight`, `min_amount`, `max_amount`, `enabled`) VALUES (0, 1, 5, 1, 1, 1);
+INSERT INTO `rp_trash_rewards` (`reward_type`, `item_id`, `chance_weight`, `min_amount`, `max_amount`, `enabled`) VALUES (0, 2, 3, 1, 1, 1);
 
 DROP TABLE IF EXISTS `user_rp_items`;
 CREATE TABLE `user_rp_items`  (

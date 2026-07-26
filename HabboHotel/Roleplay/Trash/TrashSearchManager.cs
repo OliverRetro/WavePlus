@@ -5,6 +5,8 @@ using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
 using Plus.HabboHotel.Roleplay.RpItem.Item;
+using Plus.HabboHotel.Roleplay.RpItem.Weapon;
+using Plus.HabboHotel.Roleplay.Utilities;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +23,9 @@ namespace Plus.HabboHotel.Roleplay.Trash
         private readonly ConcurrentDictionary<int, ActiveTrashSearch> _activeSearches = new();
         private readonly ConcurrentDictionary<int, double> _userCooldowns = new();
         private readonly ConcurrentDictionary<int, BinCooldown> _binCooldowns = new();
+        private const int RewardTypeItem = 0;
+        private const int RewardTypeWeapon = 1;
+
         private readonly List<TrashReward> _rewards = [];
         private readonly Random _random = new();
         private double _nextCooldownPurgeUnix;
@@ -35,11 +40,12 @@ namespace Plus.HabboHotel.Roleplay.Trash
                 var rows = db.RpTrashRewards
                     .AsNoTracking()
                     .Where(x => x.Enabled == true)
-                    .Select(x => new { x.ItemId, x.ChanceWeight, x.MinAmount, x.MaxAmount })
+                    .Select(x => new { x.RewardType, x.ItemId, x.ChanceWeight, x.MinAmount, x.MaxAmount })
                     .ToList();
 
                 foreach (var row in rows) {
                     _rewards.Add(new TrashReward(
+                        row.RewardType,
                         row.ItemId,
                         row.ChanceWeight,
                         row.MinAmount,
@@ -57,6 +63,22 @@ namespace Plus.HabboHotel.Roleplay.Trash
 
             CancelInteractionTimer(search.UserId);
             ResetItemState(search);
+        }
+
+        public void CancelForMovement(int userId)
+        {
+            if (!_activeSearches.TryRemove(userId, out ActiveTrashSearch search))
+                return;
+
+            GameClient client = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(userId);
+            if (client != null) {
+                WebOverlay.CancelInteractionTimer(client);
+                client.SendWhisper("You stopped searching the bin.", 1);
+
+                _userCooldowns[userId] = PlusEnvironment.GetUnixTimestamp() + GetAbortedUserCooldownSeconds(client.GetHabbo());
+            }
+
+            ApplyBinCooldown(search);
         }
 
         public bool IsSearching(int userId) => _activeSearches.ContainsKey(userId);
@@ -109,7 +131,7 @@ namespace Plus.HabboHotel.Roleplay.Trash
                 return false;
             }
 
-            int duration = GetDurationSeconds(habbo);
+            int duration = RpInteractionTimer.GetSeconds(habbo);
             ActiveTrashSearch activeSearch = new()
             {
                 UserId = habbo.Id,
@@ -181,12 +203,7 @@ namespace Plus.HabboHotel.Roleplay.Trash
                 return;
             }
 
-            Item item = room.GetRoomItemHandler().GetItem(search.ItemId);
-            if (item != null) {
-                item.ExtraData = "1";
-                item.UpdateState(false, true);
-                _binCooldowns[item.Id] = new BinCooldown(room.RoomId, item.Id, PlusEnvironment.GetUnixTimestamp() + GetBinCooldownSeconds());
-            }
+            ApplyBinCooldown(search);
 
             _userCooldowns[habbo.Id] = PlusEnvironment.GetUnixTimestamp() + GetUserCooldownSeconds(habbo);
 
@@ -219,6 +236,10 @@ namespace Plus.HabboHotel.Roleplay.Trash
             int amount = 1;
 
             TrashReward reward = RollConfiguredReward();
+
+            if (reward != null && reward.IsWeapon)
+                return TryGiveWeaponReward(habbo, reward, out rewardText);
+
             if (reward != null) {
                 itemData = PlusEnvironment.GetRpItemManager().GetItemById(reward.ItemId);
                 amount = _random.Next(Math.Max(1, reward.MinAmount), Math.Max(reward.MinAmount, reward.MaxAmount) + 1);
@@ -259,6 +280,35 @@ namespace Plus.HabboHotel.Roleplay.Trash
             return true;
         }
 
+        private bool TryGiveWeaponReward(Habbo habbo, TrashReward reward, out string rewardText)
+        {
+            rewardText = null;
+
+            UserRpWeapons weapons = habbo.GetRpWeapons();
+            if (weapons == null || !PlusEnvironment.GetWeaponManager().TryGetWeapon(reward.ItemId, out Weapon weapon))
+                return false;
+
+            int amount = _random.Next(Math.Max(1, reward.MinAmount), Math.Max(reward.MinAmount, reward.MaxAmount) + 1);
+
+            int given = 0;
+            for (int i = 0; i < amount; i++) {
+                if (weapons.AddWeapon(weapon.Id) != null)
+                    given++;
+            }
+
+            if (given <= 0)
+                return false;
+
+            habbo.SaveRpWeapons();
+
+            // Live-refresh an open inventory panel with the found weapon(s).
+            if (habbo.GetClient() != null)
+                Plus.Communication.Packets.Incoming.WebOverlayCallbackEvent.RefreshInventory(habbo.GetClient());
+
+            rewardText = given == 1 ? $"a {weapon.Name}" : $"{given}x {weapon.Name}";
+            return true;
+        }
+
         private TrashReward RollConfiguredReward()
         {
             if (_rewards.Count == 0)
@@ -286,6 +336,24 @@ namespace Plus.HabboHotel.Roleplay.Trash
                 habbo.SaveRpSkills();
             } catch {
             }
+        }
+
+        /// <summary>
+        /// Marks the bin as rummaged and starts its cooldown. Shared by the natural finish and
+        /// by a walk-off, which are the two ways a bin stops being searchable.
+        /// </summary>
+        private void ApplyBinCooldown(ActiveTrashSearch search)
+        {
+            if (search == null || !PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(search.RoomId, out Room room))
+                return;
+
+            Item item = room.GetRoomItemHandler().GetItem(search.ItemId);
+            if (item == null)
+                return;
+
+            item.ExtraData = "1";
+            item.UpdateState(false, true);
+            _binCooldowns[item.Id] = new BinCooldown(room.RoomId, item.Id, PlusEnvironment.GetUnixTimestamp() + GetBinCooldownSeconds());
         }
 
         private static void ResetItemState(ActiveTrashSearch search)
@@ -362,21 +430,6 @@ namespace Plus.HabboHotel.Roleplay.Trash
             return Math.Abs(user.X - item.GetX) + Math.Abs(user.Y - item.GetY) <= range;
         }
 
-        /// <summary>
-        /// How long a trash search takes for this user. Base is 20s (overridable via
-        /// rp.trash.search.duration.seconds); a trained scavenger works faster. Keep any future
-        /// per-user modifiers here so the timer the client is shown always matches the tick.
-        /// </summary>
-        public static int GetDurationSeconds(Habbo habbo)
-        {
-            int duration = Math.Max(1, GetSettingInt("rp.trash.search.duration.seconds", 20));
-
-            int scavengeLevel = habbo?.GetRpSkills()?.GetLevelByProgressCategory("Scavenge") ?? 0;
-            duration -= scavengeLevel * 2;
-
-            return Math.Max(3, duration);
-        }
-
         public static int GetUserCooldownSeconds(Habbo habbo)
         {
             int fallback = Math.Max(1, GetSettingInt("rp.trash.search.cooldown.seconds", 60));
@@ -385,6 +438,12 @@ namespace Plus.HabboHotel.Roleplay.Trash
 
             return fallback;
         }
+
+        /// <summary>
+        /// The personal cooldown for a dive that was walked out on — half the normal one,
+        /// rounded up, since they came away with nothing.
+        /// </summary>
+        public static int GetAbortedUserCooldownSeconds(Habbo habbo) => (GetUserCooldownSeconds(habbo) + 1) / 2;
 
         public static int GetBinCooldownSeconds() => Math.Max(1, GetSettingInt("rp.trash.bin.cooldown.seconds", 120));
         public static int GetEnergyCost() => Math.Max(0, GetSettingInt("rp.trash.search.energy.cost", 2));
@@ -421,18 +480,22 @@ namespace Plus.HabboHotel.Roleplay.Trash
 
         private sealed class TrashReward
         {
-            public TrashReward(int itemId, int weight, int minAmount, int maxAmount)
+            public TrashReward(int rewardType, int itemId, int weight, int minAmount, int maxAmount)
             {
+                RewardType = rewardType;
                 ItemId = itemId;
                 Weight = weight;
                 MinAmount = minAmount < 1 ? 1 : minAmount;
                 MaxAmount = maxAmount < MinAmount ? MinAmount : maxAmount;
             }
 
+            public int RewardType { get; }
             public int ItemId { get; }
             public int Weight { get; }
             public int MinAmount { get; }
             public int MaxAmount { get; }
+
+            public bool IsWeapon => RewardType == RewardTypeWeapon;
         }
     }
 }

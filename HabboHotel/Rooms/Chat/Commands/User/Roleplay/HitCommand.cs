@@ -83,7 +83,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
             }
 
             if (session.GetHabbo().GetRpStats().PassiveMode || targetClient.GetHabbo().GetRpStats().PassiveMode || targetClient.GetHabbo().GetRpStats().IsGodMode) {
-                session.SendWhisper("You cannot attack other users whilst either user is in passive mode.");
+                session.SendWhisper("You cannot attack other users whilst either user is in passive mode.", 1);
                 return;
             }
 

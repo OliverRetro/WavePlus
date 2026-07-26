@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Plus.HabboHotel.GameClients;
+using Plus.HabboHotel.Roleplay.Level;
 
 namespace Plus.HabboHotel.Roleplay.Utilities
 {
