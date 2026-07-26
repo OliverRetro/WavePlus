@@ -1,11 +1,12 @@
-﻿using System;
-using System.IO;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using log4net;
+﻿using log4net;
 using log4net.Config;
 using log4net.Repository;
 using Plus.Core;
+using System;
+using System.IO;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace Plus
 {
@@ -41,17 +42,22 @@ namespace Plus
 
             PlusEnvironment.Initialize();
 
-            while (true) {
-                if (Console.ReadKey(true).Key == ConsoleKey.Enter) {
-                    Console.Write("plus> ");
-                    string input = Console.ReadLine();
+            if (Environment.UserInteractive && !Console.IsInputRedirected) {
+                while (true) {
+                    if (Console.ReadKey(true).Key == ConsoleKey.Enter) {
+                        Console.Write("plus> ");
 
-                    if (input.Length > 0) {
-                        string s = input.Split(' ')[0];
+                        string? input = Console.ReadLine();
 
-                        ConsoleCommands.InvokeCommand(s);
+                        if (!string.IsNullOrWhiteSpace(input)) {
+                            string s = input.Split(' ')[0];
+
+                            ConsoleCommands.InvokeCommand(s);
+                        }
                     }
                 }
+            } else {
+                Thread.Sleep(Timeout.Infinite);
             }
         }
 
