@@ -334,6 +334,13 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             if (data.IsSuicideVest)
                 return DetonateSuicideVest(habbo, userItem);
 
+            // No-gain gate: a purely restorative item (only tops up capped stats) is pointless when
+            // every stat it feeds is already full — block it rather than burn a use for nothing.
+            if (data.IsPurelyRestorative && stats != null && !HasRestorativeGain(habbo, stats, data)) {
+                habbo.GetClient()?.SendWhisper($"Using {data.Name} now wouldn't do anything — you're already topped up.", 1);
+                return false;
+            }
+
             // Consume shout ("text;bubbleId") fires the moment the item is used.
             EmitConsumeBubble(habbo, roomUser, data);
 
@@ -480,6 +487,24 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
                 return;
 
             habbo.CurrentRoom.SendPacket(new ShoutComposer(roomUser.VirtualId, data.BubbleText, 0, data.BubbleId, isRpAction: true));
+        }
+
+        /// <summary>
+        /// Whether at least one capped stat this (purely restorative) item feeds is currently below
+        /// its cap for the user — i.e. using it would actually restore something.
+        /// </summary>
+        private static bool HasRestorativeGain(Habbo habbo, UserRpStats stats, RpItemData data)
+        {
+            if (data.GrantsHealth && stats.Health < UserRpStats.GetMaxHealth(habbo))
+                return true;
+            if (data.GrantsEnergy && stats.Energy < UserRpStats.GetMaxEnergy(habbo))
+                return true;
+            if (data.GrantsHunger && stats.Hunger < UserRpStats.GetMaxHunger(habbo))
+                return true;
+            if (data.GrantsShield && stats.Shield < 100)
+                return true;
+
+            return false;
         }
 
         private static void ApplyStatEffects(Habbo habbo, UserRpStats stats, RpItemData data, RoomUser roomUser)

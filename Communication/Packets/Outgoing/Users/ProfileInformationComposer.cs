@@ -70,7 +70,7 @@ namespace Plus.Communication.Packets.Outgoing.Users
             packet.WriteInteger(TargetHabbo.GetRpStats().Attacked);
             packet.WriteInteger(TargetHabbo.GetRpStats().DamageDealt);
             packet.WriteInteger(TargetHabbo.GetRpStats().DamageTaken);
-            packet.WriteInteger(3);
+            packet.WriteInteger(TargetHabbo.GetRpStats().GetAvailablePoints());
             packet.WriteInteger(TargetHabbo.GetRpStats().Strength);
             packet.WriteInteger(TargetHabbo.GetRpStats().Knowledge);
 

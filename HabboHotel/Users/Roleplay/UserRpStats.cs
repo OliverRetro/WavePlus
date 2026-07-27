@@ -23,6 +23,7 @@ namespace Plus.HabboHotel.Users.Roleplay
         public int Attacked { get; set; }
         public int Knowledge { get; set; }
         public int Strength { get; set; }
+        public int AttributePoints { get; set; }
         public bool IsDead { get; set; }
         public double HospitalReleaseTime { get; set; }
         public double HospitalHealStartTime { get; set; }
@@ -83,6 +84,16 @@ namespace Plus.HabboHotel.Users.Roleplay
 
             NextHungerTick = DateTime.UtcNow.AddMinutes(10);
         }
+
+        public const int MaxAttributePoints = 10;
+
+        public static int GetAttributeBonus(int points)
+        {
+            points = Math.Clamp(points, 0, MaxAttributePoints);
+            return Math.Min(points, 5) + (Math.Max(0, points - 5) * 2);
+        }
+
+        public int GetAvailablePoints() => Math.Max(0, Math.Min(AttributePoints, MaxAttributePoints - (Strength + Knowledge)));
 
         public static int GetMaxHealth(Habbo habbo)
         {

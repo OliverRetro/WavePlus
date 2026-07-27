@@ -21,6 +21,8 @@ namespace Plus.HabboHotel.Roleplay.Trash
     public sealed class TrashSearchManager
     {
         private readonly ConcurrentDictionary<int, ActiveTrashSearch> _activeSearches = new();
+        // itemId -> userId currently diving it. Guards a single bin against two simultaneous searches.
+        private readonly ConcurrentDictionary<int, int> _activeBins = new();
         private readonly ConcurrentDictionary<int, double> _userCooldowns = new();
         private readonly ConcurrentDictionary<int, BinCooldown> _binCooldowns = new();
         private const int RewardTypeItem = 0;
@@ -61,6 +63,7 @@ namespace Plus.HabboHotel.Roleplay.Trash
             if (!_activeSearches.TryRemove(userId, out ActiveTrashSearch search))
                 return;
 
+            _activeBins.TryRemove(search.ItemId, out _);
             CancelInteractionTimer(search.UserId);
             ResetItemState(search);
         }
@@ -74,11 +77,14 @@ namespace Plus.HabboHotel.Roleplay.Trash
             if (client != null) {
                 WebOverlay.CancelInteractionTimer(client);
                 client.SendWhisper("You stopped searching the bin.", 1);
-
-                _userCooldowns[userId] = PlusEnvironment.GetUnixTimestamp() + GetAbortedUserCooldownSeconds(client.GetHabbo());
             }
 
-            ApplyBinCooldown(search);
+            // A cancelled dive leaves no trace: the user takes NO cooldown (they can immediately
+            // start another dive) and the bin is reset to untouched (no bin cooldown), so the same
+            // bin can be searched again right away. Only a search that actually finishes
+            // (CompleteSearch) burns cooldowns and marks the bin as rummaged.
+            _activeBins.TryRemove(search.ItemId, out _);
+            ResetItemState(search);
         }
 
         public bool IsSearching(int userId) => _activeSearches.ContainsKey(userId);
@@ -131,6 +137,13 @@ namespace Plus.HabboHotel.Roleplay.Trash
                 return false;
             }
 
+            // Claim the bin so nobody else can dive it while this search runs. If someone already
+            // holds it (and it isn't this same user), refuse.
+            if (!_activeBins.TryAdd(item.Id, habbo.Id) && _activeBins.TryGetValue(item.Id, out int holder) && holder != habbo.Id) {
+                session.SendWhisper("This bin is already being searched by someone else!", 1);
+                return false;
+            }
+
             int duration = RpInteractionTimer.GetSeconds(habbo);
             ActiveTrashSearch activeSearch = new()
             {
@@ -141,6 +154,7 @@ namespace Plus.HabboHotel.Roleplay.Trash
             };
 
             if (!_activeSearches.TryAdd(habbo.Id, activeSearch)) {
+                _activeBins.TryRemove(item.Id, out _);
                 session.SendWhisper("You're already searching something.", 1);
                 return false;
             }
@@ -191,6 +205,10 @@ namespace Plus.HabboHotel.Roleplay.Trash
 
         private void CompleteSearch(ActiveTrashSearch search)
         {
+            // The bin is done being actively searched (its cooldown, applied below, is what keeps
+            // others out from here) — release the live lock regardless of how the search resolves.
+            _activeBins.TryRemove(search.ItemId, out _);
+
             GameClient client = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(search.UserId);
             Habbo habbo = client?.GetHabbo();
             if (habbo == null)

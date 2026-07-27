@@ -35,7 +35,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
                 return;
             }
 
-            if (roomUser.IsWalking || roomUser.GoalX != roomUser.X || roomUser.GoalY != roomUser.Y) {
+            if (roomUser.IsWalking || roomUser.Statusses.ContainsKey("mv")) {
                 session.SendWhisper("You need to stand still to toggle passive mode.", 1);
                 return;
             }

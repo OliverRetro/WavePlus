@@ -470,6 +470,7 @@ namespace Plus.HabboHotel.Users
                         statRow.JailRoomId,
                         statRow.JailTimeLeft
                     );
+                    _rpStats.AttributePoints = statRow.AttributePoints;
                 } catch (Exception e) {
                     ExceptionLogger.LogException(e);
                 }
@@ -828,6 +829,7 @@ namespace Plus.HabboHotel.Users
                     Attacked = _rpStats.Attacked,
                     Knowledge = _rpStats.Knowledge,
                     Strength = _rpStats.Strength,
+                    AttributePoints = _rpStats.AttributePoints,
                     IsDead = _rpStats.IsDead ? 1 : 0,
                     HospitalReleaseTime = _rpStats.HospitalReleaseTime,
                     HospitalHealStartTime = _rpStats.HospitalHealStartTime,

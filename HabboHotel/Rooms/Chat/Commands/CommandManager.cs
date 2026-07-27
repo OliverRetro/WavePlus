@@ -377,6 +377,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             Register(new KickBotsCommand());
 
             Register(new RoomCommand());
+            Register(new OnlineUsersCommand());
             Register(new DndCommand());
             Register(new DisableGiftsCommand());
             Register(new ConvertCreditsCommand());

@@ -288,7 +288,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
 
             double damageAfterCrit = baseDamage * (isCrit ? critMultiplier : 1);
 
-            int totalDamage = (int)Math.Ceiling(damageAfterCrit) + strength * 2;
+            int totalDamage = (int)Math.Ceiling(damageAfterCrit) + UserRpStats.GetAttributeBonus(strength);
 
             return new DamageResult
             {

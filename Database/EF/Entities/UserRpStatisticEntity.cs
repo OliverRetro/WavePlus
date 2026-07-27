@@ -61,6 +61,9 @@ public partial class UserRpStatisticEntity
     [Column("strength", TypeName = "int(11)")]
     public int Strength { get; set; }
 
+    [Column("attribute_points", TypeName = "int(11)")]
+    public int AttributePoints { get; set; }
+
     [Column("is_dead", TypeName = "int(11)")]
     public int IsDead { get; set; }
 

@@ -9,15 +9,13 @@ namespace Plus.HabboHotel.Roleplay.Utilities
     {
         public const int BaseSeconds = 20;
 
-        public const int SecondsPerKnowledgeTier = 2;
-
         public const int MinimumSeconds = 2;
 
         public static int GetSeconds(Habbo habbo)
         {
             int knowledge = Math.Max(0, habbo?.GetRpStats()?.Knowledge ?? 0);
 
-            return Math.Max(MinimumSeconds, BaseSeconds - (knowledge * SecondsPerKnowledgeTier));
+            return Math.Max(MinimumSeconds, BaseSeconds - Users.Roleplay.UserRpStats.GetAttributeBonus(knowledge));
         }
 
         public static int GetSeconds(GameClient session) => GetSeconds(session?.GetHabbo());
