@@ -20,6 +20,7 @@ namespace Plus.HabboHotel.Roleplay.Settings
         public bool AutoSalaryDeposit { get; set; }
         public bool FurnitureTrading { get; set; }
         public bool Livefeed { get; set; }
+        public bool LinkWarning { get; set; } = true;
 
         // Persisted + overlay round-tripped, not wired into gameplay yet.
         public bool AutoEventTransfer { get; set; }
@@ -27,7 +28,7 @@ namespace Plus.HabboHotel.Roleplay.Settings
         public bool Alerts { get; set; }
 
         public UserRpSettings(int userId, bool clickThrough, bool autoSalaryDeposit, bool furnitureTrading,
-            bool autoEventTransfer, bool voiceChat, bool livefeed, bool alerts)
+            bool autoEventTransfer, bool voiceChat, bool livefeed, bool alerts, bool linkWarning)
         {
             UserId = userId;
             ClickThrough = clickThrough;
@@ -37,6 +38,7 @@ namespace Plus.HabboHotel.Roleplay.Settings
             VoiceChat = voiceChat;
             Livefeed = livefeed;
             Alerts = alerts;
+            LinkWarning = linkWarning;
         }
 
         /// <summary>
@@ -61,7 +63,8 @@ namespace Plus.HabboHotel.Roleplay.Settings
                 row.AutoEventTransfer == 1,
                 row.VoiceChatEnabled == 1,
                 row.LivefeedEnabled == 1,
-                row.AlertsEnabled == 1);
+                row.AlertsEnabled == 1,
+                row.LinkWarningEnabled == 1);
         }
 
         /// <summary>
@@ -84,6 +87,7 @@ namespace Plus.HabboHotel.Roleplay.Settings
             row.VoiceChatEnabled = (sbyte)(VoiceChat ? 1 : 0);
             row.LivefeedEnabled = (sbyte)(Livefeed ? 1 : 0);
             row.AlertsEnabled = (sbyte)(Alerts ? 1 : 0);
+            row.LinkWarningEnabled = (sbyte)(LinkWarning ? 1 : 0);
 
             db.SaveChanges();
         }

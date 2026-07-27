@@ -11,6 +11,7 @@
         public const int RpTargetUserMessageEvent = 6009;
         public const int RequestMyPhotosMessageEvent = 6011;
         public const int SpendAttributePointMessageEvent = 6012;
+        public const int RequestChatLinkConfigMessageEvent = 6013;
         public const int RequestBankDataMessageEvent = 3325;
         public const int RequestWearingBadgesMessageEvent = 3326;
 

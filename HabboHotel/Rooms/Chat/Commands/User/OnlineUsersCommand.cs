@@ -11,7 +11,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
 
         public string Parameters => "";
 
-        public string Description => "List everyone online and the room they're in.";
+        public string Description => "List everyone currently online.";
 
         public bool UsableWhileDead => true;
 
@@ -22,21 +22,20 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
             if (session?.GetHabbo() == null)
                 return;
 
-            List<(string Username, string Room)> online = new();
+            List<string> online = [];
             foreach (GameClient client in PlusEnvironment.GetGame().GetClientManager().GetClients.ToList()) {
                 Users.Habbo habbo = client?.GetHabbo();
                 if (habbo == null)
                     continue;
 
-                string roomName = habbo.CurrentRoom?.Name;
-                online.Add((habbo.Username, string.IsNullOrWhiteSpace(roomName) ? "In the hotel" : roomName));
+                online.Add(habbo.Username);
             }
 
             StringBuilder message = new();
-            message.Append("Online users (" + online.Count + "):\r\r");
+            message.Append("Online users (<b>" + online.Count + "</b>):\r\r");
 
-            foreach ((string username, string roomName) in online.OrderBy(x => x.Username, System.StringComparer.OrdinalIgnoreCase))
-                message.Append(username + " - " + roomName + "\r");
+            foreach (string username in online.OrderBy(x => x, System.StringComparer.OrdinalIgnoreCase))
+                message.Append(username + "\r");
 
             session.SendNotification(message.ToString());
         }

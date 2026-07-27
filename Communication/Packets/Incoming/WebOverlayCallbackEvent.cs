@@ -293,6 +293,11 @@ namespace Plus.Communication.Packets.Incoming
                     settings.Alerts = value;
                     break;
 
+                case "linkWarning":
+                    settings.LinkWarning = value;
+                    session.SendPacket(new ChatLinkConfigComposer(session));
+                    break;
+
                 default:
                     return;
             }

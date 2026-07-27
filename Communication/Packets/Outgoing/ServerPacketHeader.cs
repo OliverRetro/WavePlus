@@ -14,6 +14,7 @@
         public const int OpenAtmMessageComposer = 6001;
         public const int TargetLockMessageComposer = 6000;
         public const int MyPhotosMessageComposer = 6010;
+        public const int ChatLinkConfigMessageComposer = 6011;
 
         // credit to Keorich##1440 for the headers for Production-201611291003-338511768
         public const int UserNftChatStylesMessageComposer = 6100;

@@ -30,4 +30,7 @@ public partial class UserRpSettingEntity
 
     [Column("alerts_enabled", TypeName = "tinyint(4)")]
     public sbyte AlertsEnabled { get; set; } = 1;
+
+    [Column("link_warning_enabled", TypeName = "tinyint(4)")]
+    public sbyte LinkWarningEnabled { get; set; } = 1;
 }

@@ -2,6 +2,7 @@
 using Plus.HabboHotel.Rooms.Chat.Commands;
 using Plus.HabboHotel.Rooms.Chat.Emotions;
 using Plus.HabboHotel.Rooms.Chat.Filter;
+using Plus.HabboHotel.Rooms.Chat.Links;
 using Plus.HabboHotel.Rooms.Chat.Logs;
 using Plus.HabboHotel.Rooms.Chat.Pets.Commands;
 using Plus.HabboHotel.Rooms.Chat.Pets.Locale;
@@ -49,6 +50,11 @@ namespace Plus.HabboHotel.Rooms.Chat
         private readonly ChatStyleManager _chatStyles;
 
         /// <summary>
+        /// Clickable-link whitelist.
+        /// </summary>
+        private readonly LinkWhitelistManager _linkWhitelist;
+
+        /// <summary>
         /// Initializes a new instance of the ChatManager class.
         /// </summary>
         public ChatManager()
@@ -65,6 +71,9 @@ namespace Plus.HabboHotel.Rooms.Chat
 
             _chatStyles = new ChatStyleManager();
             _chatStyles.Init();
+
+            _linkWhitelist = new LinkWhitelistManager();
+            _linkWhitelist.Init();
 
             Log.Info("Chat Manager -> LOADED");
         }
@@ -102,6 +111,11 @@ namespace Plus.HabboHotel.Rooms.Chat
         public ChatStyleManager GetChatStyles()
         {
             return _chatStyles;
+        }
+
+        public LinkWhitelistManager GetLinkWhitelist()
+        {
+            return _linkWhitelist;
         }
     }
 }

@@ -457,6 +457,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             Register(new CarryCommand());
             Register(new GotoCommand());
             Register(new SendToCommand());
+            Register(new LinkWhitelistCommand());
         }
 
         /// <summary>

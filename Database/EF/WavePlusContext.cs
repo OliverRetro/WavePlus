@@ -219,6 +219,8 @@ public partial class WavePlusContext(DbContextOptions<WavePlusContext> options) 
 
     public virtual DbSet<UserRpSettingEntity> UserRpSettings { get; set; }
 
+    public virtual DbSet<RpLinkWhitelistEntity> RpLinkWhitelist { get; set; }
+
     public virtual DbSet<UserRpItemEntity> UserRpItems { get; set; }
 
     public virtual DbSet<UserRpSkillEntity> UserRpSkills { get; set; }
@@ -1181,6 +1183,15 @@ public partial class WavePlusContext(DbContextOptions<WavePlusContext> options) 
             entity.Property(e => e.VoiceChatEnabled).HasDefaultValueSql("'1'");
             entity.Property(e => e.LivefeedEnabled).HasDefaultValueSql("'1'");
             entity.Property(e => e.AlertsEnabled).HasDefaultValueSql("'1'");
+            entity.Property(e => e.LinkWarningEnabled).HasDefaultValueSql("'1'");
+        });
+
+        modelBuilder.Entity<RpLinkWhitelistEntity>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.Property(e => e.MatchType).HasDefaultValueSql("'domain'");
+            entity.Property(e => e.Enabled).HasDefaultValueSql("'1'");
         });
 
         modelBuilder.Entity<UserRpBankLogEntity>(entity =>

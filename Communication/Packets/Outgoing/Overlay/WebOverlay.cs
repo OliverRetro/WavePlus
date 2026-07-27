@@ -154,7 +154,7 @@ namespace Plus.Communication.Packets.Outgoing.Overlay
                 voiceChat = settings.VoiceChat,
                 livefeed = settings.Livefeed,
                 alerts = settings.Alerts,
-                // The client greys out / blocks "auto salary" unless the user owns a bank account.
+                linkWarning = settings.LinkWarning,
                 hasBankAccount = habbo.GetBankAccount() != null
             });
         }
