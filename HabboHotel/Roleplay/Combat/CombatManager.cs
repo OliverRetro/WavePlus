@@ -1,3 +1,4 @@
+using Plus.Communication.Packets.Incoming;
 using Plus.Communication.Packets.Outgoing.Inventory.Purse;
 using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.HabboHotel.Groups;
@@ -96,8 +97,17 @@ namespace Plus.HabboHotel.Roleplay.Combat
             bool isFinalBlow = damageToHealth >= healthBeforeHit && healthBeforeHit > 0;
 
             UserWeapon equippedWeapon = attacker.GetRpWeapons()?.GetActiveWeapon();
-            if (equippedWeapon != null && equippedWeapon.DurabilityLeft > 0)
+            if (equippedWeapon != null && !equippedWeapon.IsDefault && equippedWeapon.DurabilityLeft > 0) {
                 equippedWeapon.DurabilityLeft--;
+
+                if (equippedWeapon.DurabilityLeft <= 0) {
+                    attacker.GetRpWeapons()?.RemoveWeapon(equippedWeapon.Id);
+                    attacker.SaveRpWeapons();
+                    attacker.GetClient()?.SendWhisper("Your " + (equippedWeapon.WeaponData?.Name ?? "weapon") + " broke.", 1);
+                }
+
+                WebOverlayCallbackEvent.RefreshInventory(attacker.GetClient());
+            }
 
             // stats and damage application
             targetStats.Shield = Math.Max(0, targetStats.Shield - totalDamage);
