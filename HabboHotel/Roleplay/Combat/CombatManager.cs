@@ -221,11 +221,16 @@ namespace Plus.HabboHotel.Roleplay.Combat
             minDamage = Math.Max(0, minDamage);
             maxDamage = Math.Max(minDamage, maxDamage);
 
+            room.SendPacket(new ShoutComposer(sourceUser.VirtualId, "*detonates a suicide vest!*", 0, 29, isRpAction: true));
+            LiveFeedService.LiveFeed("💥 " + LiveFeedService.Name(source.Username, "red") + " set off a suicide vest!", "red");
+
             foreach (RoomUser ru in room.GetRoomUserManager().GetRoomUsers()) {
                 if (ru == null || ru.IsBot || ru.HabboId == source.Id)
                     continue;
 
-                if (Math.Abs(ru.X - sourceUser.X) > 1 || Math.Abs(ru.Y - sourceUser.Y) > 1)
+                // the blast reaches out to a 2-tile radius (5x5).
+                int distance = Math.Max(Math.Abs(ru.X - sourceUser.X), Math.Abs(ru.Y - sourceUser.Y));
+                if (distance > 2)
                     continue;
 
                 Habbo victim = ru.GetClient()?.GetHabbo();
@@ -237,16 +242,37 @@ namespace Plus.HabboHotel.Roleplay.Combat
                 if (victimStats.PassiveMode || victimStats.IsGodMode)
                     continue;
 
-                ApplyBlastDamage(victim, ru, victimStats, Random.Shared.Next(minDamage, maxDamage + 1), source);
+                if (distance <= 1)
+                    ApplyLethalBlast(victim, ru, victimStats, source);
+                else
+                    ApplyBlastDamage(victim, ru, victimStats, Random.Shared.Next(minDamage, maxDamage + 1), source);
             }
-
-            room.SendPacket(new ShoutComposer(sourceUser.VirtualId, "*detonates a suicide vest!*", 0, 29, isRpAction: true));
-            LiveFeedService.LiveFeed("💥 " + LiveFeedService.Name(source.Username, "red") + " set off a suicide vest!", "red");
 
             // The bomber always dies.
             UserRpStats sourceStats = source.GetRpStats();
-            if (sourceStats != null && !sourceStats.IsDead)
+            if (sourceStats != null && !sourceStats.IsDead) {
                 UserRpStats.Kill(source, sourceUser);
+                PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(source.GetClient(), "ACH_Death", 1);
+            }
+        }
+
+        private static void ApplyLethalBlast(Habbo victim, RoomUser victimUser, UserRpStats victimStats, Habbo triggeredBy)
+        {
+            int absorbed = victimStats.Shield + victimStats.Health;
+            victimStats.Shield = 0;
+            victimStats.Health = 0;
+            victimStats.DamageTaken += absorbed;
+            triggeredBy.GetRpStats().DamageDealt += absorbed;
+            triggeredBy.GetRpStats().Knockouts += 1;
+
+            victim.CurrentRoom?.SendPacket(new ShoutComposer(victimUser.VirtualId, "*was caught in the explosion with no mercy*", 0, 29, isRpAction: true));
+            LiveFeedService.LiveFeed("💥 " + LiveFeedService.Name(victim.Username, "red") + " was caught in a blast by " + LiveFeedService.Name(triggeredBy.Username, "green"), "red");
+            UserRpStats.Kill(victim, victimUser);
+
+            PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(triggeredBy.GetClient(), "ACH_Kill", 1);
+            PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(victim.GetClient(), "ACH_Death", 1);
+
+            victim.TrySendUserStatsUpdate(true);
         }
 
         private static void ApplyBlastDamage(Habbo victim, RoomUser victimUser, UserRpStats victimStats, int totalDamage, Habbo triggeredBy)
@@ -271,6 +297,10 @@ namespace Plus.HabboHotel.Roleplay.Combat
                 triggeredBy.GetRpStats().Knockouts += 1;
                 LiveFeedService.LiveFeed("💥 " + LiveFeedService.Name(victim.Username, "red") + " was caught in a blast by " + LiveFeedService.Name(triggeredBy.Username, "green"), "red");
                 UserRpStats.Kill(victim, victimUser);
+
+                // achievements n such
+                PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(triggeredBy.GetClient(), "ACH_Kill", 1);
+                PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(victim.GetClient(), "ACH_Death", 1);
             }
 
             victim.TrySendUserStatsUpdate(true);

@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Linq;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
+using Plus.HabboHotel.Roleplay.RpItem.Weapon;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
 using Plus.HabboHotel.Users.Roleplay;
@@ -65,6 +66,11 @@ namespace Plus.HabboHotel.Roleplay.Hospital
 
             // Death frees any suspects this user was escorting and knocks off their own cuffs.
             PlusEnvironment.GetPoliceManager()?.OnDeath(target);
+
+            RpWeaponService.Disarm(target);
+
+            // A corpse can't keep healing — drop any in-progress slow heal.
+            PlusEnvironment.GetSlowHealManager()?.Cancel(target.Id);
 
             targetUser.ClearMovement(true);
             if (!targetUser.IsLying)

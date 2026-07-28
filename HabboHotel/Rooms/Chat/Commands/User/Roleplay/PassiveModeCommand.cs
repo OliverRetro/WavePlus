@@ -49,7 +49,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 
         private static async Task CompleteToggleAsync(int userId, GameClient session, int roomId)
         {
-            await Task.Delay(TimeSpan.FromSeconds(TriggerDelaySeconds));
+            await Task.Delay(TimeSpan.FromSeconds(TriggerDelaySeconds + RpInteractionTimer.CompletionGraceSeconds));
 
             if (!PendingToggles.ContainsKey(userId))
                 return;
@@ -79,7 +79,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 
             stats.PassiveMode = !stats.PassiveMode;
             if (stats.PassiveMode)
-                habbo.GetRpWeapons()?.SetActiveWeaponId(0);
+                Plus.HabboHotel.Roleplay.RpItem.Weapon.RpWeaponService.Disarm(habbo);
 
             // Resolve the effect (passive shows 1057, disabling clears it — unless staff/weapon).
             RpEffectService.Refresh(habbo);

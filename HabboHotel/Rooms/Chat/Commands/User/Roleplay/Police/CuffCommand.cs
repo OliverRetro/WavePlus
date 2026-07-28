@@ -1,6 +1,6 @@
 using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.HabboHotel.GameClients;
-using Plus.HabboHotel.Roleplay.Utilities;
+using Plus.HabboHotel.Roleplay.RpItem.Weapon;
 using Plus.HabboHotel.Users;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Police
@@ -37,10 +37,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Police
             if (!RpCommandUtil.RequireAdjacent(session, room, target, "You need to be beside the suspect to cuff them."))
                 return;
 
-            if (target.GetRpWeapons() != null && target.GetRpWeapons().GetActiveWeapon() != null) {
-                target.GetRpWeapons().SetActiveWeaponId(0);
-                RpEffectService.Refresh(target);
-            }
+            RpWeaponService.Disarm(target);
 
             if (PlusEnvironment.GetGame().GetShiftManager().IsWorking(target.Id))
                 PlusEnvironment.GetGame().GetShiftManager().InterruptShift(target, target.CurrentRoom);

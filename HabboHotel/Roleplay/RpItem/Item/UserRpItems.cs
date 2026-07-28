@@ -18,6 +18,8 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
 
         private readonly HashSet<int> _removedIds = [];
 
+        private readonly Dictionary<int, double> _itemCooldowns = [];
+
         public UserRpItems(int userId, RpItemManager itemManager, IEnumerable<UserRpItem> items)
         {
             _userId = userId;
@@ -151,6 +153,21 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
         /// <summary>The equipped secondary that is a standard body-armour vest, if any.</summary>
         public UserRpItem GetEquippedVest() =>
             _items.Values.FirstOrDefault(x => x.Equipped && x.ItemData != null && x.ItemData.IsVest);
+
+        public UserRpItem GetEquippedSuicideVest() =>
+            _items.Values.FirstOrDefault(x => x.Equipped && x.ItemData != null && x.ItemData.IsSuicideVest);
+
+        public bool UnequipSuicideVest(Habbo habbo)
+        {
+            UserRpItem vest = GetEquippedSuicideVest();
+            if (vest == null)
+                return false;
+
+            vest.Equipped = false;
+            MarkDirty();
+            RpItemClothingService.Refresh(habbo);
+            return true;
+        }
 
         /// <summary>Equip a primary item — this replaces (unequips) the active weapon.</summary>
         public bool EquipPrimaryItem(int userItemId, Habbo habbo)
@@ -334,12 +351,19 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             if (data.IsSuicideVest)
                 return DetonateSuicideVest(habbo, userItem);
 
-            // No-gain gate: a purely restorative item (only tops up capped stats) is pointless when
-            // every stat it feeds is already full — block it rather than burn a use for nothing.
-            if (data.IsPurelyRestorative && stats != null && !HasRestorativeGain(habbo, stats, data)) {
-                habbo.GetClient()?.SendWhisper($"Using {data.Name} now wouldn't do anything — you're already topped up.", 1);
-                return false;
+            // Per-item cooldown: block re-using the same item type until its cooldown elapses.
+            if (data.CooldownMs > 0 && _itemCooldowns.TryGetValue(data.Id, out double readyAt)) {
+                double nowUnix = PlusEnvironment.GetUnixTimestampPrecise();
+                if (readyAt > nowUnix) {
+                    int secondsLeft = (int)Math.Ceiling(readyAt - nowUnix);
+                    habbo.GetClient()?.SendWhisper($"You need to wait {secondsLeft} second(s) before using {data.Name} again.", 1);
+                    return false;
+                }
             }
+
+            // use cooldown go brr
+            if (data.CooldownMs > 0)
+                _itemCooldowns[data.Id] = PlusEnvironment.GetUnixTimestampPrecise() + data.CooldownMs / 1000.0;
 
             // Consume shout ("text;bubbleId") fires the moment the item is used.
             EmitConsumeBubble(habbo, roomUser, data);
@@ -489,28 +513,16 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             habbo.CurrentRoom.SendPacket(new ShoutComposer(roomUser.VirtualId, data.BubbleText, 0, data.BubbleId, isRpAction: true));
         }
 
-        /// <summary>
-        /// Whether at least one capped stat this (purely restorative) item feeds is currently below
-        /// its cap for the user — i.e. using it would actually restore something.
-        /// </summary>
-        private static bool HasRestorativeGain(Habbo habbo, UserRpStats stats, RpItemData data)
-        {
-            if (data.GrantsHealth && stats.Health < UserRpStats.GetMaxHealth(habbo))
-                return true;
-            if (data.GrantsEnergy && stats.Energy < UserRpStats.GetMaxEnergy(habbo))
-                return true;
-            if (data.GrantsHunger && stats.Hunger < UserRpStats.GetMaxHunger(habbo))
-                return true;
-            if (data.GrantsShield && stats.Shield < 100)
-                return true;
-
-            return false;
-        }
-
         private static void ApplyStatEffects(Habbo habbo, UserRpStats stats, RpItemData data, RoomUser roomUser)
         {
-            if (data.Has("hp"))
-                stats.Health = Math.Clamp(stats.Health + data.GetInt("hp"), 0, UserRpStats.GetMaxHealth(habbo));
+            if (data.Has("hp")) {
+                // slow_heal items drip the HP over time (see SlowHealManager); everything else is
+                // the classic instant top-up.
+                if (data.IsSlowHeal)
+                    PlusEnvironment.GetSlowHealManager()?.Begin(habbo, data.GetInt("hp"));
+                else
+                    stats.Health = Math.Clamp(stats.Health + data.GetInt("hp"), 0, UserRpStats.GetMaxHealth(habbo));
+            }
 
             if (data.Has("energy"))
                 stats.Energy = Math.Clamp(stats.Energy + data.GetInt("energy"), 0, UserRpStats.GetMaxEnergy(habbo));

@@ -198,6 +198,10 @@ namespace Plus.HabboHotel
                     PlusEnvironment.GetGame().GetAchievementManager().FlushQueuedProgress();
                 }
 
+                // Ticked every cycle (it no-ops while idle) so a slow heal reacts to incoming
+                // damage almost immediately rather than on a coarse interval.
+                PlusEnvironment.GetSlowHealManager()?.OnCycle();
+
                 PlusEnvironment.GetGame().GetBotManager().OnCycle();
 
                 _cycleEnded = true;

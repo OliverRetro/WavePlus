@@ -11,6 +11,8 @@ namespace Plus.HabboHotel.Roleplay.Utilities
 
         public const int MinimumSeconds = 2;
 
+        public const double CompletionGraceSeconds = 1.0;
+
         public static int GetSeconds(Habbo habbo)
         {
             int knowledge = Math.Max(0, habbo?.GetRpStats()?.Knowledge ?? 0);

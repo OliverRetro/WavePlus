@@ -64,6 +64,7 @@ namespace Plus
         private static Plus.HabboHotel.Roleplay.Crime.RpCrimeManager _rpCrimeManager;
         private static Plus.HabboHotel.Roleplay.Crime.JailManager _jailManager;
         private static HospitalManager _hospitalManager;
+        private static SlowHealManager _slowHealManager;
         private static BankingManager _bankingManager;
         private static PoliceManager _policeManager;
         private static TrashSearchManager _trashSearchManager;
@@ -185,6 +186,8 @@ namespace Plus
 
                 _hospitalManager = new HospitalManager();
 
+                _slowHealManager = new SlowHealManager();
+
                 _weaponManager = new WeaponManager();
                 _weaponManager.Init();
 
@@ -264,6 +267,11 @@ namespace Plus
         public static double GetUnixTimestamp()
         {
             return DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        }
+
+        public static double GetUnixTimestampPrecise()
+        {
+            return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000.0;
         }
 
         public static long Now()
@@ -469,6 +477,11 @@ namespace Plus
         public static HospitalManager GetHospitalManager()
         {
             return _hospitalManager;
+        }
+
+        public static SlowHealManager GetSlowHealManager()
+        {
+            return _slowHealManager;
         }
 
         public static WeaponManager GetWeaponManager()

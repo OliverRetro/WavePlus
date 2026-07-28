@@ -76,5 +76,29 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
             room.SendPacket(new ShoutComposer(user.VirtualId, message, 0, 11, isRpAction: true));
             return true;
         }
+
+        public static void Disarm(Users.Habbo habbo)
+        {
+            if (habbo == null)
+                return;
+
+            bool hadWeapon = (habbo.GetRpWeapons()?.ActiveWeaponId ?? 0) != 0;
+            if (hadWeapon)
+                habbo.GetRpWeapons().SetActiveWeaponId(0);
+
+            bool hadSuicideVest = habbo.GetRpItems()?.UnequipSuicideVest(habbo) ?? false;
+
+            if (!hadWeapon && !hadSuicideVest)
+                return;
+
+            // Clear the now-stale weapon effect and push the updated stats to the client.
+            RpEffectService.Refresh(habbo);
+            habbo.TrySendUserStatsUpdate(true);
+
+            Room room = habbo.CurrentRoom;
+            RoomUser user = room?.GetRoomUserManager()?.GetRoomUserByHabbo(habbo.Id);
+            if (room != null && user != null)
+                room.SendPacket(new ShoutComposer(user.VirtualId, "*unequips weapons*", 0, 11, isRpAction: true));
+        }
     }
 }

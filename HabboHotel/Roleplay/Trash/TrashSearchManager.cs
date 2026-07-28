@@ -150,7 +150,10 @@ namespace Plus.HabboHotel.Roleplay.Trash
                 UserId = habbo.Id,
                 ItemId = item.Id,
                 RoomId = room.RoomId,
-                FinishUnix = now + duration
+                // Precise (sub-second) reference + a small grace so the reward never lands before the
+                // client's visible countdown reaches zero. The whole-second `now` above is fine for
+                // cooldown bookkeeping, but would complete this search up to a second early.
+                FinishUnix = PlusEnvironment.GetUnixTimestampPrecise() + duration + RpInteractionTimer.CompletionGraceSeconds
             };
 
             if (!_activeSearches.TryAdd(habbo.Id, activeSearch)) {
@@ -178,10 +181,11 @@ namespace Plus.HabboHotel.Roleplay.Trash
         public void OnCycle()
         {
             double now = PlusEnvironment.GetUnixTimestamp();
+            double preciseNow = PlusEnvironment.GetUnixTimestampPrecise();
 
             foreach (var shit in _activeSearches) {
                 ActiveTrashSearch search = shit.Value;
-                if (search.FinishUnix > now)
+                if (search.FinishUnix > preciseNow)
                     continue;
 
                 if (_activeSearches.TryRemove(shit.Key, out ActiveTrashSearch completed))

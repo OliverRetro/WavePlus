@@ -78,39 +78,7 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             Rarity = rarity < 1 ? 1 : (rarity > 5 ? 5 : rarity);
             (BubbleText, BubbleId) = ParseBubble(bubble);
             _attributes = ParseAttributes(attributeJson);
-
-            // Tag the item's "gain" shape once, here, so the use-time no-gain check stays a handful
-            // of comparisons instead of re-parsing attributes on every use (see UserRpItems.Use).
-            GrantsHealth = GetInt("hp") > 0;
-            GrantsEnergy = GetInt("energy") > 0;
-            GrantsShield = GetInt("shield") > 0;
-            GrantsHunger = GetInt("hunger") > 0;
-
-            bool hasRestorativeGain = GrantsHealth || GrantsEnergy || GrantsShield || GrantsHunger;
-
-            // Anything that does something other than top up a capped stat always has a point to
-            // using it, so it's never no-gain-blocked. Experience is deliberately NOT counted as a
-            // purpose: a medkit that "only gives hp & experience" is still pointless at full health.
-            bool hasOtherPurpose =
-                HanditemData != 0 || EffectData != 0 ||
-                Has("fastwalk") || Has("hunger_saturation") || Has("handpick") ||
-                IsSuicideVest || IsVest || IsEquippable || HasBubble || HasClothing;
-
-            IsPurelyRestorative = IsConsumable && hasRestorativeGain && !hasOtherPurpose;
         }
-
-        /// <summary>Whether the item restores a positive amount of the given capped stat.</summary>
-        public bool GrantsHealth { get; }
-        public bool GrantsEnergy { get; }
-        public bool GrantsShield { get; }
-        public bool GrantsHunger { get; }
-
-        /// <summary>
-        /// True when the item's only effect is topping up capped stats (hp/energy/shield/hunger,
-        /// plus incidental experience) with no other purpose. Using one of these while every stat
-        /// it feeds is already full is pure waste, so <see cref="UserRpItems.Use"/> refuses it.
-        /// </summary>
-        public bool IsPurelyRestorative { get; }
 
         public bool HasBubble => !string.IsNullOrWhiteSpace(BubbleText);
 
@@ -209,6 +177,12 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
 
         /// <summary>Percent chance (0-100) a standard vest fails to reduce a hit but still loses durability.</summary>
         public int VestFailChance => Math.Clamp(GetInt("vest_fail_chance", 0), 0, 100);
+
+        // cooldown in ms i cba to do summary
+        public int CooldownMs => GetInt("cooldown", 0);
+
+        // medkits, bandages again cba w summary
+        public bool IsSlowHeal => GetInt("slow_heal", 0) > 0;
 
         /// <summary>Minimum explosion damage from a suicide vest.</summary>
         public int ExplosionMin => GetInt("explosion_min", 50);
