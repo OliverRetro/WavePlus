@@ -18,12 +18,12 @@ using Plus.HabboHotel.Rooms.PathFinding;
 
 namespace Plus.HabboHotel.Rooms
 {
-    public class RoomUser
+    public class RoomUser(int habboId, int roomId, int virtualId, Room room)
     {
-        public bool AllowOverride;
+        public bool AllowOverride = false;
         public BotAI BotAI;
         public RoomBot BotData;
-        public bool CanWalk;
+        public bool CanWalk = true;
         public int CarryItemId; //byte
         public int CarryTimer; //byte
         // Countdown (in room cycles) after a gesture/action temporarily cleared the avatar effect;
@@ -31,29 +31,29 @@ namespace Plus.HabboHotel.Rooms
         public int EffectReapplyTimer;
         public int ChatSpamCount;
         public int ChatSpamTicks = 16;
-        public ItemEffectType CurrentItemEffect;
+        public ItemEffectType CurrentItemEffect = ItemEffectType.None;
         public int DanceId;
         public bool FastWalking = false;
         public bool SuperFastWalking = false;
         public int FreezeCounter;
-        public int FreezeLives;
-        public bool Freezed;
+        public int FreezeLives = 0;
+        public bool Freezed = false;
         public bool Frozen;
-        public int GateId;
+        public int GateId = 0;
 
         public int GoalX; //byte
         public int GoalY; //byte
-        public int HabboId;
+        public int HabboId = habboId;
         public int HorseId = 0;
-        public int IdleTime; //byte
-        public bool InteractingGate;
-        public int InternalRoomId;
+        public int IdleTime = 0; //byte
+        public bool InteractingGate = false;
+        public int InternalRoomId = 0;
         public bool IsAsleep;
         public bool IsWalking;
         public int LastBubble = 0;
-        public double LastInteraction;
+        public double LastInteraction = 0;
         public Item LastItem = null;
-        public int LockedTilesCount;
+        public int LockedTilesCount = 0;
 
         public List<Vector2D> Path = new();
         public bool PathRecalcNeeded;
@@ -74,45 +74,45 @@ namespace Plus.HabboHotel.Rooms
 
         public Pet PetData;
 
-        public int PrevTime;
+        public int PrevTime = 0;
         public bool RidingHorse = false;
-        public int RoomId;
-        public int RotBody; //byte
-        public int RotHead; //byte
+        public int RoomId = roomId;
+        public int RotBody = 0; //byte
+        public int RotHead = 0; //byte
 
         public bool SetStep;
         public int SetX; //byte
         public int SetY; //byte
         public double SetZ;
         public double SignTime;
-        public byte SqState;
-        public int TeleDelay; //byte
+        public byte SqState = 3;
+        public int TeleDelay = -1; //byte
         public bool TeleportEnabled;
-        public bool UpdateNeeded;
-        public int VirtualId;
+        public bool UpdateNeeded = true;
+        public int VirtualId = virtualId;
 
-        public int X; //byte
-        public int Y; //byte
-        public double Z;
+        public int X = 0; //byte
+        public int Y = 0; //byte
+        public double Z = 0;
 
         public FreezePowerUp BanzaiPowerUp;
         public bool IsLying = false;
         public bool IsSitting = false;
         private GameClient _mClient;
-        private Room _mRoom;
+        private Room _mRoom = room;
         public bool MoonwalkEnabled = false;
         public bool ShieldActive;
         public int ShieldCounter;
         public Team Team;
         public bool FreezeInteracting;
         public int UserId;
-        public bool IsJumping;
+        public bool IsJumping = false;
 
         public bool IsRolling = false;
         public int RollerDelay = 0;
 
         public int LLPartner = 0;
-        public double TimeInRoom;
+        public double TimeInRoom = 0;
         public DateTime TimedFreezeUntilUtc;
 
         private int _timedFreezeId;
@@ -120,48 +120,6 @@ namespace Plus.HabboHotel.Rooms
 
         private int _itemConsumptionId;
         private int _fastwalkId;
-
-        public RoomUser(int habboId, int roomId, int virtualId, Room room)
-        {
-            Freezed = false;
-            HabboId = habboId;
-            RoomId = roomId;
-            VirtualId = virtualId;
-            IdleTime = 0;
-
-            X = 0;
-            Y = 0;
-            Z = 0;
-            PrevTime = 0;
-            RotHead = 0;
-            RotBody = 0;
-            UpdateNeeded = true;
-            Statusses = new Dictionary<string, string>();
-
-            TeleDelay = -1;
-            _mRoom = room;
-
-            AllowOverride = false;
-            CanWalk = true;
-
-            SqState = 3;
-
-            InternalRoomId = 0;
-            CurrentItemEffect = ItemEffectType.None;
-
-            FreezeLives = 0;
-            InteractingGate = false;
-            GateId = 0;
-            LastInteraction = 0;
-            LockedTilesCount = 0;
-
-            IsJumping = false;
-            TimeInRoom = 0;
-
-            TradeId = 0;
-            TradePartner = 0;
-            IsTrading = false;
-        }
 
         public Point Coordinate => new(X, Y);
 
@@ -171,13 +129,13 @@ namespace Plus.HabboHotel.Rooms
 
         public bool IsDancing => DanceId >= 1;
 
-        public bool IsTrading { get; set; }
+        public bool IsTrading { get; set; } = false;
 
-        public int TradePartner { get; set; }
+        public int TradePartner { get; set; } = 0;
 
-        public int TradeId { get; set; }
+        public int TradeId { get; set; } = 0;
 
-        public Dictionary<string, string> Statusses { get; }
+        public Dictionary<string, string> Statusses { get; } = [];
 
         public bool NeedsAutoKick
         {
@@ -191,12 +149,6 @@ namespace Plus.HabboHotel.Rooms
 
                 if (GetClient().GetHabbo().GetPermissions().HasRight("mod_tool") || GetRoom().OwnerId == HabboId)
                     return false;
-
-                if (GetRoom().Id == 1649919)
-                    return false;
-
-                if (IdleTime >= 7200)
-                    return true;
 
                 return false;
             }

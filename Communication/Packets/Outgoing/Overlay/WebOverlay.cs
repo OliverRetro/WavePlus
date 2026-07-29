@@ -118,6 +118,15 @@ namespace Plus.Communication.Packets.Outgoing.Overlay
             Send(session, "online", new { online });
         }
 
+        public static void SendMention(GameClient session, string sender, string message)
+        {
+            Send(session, "mention", new
+            {
+                sender = sender ?? "",
+                message = message ?? ""
+            });
+        }
+
         public static void SendMacroSet(GameClient session, Macro macro, bool isEnabled)
         {
             if (macro == null) {
