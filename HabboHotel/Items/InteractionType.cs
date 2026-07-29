@@ -120,7 +120,9 @@
         TaxiPole,
         Atm,
         Bank,
-        StockVendor
+        StockVendor,
+        Crafting,
+        CraftingCorporation
     }
 
     public static class InteractionTypes
@@ -362,6 +364,10 @@
                     return InteractionType.Bank;
                 case "stock_vendor":
                     return InteractionType.StockVendor;
+                case "crafting":
+                    return InteractionType.Crafting;
+                case "crafting_corporation":
+                    return InteractionType.CraftingCorporation;
                 case "pet":
                     return InteractionType.Pet;
                 default: {

@@ -60,6 +60,7 @@ namespace Plus
         private static CombatManager _combatManager;
         private static WeaponManager _weaponManager;
         private static RpItemManager _rpItemManager;
+        private static Plus.HabboHotel.Roleplay.Crafting.CraftingManager _craftingManager;
         private static RoomStockManager _roomStockManager;
         private static Plus.HabboHotel.Roleplay.Crime.RpCrimeManager _rpCrimeManager;
         private static Plus.HabboHotel.Roleplay.Crime.JailManager _jailManager;
@@ -193,6 +194,9 @@ namespace Plus
 
                 _rpItemManager = new RpItemManager();
                 _rpItemManager.Init();
+
+                _craftingManager = new Plus.HabboHotel.Roleplay.Crafting.CraftingManager();
+                _craftingManager.Init();
 
                 _roomStockManager = new RoomStockManager();
                 _roomStockManager.Init();
@@ -492,6 +496,11 @@ namespace Plus
         public static RpItemManager GetRpItemManager()
         {
             return _rpItemManager;
+        }
+
+        public static Plus.HabboHotel.Roleplay.Crafting.CraftingManager GetCraftingManager()
+        {
+            return _craftingManager;
         }
 
         public static RoomStockManager GetRoomStockManager()

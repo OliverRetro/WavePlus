@@ -9,6 +9,7 @@ using log4net;
 using Plus.Communication.Packets.Incoming;
 using Plus.Communication.Packets.Incoming.Avatar;
 using Plus.Communication.Packets.Incoming.Catalog;
+using Plus.Communication.Packets.Incoming.Crafting;
 using Plus.Communication.Packets.Incoming.GameCenter;
 using Plus.Communication.Packets.Incoming.Groups;
 using Plus.Communication.Packets.Incoming.Handshake;
@@ -125,6 +126,7 @@ namespace Plus.Communication.Packets
             RegisterGameCenter();
             RegisterNames();
             RegisterRoleplay();
+            RegisterCrafting();
             RegisterCamera();
         }
 
@@ -147,6 +149,15 @@ namespace Plus.Communication.Packets
             _incomingPackets.Add(ClientPacketHeader.RpTargetUserMessageEvent, new RpTargetUserEvent());
             _incomingPackets.Add(ClientPacketHeader.SpendAttributePointMessageEvent, new SpendAttributePointEvent());
             _incomingPackets.Add(ClientPacketHeader.JavascriptCallbackMessageEvent, new WebOverlayCallbackEvent());
+        }
+
+        private void RegisterCrafting()
+        {
+            _incomingPackets.Add(ClientPacketHeader.GetCraftingListMessageEvent, new GetCraftableProductsEvent());
+            _incomingPackets.Add(ClientPacketHeader.GetRecipeConfigMessageEvent, new GetCraftingRecipeEvent());
+            _incomingPackets.Add(ClientPacketHeader.CraftedRecipeExecutedMessageEvent, new CraftEvent());
+            _incomingPackets.Add(ClientPacketHeader.CraftSecretMessageEvent, new CraftSecretEvent());
+            _incomingPackets.Add(ClientPacketHeader.GetCraftingRecipesAvailableMessageEvent, new GetCraftingRecipesAvailableEvent());
         }
 
         public void TryExecutePacket(GameClient session, ClientPacket packet)

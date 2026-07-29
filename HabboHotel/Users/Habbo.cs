@@ -43,6 +43,8 @@ using Plus.Communication.Packets.Outgoing.Quests;
 using UserRpItem = Plus.HabboHotel.Roleplay.RpItem.Item.UserRpItem;
 using Plus.HabboHotel.Roleplay.Utilities;
 using Plus.HabboHotel.Users.Roleplay;
+using Plus.HabboHotel.Roleplay.Stock;
+using Plus.HabboHotel.Items.Interactor;
 
 namespace Plus.HabboHotel.Users
 {
@@ -212,6 +214,7 @@ namespace Plus.HabboHotel.Users
         private UserRpWeapons _rpWeapons;
         private UserRpWeaponSkins _rpWeaponSkins;
         private UserRpItems _rpItems;
+        private UserCraftingRecipes _craftingRecipes;
         private UserRpBankAccount _bankAccount;
         private Plus.HabboHotel.Roleplay.Settings.UserRpSettings _rpSettings;
         private CancellationTokenSource _aggressionTimerTokenSource;
@@ -546,6 +549,18 @@ namespace Plus.HabboHotel.Users
                     _rpStats.Shield = equippedShield.EffectiveDurability;
             }
 
+            try {
+                using WavePlusContext db = PlusEnvironment.GetDbContext();
+                var recipeRows = db.UserCraftingRecipes.Where(r => r.UserId == id)
+                    .Select(r => new { r.RecipeId, r.Revealed }).ToList();
+
+                _craftingRecipes = new UserCraftingRecipes(id,
+                    recipeRows.Select(r => (r.RecipeId, r.Revealed)));
+            } catch {
+                // Table not present yet (Crafting.sql not applied) — never block login over it.
+                _craftingRecipes = new UserCraftingRecipes(id, System.Array.Empty<(int, bool)>());
+            }
+
             #endregion
         }
 
@@ -755,6 +770,11 @@ namespace Plus.HabboHotel.Users
         public UserRpItems GetRpItems()
         {
             return _rpItems;
+        }
+
+        public UserCraftingRecipes GetCraftingRecipes()
+        {
+            return _craftingRecipes;
         }
 
         public int ProgressSkill(string progressCategory, int progress)
@@ -1217,16 +1237,17 @@ namespace Plus.HabboHotel.Users
             PlusEnvironment.GetGame().GetMacroManager().Unload(Id);
             TargetLockService.Clear(Id);
             GroupInviteService.Clear(Id);
-            Plus.HabboHotel.Roleplay.Stock.RpOfferService.Clear(Id);
+            RpOfferService.Clear(Id);
             PlusEnvironment.GetPoliceManager()?.OnDisconnect(this);
             PlusEnvironment.GetJailManager()?.OnDisconnect(this);
             PlusEnvironment.GetTrashSearchManager()?.Cancel(Id);
+            PlusEnvironment.GetCraftingManager()?.CancelCraft(this, notify: false);
             FurnitureAchievementService.Forget(Id);
 
             // Drop any half-finished arrow teleport state so the static maps can't accumulate
             // entries for users who logged out mid-transit.
-            Plus.HabboHotel.Items.Interactor.InteractorArrowTeleport.CancelDelayedTeleport(Id);
-            Plus.HabboHotel.Items.Interactor.InteractorArrowTeleport.ClearArrivalData(Id);
+            InteractorArrowTeleport.CancelDelayedTeleport(Id);
+            InteractorArrowTeleport.ClearArrivalData(Id);
 
             // Close out the current room-visit record if one is still open.
             Plus.Core.Persistence.RoomVisitBuffer.OnExit(Id);

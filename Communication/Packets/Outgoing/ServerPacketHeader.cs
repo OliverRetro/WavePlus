@@ -403,7 +403,7 @@
         // Crafting
         public const int CraftableProductsMessageComposer = 1000; // PRODUCTION-201611291003-338511768
         public const int CraftingRecipeMessageComposer = 2774; // PRODUCTION-201611291003-338511768
-        public const int CraftingResultMessageComposer = 3128; // PRODUCTION-201611291003-338511768
+        public const int CraftingResultMessageComposer = 618; // PRODUCTION-201611291003-338511768
         public const int CraftingFoundMessageComposer = 2124; // PRODUCTION-201611291003-338511768
 
         public const int RoomCustomizedAlertComposer = 934; // PRODUCTION-201611291003-338511768

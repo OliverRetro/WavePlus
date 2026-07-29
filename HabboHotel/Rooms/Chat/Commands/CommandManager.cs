@@ -442,6 +442,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             Register(new DisbandItemCommand());
             Register(new GiveItemCommand());
             Register(new GiveWeaponCommand());
+            Register(new UnlockUserRecipeCommand());
+            Register(new UnlockCorpRecipeCommand());
             Register(new RpUpdateCommand());
         }
 

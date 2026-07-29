@@ -1,4 +1,3 @@
-using Plus.HabboHotel.Items.Wired.Boxes.Conditions;
 using Plus.HabboHotel.Roleplay.RpItem.Weapon;
 using Plus.HabboHotel.Roleplay.Utilities;
 using Plus.HabboHotel.Rooms;

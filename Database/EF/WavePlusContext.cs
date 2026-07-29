@@ -223,6 +223,14 @@ public partial class WavePlusContext(DbContextOptions<WavePlusContext> options) 
 
     public virtual DbSet<UserRpItemEntity> UserRpItems { get; set; }
 
+    public virtual DbSet<CraftingRecipeEntity> CraftingRecipes { get; set; }
+
+    public virtual DbSet<CraftingRecipeIngredientEntity> CraftingRecipeIngredients { get; set; }
+
+    public virtual DbSet<UserCraftingRecipeEntity> UserCraftingRecipes { get; set; }
+
+    public virtual DbSet<GroupCraftingRecipeEntity> GroupCraftingRecipes { get; set; }
+
     public virtual DbSet<UserRpSkillEntity> UserRpSkills { get; set; }
 
     public virtual DbSet<UserRpStatisticEntity> UserRpStatistics { get; set; }
@@ -922,6 +930,33 @@ public partial class WavePlusContext(DbContextOptions<WavePlusContext> options) 
         });
 
         modelBuilder.Entity<RpShiftLogEntity>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+        });
+
+        modelBuilder.Entity<CraftingRecipeEntity>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.Property(e => e.RewardType).HasDefaultValueSql("'''rp_item'''");
+            entity.Property(e => e.RewardAmount).HasDefaultValueSql("'1'");
+            entity.Property(e => e.Enabled).HasDefaultValueSql("'1'");
+        });
+
+        modelBuilder.Entity<CraftingRecipeIngredientEntity>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.Property(e => e.ItemType).HasDefaultValueSql("'''rp_item'''");
+            entity.Property(e => e.Amount).HasDefaultValueSql("'1'");
+        });
+
+        modelBuilder.Entity<UserCraftingRecipeEntity>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+        });
+
+        modelBuilder.Entity<GroupCraftingRecipeEntity>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
         });
