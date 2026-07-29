@@ -58,6 +58,8 @@ namespace Plus.HabboHotel.Catalog
                 _deals.Clear();
             if (_promotions.Count > 0)
                 _promotions.Clear();
+            if (_itemOffers.Count > 0)
+                _itemOffers.Clear();
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
 
@@ -81,10 +83,10 @@ namespace Plus.HabboHotel.Catalog
                 if (offerId != -1 && !_itemOffers.ContainsKey(offerId))
                     _itemOffers.Add(offerId, pageId);
 
-                _items[pageId].Add(row.Id, new CatalogItem(row.Id, Convert.ToInt32(row.ItemId),
+                _items[pageId].Add(row.Id, new CatalogItem(row.Id, baseId,
                     data, row.CatalogName, row.PageId, row.CostCredits, row.CostPixels, row.CostDiamonds,
                     row.Amount, row.LimitedSells, row.LimitedStack, PlusEnvironment.EnumToBool(row.OfferActive),
-                    row.Extradata, row.Badge, row.OfferId));
+                    row.Extradata, row.Badge, offerId));
             }
 
             foreach (var row in db.CatalogDeals.Select(d => new { d.Id, d.Items, d.Name, d.RoomId }).ToList()) {
