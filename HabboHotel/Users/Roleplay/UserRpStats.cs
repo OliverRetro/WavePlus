@@ -167,7 +167,9 @@ namespace Plus.HabboHotel.Users.Roleplay
             if (Hunger > 0) {
                 Hunger = Math.Max(0, Hunger -= 2);
                 NextHungerTick = DateTime.UtcNow.AddMinutes(10);
-                habbo.GetClient().SendWhisper($"You lost a total of -2 hunger - consume some food to regain it! [{habbo.GetRpStats().Hunger}/{GetMaxHunger(habbo)}]", 1);
+                if (habbo.GetRpStats().Hunger <= 10) {
+                    habbo.GetClient().SendWhisper($"You lost a total of -2 hunger - consume some food to regain it! [{habbo.GetRpStats().Hunger}/{GetMaxHunger(habbo)}]", 1);
+                }
             } else {
                 int damage = Random.Shared.Next(5, 51);
                 Health = Math.Max(0, Health - damage);
