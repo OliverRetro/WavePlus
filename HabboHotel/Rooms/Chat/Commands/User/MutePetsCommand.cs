@@ -11,7 +11,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User
 
         public string Parameters => "";
 
-        public string Description => "Ignore bot chat or enable it again.";
+        public string Description => "Ignore pet chat or enable it again.";
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
