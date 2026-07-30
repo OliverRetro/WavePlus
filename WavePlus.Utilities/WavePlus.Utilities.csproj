@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <!-- Files keep their Plus.Utilities[.Enclosure] namespaces so nothing else needs a using change. -->
+        <RootNamespace>Plus.Utilities</RootNamespace>
+        <ImplicitUsings>disable</ImplicitUsings>
+        <Nullable>disable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <!-- Some helpers (StringCharFilter, UnixTimestamp, ...) are internal; keep them visible to
+             the main assembly that used to share their compilation, instead of forcing them public. -->
+        <InternalsVisibleTo Include="Plus" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- Only Enclosure/GameField.cs uses the Astar.Algorithm namespace. -->
+        <Reference Include="AStar">
+            <HintPath>..\Resources\libs\AStar.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+
+</Project>

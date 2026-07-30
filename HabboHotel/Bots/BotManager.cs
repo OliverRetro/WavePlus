@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using log4net;
 using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
@@ -16,8 +15,6 @@ namespace Plus.HabboHotel.Bots
 {
     public class BotManager
     {
-        private static readonly ILog Log = LogManager.GetLogger(typeof(BotManager));
-
         private readonly List<BotResponse> _responses;
         private readonly Dictionary<int, TaxiBotTemplate> _taxiTemplates;
         private readonly Dictionary<int, List<TaxiPointData>> _taxiPoints;

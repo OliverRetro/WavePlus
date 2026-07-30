@@ -58,11 +58,6 @@ namespace Plus.HabboHotel.Rooms
             return false;
         }
 
-        /// <summary>
-        /// Maps a scaffolded <c>rooms</c> row to a <see cref="RoomData"/>. Several tinyint(1)
-        /// columns scaffold as nullable bool and a couple (spush_enabled/lay_enabled/safezone)
-        /// as enum-strings; both are normalised back to the flags/ints RoomData expects.
-        /// </summary>
         private static RoomData BuildRoomData(Database.EF.Entities.RoomEntity r, string username, RoomModel model)
         {
             return new RoomData(r.Id, r.Caption, r.ModelName, username, Convert.ToInt32(r.Owner),

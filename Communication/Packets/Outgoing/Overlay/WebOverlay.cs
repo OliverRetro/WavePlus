@@ -10,10 +10,6 @@ using Plus.HabboHotel.Users.Roleplay;
 
 namespace Plus.Communication.Packets.Outgoing.Overlay
 {
-    /// <summary>
-    /// Helper for pushing JSON messages to the gaz-js web overlay (via the habblet bridge).
-    /// Each method mirrors a header the gaz-js CommunicationManager listens for.
-    /// </summary>
     public static class WebOverlay
     {
         public static void Send(GameClient session, string header, object data)

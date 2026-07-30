@@ -16,7 +16,6 @@ namespace Plus.HabboHotel.Roleplay.Utilities
 {
     public static class GroupInviteService
     {
-        /// <summary>How long an invite stays answerable before it silently lapses.</summary>
         public const int ExpirySeconds = 60;
 
         public class PendingInvite
@@ -167,7 +166,6 @@ namespace Plus.HabboHotel.Roleplay.Utilities
         public static string DeclineShout(Group group) =>
             "*declines the invitation to join " + group.Name + "*";
 
-        /// <summary>Shouts an RP action from a user's own room, if they're in one.</summary>
         private static void ShoutFrom(Habbo habbo, string message)
         {
             if (habbo == null || !habbo.InRoom || habbo.CurrentRoom == null)
@@ -178,7 +176,6 @@ namespace Plus.HabboHotel.Roleplay.Utilities
                 habbo.CurrentRoom.SendPacket(new ShoutComposer(user.VirtualId, message, 0, habbo.CustomBubbleId, isRpAction: true));
         }
 
-        /// <summary>Drops any invite held for a user (called on disconnect).</summary>
         public static void Clear(int userId) => _pending.TryRemove(userId, out _);
     }
 }

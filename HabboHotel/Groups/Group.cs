@@ -308,10 +308,6 @@ namespace Plus.HabboHotel.Groups
             return false;
         }
 
-        /// <summary>
-        /// Returns the hardcoded level-0 role used by the group owner.
-        /// This row is generated in-memory and never written to `group_roles`.
-        /// </summary>
         private GroupRole GetOwnerRole()
         {
             return _ownerRole ??= new GroupRole(0, Id, 0, "Owner", 0, string.Empty, 5, string.Empty, (int)PlusEnvironment.GetUnixTimestamp());
@@ -594,13 +590,11 @@ namespace Plus.HabboHotel.Groups
             _requests.Clear();
         }
 
-        /// <summary>Marks the group's metadata/member state as needing a DB write on the next flush.</summary>
         public void MarkDirty()
         {
             _dirty = true;
         }
 
-        /// <summary>Read-only snapshot of member id → level, for the Redis mirror.</summary>
         public IReadOnlyDictionary<int, int> MemberLevelsSnapshot => new Dictionary<int, int>(_memberLevels);
 
         public void Flush()

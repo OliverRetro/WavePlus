@@ -11,14 +11,8 @@ namespace Plus.HabboHotel.Users.Effects
     {
         private Habbo _habbo;
 
-        /// <summary>
-        /// Effects stored by ID > Effect.
-        /// </summary>
         private readonly ConcurrentDictionary<int, AvatarEffect> _effects = new();
 
-        /// <summary>
-        /// Initializes the EffectsComponent.
-        /// </summary>
         public bool Init(Habbo habbo)
         {
             if (_effects.Count > 0)
@@ -48,25 +42,11 @@ namespace Plus.HabboHotel.Users.Effects
             return _effects.TryAdd(effect.Id, effect);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="spriteId"></param>
-        /// <param name="activatedOnly"></param>
-        /// <param name="unactivatedOnly"></param>
-        /// <returns></returns>
         public bool HasEffect(int spriteId, bool activatedOnly = false, bool unactivatedOnly = false)
         {
             return (GetEffectNullable(spriteId, activatedOnly, unactivatedOnly) != null);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="spriteId"></param>
-        /// <param name="activatedOnly"></param>
-        /// <param name="unactivatedOnly"></param>
-        /// <returns></returns>
         public AvatarEffect GetEffectNullable(int spriteId, bool activatedOnly = false, bool unactivatedOnly = false)
         {
             foreach (AvatarEffect effect in _effects.Values.ToList()) {
@@ -78,10 +58,6 @@ namespace Plus.HabboHotel.Users.Effects
             return null;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="habbo"></param>
         public void CheckEffectExpiry(Habbo habbo)
         {
             foreach (AvatarEffect effect in _effects.Values.ToList()) {
@@ -111,9 +87,6 @@ namespace Plus.HabboHotel.Users.Effects
 
         public int CurrentEffect { get; set; }
 
-        /// <summary>
-        /// Disposes the EffectsComponent.
-        /// </summary>
         public void Dispose()
         {
             _effects.Clear();

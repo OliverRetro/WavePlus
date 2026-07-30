@@ -106,7 +106,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Links
 
         private static string NormaliseType(string matchType)
         {
-            return (matchType ?? string.Empty).Trim().ToLowerInvariant() switch {
+            return (matchType ?? string.Empty).Trim().ToLowerInvariant() switch
+            {
                 "wildcard" => "wildcard",
                 "prefix" => "prefix",
                 _ => "domain"

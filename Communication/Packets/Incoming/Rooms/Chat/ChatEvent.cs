@@ -66,7 +66,6 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Chat
             if (isCommand && PlusEnvironment.GetGame().GetChatManager().GetCommands().Parse(session, message))
                 return;
 
-
             RpMention.Handle(session, room, user, message);
 
             if (PlusEnvironment.GetGame().GetChatManager().GetFilter().CheckBannedWords(message)) {

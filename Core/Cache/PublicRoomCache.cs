@@ -16,8 +16,6 @@ namespace Plus.Core.Cache
 
         private static string RoomKey(int roomId) => $"room:public:{roomId}";
 
-        /// <summary>Boot-time load: fetches the public room ids from MySQL and pins each
-        /// room instance (items included) into the room manager, then mirrors to Redis.</summary>
         public static void LoadAll()
         {
             List<int> ids;

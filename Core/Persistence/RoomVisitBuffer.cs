@@ -9,15 +9,6 @@ using Plus.Database.EF.Entities;
 
 namespace Plus.Core.Persistence
 {
-    /// <summary>
-    /// Write-behind buffer for the user_roomvisits telemetry table.
-    ///
-    /// Room entry/exit used to run a synchronous INSERT (and two follow-up queries on exit)
-    /// on the packet thread — with users hopping rooms that serialized every entry on the
-    /// database. Visits are now recorded in memory and flushed in one batch by the
-    /// persistence scheduler; losing at most one flush interval of telemetry on a hard crash
-    /// is an acceptable trade for a room entry that never touches MySQL.
-    /// </summary>
     public static class RoomVisitBuffer
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(RoomVisitBuffer));

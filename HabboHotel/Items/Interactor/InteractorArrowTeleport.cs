@@ -148,13 +148,6 @@ namespace Plus.HabboHotel.Items.Interactor
             userHabbo.PrepareRoom(teleRoomId, string.Empty);
         }
 
-        /// <summary>
-        /// Queues the teleport for a user who has finished their walk on the arrow tile (the
-        /// room cycle decides that — see RoomUserManager) or clicked the arrow while standing
-        /// on it. The actual room switch runs off-thread so a cross-room load never stalls the
-        /// room cycle. The old version also checked <c>user.IsWalking</c> after a 1ms delay,
-        /// which raced the cycle thread and randomly swallowed the teleport.
-        /// </summary>
         public static void BeginDelayedTeleport(RoomUser user, Item item)
         {
             if (user?.GetClient()?.GetHabbo() == null || item == null)

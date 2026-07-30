@@ -49,7 +49,6 @@ namespace Plus.HabboHotel.Camera
 
         private readonly object _renderLock = new();
 
-        /// <summary>Returns true when the user may render (photo or thumbnail) right now, and stamps the attempt.</summary>
         public bool TryConsumeRenderSlot(int userId)
         {
             lock (_renderLock) {
@@ -66,7 +65,6 @@ namespace Plus.HabboHotel.Camera
         private readonly ConcurrentDictionary<int, long> _lastPurchase = new();
         private readonly object _purchaseLock = new();
 
-        /// <summary>Returns true when the user may buy a photo right now, and stamps the attempt.</summary>
         public bool TryConsumePurchaseSlot(int userId)
         {
             lock (_purchaseLock) {
@@ -80,7 +78,6 @@ namespace Plus.HabboHotel.Camera
             }
         }
 
-        /// <summary>Seconds the user still has to wait before the next web publish (0 = allowed).</summary>
         public int GetPublishWait(int userId)
         {
             if (!_lastPublish.TryGetValue(userId, out int last))
@@ -119,20 +116,11 @@ namespace Plus.HabboHotel.Camera
 
         #region Disk IO
 
-        /// <summary>
-        ///     Cryptographically random token so photo urls cannot be guessed or enumerated
-        ///     and one user can never collide with (i.e. overwrite) another user's photo.
-        /// </summary>
         public static string GenerateToken()
         {
             return Convert.ToHexString(RandomNumberGenerator.GetBytes(8)).ToLowerInvariant();
         }
 
-        /// <summary>
-        ///     Writes sanitized PNG bytes to <paramref name="directory"/> under a server-generated
-        ///     file name. The final path is canonicalised and verified to still live inside the
-        ///     output directory — belt and braces against any future filename regression.
-        /// </summary>
         public static bool SavePng(string directory, string filename, byte[] pngBytes)
         {
             try {

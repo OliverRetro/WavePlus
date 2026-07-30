@@ -25,40 +25,16 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
 {
     public class CommandManager
     {
-        /// <summary>
-        /// Command Prefix only applies to custom commands.
-        /// </summary>
         private readonly string _prefix = ":";
 
-        /// <summary>
-        /// Every known command instance, keyed by its class name (e.g. "GotoCommand").
-        /// Populated at construction. This is the master list; it does NOT make a command usable
-        /// on its own — the actual chat triggers come from the DB (see <see cref="ApplyDatabaseAliases"/>).
-        /// </summary>
         private readonly Dictionary<string, IChatCommand> _registry = new(StringComparer.OrdinalIgnoreCase);
 
-        /// <summary>
-        /// The live trigger table: chat alias -> command instance. Built entirely from the DB
-        /// (permissions_commands.keys) by <see cref="ApplyDatabaseAliases"/>. A command with no keys
-        /// row simply isn't reachable until keys are added in the database.
-        /// </summary>
         private readonly Dictionary<string, IChatCommand> _commands = new();
 
-        /// <summary>
-        /// Class name -> category, filled in by <see cref="Register"/> from whichever Register*
-        /// block is running. The registration blocks already partition the commands exactly the
-        /// way the overlay wants to show them, so the category is derived rather than stored in
-        /// the database — a command therefore cannot be added without getting a category, and
-        /// the two can never drift apart.
-        /// </summary>
         private readonly Dictionary<string, string> _categoryByCommand = new(StringComparer.OrdinalIgnoreCase);
 
-        /// <summary>Category assigned to anything registered while it is set. See the constructor.</summary>
         private string _registeringCategory = CommandCategory.General;
 
-        /// <summary>
-        /// The default initializer for the CommandManager
-        /// </summary>
         public CommandManager(string prefix)
         {
             _prefix = prefix;
@@ -79,12 +55,6 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             RegisterAdministrator();
         }
 
-        /// <summary>
-        /// Request the text to parse and check for commands that need to be executed.
-        /// </summary>
-        /// <param name="session">Session calling this method.</param>
-        /// <param name="message">The message to parse.</param>
-        /// <returns>True if parsed or false if not.</returns>
         public bool Parse(GameClient session, string message)
         {
             if (session == null || session.GetHabbo() == null || session.GetHabbo().CurrentRoom == null)
@@ -182,18 +152,11 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             Register(new OpenAccountCommand());
         }
 
-        /// <summary>
-        /// Registers the VIP set of commands.
-        /// </summary>
         private void RegisterVip()
         {
             Register(new SuperPullCommand());
         }
 
-        /// <summary>
-        /// Pushes the categorised command list to the gaz-js overlay. Only commands the user can
-        /// actually run are included, and a category is only offered when they qualify for it.
-        /// </summary>
         public void SendCommandList(GameClient session)
         {
             Habbo habbo = session?.GetHabbo();
@@ -256,10 +219,6 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             });
         }
 
-        /// <summary>
-        /// Tab order for the overlay. "All" and "Roleplay" are always offered; VIP unlocks above
-        /// subscription rank 1 and Staff above rank 3.
-        /// </summary>
         private static string[] VisibleCategories(Habbo habbo)
         {
             List<string> categories = new() { "All", CommandCategory.Roleplay };
@@ -289,16 +248,6 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             && _categoryByCommand.TryGetValue(command.GetType().Name, out string category)
             && category == CommandCategory.Staff;
 
-        /// <summary>
-        /// Death and cuffs block <b>every</b> command, not just the roleplay ones — a corpse and a
-        /// suspect in handcuffs can't act at all. Two escape hatches: Staff-category commands (a
-        /// moderator has to be able to moderate whatever state their character is in) and commands
-        /// that opt in via <see cref="IChatCommand.UsableWhileDead"/> /
-        /// <see cref="IChatCommand.UsableWhileCuffed"/>.
-        ///
-        /// Deliberately mirrors the item gates in <see cref="Roleplay.RpItem.Item.UserRpItems.Use"/>
-        /// so the two halves of the RP surface refuse the same things for the same reasons.
-        /// </summary>
         private bool IsBlockedByState(GameClient session, IChatCommand command)
         {
             Habbo habbo = session?.GetHabbo();
@@ -333,17 +282,11 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             return group != null && group.IsOwnerOrHasPermission(session.GetHabbo().Id, command.GroupPermissionRequired);
         }
 
-        /// <summary>
-        /// Registers the Events set of commands.
-        /// </summary>
         private void RegisterEvents()
         {
             Register(new EventAlertCommand());
         }
 
-        /// <summary>
-        /// Registers the default set of commands.
-        /// </summary>
         private void RegisterUser()
         {
             Register(new InfoCommand());
@@ -390,9 +333,6 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             Register(new TaxiCommand());
         }
 
-        /// <summary>
-        /// Registers the moderator set of commands.
-        /// </summary>
         private void RegisterModerator()
         {
             Register(new BanCommand());
@@ -448,9 +388,6 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             Register(new RpUpdateCommand());
         }
 
-        /// <summary>
-        /// Registers the administrator set of commands.
-        /// </summary>
         private void RegisterAdministrator()
         {
             Register(new AddChatBubbleCommand());
@@ -463,10 +400,6 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             Register(new LinkWhitelistCommand());
         }
 
-        /// <summary>
-        /// Adds a command instance to the master registry (keyed by its class name). Chat triggers
-        /// for it are supplied separately from the database — see <see cref="ApplyDatabaseAliases"/>.
-        /// </summary>
         public void Register(IChatCommand command)
         {
             if (command == null)
@@ -476,9 +409,6 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             _categoryByCommand[command.GetType().Name] = _registeringCategory;
         }
 
-        /// <summary>
-        /// Binds a single chat alias to a command instance in the live trigger table.
-        /// </summary>
         private void Bind(string alias, IChatCommand command)
         {
             if (string.IsNullOrWhiteSpace(alias) || command == null)
@@ -488,17 +418,6 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             _commands[alias.Trim().ToLower()] = command;
         }
 
-        /// <summary>
-        /// (Re)builds the live trigger table from the database. Each permissions_commands row's
-        /// `keys` value (a ';'-separated alias list) is bound to the command it names. A row is
-        /// matched to a command by EITHER the command's class name (e.g. "CuffCommand" — required to
-        /// disambiguate the several commands that share one permission fuse) OR the command's
-        /// permission fuse (e.g. "command_goto" — convenient for the common one-command-per-fuse case).
-        ///
-        /// Keys are the ONLY way to trigger a command, so this must run at boot after the permission
-        /// manager has loaded. A command with no keys row is intentionally unreachable until keys are
-        /// added in the DB. Safe to call repeatedly (it clears and rebuilds).
-        /// </summary>
         public void ApplyDatabaseAliases()
         {
             _commands.Clear();

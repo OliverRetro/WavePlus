@@ -470,10 +470,6 @@ namespace Plus.HabboHotel.Rooms
             }
         }
 
-        /// <summary>
-        /// Caches the user's current effect + handitem, swaps in the item's (which may be 0),
-        /// then restores the cached values after <paramref name="duration"/>.
-        /// </summary>
         public void ApplyTimedItemConsumption(TimeSpan duration, int effectId, int handitemId)
         {
             int cachedEffect = GetClient()?.GetHabbo()?.Effects()?.CurrentEffect ?? 0;
@@ -498,10 +494,6 @@ namespace Plus.HabboHotel.Rooms
             CarryItem(cachedHanditem);
         }
 
-        /// <summary>
-        /// Grants temporary fast walking for <paramref name="duration"/>, then restores the
-        /// previous walking mode.
-        /// </summary>
         public void ApplyTimedFastwalk(TimeSpan duration)
         {
             bool previousFastWalking = FastWalking;

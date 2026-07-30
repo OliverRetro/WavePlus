@@ -190,8 +190,6 @@ namespace Plus.HabboHotel.Rooms
 
         public bool HasActivePromotion => Promotion != null;
 
-        /// <summary>Public rooms stay pinned in memory for the whole uptime and only touch
-        /// the database at boot/shutdown (state lives in memory + Redis meanwhile).</summary>
         public bool IsPublic => Type == "public";
 
         public void EndPromotion()

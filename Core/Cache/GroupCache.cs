@@ -4,13 +4,6 @@ using Plus.HabboHotel.Groups;
 
 namespace Plus.Core.Cache
 {
-    /// <summary>
-    /// Redis mirror of loaded groups and their data (members, requests, roles, permissions, badge).
-    /// The runtime source of truth stays the in-memory <see cref="Group"/> objects; this keeps a
-    /// readable snapshot in Redis (<c>rp:group:{id}</c> + the <c>rp:groups:ids</c> index set),
-    /// refreshed on the 60s mirror tick and whenever a group flushes. The database is written only
-    /// on the 15-minute world-save timer (GroupManager.SaveAll) — never on individual mutations.
-    /// </summary>
     public static class GroupCache
     {
         public const string IndexSet = "rp:groups:ids";
@@ -88,7 +81,6 @@ namespace Plus.Core.Cache
             redis.SetAdd(IndexSet, group.Id.ToString());
         }
 
-        /// <summary>Mirrors every currently-loaded group. Registered as a 60s Redis mirror tick.</summary>
         public static void MirrorAll()
         {
             RedisManager redis = PlusEnvironment.GetRedis();
@@ -99,7 +91,6 @@ namespace Plus.Core.Cache
                 Mirror(group);
         }
 
-        /// <summary>Drops a group's mirror when it is deleted.</summary>
         public static void Remove(int groupId)
         {
             RedisManager redis = PlusEnvironment.GetRedis();

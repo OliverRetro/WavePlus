@@ -7,9 +7,6 @@ using Plus.Database.EF;
 
 namespace Plus.HabboHotel.Roleplay.RpItem.Item
 {
-    /// <summary>
-    /// Loads and caches every RP item definition (`rp_items`).
-    /// </summary>
     public sealed class RpItemManager
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(RpItemManager));

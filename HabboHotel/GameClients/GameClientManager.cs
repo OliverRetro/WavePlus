@@ -201,10 +201,6 @@ namespace Plus.HabboHotel.GameClients
             _clients.TryRemove(clientId, out client);
         }
 
-        /// <summary>
-        /// Runs the real teardown for a ghost whose grace window ended (or who was reclaimed on
-        /// reconnect): the full disconnect save, room-presence removal, and channel cleanup.
-        /// </summary>
         public void CompleteGhostDisconnect(GameClient client, IChannelId channelId)
         {
             if (client == null)
@@ -234,11 +230,6 @@ namespace Plus.HabboHotel.GameClients
                 _clients.TryRemove(channelId, out _);
         }
 
-        /// <summary>
-        /// Drops a channel from the live client map. Called the instant a client enters the
-        /// disconnect grace window so a ghost is never left in the map to be pinged or re-processed
-        /// (the socket-close path removed it, but the in-client logout path did not).
-        /// </summary>
         public void DropChannel(IChannelId channelId)
         {
             if (channelId != null)

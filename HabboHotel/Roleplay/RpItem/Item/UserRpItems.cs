@@ -50,10 +50,6 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             MarkDirty();
             return userItem;
         }
-        /// <summary>
-        /// Builds the ordered slot view the overlay shows: items with an assigned slot are
-        /// placed at that index, the rest fill the first free slots in insertion order.
-        /// </summary>
         public UserRpItem[] GetSlotView(int slotCount)
         {
             UserRpItem[] view = new UserRpItem[slotCount];
@@ -79,7 +75,6 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             return view;
         }
 
-        /// <summary>Returns the item shown at a 0-based slot index, or null if empty.</summary>
         public UserRpItem GetItemAtSlot(int slotIndex, int slotCount)
         {
             if (slotIndex < 0 || slotIndex >= slotCount)
@@ -88,7 +83,6 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             return GetSlotView(slotCount)[slotIndex];
         }
 
-        /// <summary>Persists a new grid position for an owned item.</summary>
         public void SetSlot(int userItemId, int slot)
         {
             UserRpItem item = GetItem(userItemId);
@@ -99,15 +93,12 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             MarkDirty();
         }
 
-        /// <summary>The shield/secondary item currently equipped in the secondary slot, if any.</summary>
         public UserRpItem GetEquippedShield() =>
             _items.Values.FirstOrDefault(x => x.Equipped && x.ItemData != null && x.ItemData.IsSecondary);
 
-        /// <summary>The item currently equipped in the primary slot (replaces the weapon), if any.</summary>
         public UserRpItem GetEquippedPrimaryItem() =>
             _items.Values.FirstOrDefault(x => x.Equipped && x.ItemData != null && x.ItemData.IsPrimary);
 
-        /// <summary>Equip a shield/secondary item, syncing the live shield stat.</summary>
         public bool EquipShield(int userItemId, Habbo habbo)
         {
             UserRpItem item = GetItem(userItemId);
@@ -150,7 +141,6 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             return true;
         }
 
-        /// <summary>The equipped secondary that is a standard body-armour vest, if any.</summary>
         public UserRpItem GetEquippedVest() =>
             _items.Values.FirstOrDefault(x => x.Equipped && x.ItemData != null && x.ItemData.IsVest);
 
@@ -169,7 +159,6 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             return true;
         }
 
-        /// <summary>Equip a primary item — this replaces (unequips) the active weapon.</summary>
         public bool EquipPrimaryItem(int userItemId, Habbo habbo)
         {
             UserRpItem item = GetItem(userItemId);
@@ -205,7 +194,6 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             return true;
         }
 
-        /// <summary>Unequip the primary item, returning it to the grid.</summary>
         public void UnequipPrimaryItem(Habbo habbo)
         {
             UserRpItem item = GetEquippedPrimaryItem();
@@ -219,7 +207,6 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             habbo?.TrySendUserStatsUpdate(true);
         }
 
-        /// <summary>Unequip the active shield, persisting its remaining durability.</summary>
         public void UnequipShield(Habbo habbo)
         {
             UserRpItem shield = GetEquippedShield();
@@ -247,10 +234,6 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             habbo?.TrySendUserStatsUpdate(true);
         }
 
-        /// <summary>
-        /// Pull the live shield stat back into the equipped shield's durability. A depleted
-        /// shield breaks (is removed). Called before serialising/saving the inventory.
-        /// </summary>
         public void SyncEquippedShield(Habbo habbo)
         {
             UserRpItem shield = GetEquippedShield();
@@ -274,10 +257,6 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             MarkDirty();
         }
 
-        /// <summary>
-        /// Whether death blocks this item, whispering the reason. Covers equipping as well as
-        /// using — strapping on a vest from the grave produces the same inconsistent state.
-        /// </summary>
         private static bool IsBlockedByDeath(Habbo habbo, RpItemData data)
         {
             if (data == null || data.UsableWhileDead || habbo?.GetRpStats()?.IsDead != true)
@@ -299,7 +278,6 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             return true;
         }
 
-        /// <summary>Count of distinct stackable item-ids the user owns (for stack limits).</summary>
         public int DistinctStackCount() =>
             _items.Values.Where(x => !x.Equipped).Select(x => x.ItemId).Distinct().Count();
 
@@ -504,7 +482,6 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             return true;
         }
 
-        /// <summary>Fires the item's optional consume shout ("text;bubbleId") into the room.</summary>
         private static void EmitConsumeBubble(Habbo habbo, RoomUser roomUser, RpItemData data)
         {
             if (data == null || !data.HasBubble || roomUser == null || habbo?.CurrentRoom == null)

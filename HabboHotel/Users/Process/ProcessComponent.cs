@@ -12,46 +12,18 @@ namespace Plus.HabboHotel.Users.Process
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(ProcessComponent));
 
-        /// <summary>
-        /// Player to update, handle, change etc.
-        /// </summary>
         private Habbo _player;
 
-        /// <summary>
-        /// ThreadPooled Timer.
-        /// </summary>
         private Timer _timer;
 
-        /// <summary>
-        /// Prevents the timer from overlapping itself.
-        /// </summary>
         private bool _timerRunning;
 
-        /// <summary>
-        /// Checks if the timer is lagging behind (server can't keep up).
-        /// </summary>
-#pragma warning disable CS0414
-        private bool _timerLagging;
-
-        /// <summary>
-        /// Enable/Disable the timer WITHOUT disabling the timer itself.
-        /// </summary>
         private bool _disabled;
 
-        /// <summary>
-        /// Used for disposing the ProcessComponent safely.
-        /// </summary>
         private readonly AutoResetEvent _resetEvent = new(true);
 
-        /// <summary>
-        /// How often the timer should execute.
-        /// </summary>
         private const int RuntimeInSec = 60;
 
-        /// <summary>
-        /// Initializes the ProcessComponent.
-        /// </summary>
-        /// <param name="player">Player.</param>
         public bool Init(Habbo player)
         {
             if (player == null)
@@ -64,10 +36,6 @@ namespace Plus.HabboHotel.Users.Process
             return true;
         }
 
-        /// <summary>
-        /// Called for each time the timer ticks.
-        /// </summary>
-        /// <param name="state"></param>
         public void Run(object state)
         {
             try {
@@ -75,7 +43,6 @@ namespace Plus.HabboHotel.Users.Process
                     return;
 
                 if (_timerRunning) {
-                    _timerLagging = true;
                     Log.Warn("<Player " + _player.Id + "> Server can't keep up, Player timer is lagging behind.");
                     return;
                 }
@@ -156,16 +123,12 @@ namespace Plus.HabboHotel.Users.Process
 
                 // Reset the values
                 _timerRunning = false;
-                _timerLagging = false;
 
                 _resetEvent.Set();
             } catch {
             }
         }
 
-        /// <summary>
-        /// Stops the timer and disposes everything.
-        /// </summary>
         public void Dispose()
         {
             // Wait until any processing is complete first.

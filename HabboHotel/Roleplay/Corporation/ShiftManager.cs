@@ -28,20 +28,16 @@ namespace Plus.HabboHotel.Roleplay.Corporation
 
         private readonly ConcurrentDictionary<(int, int), (int weekly, int total)> _countCache = new();
 
-        /// <summary>Buffered shift payouts awaiting a flush; `finished` is a unix timestamp (seconds).</summary>
         private readonly ConcurrentDictionary<int, List<(int groupId, int credits, int finished)>> _pendingLogs = new();
 
         public bool IsWorking(int userId) => _activeShifts.ContainsKey(userId);
 
-        /// <summary>True when the user is currently on shift for the given corporation.</summary>
         public bool IsWorkingFor(int userId, int groupId) =>
             _activeShifts.TryGetValue(userId, out ActiveShift shift) && shift.GroupId == groupId;
 
-        /// <summary>The corporation id the user is currently working for, or 0 when off shift.</summary>
         public int GetWorkingGroupId(int userId) =>
             _activeShifts.TryGetValue(userId, out ActiveShift shift) ? shift.GroupId : 0;
 
-        /// <summary>Every user currently on shift for the given corporation.</summary>
         public IEnumerable<int> GetWorkersForGroup(int groupId)
         {
             foreach (var kv in _activeShifts)

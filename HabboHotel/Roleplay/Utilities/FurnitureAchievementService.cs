@@ -6,14 +6,6 @@ using Plus.HabboHotel.Rooms;
 
 namespace Plus.HabboHotel.Roleplay.Utilities
 {
-    /// <summary>
-    /// Tracks how long users spend standing on specific furniture types and awards the
-    /// "minutes on furniture" achievements (Jogger / Trampolinist / CrossTrainer). The furniture
-    /// definition id that counts for each achievement is configured in server_settings:
-    ///   achievement.jogger.item_id, achievement.trampolinist.item_id, achievement.crosstrainer.item_id
-    /// Any placed instance of that furniture definition counts. One progress point is awarded per
-    /// full minute of accumulated standing time (batched via the achievement queue).
-    /// </summary>
     public static class FurnitureAchievementService
     {
         private const double MinuteSeconds = 60.0;
@@ -35,7 +27,6 @@ namespace Plus.HabboHotel.Roleplay.Utilities
         // Key: userId + ":" + achievement group. A user is only ever in one room, so no cross-room contention.
         private static readonly ConcurrentDictionary<string, StandState> States = new();
 
-        /// <summary>Called once per room process cycle to accrue standing time for every user in the room.</summary>
         public static void Tick(Room room)
         {
             if (room == null)
@@ -102,7 +93,6 @@ namespace Plus.HabboHotel.Roleplay.Utilities
             return false;
         }
 
-        /// <summary>Drops any tracking state for a user (called when they disconnect).</summary>
         public static void Forget(int userId)
         {
             foreach (string group in Tracked.Keys)

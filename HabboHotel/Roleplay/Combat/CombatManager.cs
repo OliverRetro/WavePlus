@@ -17,10 +17,6 @@ namespace Plus.HabboHotel.Roleplay.Combat
     {
         private static readonly TimeSpan StunDuration = TimeSpan.FromSeconds(2);
 
-        /// <summary>
-        /// Resolves one swing. Returns false when the swing never happened (idle, dead, out of
-        /// reach) — the caller uses that to avoid charging a full attack cooldown for nothing.
-        /// </summary>
         public bool AttackUser(Habbo attacker, Habbo target)
         {
             if (attacker == null || target == null)
@@ -157,14 +153,8 @@ namespace Plus.HabboHotel.Roleplay.Combat
             return true;
         }
 
-        /// <summary>Murder-family crime tags — exactly one of these applies to any given kill.</summary>
         private static readonly string[] MurderTags = { "murder", "cop_murder", "gang_homicide" };
 
-        /// <summary>
-        /// Resolves and commits the murder-family crime for a kill. Exactly one of cop_murder /
-        /// gang_homicide / murder applies (they don't stack); mass_murder is added on top whenever
-        /// the killer was already carrying a murder charge, whoever the new victim happens to be.
-        /// </summary>
         private static void CommitKillCrimes(Habbo attacker, Habbo target)
         {
             var crimes = PlusEnvironment.GetRpCrimeManager();
@@ -187,11 +177,6 @@ namespace Plus.HabboHotel.Roleplay.Combat
                 crimes.Commit(attacker, "mass_murder", attacker.CurrentRoom);
         }
 
-        /// <summary>
-        /// Resolves and commits the assault-family crime for a non-lethal hit. cop_assault (hitting
-        /// an on-duty officer) and obstruction (hitting an escorted suspect) take precedence over a
-        /// plain assault; only one applies.
-        /// </summary>
         private static void CommitAssaultCrime(Habbo attacker, Habbo target, Room room)
         {
             string tag;
@@ -205,7 +190,6 @@ namespace Plus.HabboHotel.Roleplay.Combat
             PlusEnvironment.GetRpCrimeManager().Commit(attacker, tag, room);
         }
 
-        /// <summary>True when the user is a member of any gang/cartel/mafia group.</summary>
         private static bool IsInGang(Habbo habbo)
         {
             if (habbo == null)

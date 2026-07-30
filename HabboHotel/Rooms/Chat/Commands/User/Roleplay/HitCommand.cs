@@ -7,7 +7,6 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 {
     internal class HitCommand : IChatCommand
     {
-        /// <summary>Cooldown for a swing that never connected. Set to 3 to charge the full one.</summary>
         private const int WhiffCooldownSeconds = 1;
 
         public string PermissionRequired => "command_rp_hit";

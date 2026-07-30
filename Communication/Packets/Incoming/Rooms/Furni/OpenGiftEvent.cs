@@ -82,7 +82,6 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
             thread.Start();
         }
 
-        /// <summary>Removes a present's item row + its user_presents record.</summary>
         private static void DeletePresent(int itemId)
         {
             uint pid = (uint)itemId;

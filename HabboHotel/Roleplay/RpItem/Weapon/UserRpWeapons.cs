@@ -68,7 +68,6 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
             return userWeapon;
         }
 
-        /// <summary>Persists a new grid position for an owned weapon.</summary>
         public void SetSlot(int userWeaponId, int slot)
         {
             if (!_weapons.TryGetValue(userWeaponId, out UserWeapon weapon) || weapon.Slot == slot)
@@ -80,7 +79,6 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
 
         public IEnumerable<int> RemovedIds => _removedIds;
 
-        /// <summary>Permanently removes an owned weapon (e.g. dragged to the trashbin).</summary>
         public void RemoveWeapon(int userWeaponId)
         {
             if (!_weapons.Remove(userWeaponId, out UserWeapon weapon))

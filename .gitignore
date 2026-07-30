@@ -281,3 +281,8 @@ __pycache__/
 
 .DS_Store
 Resources/SQLs/Stock Vendor (Furni Scope, Price).sql
+
+# ReSharper dead-code inspection output (deadcode.ps1 / CI deadcode job)
+inspect.sarif
+inspect.xml
+inspect.log

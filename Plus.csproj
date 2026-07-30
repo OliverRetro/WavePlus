@@ -7,16 +7,29 @@
         <ApplicationIcon>icon.ico</ApplicationIcon>
         <!-- Run the IDExxxx code-style analyzers (IDE0005/IDE0051/…) during `dotnet build`. -->
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-        <!-- Required for IDE0005 (unused using) to be reported by `dotnet build`. -->
+        <!-- Required for IDE0005 (unused using) to be reported by `dotnet build`.
+             The CS1591 "missing XML comment" noise this enables is silenced in .editorconfig. -->
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
-        <!-- Suppress the "missing XML comment" noise that GenerateDocumentationFile enables. -->
-        <NoWarn>$(NoWarn);CS1591</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
-        <Reference Include="AStar">
-            <HintPath>Resources\libs\AStar.dll</HintPath>
-        </Reference>
+        <!-- Extracted leaf assemblies. Each keeps its original namespace (Plus.Database.EF.Entities,
+             Plus.Utilities, Plus.Communication.Encryption), so this project's existing usings resolve. -->
+        <ProjectReference Include="WavePlus.Entities\WavePlus.Entities.csproj" />
+        <ProjectReference Include="WavePlus.Utilities\WavePlus.Utilities.csproj" />
+        <ProjectReference Include="WavePlus.Cryptography\WavePlus.Cryptography.csproj" />
+    </ItemGroup>
+
+    <!-- Plus.csproj sits at the repo root and globs **/*.cs, which would otherwise also pull in the
+         nested project sources (double-compile). Exclude those subtrees. -->
+    <ItemGroup>
+        <Compile Remove="WavePlus.Entities\**\*.cs" />
+        <Compile Remove="WavePlus.Utilities\**\*.cs" />
+        <Compile Remove="WavePlus.Cryptography\**\*.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- AStar.dll moved to WavePlus.Utilities (its only consumer) and flows in transitively. -->
         <Reference Include="HabboEncryption">
             <HintPath>Resources\libs\HabboEncryption.dll</HintPath>
         </Reference>

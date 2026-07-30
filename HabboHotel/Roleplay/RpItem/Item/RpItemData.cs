@@ -4,62 +4,36 @@ using System.Text.Json;
 
 namespace Plus.HabboHotel.Roleplay.RpItem.Item
 {
-    /// <summary>
-    /// Definition of an RP item (a row in `rp_items`). One instance is shared by every
-    /// owned copy of the item, the per-user copy lives in <see cref="UserRpItem"/>.
-    /// </summary>
     public class RpItemData
     {
-        /// <summary>
-        /// Multiplier that converts an attribute time value into real milliseconds.
-        /// e.g. consume_length 400 => 4000ms (4s), fastwalk 1000 => 10000ms (10s).
-        /// </summary>
         public const int TimeUnitMs = 10;
 
-        /// <summary>
-        /// Base time, in minutes, that `hunger_saturation` is multiplied against.
-        /// </summary>
         public const int BaseHungerTickMinutes = 10;
 
         public int Id { get; }
 
-        /// <summary>Item name</summary>
         public string Name { get; }
 
-        /// <summary>Momentary handitem given when used</summary>
         public int HanditemData { get; }
 
-        /// <summary>Momentary effect given when used</summary>
         public int EffectData { get; }
 
-        /// <summary>Reference price for corporations</summary>
         public int BasePrice { get; }
 
-        /// <summary>Image loaded on UI</summary>
         public string ImageUrl { get; }
 
-        /// <summary>How many owned copies stack into a single inventory slot. 1 = never stacks.</summary>
         public int StackLimit { get; }
 
-        /// <summary>
-        /// Category of the item. One of "none", "primary", "secondary" or "consumable"
-        /// (the default). Anything unrecognised still behaves as a consumable.
-        /// </summary>
         public string ItemType { get; }
 
-        /// <summary>Rarity 1-5 (1 common .. 5 legendary) driving the inventory glow.</summary>
         public int Rarity { get; }
 
-        /// <summary>Shout text executed when the item is consumed (empty = none).</summary>
         public string BubbleText { get; }
 
-        /// <summary>Chat-bubble style id used for the consume shout.</summary>
         public int BubbleId { get; }
 
-        /// <summary>Figure override applied while equipped (shift-costume format). Empty = none.</summary>
         public string Clothing { get; }
 
-        /// <summary>Bool for clothes/summary>
         public bool HasClothing => !string.IsNullOrWhiteSpace(Clothing);
 
         private readonly Dictionary<string, double> _attributes;
@@ -96,86 +70,41 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             return (text, int.TryParse(idPart, out int bubbleId) ? bubbleId : 0);
         }
 
-        /// <summary>
-        /// How many times an owned copy can be used before it is destroyed. Defaults to 1.
-        /// </summary>
         public int MaxUses => GetInt("uses", 1);
 
-        /// <summary>
-        /// An inert item: it occupies no equip slot and cannot be used. For pure flavour/junk
-        /// items that would otherwise fall through to the consumable path and silently burn a
-        /// use doing nothing.
-        /// </summary>
         public bool IsNone => string.Equals(ItemType, "none", StringComparison.OrdinalIgnoreCase);
 
-        /// <summary>Equips to the primary slot (replaces the weapon while equipped).</summary>
         public bool IsPrimary => string.Equals(ItemType, "primary", StringComparison.OrdinalIgnoreCase);
 
-        /// <summary>
-        /// Equips to the secondary slot. NOTE: the legacy "shield" alias was intentionally
-        /// removed — shield items are now plain consumables that grant the `shield` stat on
-        /// use (see <see cref="UserRpItems.ApplyStatEffects"/>), not equippable vests.
-        /// </summary>
         public bool IsSecondary =>
             string.Equals(ItemType, "secondary", StringComparison.OrdinalIgnoreCase);
 
-        /// <summary>Any item that occupies an equipped slot (primary or secondary).</summary>
         public bool IsEquippable => IsPrimary || IsSecondary;
 
-        /// <summary>
-        /// Consumed on use. Defined by exclusion rather than by an exact string match so that an
-        /// unrecognised item_type keeps behaving as it always has.
-        /// </summary>
         public bool IsConsumable => !IsNone && !IsEquippable;
 
-        /// <summary>
-        /// Whether a dead owner may still use this item. Off unless the attribute JSON carries
-        /// `"zombie": 1` — dead users are otherwise blocked from every item, since things like
-        /// healing yourself back up from the grave leave the RP state inconsistent.
-        /// </summary>
         public bool UsableWhileDead => GetInt("zombie", 0) > 0;
 
-        /// <summary>
-        /// Whether a cuffed owner may still use this item. Off unless the attribute JSON carries
-        /// `"usable_cuffed": 1` — cuffed suspects are otherwise blocked from every item. Weapons
-        /// are never usable while cuffed (they carry no such opt-in and are blocked separately).
-        /// </summary>
         public bool UsableWhileCuffed => GetInt("usable_cuffed", 0) > 0;
 
-        /// <summary>Back-compat alias: the secondary slot behaves as a shield (durability + shield stat).</summary>
         public bool IsShield => IsSecondary;
 
-        /// <summary>Maximum shield/durability for a secondary (shield) item (from the `shield` attribute).</summary>
         public int MaxShield => GetInt("shield", 0);
 
-        /// <summary>A body-armour vest: a secondary item that flat-reduces incoming non-fist damage.</summary>
         public bool IsVest => Has("vest");
 
-        /// <summary>
-        /// Hits a standard vest can absorb before it breaks. Read from `vest_durability`, then the
-        /// legacy `shield` attribute, defaulting to 20 so a vest always has durability to spend.
-        /// </summary>
         public int MaxVestDurability => GetInt("vest_durability", GetInt("shield", 20));
 
-        /// <summary>Unified max durability for the item's inventory bar (vest hits or shield pool).</summary>
         public int MaxDurability => IsVest ? MaxVestDurability : MaxShield;
 
-        /// <summary>A suicide vest: a secondary item that detonates for area damage when used.</summary>
         public bool IsSuicideVest => Has("suicide_vest");
 
-        /// <summary>
-        /// True when this item can't be used while the owner is in passive mode (any item whose
-        /// attribute JSON carries a "passive" flag — e.g. aggressive items like the suicide vest).
-        /// </summary>
         public bool BlockedWhilePassive => Has("passive");
 
-        /// <summary>Minimum flat damage a standard vest removes from a non-fist hit.</summary>
         public int VestReductionMin => GetInt("vest_reduction_min", 1);
 
-        /// <summary>Maximum flat damage a standard vest removes from a non-fist hit.</summary>
         public int VestReductionMax => Math.Max(VestReductionMin, GetInt("vest_reduction_max", 3));
 
-        /// <summary>Percent chance (0-100) a standard vest fails to reduce a hit but still loses durability.</summary>
         public int VestFailChance => Math.Clamp(GetInt("vest_fail_chance", 0), 0, 100);
 
         // cooldown in ms i cba to do summary
@@ -184,16 +113,10 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
         // medkits, bandages again cba w summary
         public bool IsSlowHeal => GetInt("slow_heal", 0) > 0;
 
-        /// <summary>Minimum explosion damage from a suicide vest.</summary>
         public int ExplosionMin => GetInt("explosion_min", 50);
 
-        /// <summary>Maximum explosion damage from a suicide vest.</summary>
         public int ExplosionMax => Math.Max(ExplosionMin, GetInt("explosion_max", 100));
 
-        /// <summary>
-        /// Whether copies of this item collapse into a stack. Items with their own per-copy
-        /// state — durability/equip slots, or a stack limit of 1 — never stack.
-        /// </summary>
         public bool IsStackable => StackLimit > 1 && !IsEquippable;
 
         public bool Has(string key) => _attributes.ContainsKey(key);
@@ -204,10 +127,6 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
         public int GetInt(string key, int fallback = 0) =>
             _attributes.TryGetValue(key, out double value) ? (int)value : fallback;
 
-        /// <summary>
-        /// Real duration (ms) the temporary handitem/effect stays applied before the cached
-        /// state is restored. Read from `consume_length`, falling back to `length`.
-        /// </summary>
         public int ConsumptionDurationMs
         {
             get

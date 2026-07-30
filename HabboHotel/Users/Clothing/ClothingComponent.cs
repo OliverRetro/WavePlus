@@ -11,15 +11,8 @@ namespace Plus.HabboHotel.Users.Clothing
     {
         private Habbo _habbo;
 
-        /// <summary>
-        /// Effects stored by ID > Effect.
-        /// </summary>
         private readonly ConcurrentDictionary<int, ClothingParts> _allClothing = new();
 
-        /// <summary>
-        /// Initializes the EffectsComponent.
-        /// </summary>
-        /// <param name="habbo"></param>
         public bool Init(Habbo habbo)
         {
             if (_allClothing.Count > 0)
@@ -59,9 +52,6 @@ namespace Plus.HabboHotel.Users.Clothing
 
         public ICollection<ClothingParts> GetClothingParts => _allClothing.Values;
 
-        /// <summary>
-        /// Disposes the ClothingComponent.
-        /// </summary>
         public void Dispose()
         {
             _allClothing.Clear();

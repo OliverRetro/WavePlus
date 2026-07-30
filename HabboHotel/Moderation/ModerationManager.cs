@@ -95,7 +95,6 @@ namespace Plus.HabboHotel.Moderation
             Log.Info("Cached " + _bans.Count + " username and machine bans.");
         }
 
-        /// <summary>Loads the cached machine/user bans, purging any that have already expired.</summary>
         private void LoadBans(WavePlusContext db)
         {
             var rows = db.Bans.Where(b => b.Bantype == "machine" || b.Bantype == "user")
@@ -185,9 +184,6 @@ namespace Plus.HabboHotel.Moderation
             return _modTickets.FirstOrDefault(x => x.Value.Sender.Id == userId).Value;
         }
 
-        /// <summary>
-        /// Runs a quick check to see if a ban record is cached in the server.
-        /// </summary>
         public bool IsBanned(string key, out ModerationBan ban)
         {
             if (_bans.TryGetValue(key, out ban)) {
@@ -208,9 +204,6 @@ namespace Plus.HabboHotel.Moderation
             return false;
         }
 
-        /// <summary>
-        /// Run a quick database check to see if this ban exists in the database.
-        /// </summary>
         public bool MachineBanCheck(string machineId)
         {
             if (PlusEnvironment.GetGame().GetModerationManager().IsBanned(machineId, out ModerationBan _)) {
@@ -226,9 +219,6 @@ namespace Plus.HabboHotel.Moderation
             return true;
         }
 
-        /// <summary>
-        /// Run a quick database check to see if this ban exists in the database.
-        /// </summary>
         public bool UsernameBanCheck(string username)
         {
             if (PlusEnvironment.GetGame().GetModerationManager().IsBanned(username, out ModerationBan _)) {
@@ -244,9 +234,6 @@ namespace Plus.HabboHotel.Moderation
             return true;
         }
 
-        /// <summary>
-        /// Remove a ban from the cache based on a given value.
-        /// </summary>
         public void RemoveBan(string value)
         {
             _bans.Remove(value);

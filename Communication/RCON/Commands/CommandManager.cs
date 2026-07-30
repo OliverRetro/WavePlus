@@ -7,14 +7,8 @@ namespace Plus.Communication.Rcon.Commands
 {
     public class CommandManager
     {
-        /// <summary>
-        /// Commands registered for use.
-        /// </summary>
         private readonly Dictionary<string, IRconCommand> _commands;
 
-        /// <summary>
-        /// The default initializer for the CommandManager
-        /// </summary>
         public CommandManager()
         {
             _commands = new Dictionary<string, IRconCommand>();
@@ -23,11 +17,6 @@ namespace Plus.Communication.Rcon.Commands
             RegisterHotel();
         }
 
-        /// <summary>
-        /// Request the text to parse and check for commands that need to be executed.
-        /// </summary>
-        /// <param name="data">A string of data split by char(1), the first part being the command and the second part being the parameters.</param>
-        /// <returns>True if parsed or false if not.</returns>
         public bool Parse(string data)
         {
             if (data.Length == 0 || string.IsNullOrEmpty(data))
@@ -48,9 +37,6 @@ namespace Plus.Communication.Rcon.Commands
             return false;
         }
 
-        /// <summary>
-        /// Registers the commands tailored towards a user.
-        /// </summary>
         private void RegisterUser()
         {
             Register("alert_user", new AlertUserCommand());
@@ -67,9 +53,6 @@ namespace Plus.Communication.Rcon.Commands
             Register("take_user_badge", new TakeUserBadgeCommand());
         }
 
-        /// <summary>
-        /// Registers the commands tailored towards the hotel.
-        /// </summary>
         private void RegisterHotel()
         {
             Register("reload_bans", new ReloadBansCommand());
@@ -84,11 +67,6 @@ namespace Plus.Communication.Rcon.Commands
             Register("reload_rp", new ReloadRpCommand());
         }
 
-        /// <summary>
-        /// Registers a Rcon command.
-        /// </summary>
-        /// <param name="commandText">Text to type for this command.</param>
-        /// <param name="command">The command to execute.</param>
         public void Register(string commandText, IRconCommand command)
         {
             _commands.Add(commandText, command);

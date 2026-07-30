@@ -5,13 +5,6 @@ namespace Plus.HabboHotel.Users.Effects
 {
     internal static class AvatarEffectFactory
     {
-        /// <summary>
-        /// Creates a new AvatarEffect with the specified details.
-        /// </summary>
-        /// <param name="habbo"></param>
-        /// <param name="spriteId"></param>
-        /// <param name="duration"></param>
-        /// <returns></returns>
         public static AvatarEffect CreateNullable(Habbo habbo, int spriteId, double duration)
         {
             using WavePlusContext db = PlusEnvironment.GetDbContext();

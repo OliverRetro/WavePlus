@@ -3,16 +3,6 @@ using System.Collections.Generic;
 
 namespace Plus.HabboHotel.Rooms.PathFinding
 {
-    /// <summary>
-    /// A* pathfinder over the room's tile grid.
-    ///
-    /// Rewritten from the legacy implementation which (a) folded a squared-euclidean
-    /// heuristic into the accumulated g-cost — making the search wildly inadmissible and
-    /// producing wrong/failed paths around obstacles — and (b) mutated node costs after
-    /// they were already inside the heap, silently corrupting the heap invariant. This
-    /// version keeps g and h separate, uses flat arrays instead of per-node allocations,
-    /// and tolerates stale heap entries by skipping already-closed pops.
-    /// </summary>
     public static class PathFinder
     {
         // Neighbour offsets. Order matters for tie-breaking stability only.
@@ -24,10 +14,6 @@ namespace Plus.HabboHotel.Rooms.PathFinding
         private const int CostStraight = 10;
         private const int CostDiagonal = 14;
 
-        /// <summary>
-        /// Returns the path as [end, ..., firstStep, start] (legacy order — consumers walk
-        /// it back-to-front), or an empty list when no path exists.
-        /// </summary>
         public static List<Vector2D> FindPath(RoomUser user, bool diag, Gamemap map, Vector2D start, Vector2D end)
         {
             var path = new List<Vector2D>();
@@ -155,7 +141,6 @@ namespace Plus.HabboHotel.Rooms.PathFinding
             return path;
         }
 
-        /// <summary>Minimal binary min-heap of (priority, tile index) pairs.</summary>
         private sealed class BinaryHeap
         {
             private int[] _priority;

@@ -45,11 +45,6 @@ namespace Plus.HabboHotel.Rooms.Chat.Emotions
             {":-(", ChatEmotions.Sad}
         };
 
-        /// <summary>
-        /// Searches the provided text for any emotions that need to be applied and returns the packet number.
-        /// </summary>
-        /// <param name="text">The text to search through</param>
-        /// <returns></returns>
         public int GetEmotionsForText(string text)
         {
             foreach (KeyValuePair<string, ChatEmotions> kvp in _emotions) {
@@ -61,11 +56,6 @@ namespace Plus.HabboHotel.Rooms.Chat.Emotions
             return 0;
         }
 
-        /// <summary>
-        /// Trys to get the packet number for the provided chat emotion.
-        /// </summary>
-        /// <param name="e">Chat Emotion</param>
-        /// <returns></returns>
         private static int GetEmoticonPacketNum(ChatEmotions e)
         {
             switch (e) {

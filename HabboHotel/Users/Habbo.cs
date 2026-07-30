@@ -873,11 +873,6 @@ namespace Plus.HabboHotel.Users
             }
         }
 
-        /// <summary>
-        /// Flushes every piece of this user's roleplay data to the database. Called by the
-        /// 5-minute persistence saver and on disconnect. The individual saves are dirty-gated
-        /// where applicable, so calling this for all online users each cycle is cheap.
-        /// </summary>
         public void SaveAllRpData()
         {
             SaveRpStats();

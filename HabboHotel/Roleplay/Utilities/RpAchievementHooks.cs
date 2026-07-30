@@ -5,11 +5,6 @@ using Plus.HabboHotel.Roleplay.Level;
 
 namespace Plus.HabboHotel.Roleplay.Utilities
 {
-    /// <summary>
-    /// Central place for achievements that are evaluated when a user enters the hotel, i.e. the
-    /// "state snapshot" achievements whose progress is an absolute value (days registered, RP level,
-    /// number of chat styles owned) rather than a per-event increment.
-    /// </summary>
     public static class RpAchievementHooks
     {
         public static void OnEnterHotel(GameClient session)

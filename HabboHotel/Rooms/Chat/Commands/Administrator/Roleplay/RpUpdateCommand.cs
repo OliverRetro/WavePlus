@@ -3,7 +3,6 @@ using Plus.HabboHotel.Roleplay.Utilities;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 {
-    /// <summary>`:rpupdate &lt;switch&gt;` — hot-reload RP definition tables.</summary>
     internal class RpUpdateCommand : IChatCommand
     {
         public string PermissionRequired => "command_rp_update";

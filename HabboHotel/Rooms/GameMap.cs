@@ -91,7 +91,6 @@ namespace Plus.HabboHotel.Rooms
             return false;
         }
 
-        /// <summary>First user on the tile without snapshotting the whole list (hot path).</summary>
         public RoomUser GetFirstUserForSquare(Point coord)
         {
             if (_userMap.TryGetValue(coord, out List<RoomUser> users)) {
@@ -1141,12 +1140,6 @@ namespace Plus.HabboHotel.Rooms
             return MapGotUser(new Point(x, y));
         }
 
-        /// <summary>
-        /// Occupancy check that ignores one user. Needed because the map marker only moves when
-        /// a step commits: a walking user is still registered on the tile they are leaving, so
-        /// asking "is my own current tile occupied?" would otherwise always answer yes and block
-        /// them from turning back.
-        /// </summary>
         public bool SquareHasUsers(int x, int y, RoomUser excluding)
         {
             if (excluding == null)

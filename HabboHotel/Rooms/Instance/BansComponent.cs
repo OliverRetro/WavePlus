@@ -10,20 +10,10 @@ namespace Plus.HabboHotel.Rooms.Instance
 {
     public class BansComponent
     {
-        /// <summary>
-        /// The RoomInstance that created this BanComponent.
-        /// </summary>
         private Room _instance;
 
-        /// <summary>
-        /// The bans collection for storing them for this room.
-        /// </summary>
         private ConcurrentDictionary<int, double> _bans;
 
-        /// <summary>
-        /// Create the BanComponent for the RoomInstance.
-        /// </summary>
-        /// <param name="instance">The instance that created this component.</param>
         public BansComponent(Room instance)
         {
             if (instance == null)

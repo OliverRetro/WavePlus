@@ -7,10 +7,6 @@ using Plus.HabboHotel.Users;
 
 namespace Plus.HabboHotel.Roleplay.RpItem
 {
-    /// <summary>
-    /// A single occupied slot in the overlay's normal item grid — either a (possibly stacked)
-    /// group of identical RP items or a single weapon. Shields, while equipped, are excluded.
-    /// </summary>
     public sealed class RpInventoryEntry
     {
         // "item", "shield" or "weapon".
@@ -30,10 +26,6 @@ namespace Plus.HabboHotel.Roleplay.RpItem
         public int Count => Stack?.Count ?? 1;
     }
 
-    /// <summary>
-    /// Builds the merged, stacked view of a user's RP items + weapons for the inventory grid.
-    /// Shared by the overlay serialiser, the giveitem stack-limit guard and the disband logic.
-    /// </summary>
     public static class RpInventory
     {
         public static List<RpInventoryEntry> BuildEntries(Habbo habbo)
@@ -94,7 +86,6 @@ namespace Plus.HabboHotel.Roleplay.RpItem
             return entries;
         }
 
-        /// <summary>Places the entries into a fixed slot grid, honouring saved positions.</summary>
         public static RpInventoryEntry[] BuildSlotView(Habbo habbo, int slotCount)
         {
             RpInventoryEntry[] view = new RpInventoryEntry[slotCount];
@@ -139,7 +130,6 @@ namespace Plus.HabboHotel.Roleplay.RpItem
         private static int EntryId(RpInventoryEntry entry) =>
             entry.Kind == "weapon" ? entry.Weapon?.Id ?? 0 : entry.Representative?.Id ?? 0;
 
-        /// <summary>Grid slots currently occupied by equipped items/weapon (reserved for their return).</summary>
         private static HashSet<int> GetReservedSlots(Habbo habbo, int slotCount)
         {
             HashSet<int> reserved = new();
@@ -160,7 +150,6 @@ namespace Plus.HabboHotel.Roleplay.RpItem
             return reserved;
         }
 
-        /// <summary>Number of normal grid slots currently occupied (stacks count once).</summary>
         public static int UsedSlots(Habbo habbo, int slotCount) =>
             BuildSlotView(habbo, slotCount).Count(x => x != null);
     }

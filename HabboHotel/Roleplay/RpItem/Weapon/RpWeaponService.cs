@@ -5,10 +5,6 @@ using Plus.HabboHotel.Rooms;
 
 namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
 {
-    /// <summary>
-    /// Shared "equip this weapon as active" logic used by :setweapon, :inv and the overlay
-    /// drag-to-primary-slot. Sets the active weapon, applies its effect/skin and announces it.
-    /// </summary>
     public static class RpWeaponService
     {
         public static bool Equip(GameClient session, int weaponId, out string error)

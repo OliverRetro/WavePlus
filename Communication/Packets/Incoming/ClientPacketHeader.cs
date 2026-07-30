@@ -5,9 +5,6 @@
         // wave
         // Roleplay custom incoming packets
         public const int RequestWantedListMessageEvent = 6008;
-        // Nitro's RPTargetUserComposer. Sent on every avatar selection, so it is the
-        // authoritative "who am I pointing at" signal — badge requests are cached client
-        // side and so cannot be relied on to fire for repeat clicks.
         public const int RpTargetUserMessageEvent = 6009;
         public const int RequestMyPhotosMessageEvent = 6011;
         public const int SpendAttributePointMessageEvent = 6012;

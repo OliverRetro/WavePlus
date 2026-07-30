@@ -18,12 +18,6 @@ namespace Plus.HabboHotel.Items.Interactor
                 PlusEnvironment.GetRoomStockManager().ClearFurniStock(item.GetRoom().Id, item.Id);
         }
 
-        /// <summary>
-        /// Double-clicking the vendor raises the same buy window <c>:offer</c> uses, but scoped to
-        /// this furni's own stock — <see cref="RpOfferService.Open"/> keys the pool by the furni's
-        /// `items.id`, so each vendor sells only what <c>:additemstock</c> put on it. There's no
-        /// seller, so no commission is paid and the window is titled after the furni.
-        /// </summary>
         public void OnTrigger(GameClient session, Item item, int request, bool hasRights)
         {
             Habbo habbo = session?.GetHabbo();
@@ -45,7 +39,6 @@ namespace Plus.HabboHotel.Items.Interactor
         {
         }
 
-        /// <summary>The furni's own name, falling back to a generic label.</summary>
         private static string VendorTitle(Item item)
         {
             string name = item.GetBaseItem()?.PublicName;

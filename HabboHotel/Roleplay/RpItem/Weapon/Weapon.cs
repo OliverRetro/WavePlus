@@ -15,13 +15,8 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Weapon
         public double CriticalMultiplier { get; set; }
         public int Effect { get; set; }
 
-        /// <summary>
-        /// Reach in tiles (Chebyshev rings): 0 = the same tile only, 1 = same/adjacent tile,
-        /// 2 = one tile of gap between attacker and target, and so on.
-        /// </summary>
         public int Range { get; set; }
 
-        /// <summary>When false, the target must be on the same row or column as the attacker.</summary>
         public bool AllowDiagonal { get; set; }
 
         public int Durability { get; set; }

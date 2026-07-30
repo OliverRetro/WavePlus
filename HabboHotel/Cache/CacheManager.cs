@@ -58,12 +58,6 @@ namespace Plus.HabboHotel.Cache
             return user;
         }
 
-        /// <summary>
-        /// Batch equivalent of <see cref="GenerateUser"/>. Returns a complete <see cref="UserCache"/>
-        /// for every requested id, resolving online users from their session, then failsafe-fetching
-        /// everyone still missing (or cached with an incomplete look/username) from the DB in a SINGLE
-        /// query. Preferred over calling GenerateUser in a loop when resolving a whole member list.
-        /// </summary>
         public List<UserCache> GenerateUsers(IEnumerable<int> ids)
         {
             var result = new List<UserCache>();

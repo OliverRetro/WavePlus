@@ -10,15 +10,6 @@ using Plus.HabboHotel.Users.Roleplay;
 
 namespace Plus.HabboHotel.Roleplay.Police
 {
-    /// <summary>
-    /// In-memory police state for cuffs and escorts, mirrored to the suspect's rp statistics so
-    /// cuffs survive relog/restart. Being cuffed leaves a suspect <b>free to move</b> — they wear
-    /// the cuffs effect and lose the use of items, weapons and roleplay commands, but can walk. A
-    /// suspect is only <b>frozen</b> (immobile) while actively being escorted, when their movement
-    /// is mirrored one-for-one from the escorting officer. Cuffs come off via a lockpick (the
-    /// `handpick` item) or by being killed. Escorting a suspect into a jail room hands them to the
-    /// JailManager, which owns the jail outfit while they serve time.
-    /// </summary>
     public sealed class PoliceManager
     {
         private readonly ConcurrentDictionary<int, PoliceState> _states = new();
@@ -29,7 +20,6 @@ namespace Plus.HabboHotel.Roleplay.Police
         public bool IsEscorted(int userId) =>
             _states.TryGetValue(userId, out PoliceState state) && state.EscortedBy > 0;
 
-        /// <summary>True while the suspect is held immobile — i.e. actively being escorted.</summary>
         public bool IsFrozen(int userId) =>
             _states.TryGetValue(userId, out PoliceState state) && state.Frozen;
 
@@ -57,10 +47,6 @@ namespace Plus.HabboHotel.Roleplay.Police
             Persist(target, state);
         }
 
-        /// <summary>
-        /// Re-establishes a cuffed-but-free suspect from persistence (e.g. after they relog while
-        /// still cuffed but not jailed). Cuffs are shown, restrictions apply, but they can move.
-        /// </summary>
         public void RestoreCuffedFree(Habbo target, string originalLook)
         {
             if (target == null || _states.ContainsKey(target.Id))
@@ -74,10 +60,6 @@ namespace Plus.HabboHotel.Roleplay.Police
             RpEffectService.Refresh(target);
         }
 
-        /// <summary>
-        /// On room entry, re-establishes cuffs for a suspect who relogged still cuffed but not
-        /// jailed (the JailManager handles the jailed case). Restores them free-to-move.
-        /// </summary>
         public void HandleRoomEntry(Habbo habbo)
         {
             UserRpStats stats = habbo?.GetRpStats();
@@ -91,11 +73,6 @@ namespace Plus.HabboHotel.Roleplay.Police
             RestoreCuffedFree(habbo, stats.JailRevertLook);
         }
 
-        /// <summary>
-        /// Marks a suspect as cuffed for jail, without touching their look — the JailManager owns
-        /// the jail outfit while the sentence is served. Jailed suspects can move around the jail
-        /// room freely (the JailManager confines them to it), so they are not frozen.
-        /// </summary>
         public void EnterJailCuff(Habbo target, string originalLook)
         {
             if (target == null)
@@ -115,7 +92,6 @@ namespace Plus.HabboHotel.Roleplay.Police
             Persist(target, state);
         }
 
-        /// <summary>Removes a suspect's cuffs and restores the look they had before cuffing.</summary>
         public void Uncuff(Habbo target)
         {
             if (target == null)
@@ -132,10 +108,6 @@ namespace Plus.HabboHotel.Roleplay.Police
             }
         }
 
-        /// <summary>
-        /// The suspect picks their cuffs (handpick): drops the cuffs, wipes any jail data and their
-        /// crimes, and restores their old outfit — as if they never committed a crime.
-        /// </summary>
         public void BreakFree(Habbo target)
         {
             // Only counts as an escape if they were actually in custody (cuffed/being escorted).
@@ -146,11 +118,6 @@ namespace Plus.HabboHotel.Roleplay.Police
                 PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(target.GetClient(), "ACH_Escaper", 1);
         }
 
-        /// <summary>
-        /// Removes a suspect's cuffs and jail data and restores their pre-cuff look. When
-        /// <paramref name="wipeCrimes"/> is set their wanted record is cleared too (a clean escape);
-        /// otherwise their crimes remain (e.g. being killed just knocks the cuffs off).
-        /// </summary>
         private void RemoveCuffs(Habbo target, bool wipeCrimes)
         {
             if (target == null)
@@ -170,12 +137,6 @@ namespace Plus.HabboHotel.Roleplay.Police
             ClearCuffPersistence(target);
         }
 
-        /// <summary>
-        /// Begins escorting a cuffed suspect, carrying the star sentence captured at <c>:arrest</c>
-        /// (0 for a plain <c>:escort</c>). The suspect is frozen and, from here on, mirrors the
-        /// officer's movement one-for-one — holding the tile offset they were stood at when the
-        /// escort began (see <see cref="SyncEscorts"/>). Reaching a jail room ends it.
-        /// </summary>
         public void StartArrestEscort(Habbo officer, Habbo target, int pendingStars)
         {
             if (officer == null || target == null)
@@ -205,11 +166,6 @@ namespace Plus.HabboHotel.Roleplay.Police
             }
         }
 
-        /// <summary>
-        /// Handles a user disconnecting. A suspect leaving mid-escort persists a pending jail
-        /// sentence (jailed on relog); a cuffed suspect otherwise persists their cuffs (restored
-        /// free-to-move on relog). An officer leaving frees — but keeps cuffed — their suspects.
-        /// </summary>
         public void OnDisconnect(Habbo habbo)
         {
             if (habbo == null)
@@ -233,10 +189,6 @@ namespace Plus.HabboHotel.Roleplay.Police
             FreeControlledSuspects(habbo.Id, "Your escorting officer left — you can move, but you're still cuffed.");
         }
 
-        /// <summary>
-        /// Handles a user dying. If they were escorting/cuffing suspects, those suspects are freed
-        /// (but stay cuffed). If the dead user was themselves cuffed, the cuffs come off.
-        /// </summary>
         public void OnDeath(Habbo habbo)
         {
             if (habbo == null)
@@ -249,11 +201,6 @@ namespace Plus.HabboHotel.Roleplay.Police
                 RemoveCuffs(habbo, wipeCrimes: false);
         }
 
-        /// <summary>
-        /// Slow (250ms) escort housekeeping: pull suspects into the officer's room when he changes
-        /// rooms, jail them on reaching a jail room, and release suspects whose officer vanished.
-        /// The tile-by-tile mirroring itself runs on the room cycle in <see cref="SyncEscorts"/>.
-        /// </summary>
         public void OnCycle()
         {
             HashSet<int> jailRooms = GetJailRoomIds();
@@ -307,15 +254,6 @@ namespace Plus.HabboHotel.Roleplay.Police
             }
         }
 
-        /// <summary>
-        /// Called by the room engine at the end of every user-processing cycle (50ms), after all
-        /// walkers have committed their step. Each escorted suspect is kept a rigid mirror of their
-        /// officer: they hold the tile offset captured when the escort began and copy his movement
-        /// one-for-one. A normal walk step is mirrored as an animated step so the pair walks
-        /// together; a teleport (arrow / room swap / big jump) snaps the suspect across instantly,
-        /// colliding onto the officer's tile if there's no open tile to hold. It must run after the
-        /// user loop so the suspect's own (idle) pass can't strip the "mv" before it's serialised.
-        /// </summary>
         public void SyncEscorts(Room room)
         {
             if (room == null || _states.IsEmpty)
@@ -384,10 +322,6 @@ namespace Plus.HabboHotel.Roleplay.Police
             }
         }
 
-        /// <summary>
-        /// Snapshots the suspect's tile offset from the officer when the escort starts, plus the
-        /// officer's tile/room so <see cref="SyncEscorts"/> can tell a fresh step from a repeat.
-        /// </summary>
         private static void CaptureEscortFormation(Habbo officer, Habbo target, PoliceState state)
         {
             state.HasOffset = false;
@@ -412,11 +346,6 @@ namespace Plus.HabboHotel.Roleplay.Police
             state.LastOfficerRoomId = room.RoomId;
         }
 
-        /// <summary>
-        /// The tile the suspect should hold this tick: the officer's tile plus the escort offset
-        /// when that lands on solid floor, else the tile in front of him, else the officer's own
-        /// tile (they collide / stack — "no open tile in front").
-        /// </summary>
         private static Point ResolveSuspectTile(Room room, int ox, int oy, int rot, PoliceState state)
         {
             if (state.HasOffset) {
@@ -433,10 +362,6 @@ namespace Plus.HabboHotel.Roleplay.Police
             return new Point(ox, oy);
         }
 
-        /// <summary>
-        /// Re-forms the suspect beside the officer after a room swap (where the stored offset is
-        /// meaningless) and re-captures the offset from that fresh spot.
-        /// </summary>
         private static Point ReformNextToOfficer(Room room, int ox, int oy, int rot, PoliceState state)
         {
             Point tile = FindHoldTile(room, ox, oy, rot);
@@ -446,7 +371,6 @@ namespace Plus.HabboHotel.Roleplay.Police
             return tile;
         }
 
-        /// <summary>A free tile beside the officer: in front if possible, else any neighbour, else his own tile.</summary>
         private static Point FindHoldTile(Room room, int ox, int oy, int rot)
         {
             Point front = SquareInDirection(ox, oy, rot);
@@ -462,7 +386,6 @@ namespace Plus.HabboHotel.Roleplay.Police
             return new Point(ox, oy);
         }
 
-        /// <summary>Issues one animated proxy step for the suspect, paced like a real walk.</summary>
         private static void IssueMirrorStep(Room room, RoomUser suspect, int x, int y, int rot)
         {
             double stepZ = room.GetGameMap().SqAbsoluteHeight(x, y);
@@ -484,10 +407,6 @@ namespace Plus.HabboHotel.Roleplay.Police
             suspect.UpdateNeeded = true;
         }
 
-        /// <summary>
-        /// Keeps a stationary suspect's facing on the officer and, once their last proxy step has
-        /// committed, drops the lingering "mv" so they settle out of the walk pose.
-        /// </summary>
         private static void SettleSuspect(RoomUser suspect, int rot)
         {
             bool changed = false;
@@ -507,11 +426,9 @@ namespace Plus.HabboHotel.Roleplay.Police
                 suspect.UpdateNeeded = true;
         }
 
-        /// <summary>Chebyshev (king-move) distance between two tiles.</summary>
         private static int Chebyshev(int x1, int y1, int x2, int y2) =>
             System.Math.Max(System.Math.Abs(x1 - x2), System.Math.Abs(y1 - y2));
 
-        /// <summary>The tile one square from (x, y) in the given rotation (8 directions).</summary>
         private static Point SquareInDirection(int x, int y, int rot)
         {
             return rot switch
@@ -528,7 +445,6 @@ namespace Plus.HabboHotel.Roleplay.Police
             };
         }
 
-        /// <summary>Instantly places a suspect on a tile facing the given rotation (teleport / room swap).</summary>
         private static void SnapTo(Room room, RoomUser roomUser, int x, int y, int rot)
         {
             roomUser.ClearMovement(true);
@@ -541,7 +457,6 @@ namespace Plus.HabboHotel.Roleplay.Police
             roomUser.UpdateNeeded = true;
         }
 
-        /// <summary>Frees (but keeps cuffed) every suspect the given officer was escorting/holding.</summary>
         private void FreeControlledSuspects(int officerId, string message)
         {
             foreach (var kv in _states) {
@@ -564,7 +479,6 @@ namespace Plus.HabboHotel.Roleplay.Police
             }
         }
 
-        /// <summary>Rooms that count as jails: escorting a suspect into one auto-jails them.</summary>
         public static HashSet<int> GetJailRoomIds()
         {
             HashSet<int> rooms = new();
@@ -648,7 +562,6 @@ namespace Plus.HabboHotel.Roleplay.Police
             }
         }
 
-        /// <summary>Stops any in-flight escort proxy step so a released suspect settles cleanly.</summary>
         private static void EndEscortMovement(Habbo target)
         {
             RoomUser roomUser = target?.CurrentRoom?.GetRoomUserManager().GetRoomUserByHabbo(target.Id);

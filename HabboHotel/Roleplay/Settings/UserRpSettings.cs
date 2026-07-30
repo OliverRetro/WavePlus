@@ -4,13 +4,6 @@ using Plus.Database.EF.Entities;
 
 namespace Plus.HabboHotel.Roleplay.Settings
 {
-    /// <summary>
-    /// Per-user roleplay settings (backed by the <c>user_rp_settings</c> table and exposed
-    /// through the gaz-js Settings overlay).
-    ///
-    /// A handful of these drive real behaviour; the rest are persisted and surfaced so the
-    /// overlay can round-trip them, but are not wired into gameplay yet.
-    /// </summary>
     public sealed class UserRpSettings
     {
         public int UserId { get; }
@@ -41,9 +34,6 @@ namespace Plus.HabboHotel.Roleplay.Settings
             LinkWarning = linkWarning;
         }
 
-        /// <summary>
-        /// Loads a user's settings, creating a default row the first time they are seen.
-        /// </summary>
         public static UserRpSettings Load(int userId)
         {
             using WavePlusContext db = PlusEnvironment.GetDbContext();
@@ -67,9 +57,6 @@ namespace Plus.HabboHotel.Roleplay.Settings
                 row.LinkWarningEnabled == 1);
         }
 
-        /// <summary>
-        /// Persists the current values, inserting the row if it does not exist yet.
-        /// </summary>
         public void Save()
         {
             using WavePlusContext db = PlusEnvironment.GetDbContext();

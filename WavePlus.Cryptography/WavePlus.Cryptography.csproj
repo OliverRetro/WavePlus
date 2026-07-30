@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <!-- Files keep their Plus.Communication.Encryption[.*] namespaces (no using changes elsewhere). -->
+        <RootNamespace>Plus.Communication.Encryption</RootNamespace>
+        <ImplicitUsings>disable</ImplicitUsings>
+        <Nullable>disable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <!-- Preserve pre-split visibility of any internal crypto helpers to the main assembly. -->
+        <InternalsVisibleTo Include="Plus" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- HabboEncryptionV2 uses helpers from Plus.Utilities (e.g. HabboEncoding). -->
+        <ProjectReference Include="..\WavePlus.Utilities\WavePlus.Utilities.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- BigInteger (RSAKey/DiffieHellman) is the global-namespace type from HabboEncryption.dll,
+             not System.Numerics - which is why these files carry no System.Numerics using. -->
+        <Reference Include="HabboEncryption">
+            <HintPath>..\Resources\libs\HabboEncryption.dll</HintPath>
+        </Reference>
+        <!-- ARC4 ciphers an IByteBuffer in place. -->
+        <PackageReference Include="DotNetty.Buffers" Version="0.7.6" />
+    </ItemGroup>
+
+</Project>

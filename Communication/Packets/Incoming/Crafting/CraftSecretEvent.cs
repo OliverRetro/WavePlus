@@ -3,11 +3,6 @@ using Plus.HabboHotel.GameClients;
 
 namespace Plus.Communication.Packets.Incoming.Crafting
 {
-    /// <summary>
-    /// Starts a timed craft from the current mixer slots. Payload: objectId, n, then n
-    /// (typeFlag, itemId) pairs (0 = rp_item, 1 = rp_weapon). The manager validates the exact
-    /// match against the owner's UNLOCKED recipes, escrows the ingredients and runs the timer.
-    /// </summary>
     internal class CraftSecretEvent : IPacketEvent
     {
         public void Parse(GameClient session, ClientPacket packet)

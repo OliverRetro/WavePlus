@@ -14,49 +14,22 @@ namespace Plus.HabboHotel.Rooms.Chat
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(ChatManager));
 
-        /// <summary>
-        /// Chat Emoticons.
-        /// </summary>
         private readonly ChatEmotionsManager _emotions;
 
-        /// <summary>
-        /// Chatlog Manager
-        /// </summary>
         private readonly ChatLogManager _logs;
 
-        /// <summary>
-        /// Filter Manager.
-        /// </summary>
         private readonly WordFilterManager _filter;
 
-        /// <summary>
-        /// Commands.
-        /// </summary>
         private readonly CommandManager _commands;
 
-        /// <summary>
-        /// Pet Commands.
-        /// </summary>
         private readonly PetCommandManager _petCommands;
 
-        /// <summary>
-        /// Pet Locale.
-        /// </summary>
         private readonly PetLocale _petLocale;
 
-        /// <summary>
-        /// Chat styles.
-        /// </summary>
         private readonly ChatStyleManager _chatStyles;
 
-        /// <summary>
-        /// Clickable-link whitelist.
-        /// </summary>
         private readonly LinkWhitelistManager _linkWhitelist;
 
-        /// <summary>
-        /// Initializes a new instance of the ChatManager class.
-        /// </summary>
         public ChatManager()
         {
             _emotions = new ChatEmotionsManager();

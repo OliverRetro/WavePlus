@@ -11,23 +11,12 @@ using Plus.HabboHotel.Users;
 
 namespace Plus.HabboHotel.Roleplay.Stock
 {
-    /// <summary>
-    /// Drives the buy window shared by :offer (a corporation employee selling from the room's
-    /// pool) and the stock_vendor furni (selling from that furni's own pool).
-    ///
-    /// Every purchase is re-validated here against live stock, live credits and live inventory
-    /// space — the window's numbers are only ever a hint, and a client that lies about what it
-    /// was shown gets the same answer as one that doesn't.
-    /// </summary>
     public static class RpOfferService
     {
-        /// <summary>Cut of the sale paid to the employee who raised the offer, in percent.</summary>
         public const int CommissionPercent = 5;
 
-        /// <summary>How long a window stays answerable before it lapses.</summary>
         public const int ExpirySeconds = 180;
 
-        /// <summary>Normal inventory grid slots. Matches the value the inventory panel uses.</summary>
         private const int InventorySlots = 10;
 
         public sealed class PendingOffer
@@ -36,14 +25,9 @@ namespace Plus.HabboHotel.Roleplay.Stock
             public int RoomId { get; init; }
             public int FurniId { get; init; }
 
-            /// <summary>0 for a vendor furni — nobody earns commission on those.</summary>
             public int SellerId { get; init; }
             public string SellerName { get; init; }
 
-            /// <summary>
-            /// Heading the window opened with (the corporation name, or the vendor furni's name).
-            /// Kept so a re-send after a purchase doesn't silently retitle the window.
-            /// </summary>
             public string Title { get; init; }
             public DateTime SentAt { get; init; }
 
@@ -55,13 +39,8 @@ namespace Plus.HabboHotel.Roleplay.Stock
         private static readonly ConcurrentDictionary<int, PendingOffer> _pending = new();
         private static int _nextId;
 
-        /// <summary>Drops any window held for a user (called on disconnect).</summary>
         public static void Clear(int userId) => _pending.TryRemove(userId, out _);
 
-        /// <summary>
-        /// Raises the buy window on <paramref name="buyer"/>. <paramref name="seller"/> is null
-        /// for a vendor furni.
-        /// </summary>
         public static bool Open(GameClient buyer, int roomId, int furniId, Habbo seller, string title)
         {
             Habbo habbo = buyer?.GetHabbo();
@@ -91,7 +70,6 @@ namespace Plus.HabboHotel.Roleplay.Stock
             return true;
         }
 
-        /// <summary>Re-sends the window with fresh stock/credits, optionally with a message.</summary>
         private static void Refresh(GameClient buyer, PendingOffer offer, string message)
         {
             SendWindow(buyer, offer,
@@ -134,11 +112,6 @@ namespace Plus.HabboHotel.Roleplay.Stock
             });
         }
 
-        /// <summary>
-        /// Buys one line. Space is clamped silently (you get as many as fit); credits are not —
-        /// an unaffordable basket is refused outright with a message rather than trimmed, so the
-        /// buyer decides what to drop.
-        /// </summary>
         public static void HandlePurchase(GameClient buyer, int offerId, string stockType, int itemId, int amount)
         {
             Habbo habbo = buyer?.GetHabbo();
@@ -228,7 +201,6 @@ namespace Plus.HabboHotel.Roleplay.Stock
             Refresh(buyer, offer, note);
         }
 
-        /// <summary>Pays the selling employee their cut. Vendor furni sales pay nobody.</summary>
         private static void PayCommission(PendingOffer offer, int total)
         {
             if (offer.SellerId == 0 || total <= 0)
@@ -249,7 +221,6 @@ namespace Plus.HabboHotel.Roleplay.Stock
             sellerClient.SendWhisper($"You earned {commission} credits commission on that sale.", 1);
         }
 
-        /// <summary>How many of an item the buyer's inventory can actually take.</summary>
         private static int Capacity(Habbo habbo, string stockType, int itemId, int wanted)
         {
             int free = FreeSlots(habbo);
@@ -304,7 +275,6 @@ namespace Plus.HabboHotel.Roleplay.Stock
             }
         }
 
-        /// <summary>Name/image/rarity for a stock line, or false when the id no longer resolves.</summary>
         private static bool TryDescribe(string stockType, int itemId, out string name, out string image, out int rarity)
         {
             name = "";

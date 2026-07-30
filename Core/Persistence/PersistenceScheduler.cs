@@ -98,7 +98,6 @@ namespace Plus.Core.Persistence
             }
         }
 
-        /// <summary>Runs every registered saver synchronously. Called on shutdown.</summary>
         public void FlushAll()
         {
             lock (_userLock)

@@ -4,7 +4,6 @@ using Plus.HabboHotel.Users;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Banking
 {
-    /// <summary>Shared helpers for the RP banking user commands.</summary>
     internal static class BankCommandUtil
     {
         public const string NoAccountMessage = "Sorry, you don't have a bank account, visit the bank to open one!";

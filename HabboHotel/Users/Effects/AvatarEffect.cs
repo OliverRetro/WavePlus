@@ -51,9 +51,6 @@ namespace Plus.HabboHotel.Users.Effects
 
         public bool HasExpired => (Activated && TimeLeft <= 0);
 
-        /// <summary>
-        /// Activates the AvatarEffect
-        /// </summary>
         public bool Activate()
         {
             double tsNow = UnixTimestamp.GetNow();

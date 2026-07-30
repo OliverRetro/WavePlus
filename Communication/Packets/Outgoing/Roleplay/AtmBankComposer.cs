@@ -3,9 +3,6 @@ using System.Globalization;
 
 namespace Plus.Communication.Packets.Outgoing.Roleplay
 {
-    /// <summary>
-    /// ATM bank snapshot. Mirrors the plugin's 6006 packet.
-    /// </summary>
     public class AtmBankComposer : MessageComposer
     {
         private readonly bool _hasAccount;

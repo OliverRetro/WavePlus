@@ -12,11 +12,6 @@ using Plus.HabboHotel.Users;
 
 namespace Plus.HabboHotel.Roleplay.Crime
 {
-    /// <summary>
-    /// Loads crime/penalty definitions and tracks every player's live wanted state.
-    /// The wanted list is cached in memory only; crime logs are buffered and flushed to
-    /// `rp_crime_log` on disconnect / reload.
-    /// </summary>
     public sealed class RpCrimeManager
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(RpCrimeManager));
@@ -28,7 +23,6 @@ namespace Plus.HabboHotel.Roleplay.Crime
         private readonly ConcurrentDictionary<int, UserWantedRecord> _wanted = new();
         private readonly ConcurrentDictionary<int, List<PendingCrimeLog>> _logBuffer = new();
 
-        /// <summary>Maximum reachable star level (= number of penalty rows).</summary>
         public int MaxStars => _penalties.Count;
 
         public void Init()
@@ -68,7 +62,6 @@ namespace Plus.HabboHotel.Roleplay.Crime
 
         public RpCrime GetById(int id) => _byId.TryGetValue(id, out RpCrime c) ? c : null;
 
-        /// <summary>Highest penalty whose star level is at or below the given stars.</summary>
         public RpCrimePenalty GetPenalty(int starLevel)
         {
             RpCrimePenalty best = null;
@@ -135,7 +128,6 @@ namespace Plus.HabboHotel.Roleplay.Crime
             LiveFeedService.LiveFeed("[AUTO CHARGE] 🚨 " + LiveFeedService.Name(offender.Username, "green") + " committed " + crime.Name + stars);
         }
 
-        /// <summary>True when the offender currently has an active (unexpired) charge for this crime.</summary>
         public bool HasActiveCrime(int userId, string crimeTag)
         {
             RpCrime crime = GetByTag(crimeTag);
@@ -147,10 +139,6 @@ namespace Plus.HabboHotel.Roleplay.Crime
                 return rec.Crimes.Any(c => c.CrimeId == crime.Id);
         }
 
-        /// <summary>
-        /// Resolves a crime from a free-text query (its name, tag, or tag with spaces).
-        /// e.g. "Cop Assault", "cop_assault" and "cop assault" all resolve the same crime.
-        /// </summary>
         public RpCrime ResolveCrime(string query)
         {
             if (string.IsNullOrWhiteSpace(query))
@@ -166,11 +154,6 @@ namespace Plus.HabboHotel.Roleplay.Crime
             return null;
         }
 
-        /// <summary>
-        /// Charges a suspect with a specific manual crime: reveals their active (hidden) instance of
-        /// it so its stars become visible, and flags the record as charged so they can be cuffed.
-        /// Returns whether a charge was applied, and the resulting visible stars.
-        /// </summary>
         public (bool applied, int stars) ChargeCrime(int userId, RpCrime crime)
         {
             // Auto-charge crimes charge themselves the moment they're committed; there is nothing
@@ -206,7 +189,6 @@ namespace Plus.HabboHotel.Roleplay.Crime
             }
         }
 
-        /// <summary>Stars publicly visible on the wanted list (auto-charged or revealed).</summary>
         public int GetVisibleStars(int userId)
         {
             if (!_wanted.TryGetValue(userId, out UserWantedRecord rec))
@@ -219,7 +201,6 @@ namespace Plus.HabboHotel.Roleplay.Crime
             return Math.Min(MaxStars, stars);
         }
 
-        /// <summary>All stars including hidden (non-reported) crimes — used when charging.</summary>
         public int GetTotalStars(int userId)
         {
             if (!_wanted.TryGetValue(userId, out UserWantedRecord rec))
@@ -232,7 +213,6 @@ namespace Plus.HabboHotel.Roleplay.Crime
             return Math.Min(MaxStars, stars);
         }
 
-        /// <summary>Reveals every active crime (a charge exposes hidden ones too).</summary>
         public void RevealAll(int userId)
         {
             if (!_wanted.TryGetValue(userId, out UserWantedRecord rec))
@@ -244,10 +224,6 @@ namespace Plus.HabboHotel.Roleplay.Crime
                     c.Revealed = true;
         }
 
-        /// <summary>
-        /// Charges the suspect: reveals/activates every crime and flags the record as charged.
-        /// A suspect must be charged before police can cuff them. Returns the total stars charged.
-        /// </summary>
         public int Charge(int userId)
         {
             if (!_wanted.TryGetValue(userId, out UserWantedRecord rec))
@@ -263,7 +239,6 @@ namespace Plus.HabboHotel.Roleplay.Crime
             return GetTotalStars(userId);
         }
 
-        /// <summary>True once a cop has run <c>:charge</c> on the suspect and they still have active crimes.</summary>
         public bool IsCharged(int userId)
         {
             if (!_wanted.TryGetValue(userId, out UserWantedRecord rec))
@@ -274,7 +249,6 @@ namespace Plus.HabboHotel.Roleplay.Crime
                 return rec.Charged && rec.Crimes.Count > 0;
         }
 
-        /// <summary>Clears active crimes once the offender has been jailed (they're resolved).</summary>
         public void ResolveAll(int userId)
         {
             if (_wanted.TryGetValue(userId, out UserWantedRecord rec))
@@ -293,7 +267,6 @@ namespace Plus.HabboHotel.Roleplay.Crime
                 return rec.Crimes.Count > 0;
         }
 
-        /// <summary>The wanted list ordered by visible stars (desc), highest first.</summary>
         public List<WantedRow> GetWantedList(int limit = 50)
         {
             List<WantedRow> rows = new();
@@ -307,7 +280,6 @@ namespace Plus.HabboHotel.Roleplay.Crime
             return rows.OrderByDescending(r => r.Stars).ThenByDescending(r => r.Time).Take(limit).ToList();
         }
 
-        /// <summary>Drops expired crimes, flagging their log entries as expired (not jailed).</summary>
         private static void Prune(UserWantedRecord rec)
         {
             DateTime now = DateTime.Now;
@@ -327,7 +299,6 @@ namespace Plus.HabboHotel.Roleplay.Crime
             }
         }
 
-        /// <summary>Writes the user's buffered crime logs to the database (on disconnect/reload).</summary>
         public void FlushLogs(int userId)
         {
             if (!_logBuffer.TryRemove(userId, out List<PendingCrimeLog> logs) || logs.Count == 0)
@@ -375,7 +346,6 @@ namespace Plus.HabboHotel.Roleplay.Crime
         {
             public int CrimeId;
 
-            /// <summary>Unix timestamp (seconds) the crime was committed.</summary>
             public int Timestamp;
 
             public bool Expired;

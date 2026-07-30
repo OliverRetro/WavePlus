@@ -22,3 +22,8 @@ insert_final_newline = false
 dotnet_style_allow_multiple_blank_lines_experimental = false
 dotnet_diagnostic.IDE2000.severity = warning
 dotnet_diagnostic.IDE0055.severity = warning
+
+# Don't nag about missing /// <summary> XML docs. GenerateDocumentationFile=true (in
+# Plus.csproj, needed for IDE0005) turns on CS1591 "missing XML comment" for every public
+# member; silence it here so all diagnostic policy lives in one place.
+dotnet_diagnostic.CS1591.severity = none

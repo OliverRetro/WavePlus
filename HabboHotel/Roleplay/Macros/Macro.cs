@@ -2,9 +2,6 @@ using System.Collections.Generic;
 
 namespace Plus.HabboHotel.Roleplay.Macros
 {
-    /// <summary>
-    /// A user macro set: a named collection of keybind -> command mappings.
-    /// </summary>
     public class Macro
     {
         public int Id { get; set; }

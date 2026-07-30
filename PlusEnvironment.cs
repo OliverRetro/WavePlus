@@ -449,10 +449,6 @@ namespace Plus
             return _figureManager;
         }
 
-        /// <summary>
-        /// Returns a fresh EF context for the new persistence layer. Wrap in a using
-        /// block; contexts are short-lived and single-threaded.
-        /// </summary>
         public static WavePlusContext GetDbContext()
         {
             return WavePlusContextFactory.Create();

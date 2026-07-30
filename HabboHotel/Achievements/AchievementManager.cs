@@ -101,11 +101,6 @@ namespace Plus.HabboHotel.Achievements
 
         // Pays out the currency reward in the type configured on the achievement level.
         // pointsType: -1 = credits, 5 = diamonds, anything else (0) = duckets.
-        /// <summary>
-        /// Buffers additive achievement progress for a user. The buffered total is applied and
-        /// pushed to the client on the next minute flush (see <see cref="FlushQueuedProgress"/>),
-        /// which prevents a burst of events (e.g. rapid kills) from spamming achievement packets.
-        /// </summary>
         public void QueueProgress(GameClient session, string group, int amount = 1)
         {
             if (session?.GetHabbo() == null || amount <= 0)
@@ -119,7 +114,6 @@ namespace Plus.HabboHotel.Achievements
             userPending.AddOrUpdate(group, amount, (_, existing) => existing + amount);
         }
 
-        /// <summary>Applies and clears all buffered progress for currently-online users.</summary>
         public void FlushQueuedProgress()
         {
             if (_pendingProgress.IsEmpty)
@@ -143,10 +137,6 @@ namespace Plus.HabboHotel.Achievements
             }
         }
 
-        /// <summary>
-        /// Total cumulative progress the user has amassed in an achievement across every level
-        /// (sum of the requirements of completed levels + progress into the current level).
-        /// </summary>
         private static int GetCumulativeProgress(Achievement data, UserAchievement userData)
         {
             if (userData == null)
@@ -159,11 +149,6 @@ namespace Plus.HabboHotel.Achievements
             return total + userData.Progress;
         }
 
-        /// <summary>
-        /// Drives an achievement to an absolute cumulative value (e.g. "days since registration",
-        /// "unique chat styles owned"). Only ever moves the user forward — earned levels/badges are
-        /// never revoked, matching Habbo semantics. Returns immediately when already at/above target.
-        /// </summary>
         public void SetAbsoluteProgress(GameClient session, string group, int absolute)
         {
             if (session?.GetHabbo() == null || absolute <= 0)
@@ -182,11 +167,6 @@ namespace Plus.HabboHotel.Achievements
             ProgressAchievement(session, group, delta);
         }
 
-        /// <summary>
-        /// Wipes a user's progress in an achievement back to zero and strips every level badge they
-        /// earned for it. Used by streak achievements (e.g. ACH_Login) that must actually regress
-        /// when the streak is broken, unlike normal achievements which never revoke progress.
-        /// </summary>
         public void ResetAchievement(GameClient session, string group)
         {
             if (session?.GetHabbo() == null || !Achievements.ContainsKey(group))

@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using log4net;
 using Plus.Database.EF;
 using Microsoft.EntityFrameworkCore;
 using Plus.HabboHotel.Users;
@@ -12,8 +11,6 @@ namespace Plus.HabboHotel.Groups
 {
     public class GroupManager
     {
-        private static readonly ILog Log = LogManager.GetLogger(typeof(GroupManager));
-
         private readonly object _groupLoadingSync;
         private readonly ConcurrentDictionary<int, Group> _groups;
         private const int RoleSaveIntervalTicks = 24000;
@@ -182,7 +179,6 @@ namespace Plus.HabboHotel.Groups
                 group.Flush();
         }
 
-        /// <summary>Every currently-loaded group (used by the Redis group mirror).</summary>
         public IEnumerable<Group> GetLoadedGroups() => _groups.Values;
 
         public bool TryGetPermissionKey(int permissionId, out GroupPermissionKey permissionKey)

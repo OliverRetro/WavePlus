@@ -4,10 +4,6 @@ using Plus.HabboHotel.Roleplay.Stock;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 {
-    /// <summary>
-    /// Stocks the room-wide pool, which is what a corporation employee sells from with <c>:offer</c>.
-    /// Per-vendor stock is separate — see <see cref="AddItemStockCommand"/>.
-    /// </summary>
     internal class AddRoomStockCommand : IChatCommand
     {
         public string PermissionRequired => "command_rp_add_stock";

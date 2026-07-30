@@ -6,10 +6,6 @@ using Plus.HabboHotel.Roleplay.RpItem.Item;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 {
-    /// <summary>
-    /// `:disbanditem N` — permanently destroys whatever is in inventory slot N (1-10),
-    /// including the entire stack. Mirrors dragging a slot onto the overlay trashbin.
-    /// </summary>
     internal class DisbandItemCommand : IChatCommand
     {
         private const int SlotCount = 10;

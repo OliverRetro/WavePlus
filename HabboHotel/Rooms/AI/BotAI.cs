@@ -8,16 +8,12 @@ namespace Plus.HabboHotel.Rooms.AI
     public abstract class BotAI
     {
         public int BaseId;
-        private int _roomId;
-        private int _roomUserId;
         private Room _room;
         private RoomUser _roomUser;
 
         public void Init(int baseId, int roomUserId, int roomId, RoomUser user, Room room)
         {
             BaseId = baseId;
-            _roomUserId = roomUserId;
-            _roomId = roomId;
             _roomUser = user;
             _room = room;
         }

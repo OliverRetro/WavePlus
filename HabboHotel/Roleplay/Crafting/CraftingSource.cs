@@ -8,32 +8,22 @@ using Plus.HabboHotel.Users;
 
 namespace Plus.HabboHotel.Roleplay.Crafting
 {
-    /// <summary>
-    /// Where a crafting table's ingredients come from and its reward goes. A personal table
-    /// (<see cref="PersonalCraftingSource"/>) uses the user's RP inventory; a corporation table
-    /// (<see cref="CorporationCraftingSource"/>) uses the corporation's room-wide stock pool.
-    /// </summary>
     public interface ICraftingSource
     {
         bool IsUnlocked(int recipeId);
         bool IsVisible(CraftingRecipe recipe);
 
-        /// <summary>How many copies of an ingredient are available to spend.</summary>
         int CountOwned(string itemType, int itemId);
 
-        /// <summary>Removes <paramref name="amount"/> copies. Returns false (without removing any) if short.</summary>
         bool Consume(string itemType, int itemId, int amount);
 
-        /// <summary>Adds <paramref name="amount"/> copies of the reward. Returns false on failure.</summary>
         bool Grant(string itemType, int itemId, int amount);
 
         void Reveal(int recipeId);
 
-        /// <summary>Persist inventory changes and refresh any open UI.</summary>
         void CommitAndRefresh();
     }
 
-    /// <summary>Personal table — the crafting user's own RP items and weapons.</summary>
     public sealed class PersonalCraftingSource : ICraftingSource
     {
         private readonly Habbo _habbo;
@@ -72,18 +62,18 @@ namespace Plus.HabboHotel.Roleplay.Crafting
 
             switch (itemType) {
                 case "rp_item": {
-                    UserRpItems items = _habbo.GetRpItems();
-                    foreach (UserRpItem item in items.GetItemsByItemId(itemId).Where(x => !x.Equipped).Take(amount).ToList())
-                        items.Remove(item);
-                    return true;
-                }
+                        UserRpItems items = _habbo.GetRpItems();
+                        foreach (UserRpItem item in items.GetItemsByItemId(itemId).Where(x => !x.Equipped).Take(amount).ToList())
+                            items.Remove(item);
+                        return true;
+                    }
                 case "rp_weapon": {
-                    UserRpWeapons weapons = _habbo.GetRpWeapons();
-                    int active = weapons.ActiveWeaponId;
-                    foreach (UserWeapon weapon in weapons.GetWeaponsByWeaponId(itemId).Where(w => !w.IsDefault && w.Id != active).Take(amount).ToList())
-                        weapons.RemoveWeapon(weapon.Id);
-                    return true;
-                }
+                        UserRpWeapons weapons = _habbo.GetRpWeapons();
+                        int active = weapons.ActiveWeaponId;
+                        foreach (UserWeapon weapon in weapons.GetWeaponsByWeaponId(itemId).Where(w => !w.IsDefault && w.Id != active).Take(amount).ToList())
+                            weapons.RemoveWeapon(weapon.Id);
+                        return true;
+                    }
                 default:
                     return false;
             }
@@ -93,23 +83,23 @@ namespace Plus.HabboHotel.Roleplay.Crafting
         {
             switch (itemType) {
                 case "rp_item": {
-                    UserRpItems items = _habbo.GetRpItems();
-                    if (items == null)
-                        return false;
-                    for (int i = 0; i < amount; i++)
-                        if (items.AddItem(itemId) == null)
-                            return i > 0;
-                    return true;
-                }
+                        UserRpItems items = _habbo.GetRpItems();
+                        if (items == null)
+                            return false;
+                        for (int i = 0; i < amount; i++)
+                            if (items.AddItem(itemId) == null)
+                                return i > 0;
+                        return true;
+                    }
                 case "rp_weapon": {
-                    UserRpWeapons weapons = _habbo.GetRpWeapons();
-                    if (weapons == null)
-                        return false;
-                    for (int i = 0; i < amount; i++)
-                        if (weapons.AddWeapon(itemId) == null)
-                            return i > 0;
-                    return true;
-                }
+                        UserRpWeapons weapons = _habbo.GetRpWeapons();
+                        if (weapons == null)
+                            return false;
+                        for (int i = 0; i < amount; i++)
+                            if (weapons.AddWeapon(itemId) == null)
+                                return i > 0;
+                        return true;
+                    }
                 default:
                     return false;
             }
@@ -128,7 +118,6 @@ namespace Plus.HabboHotel.Roleplay.Crafting
         }
     }
 
-    /// <summary>Corporation table — the group's room-wide stock pool (the same pool :offer sells from).</summary>
     public sealed class CorporationCraftingSource : ICraftingSource
     {
         private readonly int _roomId;

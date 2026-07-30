@@ -57,19 +57,11 @@ namespace Plus.Network
             Log.Info($"Game Server listening on {((IPEndPoint)ServerChannel.LocalAddress).Address.MapToIPv4()}:{Port}");
         }
 
-        /// <summary>
-        ///     Close all channels and disconnects clients
-        /// </summary>
-        /// <returns></returns>
         public async Task Shutdown()
         {
             await ServerChannel.CloseAsync();
         }
 
-        /// <summary>
-        ///     Shutdown all workers of netty
-        /// </summary>
-        /// <returns></returns>
         public void ShutdownWorkers()
         {
             BossGroup.ShutdownGracefullyAsync();

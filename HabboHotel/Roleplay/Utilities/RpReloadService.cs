@@ -1,14 +1,9 @@
 namespace Plus.HabboHotel.Roleplay.Utilities
 {
-    /// <summary>
-    /// Hot-reloads RP definition tables at runtime. Shared by the `:rpupdate` chat command
-    /// and the `reload_rp` RCON command.
-    /// </summary>
     public static class RpReloadService
     {
         public const string Switches = "items, weapons, groups, crimes, all";
 
-        /// <summary>Runs a reload for the given switch. Returns a status string, or null when unknown.</summary>
         public static string Reload(string sw)
         {
             switch ((sw ?? string.Empty).Trim().ToLower()) {

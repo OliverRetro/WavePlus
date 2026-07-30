@@ -56,10 +56,6 @@ namespace Plus.Core.Persistence
             }
         }
 
-        /// <summary>
-        /// Mirrors rooms.users_now for loaded rooms whose head-count changed since the last
-        /// mirror. Replaces the old per-join/per-leave synchronous UPDATE.
-        /// </summary>
         private static void PersistRoomUserCounts()
         {
             List<Room> dirty = null;

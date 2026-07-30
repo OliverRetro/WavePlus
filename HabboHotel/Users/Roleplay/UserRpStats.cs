@@ -40,7 +40,6 @@ namespace Plus.HabboHotel.Users.Roleplay
         public int JailStars { get; set; }
         public string JailRevertLook { get; set; }
         public int JailRoomId { get; set; }
-        /// <summary>Seconds of jail time left, banked while the user is offline (sentence pauses).</summary>
         public double JailTimeLeft { get; set; }
         public DateTime NextHungerTick { get; set; }
         public bool IsGodMode { get; set; }

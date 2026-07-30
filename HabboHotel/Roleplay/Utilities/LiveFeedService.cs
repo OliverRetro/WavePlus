@@ -25,10 +25,6 @@ namespace Plus.HabboHotel.Roleplay.Utilities
             BubbleAlert(message, type);
         }
 
-        /// <summary>
-        /// Wraps a username in the standard bold + coloured live-feed markup. Lets callers write
-        /// <c>LiveFeedService.Name(name, "green")</c> instead of hand-rolling the font tags.
-        /// </summary>
         public static string Name(string username, string color = "lightblue") =>
             "<b><font color=\"" + color + "\">" + username + "</font></b>";
         private static void SaveToRedis(string message, string type)
@@ -82,7 +78,6 @@ namespace Plus.HabboHotel.Roleplay.Utilities
             _ = DiscordEmbed(message, type);
         }
 
-        /// <summary>Removes emoji/pictographic characters (and the whitespace they leave behind).</summary>
         private static string StripEmojis(string message)
         {
             if (string.IsNullOrEmpty(message))

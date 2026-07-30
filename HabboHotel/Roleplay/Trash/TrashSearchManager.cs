@@ -25,7 +25,6 @@ namespace Plus.HabboHotel.Roleplay.Trash
         private readonly ConcurrentDictionary<int, int> _activeBins = new();
         private readonly ConcurrentDictionary<int, double> _userCooldowns = new();
         private readonly ConcurrentDictionary<int, BinCooldown> _binCooldowns = new();
-        private const int RewardTypeItem = 0;
         private const int RewardTypeWeapon = 1;
 
         private readonly List<TrashReward> _rewards = [];
@@ -360,10 +359,6 @@ namespace Plus.HabboHotel.Roleplay.Trash
             }
         }
 
-        /// <summary>
-        /// Marks the bin as rummaged and starts its cooldown. Shared by the natural finish and
-        /// by a walk-off, which are the two ways a bin stops being searchable.
-        /// </summary>
         private void ApplyBinCooldown(ActiveTrashSearch search)
         {
             if (search == null || !PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(search.RoomId, out Room room))
@@ -407,7 +402,6 @@ namespace Plus.HabboHotel.Roleplay.Trash
             item.UpdateState(false, true);
         }
 
-        /// <summary>Closes the overlay timer when a search ends before its natural finish.</summary>
         private static void CancelInteractionTimer(int userId)
         {
             GameClient client = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(userId);
@@ -461,10 +455,6 @@ namespace Plus.HabboHotel.Roleplay.Trash
             return fallback;
         }
 
-        /// <summary>
-        /// The personal cooldown for a dive that was walked out on — half the normal one,
-        /// rounded up, since they came away with nothing.
-        /// </summary>
         public static int GetAbortedUserCooldownSeconds(Habbo habbo) => (GetUserCooldownSeconds(habbo) + 1) / 2;
 
         public static int GetBinCooldownSeconds() => Math.Max(1, GetSettingInt("rp.trash.bin.cooldown.seconds", 120));

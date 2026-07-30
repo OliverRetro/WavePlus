@@ -8,10 +8,6 @@ using System.Text.Json;
 
 namespace Plus.HabboHotel.Roleplay.Macros
 {
-    /// <summary>
-    /// Loads and persists user macro sets (keybind -> command), backed by `users_macros`.
-    /// The selected macro per user is tracked in memory.
-    /// </summary>
     public class MacroManager
     {
         // Each user always has exactly this many keybind sets ("tabs").
@@ -29,9 +25,6 @@ namespace Plus.HabboHotel.Roleplay.Macros
             return _cache.GetOrAdd(userId, LoadFromDatabase);
         }
 
-        /// <summary>
-        /// Guarantees the user has the three default keybind sets, creating any that are missing.
-        /// </summary>
         public void EnsureDefaultSets(int userId)
         {
             Dictionary<int, Macro> macros = GetUserMacros(userId);

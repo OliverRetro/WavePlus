@@ -24,10 +24,6 @@ namespace Plus.HabboHotel.Roleplay.TargetLock
         public static bool HasTarget(int requesterId) =>
             Targets.TryGetValue(requesterId, out TargetState state) && state.TargetId > 0;
 
-        /// <summary>
-        /// Used by RequestWearingBadgesEvent. Return true when the UI should NOT overwrite
-        /// the current clicked target because the requester already has a target locked.
-        /// </summary>
         public static bool IsTargetLocked(Habbo requester, Habbo target)
         {
             if (requester == null || target == null)
@@ -56,9 +52,6 @@ namespace Plus.HabboHotel.Roleplay.TargetLock
             SetState(requester.Id, target.Id, target.Username, false);
         }
 
-        /// <summary>
-        /// Locks the requester's currently clicked target. Used by the web overlay.
-        /// </summary>
         public static void SetLock(Habbo requester, bool locked)
         {
             if (requester == null)
@@ -79,12 +72,6 @@ namespace Plus.HabboHotel.Roleplay.TargetLock
             LockTarget(requester, target);
         }
 
-        /// <summary>
-        /// Handles a plain avatar click. A click never locks.
-        /// While unlocked, freely swaps the clicked target and refreshes the RP target
-        /// display (name/outfit/stats). While locked, does nothing at all — the locked
-        /// target stays cached for commands and visibility.
-        /// </summary>
         public static void HandleAvatarClick(Habbo requester, Habbo target)
         {
             if (requester == null || target == null)
@@ -131,11 +118,6 @@ namespace Plus.HabboHotel.Roleplay.TargetLock
             return true;
         }
 
-        /// <summary>
-        /// Re-asserts the lock to the client after a room change. The composer is sent even
-        /// when the target is not in this room (or is offline) so the client keeps showing
-        /// the lock and re-applies the outline the moment they walk back into view.
-        /// </summary>
         public static void RestoreLock(Habbo requester)
         {
             if (requester == null || !Targets.TryGetValue(requester.Id, out TargetState state) || !state.Locked)
@@ -168,14 +150,6 @@ namespace Plus.HabboHotel.Roleplay.TargetLock
             requester.TrySendUserStatsUpdate(true);
         }
 
-        /// <summary>
-        /// Returns the currently clicked/locked online Habbo.
-        ///
-        /// A locked target resolves from anywhere — different room or none at all — and the
-        /// lock is preserved even while the target is offline, so it snaps back when they
-        /// return. An unlocked (merely clicked) target is only valid in the current room and
-        /// is discarded once it goes stale.
-        /// </summary>
         public static Habbo GetTarget(Habbo requester)
         {
             if (requester == null || !Targets.TryGetValue(requester.Id, out TargetState state) || state.TargetId <= 0)
@@ -194,10 +168,6 @@ namespace Plus.HabboHotel.Roleplay.TargetLock
             return target;
         }
 
-        /// <summary>
-        /// The locked target, or null while they are offline. The lock itself is never
-        /// dropped here — only :unlocktarget, a reconnect, or locking someone else does that.
-        /// </summary>
         public static Habbo GetLockedTarget(Habbo requester)
         {
             if (requester == null || !IsLocked(requester.Id))
@@ -206,9 +176,6 @@ namespace Plus.HabboHotel.Roleplay.TargetLock
             return GetTarget(requester);
         }
 
-        /// <summary>
-        /// Drops a merely-clicked target (client deselected). A lock is left untouched.
-        /// </summary>
         public static void ClearClickedTarget(Habbo requester)
         {
             if (requester == null || IsLocked(requester.Id))
@@ -221,9 +188,6 @@ namespace Plus.HabboHotel.Roleplay.TargetLock
             requester.TrySendUserStatsUpdate(true);
         }
 
-        /// <summary>
-        /// Backwards-compatible name used by the overlay/stat code.
-        /// </summary>
         public static Habbo GetClickedHabbo(int requesterId)
         {
             if (!Targets.TryGetValue(requesterId, out TargetState state) || state.TargetId <= 0)
@@ -232,13 +196,6 @@ namespace Plus.HabboHotel.Roleplay.TargetLock
             return PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(state.TargetId)?.GetHabbo();
         }
 
-        /// <summary>
-        /// Called when this user disconnects. Only their own target is dropped — a reconnect
-        /// (including a browser reload) is one of the three ways a lock is released.
-        ///
-        /// Locks that other people hold *on* this user are deliberately kept: they resolve to
-        /// null while the target is offline and re-attach when they come back.
-        /// </summary>
         public static void Clear(int requesterId)
         {
             Targets.TryRemove(requesterId, out _);
@@ -262,18 +219,9 @@ namespace Plus.HabboHotel.Roleplay.TargetLock
             };
         }
 
-        /// <summary>
-        /// A lock only requires a real, distinct user. It deliberately does NOT require the
-        /// two to share a room: locks survive room changes and stay parked while the target
-        /// is elsewhere or offline. Commands that need the target within reach (:hit, :rob,
-        /// cuffing, ...) enforce their own room/adjacency checks at the point of use.
-        /// </summary>
         private static bool IsLockable(Habbo requester, Habbo target) =>
             requester != null && target != null && requester.Id != target.Id;
 
-        /// <summary>
-        /// Plain avatar clicks only ever target someone in the same room.
-        /// </summary>
         private static bool IsClickable(Habbo requester, Habbo target)
         {
             if (!IsLockable(requester, target))

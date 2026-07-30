@@ -352,8 +352,6 @@ namespace Plus.HabboHotel.Rooms
             return mMessage;
         }
 
-        /// <summary>Flushes batched item moves to MySQL. Used by the 15-minute world
-        /// failsafe on top of the existing unload/shutdown save.</summary>
         public void FlushMovedItems()
         {
             SaveFurniture();

@@ -67,7 +67,6 @@ namespace Plus.HabboHotel.Rooms
         public bool Unloaded { get; set; }
         public int IdleTime { get; set; }
 
-        /// <summary>Last users_now value mirrored to MySQL (see PersistenceRegistry).</summary>
         public int LastPersistedUsersNow = -1;
 
         // Timestamp (unix ms) of the last full 500ms cycle. ProcessRoom now runs every 50ms

@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <!-- Files keep their original namespace (Plus.Database.EF.Entities) so nothing
+             elsewhere in the solution needs a using change. -->
+        <RootNamespace>Plus.Database.EF.Entities</RootNamespace>
+        <ImplicitUsings>disable</ImplicitUsings>
+        <Nullable>disable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <!-- Entities use [Index]/[Owned] etc. from the Microsoft.EntityFrameworkCore namespace;
+             match the version the main project resolves (via MySql.EntityFrameworkCore 10.0.7). -->
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.7" />
+    </ItemGroup>
+
+</Project>

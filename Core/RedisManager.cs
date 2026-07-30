@@ -22,7 +22,6 @@ namespace Plus.Core
 
         public bool IsConnected => _connection != null && _connection.IsConnected;
 
-        /// <summary>True when Redis is available for the write-behind cache to use.</summary>
         public bool IsAvailable => _database != null && Ready();
 
         private bool Ready()
@@ -126,17 +125,11 @@ namespace Plus.Core
             }
         }
 
-        /// <summary>
-        /// Returns the underlying database, or null when Redis is unavailable.
-        /// </summary>
         public IDatabase GetDatabase()
         {
             return Ready() ? _database : null;
         }
 
-        /// <summary>
-        /// Appends a value to the tail of a Redis list. Fails silently when Redis is down.
-        /// </summary>
         public void ListPush(string key, string value)
         {
             if (!Ready())
@@ -150,10 +143,6 @@ namespace Plus.Core
             }
         }
 
-        /// <summary>
-        /// Appends to a Redis list without waiting for the reply, so callers on game/room
-        /// threads never block on a slow Redis. Failures trip the breaker like the sync path.
-        /// </summary>
         public void ListPushFireAndForget(string key, string value)
         {
             if (!Ready())
@@ -167,11 +156,6 @@ namespace Plus.Core
             }
         }
 
-        /// <summary>
-        /// Stores an object as JSON. JSON keeps the cached value readable via redis-cli
-        /// (GET key) while still round-tripping to strongly-typed C#. Returns false when
-        /// Redis is unavailable so callers can fall back to the database.
-        /// </summary>
         public bool SetObject<T>(string key, T value, TimeSpan? expiry = null)
         {
             if (!Ready())
@@ -234,10 +218,6 @@ namespace Plus.Core
             }
         }
 
-        /// <summary>
-        /// Adds a member to an index set (e.g. the set of user ids currently cached).
-        /// Periodic savers iterate these sets instead of SCAN-ing the whole keyspace.
-        /// </summary>
         public void SetAdd(string setKey, string member)
         {
             if (!Ready())

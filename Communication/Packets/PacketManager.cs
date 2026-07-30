@@ -58,33 +58,17 @@ namespace Plus.Communication.Packets
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(PacketManager));
 
-        /// <summary>
-        ///     Testing the Task code
-        /// </summary>
         private const bool IgnoreTasks = true;
 
-        /// <summary>
-        ///     The maximum time a task can run for before it is considered dead
-        ///     (can be used for debugging any locking issues with certain areas of code)
-        /// </summary>
         private const int MaximumRunTimeInSec = 300; // 5 minutes
 
-        /// <summary>
-        ///     Should the handler throw errors or log and continue.
-        /// </summary>
         private const bool ThrowUserErrors = false;
 
-        /// <summary>
-        ///     The task factory which is used for running Asynchronous tasks, in this case we use it to execute packets.
-        /// </summary>
         private readonly TaskFactory _eventDispatcher;
 
         private readonly Dictionary<int, IPacketEvent> _incomingPackets;
         private readonly Dictionary<int, string> _packetNames;
 
-        /// <summary>
-        ///     Currently running tasks to keep track of what the current load is
-        /// </summary>
         private readonly ConcurrentDictionary<int, Task> _runningTasks;
 
         public PacketManager()

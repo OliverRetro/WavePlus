@@ -4,17 +4,6 @@ using Plus.HabboHotel.Users;
 
 namespace Plus.Communication.Packets.Incoming.Roleplay
 {
-    /// <summary>
-    /// Nitro's RPTargetUserComposer (6009). The client sends this on every avatar
-    /// selection and sends -1 when the selection is cleared, which makes it the
-    /// reliable source for "who is this user pointing at".
-    ///
-    /// The badge request (3326) used to be the only click signal, but Nitro caches
-    /// badges per user, so clicking the same avatar twice - or any avatar whose badges
-    /// were already fetched - never reached the server. That left the cached target
-    /// pointing at whoever was clicked last, which is why bare :hit could swing at the
-    /// wrong player.
-    /// </summary>
     internal class RpTargetUserEvent : IPacketEvent
     {
         public void Parse(GameClient session, ClientPacket packet)

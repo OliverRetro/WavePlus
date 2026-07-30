@@ -22,10 +22,6 @@ using Plus.Utilities;
 
 namespace Plus.Communication.Packets.Incoming
 {
-    /// <summary>
-    /// Receives JSON callbacks from the gaz-js web overlay (habblet bridge, client packet 314).
-    /// Payload: {"header":"...","data":{...}}. Dispatches to the matching handler.
-    /// </summary>
     internal class WebOverlayCallbackEvent : IPacketEvent
     {
         // Macro placeholder that stands in for the user's current RP target (locked or clicked).
@@ -431,10 +427,6 @@ namespace Plus.Communication.Packets.Incoming
 
         private static void OpenInventory(GameClient session) => SendInventory(session, true);
 
-        /// <summary>
-        /// Pushes the current inventory to an already-open panel without forcing it open (open:false).
-        /// Called when items are received or durability changes so a live panel refreshes.
-        /// </summary>
         internal static void RefreshInventory(GameClient session)
         {
             if (session?.GetHabbo() == null)
@@ -443,11 +435,6 @@ namespace Plus.Communication.Packets.Incoming
             SendInventory(session, false);
         }
 
-        /// <summary>
-        /// Why the overlay should grey an icon out, or "" when the item is usable. Deliberately
-        /// mirrors the gates in <see cref="UserRpItems.Use"/> — the icon and the server have to
-        /// agree, or the user clicks something that looks fine and gets a refusal whisper.
-        /// </summary>
         private static string ItemBlockReason(RpItemData data, bool dead, bool passive, bool cuffed)
         {
             if (data == null)
@@ -902,10 +889,6 @@ namespace Plus.Communication.Packets.Incoming
             SendMacroList(session);
         }
 
-        /// <summary>
-        /// One line bought from the buy window. Everything here is untrusted — RpOfferService
-        /// re-derives the price, the stock and the buyer's space rather than believing any of it.
-        /// </summary>
         private static void BuyStock(JsonElement data, GameClient session)
         {
             if (!TryGetInt(data, "offerId", out int offerId) ||

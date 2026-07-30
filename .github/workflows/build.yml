@@ -40,3 +40,48 @@ jobs:
         with:
           name: WavePlus
           path: WavePlus.zip
+
+
+  deadcode:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install ReSharper CLI
+        run: dotnet tool install --global JetBrains.ReSharper.GlobalTools
+
+      - name: Inspect for dead code
+        # ReSharper CLI writes SARIF (JSON) regardless of file extension. --no-swea=false
+        # keeps solution-wide analysis on, which the *.Global unused rules need.
+        # --exclude skips EF entity DTOs (properties read only by EF reflection = false positives).
+        run: jb inspectcode Plus.sln --output=inspect.sarif --severity=WARNING --no-swea=false --exclude="WavePlus.Entities/**;Database/EF/**"
+
+      - name: Summarize unused symbols
+        shell: pwsh
+        run: |
+          $results = (Get-Content inspect.sarif -Raw | ConvertFrom-Json).runs[0].results
+          $rules = '^(UnusedType|UnusedMember|UnusedMemberInSuper|UnusedMethodReturnValue|NotAccessedField|IDE005[12]|PrivateFieldCanBeConvertedToLocalVariable)'
+          $unused = $results | Where-Object { $_.ruleId -match $rules }
+          if (-not $unused) {
+            Write-Host 'No unused-symbol inspections reported.' -ForegroundColor Green
+          } else {
+            Write-Host "Potentially dead code ($(@($unused).Count) hits) - review before deleting:" -ForegroundColor Yellow
+            $unused | ForEach-Object {
+              $p = $_.locations[0].physicalLocation
+              '  [{0}] {1}:{2}  {3}' -f $_.ruleId, [Uri]::UnescapeDataString($p.artifactLocation.uri), $p.region.startLine, $_.message.text
+            } | Sort-Object
+          }
+
+      - name: Upload dead-code report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deadcode-report
+          path: inspect.sarif
