@@ -302,6 +302,8 @@ public partial class WavePlusContext(DbContextOptions<WavePlusContext> options) 
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
+            entity.HasIndex(e => new { e.UserId, e.Bantype }, "userid_bantype").IsUnique();
+
             entity.Property(e => e.AppealState).HasDefaultValueSql("'''1'''");
             entity.Property(e => e.Bantype).HasDefaultValueSql("'''account'''");
         });
