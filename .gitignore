@@ -286,3 +286,5 @@ Resources/SQLs/Stock Vendor (Furni Scope, Price).sql
 inspect.sarif
 inspect.xml
 inspect.log
+Resources/SQLs/Crafting.sql
+Resources/Scripts/sync_offer_ids.php

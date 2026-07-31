@@ -102,20 +102,17 @@ namespace Plus.HabboHotel.Moderation
                 .Select(b => new { b.Bantype, b.Value, b.Reason, b.Expire, b.UserId }).ToList();
 
             foreach (var row in rows) {
-                if (row.Expire <= PlusEnvironment.GetUnixTimestamp()) {
-                    db.Bans.Where(b => b.Bantype == row.Bantype && b.UserId == row.UserId).ExecuteDelete();
+                // Expired bans are left in the table (history for the website) — just not cached.
+                if (row.Expire <= PlusEnvironment.GetUnixTimestamp())
                     continue;
-                }
 
                 ModerationBanType type = BanTypeUtility.GetModerationBanType(row.Bantype);
                 ModerationBan ban = new(type, row.Value, row.Reason, row.Expire, row.UserId);
 
-                if (type == ModerationBanType.Ip) {
-                    if (!string.IsNullOrEmpty(row.Value))
-                        _ipBans[row.Value] = ban;
-                } else if (row.UserId > 0) {
+                if (type == ModerationBanType.Ip && !string.IsNullOrEmpty(row.Value))
+                    _ipBans[row.Value] = ban;
+                if (row.UserId > 0)
                     _accountBans[row.UserId] = ban;
-                }
             }
         }
 
@@ -141,7 +138,7 @@ namespace Plus.HabboHotel.Moderation
             ModerationBan ban = new(type, banValue, reason, expireTimestamp, userId);
             if (type == ModerationBanType.Ip)
                 _ipBans[banValue] = ban;
-            else if (userId > 0)
+            if (userId > 0)
                 _accountBans[userId] = ban;
         }
 
@@ -151,11 +148,11 @@ namespace Plus.HabboHotel.Moderation
                 if (!ban.Expired)
                     return true;
 
-                using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                    db.Bans.Where(b => b.Bantype == "account" && b.UserId == userId).ExecuteDelete();
+                // Expired: drop from cache only, leave the row in the table.
                 _accountBans.Remove(userId);
             }
 
+            ban = null;
             return false;
         }
 
@@ -165,8 +162,7 @@ namespace Plus.HabboHotel.Moderation
                 if (!ban.Expired)
                     return true;
 
-                using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                    db.Bans.Where(b => b.Bantype == "ip" && b.Value == ip).ExecuteDelete();
+                // Expired: drop from cache only, leave the row in the table.
                 _ipBans.Remove(ip);
             }
 
