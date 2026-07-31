@@ -176,6 +176,14 @@ namespace Plus.HabboHotel.Roleplay.Utilities
                 habbo.CurrentRoom.SendPacket(new ShoutComposer(user.VirtualId, message, 0, habbo.CustomBubbleId, isRpAction: true));
         }
 
+        public static PendingInvite GetPending(int targetId)
+        {
+            if (_pending.TryGetValue(targetId, out PendingInvite invite) && !invite.IsExpired)
+                return invite;
+
+            return null;
+        }
+
         public static void Clear(int userId) => _pending.TryRemove(userId, out _);
     }
 }

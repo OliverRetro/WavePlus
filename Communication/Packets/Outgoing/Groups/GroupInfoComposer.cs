@@ -45,6 +45,7 @@ namespace Plus.Communication.Packets.Outgoing.Groups
             packet.WriteInteger(Group.CreatorId == Habbo.Id ? Group.RequestCount : Group.IsAdmin(Habbo.Id) ? Group.RequestCount : Group.IsMember(Habbo.Id) ? 0 : 0); // Pending users
             //base.WriteInteger(0);//what the fuck
             packet.WriteBoolean(Group != null ? Group.ForumEnabled : true); //HabboTalk.
+            packet.WriteInteger(Group != null ? (int)Group.Kind : 0); // WaveRP: GroupKind for gang-window redirect
         }
     }
 }

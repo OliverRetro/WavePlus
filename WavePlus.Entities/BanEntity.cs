@@ -7,6 +7,7 @@ namespace Plus.Database.EF.Entities;
 
 [Index("Bantype", Name = "bantype")]
 [Index("Value", Name = "value")]
+[Index("UserId", Name = "user_id")]
 [Table("bans")]
 public partial class BanEntity
 {
@@ -14,8 +15,11 @@ public partial class BanEntity
     [Column("id", TypeName = "int(11)")]
     public int Id { get; set; }
 
+    [Column("user_id", TypeName = "int(11)")]
+    public int UserId { get; set; }
+
     [Required]
-    [Column("bantype", TypeName = "enum('user','ip','machine')")]
+    [Column("bantype", TypeName = "enum('account','ip')")]
     public string Bantype { get; set; }
 
     [Required]

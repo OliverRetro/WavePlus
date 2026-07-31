@@ -340,6 +340,9 @@ namespace Plus.HabboHotel.Rooms
                     if (Group.IsAdmin(session.GetHabbo().Id))
                         return true;
 
+                    if (Groups.GroupManager.IsGangKind(Group.Kind) && Group.IsMember(session.GetHabbo().Id))
+                        return true;
+
                     if (Group.AdminOnlyDeco == 0) {
                         if (Group.IsAdmin(session.GetHabbo().Id))
                             return true;

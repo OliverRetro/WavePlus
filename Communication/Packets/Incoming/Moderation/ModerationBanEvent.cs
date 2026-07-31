@@ -37,22 +37,20 @@ namespace Plus.Communication.Packets.Incoming.Moderation
                 return;
             }
 
-            message = message != null ? message : "No reason specified.";
+            message = message != null ? message : "No reason was given.";
 
             int targetId = habbo.Id;
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
+            string ipLast;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
                 db.UserInfos.Where(u => u.UserId == targetId)
                     .ExecuteUpdate(s => s.SetProperty(u => u.Bans, u => u.Bans + 1));
-
-            if (ipBan == false && machineBan == false)
-                PlusEnvironment.GetGame().GetModerationManager().BanUser(session.GetHabbo().Username, ModerationBanType.Username, habbo.Username, message, length);
-            else if (ipBan)
-                PlusEnvironment.GetGame().GetModerationManager().BanUser(session.GetHabbo().Username, ModerationBanType.Ip, habbo.Username, message, length);
-            else {
-                PlusEnvironment.GetGame().GetModerationManager().BanUser(session.GetHabbo().Username, ModerationBanType.Ip, habbo.Username, message, length);
-                PlusEnvironment.GetGame().GetModerationManager().BanUser(session.GetHabbo().Username, ModerationBanType.Username, habbo.Username, message, length);
-                PlusEnvironment.GetGame().GetModerationManager().BanUser(session.GetHabbo().Username, ModerationBanType.Machine, habbo.Username, message, length);
+                ipLast = db.Users.Where(u => u.Id == targetId).Select(u => u.IpLast).FirstOrDefault() ?? string.Empty;
             }
+
+            if ((ipBan || machineBan) && !string.IsNullOrEmpty(ipLast))
+                PlusEnvironment.GetGame().GetModerationManager().BanUser(session.GetHabbo().Username, ModerationBanType.Ip, ipLast, message, length, targetId);
+            else
+                PlusEnvironment.GetGame().GetModerationManager().BanUser(session.GetHabbo().Username, ModerationBanType.Username, habbo.Username, message, length, targetId);
 
             GameClient targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(habbo.Username);
             targetClient?.Disconnect(immediate: true);

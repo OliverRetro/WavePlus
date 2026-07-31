@@ -220,6 +220,69 @@ namespace Plus.HabboHotel.Groups
         }
 
         public static bool IsWorkableKind(GroupKind kind) => kind == GroupKind.Corporation || kind == GroupKind.Business;
+
+        public static bool IsGangKind(GroupKind kind) => kind == GroupKind.Gang || kind == GroupKind.Cartel || kind == GroupKind.Mafia;
+
+        public bool TryGetGangForUser(int userId, out Group gang)
+        {
+            gang = null;
+            foreach (Group group in GetGroupsForUser(userId)) {
+                if (group != null && IsGangKind(group.Kind)) {
+                    gang = group;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public bool TryCreateGang(Habbo player, string name, string description, GroupKind kind, int colour1, int colour2, out Group group)
+        {
+            group = null;
+            if (player == null || string.IsNullOrWhiteSpace(name) || !IsGangKind(kind))
+                return false;
+
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            var entity = new Database.EF.Entities.GroupEntity
+            {
+                Name = name,
+                Desc = description ?? string.Empty,
+                Badge = string.Empty,
+                OwnerId = (uint)player.Id,
+                Created = (int)PlusEnvironment.GetUnixTimestamp(),
+                RoomId = 0,
+                State = "0",
+                GroupType = (short)kind,
+                Colour1 = colour1,
+                Colour2 = colour2,
+                Admindeco = "0",
+                ForumEnabled = "0"
+            };
+            db.Groups.Add(entity);
+            db.SaveChanges();
+
+            group = new Group((int)entity.Id, name, description ?? string.Empty, string.Empty, 0, player.Id, entity.Created, 0, (int)kind, colour1, colour2, 0, false);
+
+            group.AddMember(player.Id, 0);            // owner (level 0)
+            group.AddRole("Member", 0, string.Empty, string.Empty, 5, true); // base role, level 1
+            group.MarkDirty();
+
+            return _groups.TryAdd(group.Id, group);
+        }
+
+        public void DeleteGangPermanent(int id)
+        {
+            DeleteGroup(id);
+
+            uint gid = (uint)id;
+            using WavePlusContext db = PlusEnvironment.GetDbContext();
+            db.GroupMemberships.Where(m => m.GroupId == gid).ExecuteDelete();
+            db.GroupRequests.Where(r => r.GroupId == gid).ExecuteDelete();
+            db.GroupRoles.Where(r => r.GroupId == id).ExecuteDelete();
+            db.GroupPermissions.Where(p => p.GroupId == id).ExecuteDelete();
+            db.UserStats.Where(u => u.Groupid == id).ExecuteUpdate(s => s.SetProperty(u => u.Groupid, 0));
+            db.Groups.Where(g => g.Id == gid).ExecuteDelete();
+        }
         public bool TryGetWorkGroupForUser(int userId, out Group workGroup)
         {
             workGroup = null;

@@ -13,13 +13,13 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
         public void Execute(GameClient session, Room room, string[] @params)
         {
             if (@params.Length == 1) {
-                session.SendWhisper("Usage :bank <username> <type> <amount>");
+                session.SendWhisper("Usage :bank <username> <type> <amount>", 1);
                 return;
             }
 
             GameClient target = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(@params[1]);
             if (target == null) {
-                session.SendWhisper("Oops, couldn't find that user!");
+                session.SendWhisper("Oops, couldn't find that user!", 1);
                 return;
             }
 
@@ -30,7 +30,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
                         bool created = PlusEnvironment.GetBankingManager().CreateAccount(target.GetHabbo());
 
                         if (!created) {
-                            session.SendWhisper("User already has a bank account.");
+                            session.SendWhisper("User already has a bank account.", 1);
                             return;
                         }
 

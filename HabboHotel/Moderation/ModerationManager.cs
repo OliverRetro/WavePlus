@@ -13,15 +13,16 @@ namespace Plus.HabboHotel.Moderation
         private static readonly ILog Log = LogManager.GetLogger(typeof(ModerationManager));
 
         private int _ticketCount = 1;
-        private readonly List<string> _userPresets = new();
-        private readonly List<string> _roomPresets = new();
-        private readonly Dictionary<string, ModerationBan> _bans = new();
-        private readonly Dictionary<int, string> _userActionPresetCategories = new();
-        private readonly Dictionary<int, List<ModerationPresetActionMessages>> _userActionPresetMessages = new();
+        private readonly List<string> _userPresets = [];
+        private readonly List<string> _roomPresets = [];
+        private readonly Dictionary<int, ModerationBan> _accountBans = [];
+        private readonly Dictionary<string, ModerationBan> _ipBans = [];
+        private readonly Dictionary<int, string> _userActionPresetCategories = [];
+        private readonly Dictionary<int, List<ModerationPresetActionMessages>> _userActionPresetMessages = [];
         private readonly ConcurrentDictionary<int, ModerationTicket> _modTickets = new();
 
-        private readonly Dictionary<int, string> _moderationCfhTopics = new();
-        private readonly Dictionary<int, List<ModerationPresetActions>> _moderationCfhTopicActions = new();
+        private readonly Dictionary<int, string> _moderationCfhTopics = [];
+        private readonly Dictionary<int, List<ModerationPresetActions>> _moderationCfhTopicActions = [];
 
         public void Init()
         {
@@ -31,8 +32,8 @@ namespace Plus.HabboHotel.Moderation
                 _moderationCfhTopics.Clear();
             if (_moderationCfhTopicActions.Count > 0)
                 _moderationCfhTopicActions.Clear();
-            if (_bans.Count > 0)
-                _bans.Clear();
+            _accountBans.Clear();
+            _ipBans.Clear();
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
 
@@ -81,48 +82,53 @@ namespace Plus.HabboHotel.Moderation
             Log.Info("Loaded " + (_userPresets.Count + _roomPresets.Count) + " moderation presets.");
             Log.Info("Loaded " + _userActionPresetCategories.Count + " moderation categories.");
             Log.Info("Loaded " + _userActionPresetMessages.Count + " moderation action preset messages.");
-            Log.Info("Cached " + _bans.Count + " username and machine bans.");
+            Log.Info("Cached " + (_accountBans.Count + _ipBans.Count) + " bans.");
         }
 
         public void ReCacheBans()
         {
-            if (_bans.Count > 0)
-                _bans.Clear();
+            _accountBans.Clear();
+            _ipBans.Clear();
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
             LoadBans(db);
 
-            Log.Info("Cached " + _bans.Count + " username and machine bans.");
+            Log.Info("Cached " + (_accountBans.Count + _ipBans.Count) + " bans.");
         }
 
         private void LoadBans(WavePlusContext db)
         {
-            var rows = db.Bans.Where(b => b.Bantype == "machine" || b.Bantype == "user")
-                .Select(b => new { b.Bantype, b.Value, b.Reason, b.Expire }).ToList();
+            var rows = db.Bans.Where(b => b.Bantype == "account" || b.Bantype == "ip")
+                .Select(b => new { b.Bantype, b.Value, b.Reason, b.Expire, b.UserId }).ToList();
 
             foreach (var row in rows) {
-                string value = row.Value;
-                double expires = row.Expire;
+                if (row.Expire <= PlusEnvironment.GetUnixTimestamp()) {
+                    db.Bans.Where(b => b.Bantype == row.Bantype && b.UserId == row.UserId).ExecuteDelete();
+                    continue;
+                }
 
-                ModerationBan ban = new(BanTypeUtility.GetModerationBanType(row.Bantype), value, row.Reason, expires);
-                if (expires > PlusEnvironment.GetUnixTimestamp()) {
-                    if (value != null && !_bans.ContainsKey(value))
-                        _bans.Add(value, ban);
-                } else {
-                    string banType = BanTypeUtility.FromModerationBanType(ban.Type);
-                    db.Bans.Where(b => b.Bantype == banType && b.Value == value).ExecuteDelete();
+                ModerationBanType type = BanTypeUtility.GetModerationBanType(row.Bantype);
+                ModerationBan ban = new(type, row.Value, row.Reason, row.Expire, row.UserId);
+
+                if (type == ModerationBanType.Ip) {
+                    if (!string.IsNullOrEmpty(row.Value))
+                        _ipBans[row.Value] = ban;
+                } else if (row.UserId > 0) {
+                    _accountBans[row.UserId] = ban;
                 }
             }
         }
 
-        public void BanUser(string mod, ModerationBanType type, string banValue, string reason, double expireTimestamp)
+        public void BanUser(string mod, ModerationBanType type, string banValue, string reason, double expireTimestamp, int userId = 0)
         {
-            string banType = type == ModerationBanType.Ip ? "ip" : type == ModerationBanType.Machine ? "machine" : "user";
+            string banType = type == ModerationBanType.Ip ? "ip" : "account";
+            banValue ??= string.Empty;
             double timestamp = PlusEnvironment.GetUnixTimestamp();
 
             using (WavePlusContext db = PlusEnvironment.GetDbContext())
                 db.Bans.Upsert(new BanEntity
                 {
+                    UserId = userId,
                     Bantype = banType,
                     Value = banValue,
                     Reason = reason,
@@ -130,12 +136,58 @@ namespace Plus.HabboHotel.Moderation
                     AddedBy = mod,
                     AddedDate = timestamp.ToString(),
                     AppealState = "0"
-                }).On(b => new { b.Bantype, b.Value }).Run();
+                }).On(b => new { b.UserId, b.Bantype }).Run();
 
-            if (type == ModerationBanType.Machine || type == ModerationBanType.Username) {
-                if (!_bans.ContainsKey(banValue))
-                    _bans.Add(banValue, new ModerationBan(type, banValue, reason, expireTimestamp));
+            ModerationBan ban = new(type, banValue, reason, expireTimestamp, userId);
+            if (type == ModerationBanType.Ip)
+                _ipBans[banValue] = ban;
+            else if (userId > 0)
+                _accountBans[userId] = ban;
+        }
+
+        public bool IsUserBanned(int userId, out ModerationBan ban)
+        {
+            if (_accountBans.TryGetValue(userId, out ban)) {
+                if (!ban.Expired)
+                    return true;
+
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                    db.Bans.Where(b => b.Bantype == "account" && b.UserId == userId).ExecuteDelete();
+                _accountBans.Remove(userId);
             }
+
+            return false;
+        }
+
+        public bool IsIpBanned(string ip, out ModerationBan ban)
+        {
+            if (!string.IsNullOrEmpty(ip) && _ipBans.TryGetValue(ip, out ban)) {
+                if (!ban.Expired)
+                    return true;
+
+                using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                    db.Bans.Where(b => b.Bantype == "ip" && b.Value == ip).ExecuteDelete();
+                _ipBans.Remove(ip);
+            }
+
+            ban = null;
+            return false;
+        }
+
+        // :unban — lift both the account row and the ip row tied to this user id by setting their
+        // expiry to now, then drop them from the caches.
+        public void Unban(int userId)
+        {
+            double now = PlusEnvironment.GetUnixTimestamp();
+
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                db.Bans.Where(b => b.UserId == userId)
+                    .ExecuteUpdate(s => s.SetProperty(b => b.Expire, b => now));
+
+            _accountBans.Remove(userId);
+
+            foreach (string key in _ipBans.Where(kvp => kvp.Value.UserId == userId).Select(kvp => kvp.Key).ToList())
+                _ipBans.Remove(key);
         }
 
         public ICollection<string> UserMessagePresets => _userPresets;
@@ -184,59 +236,5 @@ namespace Plus.HabboHotel.Moderation
             return _modTickets.FirstOrDefault(x => x.Value.Sender.Id == userId).Value;
         }
 
-        public bool IsBanned(string key, out ModerationBan ban)
-        {
-            if (_bans.TryGetValue(key, out ban)) {
-                if (!ban.Expired)
-                    return true;
-
-                //This ban has expired, let us quickly remove it here.
-                string banType = BanTypeUtility.FromModerationBanType(ban.Type);
-                using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                    db.Bans.Where(b => b.Bantype == banType && b.Value == key).ExecuteDelete();
-
-                //And finally, let us remove the ban record from the cache.
-                if (_bans.ContainsKey(key))
-                    _bans.Remove(key);
-                return false;
-            }
-
-            return false;
-        }
-
-        public bool MachineBanCheck(string machineId)
-        {
-            if (PlusEnvironment.GetGame().GetModerationManager().IsBanned(machineId, out ModerationBan _)) {
-                using WavePlusContext db = PlusEnvironment.GetDbContext();
-
-                //If there is no more ban record, then we can simply remove it from our cache!
-                if (!db.Bans.Any(b => b.Bantype == "machine" && b.Value == machineId)) {
-                    PlusEnvironment.GetGame().GetModerationManager().RemoveBan(machineId);
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        public bool UsernameBanCheck(string username)
-        {
-            if (PlusEnvironment.GetGame().GetModerationManager().IsBanned(username, out ModerationBan _)) {
-                using WavePlusContext db = PlusEnvironment.GetDbContext();
-
-                //If there is no more ban record, then we can simply remove it from our cache!
-                if (!db.Bans.Any(b => b.Bantype == "user" && b.Value == username)) {
-                    PlusEnvironment.GetGame().GetModerationManager().RemoveBan(username);
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        public void RemoveBan(string value)
-        {
-            _bans.Remove(value);
-        }
     }
 }

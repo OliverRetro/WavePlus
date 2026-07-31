@@ -11,14 +11,14 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
     {
         public string PermissionRequired => "command_ip_ban";
 
-        public string Parameters => "%username%";
+        public string Parameters => "%username% %reason%";
 
-        public string Description => "IP and account ban another user.";
+        public string Description => "IP ban a user by their last-connected address.";
 
         public void Execute(GameClient session, Room room, string[] @params)
         {
             if (@params.Length == 1) {
-                session.SendWhisper("Please enter the username of the user you'd like to IP ban & account ban.");
+                session.SendWhisper("Please enter the username of the user you'd like to IP ban.");
                 return;
             }
 
@@ -42,20 +42,19 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
                 ipAddress = db.Users.Where(u => u.Id == habboId).Select(u => u.IpLast).FirstOrDefault() ?? string.Empty;
             }
 
-            string reason;
-            if (@params.Length >= 3)
-                reason = CommandManager.MergeParams(@params, 2);
-            else
-                reason = "No reason specified.";
+            if (string.IsNullOrEmpty(ipAddress)) {
+                session.SendWhisper("That user has no recorded IP address to ban.");
+                return;
+            }
 
-            if (!string.IsNullOrEmpty(ipAddress))
-                PlusEnvironment.GetGame().GetModerationManager().BanUser(session.GetHabbo().Username, ModerationBanType.Ip, ipAddress, reason, expire);
-            PlusEnvironment.GetGame().GetModerationManager().BanUser(session.GetHabbo().Username, ModerationBanType.Username, habbo.Username, reason, expire);
+            string reason = @params.Length >= 3 ? CommandManager.MergeParams(@params, 2) : "No reason was given.";
+
+            PlusEnvironment.GetGame().GetModerationManager().BanUser(session.GetHabbo().Username, ModerationBanType.Ip, ipAddress, reason, expire, habboId);
 
             GameClient targetClient = PlusEnvironment.GetGame().GetClientManager().GetClientByUsername(username);
             targetClient?.Disconnect();
 
-            session.SendWhisper("Success, you have IP and account banned the user '" + username + "' for '" + reason + "'!");
+            session.SendWhisper("Success, you have IP banned the user '" + username + "' (" + ipAddress + ") with the reason '" + reason + "'!");
         }
     }
 }

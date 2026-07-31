@@ -303,7 +303,7 @@ public partial class WavePlusContext(DbContextOptions<WavePlusContext> options) 
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
             entity.Property(e => e.AppealState).HasDefaultValueSql("'''1'''");
-            entity.Property(e => e.Bantype).HasDefaultValueSql("'''user'''");
+            entity.Property(e => e.Bantype).HasDefaultValueSql("'''account'''");
         });
 
         modelBuilder.Entity<BotEntity>(entity =>

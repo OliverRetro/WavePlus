@@ -17,6 +17,7 @@ namespace Plus.Network.Handler
                 // this is a websocket upgrade request, so add the appropriate decoders/encoders
                 context.Channel.Pipeline.AddAfter("messageInterceptor", "websocketCodec", new WebSocketFrameCodec());
                 context.Channel.Pipeline.AddAfter("messageInterceptor", "protocolHandler", new WebSocketServerProtocolHandler("/", null, false, NetworkBootstrap.MAX_FRAME_SIZE, false, true));
+                context.Channel.Pipeline.AddAfter("messageInterceptor", "realIp", new RealIpHandler());
                 context.Channel.Pipeline.AddAfter("messageInterceptor", "objectAggregator", new HttpObjectAggregator(65536));
                 context.Channel.Pipeline.AddAfter("messageInterceptor", "httpCodec", new HttpServerCodec());
             }

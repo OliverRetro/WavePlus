@@ -15,6 +15,8 @@
         public const int TargetLockMessageComposer = 6000;
         public const int MyPhotosMessageComposer = 6010;
         public const int ChatLinkConfigMessageComposer = 6011;
+        public const int GangDataMessageComposer = 6110;
+        public const int GangNoticeMessageComposer = 6111;
 
         // credit to Keorich##1440 for the headers for Production-201611291003-338511768
         public const int UserNftChatStylesMessageComposer = 6100;

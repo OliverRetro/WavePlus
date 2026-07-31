@@ -205,6 +205,11 @@ namespace Plus.HabboHotel.Groups
             return userId == CreatorId || HasPermission(userId, permissionKey);
         }
 
+        public bool RoleHasPermission(int level, int permissionId)
+        {
+            return _permissions.ContainsKey(BuildPermissionKey(level, permissionId));
+        }
+
         public bool HasPermission(int userId, int permissionId)
         {
             if (!PlusEnvironment.GetGame().GetGroupManager().TryGetPermissionKey(permissionId, out GroupPermissionKey permission))
@@ -491,6 +496,20 @@ namespace Plus.HabboHotel.Groups
         public bool RemoveRole(int actorUserId, int level)
         {
             if (actorUserId != CreatorId || level <= 1 || !_roles.TryRemove(level, out GroupRole role))
+                return false;
+
+            foreach (int userId in _memberLevels.Where(x => x.Value == level).Select(x => x.Key).ToList())
+                UpdateMemberLevel(userId, 1);
+
+            if (role.Id > 0)
+                _deletedRoleIds.Add(role.Id);
+
+            return true;
+        }
+
+        public bool RemoveGangRole(int level)
+        {
+            if (level <= 1 || !_roles.TryRemove(level, out GroupRole role))
                 return false;
 
             foreach (int userId in _memberLevels.Where(x => x.Value == level).Select(x => x.Key).ToList())

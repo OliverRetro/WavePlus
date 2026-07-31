@@ -338,6 +338,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             Register(new BanCommand());
             Register(new MipCommand());
             Register(new IpBanCommand());
+            Register(new UnbanCommand());
 
             Register(new UserInfoCommand());
             Register(new StaffAlertCommand());

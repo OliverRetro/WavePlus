@@ -12,6 +12,17 @@
         public const int RequestBankDataMessageEvent = 3325;
         public const int RequestWearingBadgesMessageEvent = 3326;
 
+        // Gang window (WaveRP-Nitro)
+        public const int RequestGangDataMessageEvent = 6112;
+        public const int GangCreateMessageEvent = 6113;
+        public const int GangSaveColorsMessageEvent = 6114;
+        public const int GangSaveRoleMessageEvent = 6115;
+        public const int GangDeleteRoleMessageEvent = 6116;
+        public const int GangInviteMessageEvent = 6117;
+        public const int GangInviteRespondMessageEvent = 6118;
+        public const int GangDeleteMessageEvent = 6119;
+        public const int GangMemberActionMessageEvent = 6120;
+
         // Web overlay (gaz-js) habblet JSON callback bridge
         public const int JavascriptCallbackMessageEvent = 314;
 

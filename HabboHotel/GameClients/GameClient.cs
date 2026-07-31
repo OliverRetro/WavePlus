@@ -29,6 +29,7 @@ namespace Plus.HabboHotel.GameClients
     {
         private Habbo _habbo;
         public string MachineId;
+        public string IpAddress = string.Empty;
         private bool _disconnected;
         private bool _ghost;
         private readonly IChannelHandlerContext _channel;
@@ -66,21 +67,15 @@ namespace Plus.HabboHotel.GameClients
                 #region Ban Checking
 
                 //Let's have a quick search for a ban before we successfully authenticate..
-                if (!string.IsNullOrEmpty(MachineId)) {
-                    if (PlusEnvironment.GetGame().GetModerationManager().IsBanned(MachineId, out _)) {
-                        if (PlusEnvironment.GetGame().GetModerationManager().MachineBanCheck(MachineId)) {
-                            Disconnect();
-                            return false;
-                        }
-                    }
+                if (PlusEnvironment.GetGame().GetModerationManager().IsIpBanned(IpAddress, out _)) {
+                    Disconnect();
+                    return false;
                 }
 
                 if (userData.User != null) {
-                    if (PlusEnvironment.GetGame().GetModerationManager().IsBanned(userData.User.Username, out _)) {
-                        if (PlusEnvironment.GetGame().GetModerationManager().UsernameBanCheck(userData.User.Username)) {
-                            Disconnect();
-                            return false;
-                        }
+                    if (PlusEnvironment.GetGame().GetModerationManager().IsUserBanned(userData.UserId, out _)) {
+                        Disconnect();
+                        return false;
                     }
                 }
 
@@ -124,6 +119,15 @@ namespace Plus.HabboHotel.GameClients
                         }
 
                         _habbo.MachineId = MachineId;
+                    }
+
+                    // Record the address this session actually connected from (X-Real-IP), so a later
+                    // mip/ip ban targets a real IP rather than a stale registration address.
+                    if (!string.IsNullOrEmpty(IpAddress)) {
+                        int habboId = _habbo.Id;
+                        string ip = IpAddress;
+                        using WavePlusContext db = PlusEnvironment.GetDbContext();
+                        db.Users.Where(u => u.Id == habboId).ExecuteUpdate(s => s.SetProperty(u => u.IpLast, ip));
                     }
 
                     if (PlusEnvironment.GetGame().GetPermissionManager().TryGetGroup(_habbo.Rank, out PermissionGroup group)) {

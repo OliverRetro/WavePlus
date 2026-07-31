@@ -1,30 +1,25 @@
-﻿namespace Plus.HabboHotel.Moderation
+namespace Plus.HabboHotel.Moderation
 {
     public static class BanTypeUtility
     {
         public static ModerationBanType GetModerationBanType(string type)
         {
             switch (type) {
-                default:
-                case "user":
-                    return ModerationBanType.Username;
                 case "ip":
                     return ModerationBanType.Ip;
-                case "machine":
-                    return ModerationBanType.Machine;
+                default:
+                case "account":
+                    return ModerationBanType.Username;
             }
         }
 
         public static string FromModerationBanType(ModerationBanType type)
         {
             switch (type) {
-                default:
-                case ModerationBanType.Username:
-                    return "user";
                 case ModerationBanType.Ip:
                     return "ip";
-                case ModerationBanType.Machine:
-                    return "machine";
+                default:
+                    return "account";
             }
         }
     }

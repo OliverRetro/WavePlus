@@ -133,6 +133,17 @@ namespace Plus.Communication.Packets
             _incomingPackets.Add(ClientPacketHeader.RpTargetUserMessageEvent, new RpTargetUserEvent());
             _incomingPackets.Add(ClientPacketHeader.SpendAttributePointMessageEvent, new SpendAttributePointEvent());
             _incomingPackets.Add(ClientPacketHeader.JavascriptCallbackMessageEvent, new WebOverlayCallbackEvent());
+
+            // Gang window (WaveRP-Nitro)
+            _incomingPackets.Add(ClientPacketHeader.RequestGangDataMessageEvent, new Incoming.Roleplay.Gang.RequestGangDataEvent());
+            _incomingPackets.Add(ClientPacketHeader.GangCreateMessageEvent, new Incoming.Roleplay.Gang.GangCreateEvent());
+            _incomingPackets.Add(ClientPacketHeader.GangSaveColorsMessageEvent, new Incoming.Roleplay.Gang.GangSaveColorsEvent());
+            _incomingPackets.Add(ClientPacketHeader.GangSaveRoleMessageEvent, new Incoming.Roleplay.Gang.GangSaveRoleEvent());
+            _incomingPackets.Add(ClientPacketHeader.GangDeleteRoleMessageEvent, new Incoming.Roleplay.Gang.GangDeleteRoleEvent());
+            _incomingPackets.Add(ClientPacketHeader.GangInviteMessageEvent, new Incoming.Roleplay.Gang.GangInviteEvent());
+            _incomingPackets.Add(ClientPacketHeader.GangInviteRespondMessageEvent, new Incoming.Roleplay.Gang.GangInviteRespondEvent());
+            _incomingPackets.Add(ClientPacketHeader.GangDeleteMessageEvent, new Incoming.Roleplay.Gang.GangDeleteEvent());
+            _incomingPackets.Add(ClientPacketHeader.GangMemberActionMessageEvent, new Incoming.Roleplay.Gang.GangMemberActionEvent());
         }
 
         private void RegisterCrafting()
