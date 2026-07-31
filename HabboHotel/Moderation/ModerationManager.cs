@@ -122,18 +122,33 @@ namespace Plus.HabboHotel.Moderation
             banValue ??= string.Empty;
             double timestamp = PlusEnvironment.GetUnixTimestamp();
 
-            using (WavePlusContext db = PlusEnvironment.GetDbContext())
-                db.Bans.Upsert(new BanEntity
-                {
-                    UserId = userId,
-                    Bantype = banType,
-                    Value = banValue,
-                    Reason = reason,
-                    Expire = expireTimestamp,
-                    AddedBy = mod,
-                    AddedDate = timestamp.ToString(),
-                    AppealState = "0"
-                }).On(b => new { b.UserId, b.Bantype }).Run();
+            // Manual upsert on (user_id, bantype). FlexLabs' .On() couldn't match the model here and
+            // aborted the insert, so we do the find-or-update ourselves — one row per user per type.
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
+                BanEntity existing = db.Bans.FirstOrDefault(b => b.UserId == userId && b.Bantype == banType);
+                if (existing != null) {
+                    existing.Value = banValue;
+                    existing.Reason = reason;
+                    existing.Expire = expireTimestamp;
+                    existing.AddedBy = mod;
+                    existing.AddedDate = timestamp.ToString();
+                    existing.AppealState = "0";
+                } else {
+                    db.Bans.Add(new BanEntity
+                    {
+                        UserId = userId,
+                        Bantype = banType,
+                        Value = banValue,
+                        Reason = reason,
+                        Expire = expireTimestamp,
+                        AddedBy = mod,
+                        AddedDate = timestamp.ToString(),
+                        AppealState = "0"
+                    });
+                }
+
+                db.SaveChanges();
+            }
 
             ModerationBan ban = new(type, banValue, reason, expireTimestamp, userId);
             if (type == ModerationBanType.Ip)
