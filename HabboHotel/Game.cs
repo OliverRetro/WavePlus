@@ -205,6 +205,8 @@ namespace Plus.HabboHotel
 
                 PlusEnvironment.GetGame().GetBotManager().OnCycle();
 
+                PlusEnvironment.GetMayhemManager()?.OnCycle();
+
                 _cycleEnded = true;
                 Thread.Sleep(CycleSleepTime);
             }

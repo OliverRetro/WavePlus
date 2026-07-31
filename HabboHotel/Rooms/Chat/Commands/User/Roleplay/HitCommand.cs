@@ -32,6 +32,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 
             double now = PlusEnvironment.GetUnixTimestamp();
 
+            if (session.GetHabbo().LastHitTime <= now && PlusEnvironment.GetMayhemManager().TryHitBot(session.GetHabbo())) {
+                session.GetHabbo().GetRpStats().InteractionEnergy();
+                session.GetHabbo().LastHitTime = now + 3;
+                return;
+            }
+
             if (session.GetHabbo().LastHitTime > now) {
                 double secondsLeft = session.GetHabbo().LastHitTime - now;
 

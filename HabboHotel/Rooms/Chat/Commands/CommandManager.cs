@@ -371,6 +371,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             Register(new CoordsCommand());
             Register(new AllEyesOnMeCommand());
             Register(new AllAroundMeCommand());
+            Register(new MayhemCommand());
             Register(new ForceSitCommand());
 
             Register(new IgnoreWhispersCommand());
