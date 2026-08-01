@@ -406,7 +406,7 @@ namespace Plus.HabboHotel.Rooms
                 }
             }
 
-            List<Items.Item> itemsOnTile = GetFurniObjects(newX, newY);
+            List<Item> itemsOnTile = GetFurniObjects(newX, newY);
             if (item.GetBaseItem().InteractionType == InteractionType.Roller && itemsOnTile.Any(x => x.GetBaseItem().InteractionType == InteractionType.Roller && x.Id != item.Id))
                 return false;
 
@@ -415,7 +415,26 @@ namespace Plus.HabboHotel.Rooms
 
             Dictionary<int, ThreeDCoord> affectedTiles = Gamemap.GetAffectedTiles(item.GetBaseItem().Length, item.GetBaseItem().Width, newX, newY, newRot);
 
-            if (!room.GetGameMap().ValidTile(newX, newY) || room.GetGameMap().SquareHasUsers(newX, newY) && !item.GetBaseItem().IsSeat) {
+            Item stackHelper = null;
+            {
+                List<Item> helperCheck = GetFurniObjects(newX, newY) ?? [];
+                foreach (ThreeDCoord tile in affectedTiles.Values) {
+                    List<Item> t = GetFurniObjects(tile.X, tile.Y);
+                    if (t != null)
+                        helperCheck.AddRange(t);
+                }
+
+                foreach (Item ci in helperCheck) {
+                    if (ci != null && ci.Id != item.Id && ci.GetBaseItem() != null
+                        && ci.GetBaseItem().InteractionType == InteractionType.StackTool) {
+                        if (stackHelper == null || ci.GetZ < stackHelper.GetZ)
+                            stackHelper = ci;
+                    }
+                }
+            }
+            bool hasStackHelper = stackHelper != null;
+
+            if (!room.GetGameMap().ValidTile(newX, newY) || (room.GetGameMap().SquareHasUsers(newX, newY) && !item.GetBaseItem().IsSeat && !hasStackHelper)) {
                 if (needsReAdd)
                     room.GetGameMap().AddToMap(item);
                 return false;
@@ -423,7 +442,7 @@ namespace Plus.HabboHotel.Rooms
 
             foreach (ThreeDCoord tile in affectedTiles.Values) {
                 if (!room.GetGameMap().ValidTile(tile.X, tile.Y) ||
-                    (room.GetGameMap().SquareHasUsers(tile.X, tile.Y) && !item.GetBaseItem().IsSeat)) {
+                    (room.GetGameMap().SquareHasUsers(tile.X, tile.Y) && !item.GetBaseItem().IsSeat && !hasStackHelper)) {
                     if (needsReAdd) {
                         room.GetGameMap().AddToMap(item);
                     }
@@ -435,7 +454,11 @@ namespace Plus.HabboHotel.Rooms
             // Start calculating new Z coordinate
             double newZ = room.GetGameMap().Model.SqFloorHeight[newX, newY];
 
-            if (height == -1) {
+            if (hasStackHelper) {
+                // Magic override: ignore stack config, take the helper's height directly
+                // (including 0, which drops the item under everything else).
+                newZ = stackHelper.GetZ;
+            } else if (height == -1) {
                 if (!onRoller) {
                     // Make sure this tile is open and there are no users here
                     if (room.GetGameMap().Model.SqState[newX, newY] != SquareState.Open && !item.GetBaseItem().IsSeat) {
@@ -530,6 +553,8 @@ namespace Plus.HabboHotel.Rooms
 
             } else
                 newZ = height;
+
+            Console.WriteLine($"[STACKDBG] final newZ={newZ} for item={item.Id}");
 
             item.Rotation = newRot;
             int oldX = item.GetX;

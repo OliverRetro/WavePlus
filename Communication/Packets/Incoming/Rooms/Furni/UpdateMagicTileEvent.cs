@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Plus.Communication.Packets.Outgoing.Rooms.Engine;
 using Plus.Communication.Packets.Outgoing.Rooms.Furni;
 using Plus.HabboHotel.GameClients;
@@ -29,6 +31,12 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Furni
                 return;
 
             item.GetZ = decimalHeight / 100.0;
+
+            uint magicItemId = (uint)item.Id;
+            double magicZ = item.GetZ;
+            using (Database.EF.WavePlusContext db = PlusEnvironment.GetDbContext()) {
+                db.Items.Where(i => i.Id == magicItemId).ExecuteUpdate(s => s.SetProperty(i => i.Z, magicZ));
+            }
 
             room.SendPacket(new ObjectUpdateComposer(item, Convert.ToInt32(session.GetHabbo().Id)));
             room.SendPacket(new UpdateMagicTileComposer(itemId, decimalHeight));
