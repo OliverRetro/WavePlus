@@ -127,7 +127,7 @@ namespace Plus.HabboHotel.Roleplay.Mayhem
             }
 
             List<Point> arrows = GetArrowTiles(room);
-            List<RoomUser> players = [.. room.GetRoomUserManager().GetRoomUsers().Where(u => u != null && !(u.GetClient()?.GetHabbo()?.GetRpStats()?.IsDead ?? true))];
+            List<RoomUser> players = [.. room.GetRoomUserManager().GetRoomUsers().Where(u => u != null && !u.IsAsleep && IsHuntable(u.GetClient()?.GetHabbo()?.GetRpStats()))];
 
             if (!ev.Ending && (now >= ev.EndsAtMs || players.Count == 0 || arrows.Count == 0))
                 ev.Ending = true;
@@ -314,6 +314,9 @@ namespace Plus.HabboHotel.Roleplay.Mayhem
                 ev.Bots.Clear();
             }
         }
+
+        private static bool IsHuntable(UserRpStats stats) =>
+            stats != null && !stats.IsDead && !stats.PassiveMode && !stats.IsGodMode;
 
         private static List<Point> GetArrowTiles(Room room)
         {

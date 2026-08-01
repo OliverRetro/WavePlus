@@ -1,5 +1,6 @@
 ﻿using System;
 using Plus.Communication.Packets.Outgoing.Moderation;
+using Plus.Communication.Packets.Outgoing.Rooms.Avatar;
 using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Moderation;
@@ -86,6 +87,16 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Chat
             PlusEnvironment.GetGame().GetQuestManager().ProgressUserQuest(session, QuestType.SocialChat);
 
             user.OnChat(user.LastBubble, message, false);
+
+            if (message.Trim() == "67") {
+                if (user.DanceId > 0)
+                    user.DanceId = 0;
+                if (session.GetHabbo().Effects().CurrentEffect > 0) {
+                    room.SendPacket(new AvatarEffectComposer(user.VirtualId, 0));
+                    user.EffectReapplyTimer = 2;
+                }
+                room.SendPacket(new ActionComposer(user.VirtualId, 67));
+            }
         }
     }
 }
