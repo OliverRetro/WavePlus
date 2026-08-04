@@ -6,6 +6,7 @@
         public const int GuideSessionPartnerIsPlayingMessageComposer = 448;
         public const int WardrobeConfigMessageComposer = 5001;
         public const int PhoneBankMessageComposer = 6007;
+        public const int GameClockMessageComposer = 6008;
         public const int AtmBankMessageComposer = 6006;
         public const int AnotherStatsMessageComposer = 6005;
         public const int UserStatsMessageComposer = 6004;

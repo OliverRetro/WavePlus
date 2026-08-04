@@ -400,6 +400,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             Register(new GotoCommand());
             Register(new SendToCommand());
             Register(new LinkWhitelistCommand());
+            Register(new SetTimeCommand());
         }
 
         public void Register(IChatCommand command)

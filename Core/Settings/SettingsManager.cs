@@ -37,5 +37,26 @@ namespace Plus.Core.Settings
         }
 
         public bool ContainsKey(string key) => _settings.ContainsKey(key);
+
+        public void SetValue(string key, string value, string description = "")
+        {
+            key = key.ToLower();
+
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
+                var existing = db.ServerSettings.FirstOrDefault(s => s.Key == key);
+                if (existing != null) {
+                    existing.Value = value;
+                } else {
+                    db.ServerSettings.Add(new Database.EF.Entities.ServerSettingEntity {
+                        Key = key,
+                        Value = value,
+                        Description = description ?? ""
+                    });
+                }
+                db.SaveChanges();
+            }
+
+            _settings[key] = value.ToLower();
+        }
     }
 }

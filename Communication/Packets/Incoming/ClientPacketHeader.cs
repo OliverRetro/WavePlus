@@ -5,6 +5,7 @@
         // wave
         // Roleplay custom incoming packets
         public const int RequestWantedListMessageEvent = 6008;
+        public const int RequestGameClockMessageEvent = 6010;
         public const int RpTargetUserMessageEvent = 6009;
         public const int RequestMyPhotosMessageEvent = 6011;
         public const int SpendAttributePointMessageEvent = 6012;

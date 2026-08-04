@@ -112,7 +112,7 @@ namespace Plus.HabboHotel.Roleplay.TargetLock
             }
 
             SetState(requester.Id, target.Id, target.Username, true);
-            requester.GetClient()?.SendWhisper("Target locked: " + target.Username + ". Use :unlocktarget to release.", 1);
+            requester.GetClient()?.SendWhisper("You've locked " + target.Username + " as your target.", 1);
             SendComposer(requester, target.Username, true);
             requester.TrySendUserStatsUpdate(true);
             return true;
