@@ -33,4 +33,13 @@ public partial class UserRpSettingEntity
 
     [Column("link_warning_enabled", TypeName = "tinyint(4)")]
     public sbyte LinkWarningEnabled { get; set; } = 1;
+
+    [Column("chat_higher_enabled", TypeName = "tinyint(4)")]
+    public sbyte ChatHigherEnabled { get; set; }
+
+    [Column("fps_max", TypeName = "int(11)")]
+    public int FpsMax { get; set; } = 24;
+
+    [Column("drag_rooms_enabled", TypeName = "tinyint(4)")]
+    public sbyte DragRoomsEnabled { get; set; } = 1;
 }

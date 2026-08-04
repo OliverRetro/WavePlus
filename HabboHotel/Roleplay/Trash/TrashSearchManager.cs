@@ -94,7 +94,7 @@ namespace Plus.HabboHotel.Roleplay.Trash
                 return false;
 
             Habbo habbo = session.GetHabbo();
-            if (!IsTrashBin(item)) {
+            if (!IsBin(item)) {
                 session.SendWhisper("That isn't searchable trash.", 1);
                 return false;
             }
@@ -121,7 +121,7 @@ namespace Plus.HabboHotel.Roleplay.Trash
             }
 
             if (_binCooldowns.TryGetValue(item.Id, out BinCooldown binCooldown) && binCooldown.ReadyUnix > now) {
-                session.SendWhisper("This trashbin has already been searched. Try another one.", 1);
+                session.SendWhisper("This bin has already been searched. Try another one.", 1);
                 return false;
             }
 
@@ -132,7 +132,7 @@ namespace Plus.HabboHotel.Roleplay.Trash
 
             if (!IsInSearchRange(roomUser, item)) {
                 roomUser.MoveTo(item.SquareInFront);
-                session.SendWhisper("Move closer to the trashbin to search it.", 1);
+                session.SendWhisper("Move closer to the bin to search it.", 1);
                 return false;
             }
 
@@ -229,7 +229,7 @@ namespace Plus.HabboHotel.Roleplay.Trash
             _userCooldowns[habbo.Id] = PlusEnvironment.GetUnixTimestamp() + GetUserCooldownSeconds(habbo);
 
             // Achievement n skill
-            PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(client, "ACH_Trashbin", 1);
+            PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(client, "ACH_bin", 1);
             ProgressScavenge(habbo, 1);
 
             int chance = GetFindChance(habbo);
@@ -409,7 +409,7 @@ namespace Plus.HabboHotel.Roleplay.Trash
                 WebOverlay.CancelInteractionTimer(client);
         }
 
-        public static bool IsTrashBin(Item item)
+        public static bool IsBin(Item item)
         {
             ItemData baseItem = item?.GetBaseItem();
             if (baseItem == null)

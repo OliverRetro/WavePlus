@@ -147,7 +147,7 @@ namespace Plus.HabboHotel.Items
                     WallCoord = wallCoord;
                     IsWallItem = true;
                     IsFloorItem = false;
-                    GetAffectedTiles = new Dictionary<int, ThreeDCoord>();
+                    GetAffectedTiles = [];
                 }
             }
         }
@@ -317,7 +317,7 @@ namespace Plus.HabboHotel.Items
                     return new InteractorWired();
                 }
 
-                if (TrashSearchManager.IsTrashBin(this)) {
+                if (TrashSearchManager.IsBin(this)) {
                     return new InteractorTrashBin();
                 }
 
@@ -836,7 +836,7 @@ namespace Plus.HabboHotel.Items
                         #region Dice
 
                         case InteractionType.Dice: {
-                                string[] numbers = { "1", "2", "3", "4", "5", "6" };
+                                string[] numbers = ["1", "2", "3", "4", "5", "6"];
                                 if (ExtraData == "-1")
                                     ExtraData = RandomizeStrings(numbers)[0];
                                 UpdateState();
@@ -1170,7 +1170,7 @@ namespace Plus.HabboHotel.Items
                                 #region Target Calculation
 
                                 Point targetStart = Coordinate;
-                                List<Point> targetSquares = new();
+                                List<Point> targetSquares = [];
                                 switch (Rotation) {
                                     case 0: {
                                             targetStart = new Point(GetX - 1, GetY);

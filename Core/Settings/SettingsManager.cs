@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using log4net;
 using Plus.Database.EF;
+using Plus.Database.EF.Entities;
 
 namespace Plus.Core.Settings
 {
@@ -47,7 +48,8 @@ namespace Plus.Core.Settings
                 if (existing != null) {
                     existing.Value = value;
                 } else {
-                    db.ServerSettings.Add(new Database.EF.Entities.ServerSettingEntity {
+                    db.ServerSettings.Add(new ServerSettingEntity
+                    {
                         Key = key,
                         Value = value,
                         Description = description ?? ""

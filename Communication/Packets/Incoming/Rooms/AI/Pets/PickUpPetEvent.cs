@@ -70,18 +70,17 @@ namespace Plus.Communication.Packets.Incoming.Rooms.AI.Pets
                 int energy = data.Energy;
                 int nutrition = data.Nutrition;
                 int respect = data.Respect;
-                using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
-                    db.Bots.Where(b => b.Id == petDbId).ExecuteUpdate(s => s
-                        .SetProperty(b => b.RoomId, 0u)
-                        .SetProperty(b => b.X, 0)
-                        .SetProperty(b => b.Y, 0)
-                        .SetProperty(b => b.Z, 0));
-                    db.BotsPetdata.Where(p => p.Id == petDbId).ExecuteUpdate(s => s
-                        .SetProperty(p => p.Experience, experience)
-                        .SetProperty(p => p.Energy, energy)
-                        .SetProperty(p => p.Nutrition, nutrition)
-                        .SetProperty(p => p.Respect, respect));
-                }
+                using WavePlusContext db = PlusEnvironment.GetDbContext();
+                db.Bots.Where(b => b.Id == petDbId).ExecuteUpdate(s => s
+                    .SetProperty(b => b.RoomId, 0u)
+                    .SetProperty(b => b.X, 0)
+                    .SetProperty(b => b.Y, 0)
+                    .SetProperty(b => b.Z, 0));
+                db.BotsPetdata.Where(p => p.Id == petDbId).ExecuteUpdate(s => s
+                    .SetProperty(p => p.Experience, experience)
+                    .SetProperty(p => p.Energy, energy)
+                    .SetProperty(p => p.Nutrition, nutrition)
+                    .SetProperty(p => p.Respect, respect));
             }
 
             if (data.OwnerId != session.GetHabbo().Id) {

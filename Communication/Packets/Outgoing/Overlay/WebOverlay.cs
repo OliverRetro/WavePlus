@@ -160,6 +160,9 @@ namespace Plus.Communication.Packets.Outgoing.Overlay
                 livefeed = settings.Livefeed,
                 alerts = settings.Alerts,
                 linkWarning = settings.LinkWarning,
+                chatHigher = settings.ChatHigher,
+                fpsMax = settings.FpsMax,
+                dragRooms = settings.DragRooms,
                 hasBankAccount = habbo.GetBankAccount() != null
             });
         }

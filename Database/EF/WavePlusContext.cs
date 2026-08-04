@@ -1221,6 +1221,7 @@ public partial class WavePlusContext(DbContextOptions<WavePlusContext> options) 
             entity.Property(e => e.LivefeedEnabled).HasDefaultValueSql("'1'");
             entity.Property(e => e.AlertsEnabled).HasDefaultValueSql("'1'");
             entity.Property(e => e.LinkWarningEnabled).HasDefaultValueSql("'1'");
+            entity.Property(e => e.DragRoomsEnabled).HasDefaultValueSql("'1'");
         });
 
         modelBuilder.Entity<RpLinkWhitelistEntity>(entity =>

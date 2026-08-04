@@ -11,6 +11,7 @@ namespace Plus.Communication.Packets.Incoming.Roleplay
                 return;
 
             session.SendPacket(new ChatLinkConfigComposer(session));
+            session.SendPacket(new ClientVisualSettingsComposer(session));
         }
     }
 }

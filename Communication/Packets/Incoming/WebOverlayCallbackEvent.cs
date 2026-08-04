@@ -10,6 +10,7 @@ using Plus.HabboHotel.Roleplay.Macros;
 using Plus.HabboHotel.Roleplay.RpItem;
 using Plus.HabboHotel.Roleplay.RpItem.Item;
 using Plus.HabboHotel.Roleplay.RpItem.Weapon;
+using Plus.HabboHotel.Roleplay.Settings;
 using Plus.HabboHotel.Roleplay.Skill;
 using Plus.HabboHotel.Roleplay.Stock;
 using Plus.HabboHotel.Roleplay.TargetLock;
@@ -293,6 +294,27 @@ namespace Plus.Communication.Packets.Incoming
                     settings.LinkWarning = value;
                     session.SendPacket(new ChatLinkConfigComposer(session));
                     break;
+
+                case "chatHigher":
+                    settings.ChatHigher = value;
+                    settings.Save();
+                    session.SendPacket(new ClientVisualSettingsComposer(session));
+                    WebOverlay.SendSettings(session);
+                    return;
+
+                case "dragRooms":
+                    settings.DragRooms = value;
+                    settings.Save();
+                    session.SendPacket(new ClientVisualSettingsComposer(session));
+                    WebOverlay.SendSettings(session);
+                    return;
+
+                case "fpsMax":
+                    settings.FpsMax = UserRpSettings.ClampFps(TryGetInt(data, "value", out int fps) ? fps : UserRpSettings.FpsMaxDefault);
+                    settings.Save();
+                    session.SendPacket(new ClientVisualSettingsComposer(session));
+                    WebOverlay.SendSettings(session);
+                    return;
 
                 default:
                     return;
