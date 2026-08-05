@@ -1,4 +1,5 @@
 using DotNetty.Transport.Channels;
+using Plus.Communication.Packets.Outgoing.Roleplay;
 using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.Core;
 using Plus.HabboHotel.Rooms;
@@ -14,11 +15,14 @@ namespace Plus.HabboHotel.GameClients
 
         private const int AnnounceCooldownSeconds = 45;
 
+        private const int DissolveLeadSeconds = 3;
+
         private sealed class PendingDisconnect
         {
             public GameClient Client;
             public IChannelId ChannelId;
             public double ExpiryUnix;
+            public bool DissolveSent;
         }
 
         private readonly ConcurrentDictionary<int, PendingDisconnect> _pending = new();
@@ -81,6 +85,22 @@ namespace Plus.HabboHotel.GameClients
             }
         }
 
+        private void TrySendDissolve(int userId)
+        {
+            try {
+                if (!_pending.TryGetValue(userId, out PendingDisconnect pending))
+                    return;
+
+                Habbo habbo = pending.Client?.GetHabbo();
+                Room room = habbo?.CurrentRoom;
+                RoomUser roomUser = room?.GetRoomUserManager()?.GetRoomUserByHabbo(habbo.Id);
+                if (roomUser != null)
+                    room.SendPacket(new TeleportDissolveComposer(roomUser.VirtualId, rebuild: false));
+            } catch (Exception e) {
+                ExceptionLogger.LogException(e);
+            }
+        }
+
         public void OnCycle()
         {
             double now = PlusEnvironment.GetUnixTimestamp();
@@ -98,8 +118,17 @@ namespace Plus.HabboHotel.GameClients
                 return;
 
             foreach (var kv in _pending) {
-                if (kv.Value.ExpiryUnix <= now)
+                PendingDisconnect pending = kv.Value;
+
+                if (pending.ExpiryUnix <= now) {
                     FinalizeNow(kv.Key);
+                    continue;
+                }
+
+                if (!pending.DissolveSent && (pending.ExpiryUnix - now) <= DissolveLeadSeconds) {
+                    pending.DissolveSent = true;
+                    TrySendDissolve(kv.Key);
+                }
             }
         }
     }

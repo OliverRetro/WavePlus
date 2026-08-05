@@ -101,6 +101,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
                     attacker.GetRpWeapons()?.RemoveWeapon(equippedWeapon.Id);
                     attacker.SaveRpWeapons();
                     attacker.GetClient()?.SendWhisper("Your " + (equippedWeapon.WeaponData?.Name ?? "weapon") + " broke.", 1);
+                    attackerRoomUser.ApplyEffect(0);
                 }
 
                 WebOverlayCallbackEvent.RefreshInventory(attacker.GetClient());
