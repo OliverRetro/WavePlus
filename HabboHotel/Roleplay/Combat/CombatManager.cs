@@ -91,6 +91,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
             int damageToHealth = Math.Min(healthBeforeHit, Math.Max(0, totalDamage - shieldBeforeHit));
             int actualDamageDealt = absorbedByShield + damageToHealth;
             bool isFinalBlow = damageToHealth >= healthBeforeHit && healthBeforeHit > 0;
+            int experience = 0;
 
             UserWeapon equippedWeapon = attacker.GetRpWeapons()?.GetActiveWeapon();
             if (equippedWeapon != null && !equippedWeapon.IsDefault && equippedWeapon.DurabilityLeft > 0) {
@@ -113,6 +114,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
             }
 
             if (isFinalBlow) {
+                experience = 4;
                 attacker.ResetAggressionTimer();
                 targetStats.Health = 0;
                 LiveFeedService.LiveFeed(LiveFeedService.Name(attacker.Username, "green") + " knocked out <b>" + LiveFeedService.Name(target.Username, "red") + "</b>");
@@ -126,6 +128,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
                 PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(attacker.GetClient(), "ACH_Kill", 1);
                 PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(target.GetClient(), "ACH_Death", 1);
             } else {
+                experience = 2;
                 attacker.ResetAggressionTimer();
 
                 // A non-lethal hit is an assault (or a more specific variant).
@@ -146,6 +149,8 @@ namespace Plus.HabboHotel.Roleplay.Combat
 
             attackerStats.Attacks++;
             attackerStats.DamageDealt += actualDamageDealt;
+
+            attackerStats.Experience += experience;
 
             targetStats.Attacked++;
             targetStats.DamageTaken += actualDamageDealt;
@@ -217,6 +222,8 @@ namespace Plus.HabboHotel.Roleplay.Combat
 
             room.SendPacket(new ShoutComposer(sourceUser.VirtualId, "*detonates a suicide vest!*", 0, 29, isRpAction: true));
             LiveFeedService.LiveFeed("💥 " + LiveFeedService.Name(source.Username, "red") + " set off a suicide vest!", "red");
+
+            source.GetRpStats().Experience += 10;
 
             foreach (RoomUser ru in room.GetRoomUserManager().GetRoomUsers()) {
                 if (ru == null || ru.IsBot || ru.HabboId == source.Id)
@@ -394,6 +401,7 @@ namespace Plus.HabboHotel.Roleplay.Combat
             targetStats.Robbed++;
             attackerStats.Robberies++;
             attacker.GetRpSkills().ProgressSkill(3, 1);
+            attackerStats.Experience += 3;
 
             LiveFeedService.LiveFeed(LiveFeedService.Name(attacker.Username, "green") + " robbed <b>" + LiveFeedService.Name(target.Username, "red") + "</b>");
 

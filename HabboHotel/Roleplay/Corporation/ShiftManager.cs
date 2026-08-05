@@ -240,6 +240,7 @@ namespace Plus.HabboHotel.Roleplay.Corporation
                 PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(habbo.GetClient(), "ACH_ShiftCompleter", 1);
 
             // Restart cycle (no costume/motto change needed — already wearing it)
+            habbo.GetRpStats().Experience += 5;
             _activeShifts[habbo.Id] = new ActiveShift(habbo.Id, shift.GroupId, shift.ShiftPay, shift.ShiftDurationMinutes);
         }
 

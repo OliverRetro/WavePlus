@@ -116,7 +116,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
                             break;
                         }
 
-                        targetClient.GetHabbo().GetRpStats().Experience = +Convert.ToInt32(@params[3]);
+                        targetClient.GetHabbo().GetRpStats().Experience = Convert.ToInt32(@params[3]);
                         room.SendPacket(new ShoutComposer(room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id).VirtualId, "*sets " + targetClient.GetHabbo().Username + "'s Experience to " + @params[3] + "*", 0, 23, isRpAction: true));
                         break;
                     }

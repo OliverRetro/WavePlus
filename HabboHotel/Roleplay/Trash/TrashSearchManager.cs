@@ -230,6 +230,7 @@ namespace Plus.HabboHotel.Roleplay.Trash
 
             // Achievement n skill
             PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(client, "ACH_bin", 1);
+            client.GetHabbo().GetRpStats().Experience += 1;
             ProgressScavenge(habbo, 1);
 
             int chance = GetFindChance(habbo);

@@ -1,13 +1,14 @@
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
+using MySqlX.XDevAPI;
 using Plus.Communication.Packets.Outgoing.Overlay;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Roleplay.RpItem;
 using Plus.HabboHotel.Roleplay.RpItem.Item;
 using Plus.HabboHotel.Roleplay.RpItem.Weapon;
 using Plus.HabboHotel.Users;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Plus.HabboHotel.Roleplay.Stock
 {
@@ -218,7 +219,8 @@ namespace Plus.HabboHotel.Roleplay.Stock
             seller.Credits += commission;
             WebOverlay.SendCredits(sellerClient);
             sellerClient.SendPacket(new Communication.Packets.Outgoing.Inventory.Purse.CreditBalanceComposer(seller.Credits));
-            sellerClient.SendWhisper($"You earned {commission} credits commission on that sale.", 1);
+            sellerClient.SendWhisper($"You earnt {commission} credits commission on that sale.", 1);
+            seller.GetRpStats().Experience += 2;
         }
 
         private static int Capacity(Habbo habbo, string stockType, int itemId, int wanted)
