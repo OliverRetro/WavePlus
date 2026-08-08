@@ -20,4 +20,10 @@ public partial class RpLinkWhitelistEntity
 
     [Column("enabled", TypeName = "tinyint(4)")]
     public sbyte Enabled { get; set; } = 1;
+
+    // Admin-set favicon URL shown next to the link title in the confirm popup.
+    // Never derived from the user's URL — tied to the matched rule.
+    [Column("favicon")]
+    [StringLength(255)]
+    public string? Favicon { get; set; }
 }

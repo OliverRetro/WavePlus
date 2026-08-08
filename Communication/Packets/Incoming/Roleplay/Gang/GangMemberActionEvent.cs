@@ -21,6 +21,26 @@ namespace Plus.Communication.Packets.Incoming.Roleplay.Gang
             if (!PlusEnvironment.GetGame().GetGroupManager().TryGetGangForUser(viewer.Id, out Group gang) || gang == null)
                 return;
 
+            // action 3 = leave the gang yourself. The owner can't leave (must delete instead).
+            if (action == 3) {
+                if (gang.CreatorId == viewer.Id) {
+                    session.SendPacket(new RPGangNoticeComposer("As the owner you must delete the gang, not leave it."));
+                    return;
+                }
+
+                if (!gang.IsMember(viewer.Id)) {
+                    session.SendPacket(new RPGangNoticeComposer("You're not a member of this gang."));
+                    return;
+                }
+
+                // DeleteMember clears the member's gang motto tag (see Group.DeleteMember).
+                gang.DeleteMember(viewer.Id);
+                LiveFeedService.LiveFeed(LiveFeedService.Name(viewer.Username, "lightblue") + " left <b>" + gang.Name + "</b>");
+                session.SendPacket(new RPGangNoticeComposer("You've left " + gang.Name + "."));
+                session.SendPacket(new RPGangDataComposer(session));
+                return;
+            }
+
             bool isOwner = gang.CreatorId == viewer.Id;
             int permId = action switch
             {
@@ -89,6 +109,7 @@ namespace Plus.Communication.Packets.Incoming.Roleplay.Gang
                     break;
                 }
                 default: {
+                    // DeleteMember clears the member's gang motto tag (see Group.DeleteMember).
                     gang.DeleteMember(targetId);
                     message = $"{targetName} was removed from {gang.Name}.";
                     LiveFeedService.LiveFeed(LiveFeedService.Name(viewer.Username, "green") + " removed " + LiveFeedService.Name(targetName, "lightblue") + " from <b>" + gang.Name + "</b>");

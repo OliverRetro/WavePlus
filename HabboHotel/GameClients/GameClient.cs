@@ -146,7 +146,7 @@ namespace Plus.HabboHotel.GameClients
                     if (!PlusEnvironment.GetGame().GetCacheManager().ContainsUser(_habbo.Id))
                         PlusEnvironment.GetGame().GetCacheManager().GenerateUser(_habbo.Id);
 
-                    _habbo.Look = PlusEnvironment.GetFigureManager().ProcessFigure(_habbo.Look, _habbo.Gender, _habbo.GetClothing().GetClothingParts, true, _habbo.GetPermissions().HasRight("clothing_no_validation"));
+                    _habbo.Look = PlusEnvironment.GetFigureManager().ProcessFigure(_habbo.Look, _habbo.Gender, _habbo.GetClothing().GetClothingParts, _habbo.IsVip, _habbo.GetPermissions().HasRight("clothing_no_validation"));
                     _habbo.InitProcess();
 
                     if (userData.User.GetPermissions().HasRight("mod_tickets")) {

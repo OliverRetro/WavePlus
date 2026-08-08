@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 
 namespace Plus.HabboHotel.Groups
@@ -21,6 +20,39 @@ namespace Plus.HabboHotel.Groups
             { GroupKind.Mafia, 50 }
         };
 
+        // Creation gates: credit cost + knockouts (kills) required, per organization kind.
+        private static readonly Dictionary<GroupKind, int> DefaultCreationCost = new()
+        {
+            { GroupKind.Gang, 100 },
+            { GroupKind.Mafia, 500 },
+            { GroupKind.Cartel, 1000 }
+        };
+
+        private static readonly Dictionary<GroupKind, int> DefaultKillsRequired = new()
+        {
+            { GroupKind.Gang, 10 },
+            { GroupKind.Mafia, 50 },
+            { GroupKind.Cartel, 100 }
+        };
+
+        public static readonly GroupKind[] CreatableKinds = { GroupKind.Gang, GroupKind.Mafia, GroupKind.Cartel };
+
+        // The tier upgrade chain: Gang -> Mafia -> Cartel. Cartel is the top tier.
+        public static readonly GroupKind[] UpgradeChain = { GroupKind.Gang, GroupKind.Mafia, GroupKind.Cartel };
+
+        // Fallback badge every new gang starts with (same code normal groups fall back to).
+        public const string DefaultBadge = "b05114s06114";
+
+        // The next tier up from the given kind, or null if already at the top.
+        public static GroupKind? NextKind(GroupKind kind)
+        {
+            for (int i = 0; i < UpgradeChain.Length - 1; i++) {
+                if (UpgradeChain[i] == kind)
+                    return UpgradeChain[i + 1];
+            }
+            return null;
+        }
+
         public static string DisplayName(GroupKind kind) => kind switch
         {
             GroupKind.Gang => "Gang",
@@ -38,9 +70,22 @@ namespace Plus.HabboHotel.Groups
             return DefaultLimits.TryGetValue(kind, out int fallback) ? fallback : 20;
         }
 
-        public static int CreationCost()
+        public static int CreationCost(GroupKind kind)
         {
-            return TryGetConfigInt("gang.creation.cost", out int cost) ? cost : 300;
+            string key = "gang.creation.cost." + DisplayName(kind).ToLowerInvariant();
+            if (TryGetConfigInt(key, out int cost))
+                return cost;
+
+            return DefaultCreationCost.TryGetValue(kind, out int fallback) ? fallback : 100;
+        }
+
+        public static int KillsRequired(GroupKind kind)
+        {
+            string key = "gang.creation.kills." + DisplayName(kind).ToLowerInvariant();
+            if (TryGetConfigInt(key, out int kills))
+                return kills;
+
+            return DefaultKillsRequired.TryGetValue(kind, out int fallback) ? fallback : 0;
         }
 
         public static List<GroupPermissionKey> ApplicableKeys(GroupKind kind)
@@ -49,21 +94,6 @@ namespace Plus.HabboHotel.Groups
                 .Where(k => k.Id != PermEditRoom && k.SupportsGroupKind(kind))
                 .OrderBy(k => k.Id)
                 .ToList();
-        }
-
-        // ── Colour packing (native colour1/colour2 int columns store packed RGB) ──
-        public static string ToHex(int colour)
-        {
-            return "#" + (colour & 0xFFFFFF).ToString("X6");
-        }
-
-        public static int ToInt(string hex)
-        {
-            hex = (hex ?? string.Empty).TrimStart('#');
-            if (hex.Length == 6 && int.TryParse(hex, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int value))
-                return value;
-
-            return 0;
         }
 
         private static bool TryGetConfigInt(string key, out int value)

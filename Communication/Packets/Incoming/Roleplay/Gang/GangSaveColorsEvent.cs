@@ -13,8 +13,8 @@ namespace Plus.Communication.Packets.Incoming.Roleplay.Gang
             if (viewer == null)
                 return;
 
-            string primary = packet.PopString();
-            string secondary = packet.PopString();
+            int primary = packet.PopInt();   // colour1: id into the group colorsA palette
+            int secondary = packet.PopInt(); // colour2: id into the group colorsB palette
 
             if (!PlusEnvironment.GetGame().GetGroupManager().TryGetGangForUser(viewer.Id, out Group gang) || gang == null)
                 return;
@@ -25,8 +25,8 @@ namespace Plus.Communication.Packets.Incoming.Roleplay.Gang
                 return;
             }
 
-            gang.Colour1 = GangDefinition.ToInt(primary);
-            gang.Colour2 = GangDefinition.ToInt(secondary);
+            gang.Colour1 = primary;
+            gang.Colour2 = secondary;
             gang.MarkDirty();
 
             session.SendPacket(new RPGangNoticeComposer("Gang colors saved."));

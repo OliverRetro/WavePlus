@@ -88,6 +88,22 @@ namespace Plus.HabboHotel.Users
         public bool IsExpert { get; set; }
         public int VipRank { get; set; }
 
+        // Unix timestamp (seconds) at which the user's timed VIP subscription lapses.
+        // 0 = no active subscription. VipRank is kept as the 0/1 "has VIP" flag.
+        public int VipExpire { get; set; }
+
+        public bool IsVip => VipExpire > (int)PlusEnvironment.GetUnixTimestamp();
+
+        // Whole minutes of VIP time left (clamped at 0). Drives the purse countdown.
+        public int VipMinutesRemaining
+        {
+            get
+            {
+                int remaining = VipExpire - (int)PlusEnvironment.GetUnixTimestamp();
+                return remaining <= 0 ? 0 : (remaining + 59) / 60;
+            }
+        }
+
         // Abilities triggered by generic events.
         public bool AppearOffline { get; set; }
         public bool AllowTradingRequests { get; set; }
@@ -225,7 +241,7 @@ namespace Plus.HabboHotel.Users
         public Habbo(int id, string username, int rank, string motto, string look, string gender, int credits, int activityPoints, int homeRoom,
             bool hasFriendRequestsDisabled, int lastOnline, bool appearOffline, bool hideInRoom, double createDate, int diamonds,
             string machineId, string clientVolume, bool chatPreference, bool focusPreference, bool petsMuted, bool botsMuted, bool advertisingReportBlocked, double lastNameChange,
-            int gotwPoints, bool ignoreInvites, double timeMuted, double tradingLock, bool allowGifts, int friendBarState, bool disableForcedEffects, bool allowMimic, int vipRank, int bubble)
+            int gotwPoints, bool ignoreInvites, double timeMuted, double tradingLock, bool allowGifts, int friendBarState, bool disableForcedEffects, bool allowMimic, int vipRank, int vipExpire, int bubble)
         {
             Id = id;
             Username = username;
@@ -276,6 +292,7 @@ namespace Plus.HabboHotel.Users
             TimeAfk = 0;
             DisableForcedEffects = disableForcedEffects;
             VipRank = vipRank;
+            VipExpire = vipExpire;
 
             _disconnected = false;
             _habboSaved = false;
@@ -1316,6 +1333,76 @@ namespace Plus.HabboHotel.Users
 
             if (_ignores != null)
                 _permissions.Dispose();
+        }
+
+        // Grants (or extends) timed VIP by the given number of seconds. Stacks on top of any
+        // remaining time. Persists, refreshes command rights, re-validates the figure and pushes
+        // the updated subscription info so the purse countdown reflects it immediately.
+        public void GrantVip(int seconds)
+        {
+            if (seconds <= 0)
+                return;
+
+            int now = (int)PlusEnvironment.GetUnixTimestamp();
+            int baseTime = VipExpire > now ? VipExpire : now;
+            VipExpire = baseTime + seconds;
+            VipRank = 1;
+
+            PersistVip();
+            OnVipChanged();
+        }
+
+        // Ends VIP immediately (expiry or manual removal): clears the flag, re-validates the figure
+        // (strips club clothing) and refreshes command rights.
+        public void ExpireVip()
+        {
+            VipExpire = 0;
+            VipRank = 0;
+
+            PersistVip();
+            OnVipChanged();
+        }
+
+        private void PersistVip()
+        {
+            int id = Id;
+            int expire = VipExpire;
+            int rank = VipRank;
+
+            using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
+                db.Users.Where(u => u.Id == id)
+                    .ExecuteUpdate(s => s.SetProperty(u => u.VipExpire, expire).SetProperty(u => u.RankVip, rank));
+            }
+        }
+
+        private void OnVipChanged()
+        {
+            // Command/permission rights are keyed off VipRank; re-init so :commands updates live.
+            GetPermissions().Init(this);
+
+            // Re-validate the figure against the new VIP state. ProcessFigure strips any club-level
+            // clothing parts when the user is no longer VIP (colors are left untouched).
+            string processed = PlusEnvironment.GetFigureManager().ProcessFigure(Look, Gender, GetClothing().GetClothingParts, IsVip, GetPermissions().HasRight("clothing_no_validation"));
+
+            if (processed != Look) {
+                Look = processed;
+                int id = Id;
+                string look = processed;
+                using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
+                    db.Users.Where(u => u.Id == id).ExecuteUpdate(s => s.SetProperty(u => u.Look, look));
+                }
+
+                if (InRoom && CurrentRoom != null) {
+                    RoomUser roomUser = CurrentRoom.GetRoomUserManager().GetRoomUserByHabbo(Id);
+                    if (roomUser != null) {
+                        GetClient()?.SendPacket(new Plus.Communication.Packets.Outgoing.Rooms.Avatar.AvatarAspectUpdateComposer(processed, Gender));
+                        CurrentRoom.SendPacket(new Plus.Communication.Packets.Outgoing.Rooms.Engine.UserChangeComposer(roomUser, false));
+                    }
+                }
+            }
+
+            // Push updated subscription info so the purse VIP countdown refreshes instantly.
+            GetClient()?.SendPacket(new Plus.Communication.Packets.Outgoing.Users.ScrSendUserInfoComposer(this));
         }
 
         public void CheckCreditsTimer()

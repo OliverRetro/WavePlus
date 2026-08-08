@@ -41,12 +41,23 @@ namespace Plus.Communication.Packets.Incoming.Roleplay.Gang
             if (name.Length > MaxNameLength)
                 name = name.Substring(0, MaxNameLength);
 
-            int level;
+            // The owner role (level 0) is real and undeletable, but holds every
+            // permission implicitly — editing it only renames it, never touches perms.
             if (roleLevel == 0) {
+                gang.UpdateRole(0, name, 0, string.Empty, 5, string.Empty);
+                gang.SaveRoles();
+
+                session.SendPacket(new RPGangNoticeComposer($"Role \"{name}\" saved."));
+                session.SendPacket(new RPGangDataComposer(session));
+                return;
+            }
+
+            int level;
+            if (roleLevel < 0) {
                 GroupRole role = gang.AddRole(name, 0, string.Empty, string.Empty, 5, true);
                 level = role.Level;
             } else {
-                if (roleLevel < 1 || !gang.UpdateRole(roleLevel, name, 0, string.Empty, 5, string.Empty)) {
+                if (!gang.UpdateRole(roleLevel, name, 0, string.Empty, 5, string.Empty)) {
                     session.SendPacket(new RPGangNoticeComposer("That role no longer exists."));
                     return;
                 }

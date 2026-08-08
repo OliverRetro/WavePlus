@@ -6,23 +6,24 @@ namespace Plus.Communication.Packets.Outgoing.Roleplay.Gang
         private readonly string _message;
         private readonly string _popupTitle;
         private readonly string _popupMessage;
-        private readonly string _primary;
-        private readonly string _secondary;
+        private readonly int _primary;
+        private readonly int _secondary;
 
         public RPGangNoticeComposer(string message)
-            : this(0, message, string.Empty, string.Empty, string.Empty, string.Empty)
+            : this(0, message, string.Empty, string.Empty, 0, 0)
         {
         }
 
-        public RPGangNoticeComposer(int code, string message, string popupTitle, string popupMessage, string primary, string secondary)
+        // primary/secondary are group-palette colour ids (colour1/colour2).
+        public RPGangNoticeComposer(int code, string message, string popupTitle, string popupMessage, int primary, int secondary)
             : base(ServerPacketHeader.GangNoticeMessageComposer)
         {
             _code = code;
             _message = message ?? string.Empty;
             _popupTitle = popupTitle ?? string.Empty;
             _popupMessage = popupMessage ?? string.Empty;
-            _primary = primary ?? string.Empty;
-            _secondary = secondary ?? string.Empty;
+            _primary = primary;
+            _secondary = secondary;
         }
 
         public override void Compose(ServerPacket packet)
@@ -31,8 +32,8 @@ namespace Plus.Communication.Packets.Outgoing.Roleplay.Gang
             packet.WriteString(_message);
             packet.WriteString(_popupTitle);
             packet.WriteString(_popupMessage);
-            packet.WriteString(_primary);
-            packet.WriteString(_secondary);
+            packet.WriteInteger(_primary);
+            packet.WriteInteger(_secondary);
         }
     }
 }

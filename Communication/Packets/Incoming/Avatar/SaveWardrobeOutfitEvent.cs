@@ -14,7 +14,7 @@ namespace Plus.Communication.Packets.Incoming.Avatar
             string look = packet.PopString();
             string gender = packet.PopString();
 
-            look = PlusEnvironment.GetFigureManager().ProcessFigure(look, gender, session.GetHabbo().GetClothing().GetClothingParts, true);
+            look = PlusEnvironment.GetFigureManager().ProcessFigure(look, gender, session.GetHabbo().GetClothing().GetClothingParts, session.GetHabbo().IsVip);
 
             uint uid = (uint)session.GetHabbo().Id;
             uint slot = (uint)slotId;

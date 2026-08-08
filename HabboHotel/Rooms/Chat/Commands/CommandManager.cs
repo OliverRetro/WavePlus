@@ -223,7 +223,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
         {
             List<string> categories = new() { "All", CommandCategory.Roleplay };
 
-            if (habbo.VipRank > 1)
+            if (habbo.VipRank >= 1)
                 categories.Add(CommandCategory.Vip);
 
             if (habbo.Rank > 3)
@@ -385,6 +385,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             Register(new DisbandItemCommand());
             Register(new GiveItemCommand());
             Register(new GiveWeaponCommand());
+            Register(new AddVipCommand());
             Register(new UnlockUserRecipeCommand());
             Register(new UnlockCorpRecipeCommand());
             Register(new RpUpdateCommand());

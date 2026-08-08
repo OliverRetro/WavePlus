@@ -25,6 +25,7 @@ namespace Plus.Communication.Packets.Outgoing.Roleplay
             foreach (LinkWhitelistManager.Entry entry in entries) {
                 packet.WriteString(entry.Pattern);
                 packet.WriteString(entry.MatchType);
+                packet.WriteString(entry.Favicon);
             }
         }
     }

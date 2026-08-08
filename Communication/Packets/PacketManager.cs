@@ -145,6 +145,8 @@ namespace Plus.Communication.Packets
             _incomingPackets.Add(ClientPacketHeader.GangInviteRespondMessageEvent, new Incoming.Roleplay.Gang.GangInviteRespondEvent());
             _incomingPackets.Add(ClientPacketHeader.GangDeleteMessageEvent, new Incoming.Roleplay.Gang.GangDeleteEvent());
             _incomingPackets.Add(ClientPacketHeader.GangMemberActionMessageEvent, new Incoming.Roleplay.Gang.GangMemberActionEvent());
+            _incomingPackets.Add(ClientPacketHeader.GangUpgradeMessageEvent, new Incoming.Roleplay.Gang.GangUpgradeEvent());
+            _incomingPackets.Add(ClientPacketHeader.GangSaveBadgeMessageEvent, new Incoming.Roleplay.Gang.GangSaveBadgeEvent());
         }
 
         private void RegisterCrafting()

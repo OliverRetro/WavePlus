@@ -315,7 +315,22 @@ namespace Plus.HabboHotel.Groups
 
         private GroupRole GetOwnerRole()
         {
+            if (_roles.TryGetValue(0, out GroupRole persisted))
+                return persisted;
+
             return _ownerRole ??= new GroupRole(0, Id, 0, "Owner", 0, string.Empty, 5, string.Empty, (int)PlusEnvironment.GetUnixTimestamp());
+        }
+
+        public GroupRole AddOwnerRole()
+        {
+            if (_roles.TryGetValue(0, out GroupRole existing))
+                return existing;
+
+            GroupRole role = new(0, Id, 0, "Owner", 0, string.Empty, 5, string.Empty, (int)PlusEnvironment.GetUnixTimestamp(), true);
+            _roles[0] = role;
+            SaveRoles();
+
+            return role;
         }
 
         public void MakeAdmin(int id)
@@ -370,7 +385,7 @@ namespace Plus.HabboHotel.Groups
                 return false;
 
             nextRole = _roles.Values
-                .Where(role => role.Level < currentLevel)
+                .Where(role => role.Level >= 1 && role.Level < currentLevel)
                 .OrderByDescending(role => role.Level)
                 .FirstOrDefault();
 
@@ -404,6 +419,11 @@ namespace Plus.HabboHotel.Groups
 
             ClearEmployment(id);
             ClearFavourite(id);
+
+            // Leaving/being kicked from a gang drops the gang tag on the member's motto
+            // (persists even if they're offline). Covers every removal path centrally.
+            if (GroupManager.IsGangKind(Kind))
+                Roleplay.Utilities.GangMottoService.ClearToCitizen(id);
         }
 
         private void ClearFavourite(int userId)
@@ -624,36 +644,46 @@ namespace Plus.HabboHotel.Groups
             if (_dirty) {
                 uint gid = (uint)Id;
                 using (WavePlusContext db = PlusEnvironment.GetDbContext()) {
-                    db.Groups.Where(g => g.Id == gid).ExecuteUpdate(s => s
-                        .SetProperty(g => g.Name, Name)
-                        .SetProperty(g => g.Desc, Description)
-                        .SetProperty(g => g.Badge, Badge)
-                        .SetProperty(g => g.Colour1, Colour1)
-                        .SetProperty(g => g.Colour2, Colour2)
-                        .SetProperty(g => g.State, ((int)Type).ToString())
-                        .SetProperty(g => g.Admindeco, AdminOnlyDeco.ToString())
-                        .SetProperty(g => g.ForumEnabled, ForumEnabled ? "1" : "0")
-                        .SetProperty(g => g.GroupType, (short)Kind));
+                    // Oracle's MySql.EntityFrameworkCore mistranslates ExecuteUpdate/ExecuteDelete
+                    // against MariaDB (it version-sniffs for MySQL 8 syntax), which crashes world save
+                    // and silently drops membership writes. Raw parameterized SQL goes straight to the
+                    // connector, so it works on both MySQL and MariaDB. One transaction keeps the
+                    // delete + re-insert atomic.
+                    using Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction tx = db.Database.BeginTransaction();
 
-                    db.GroupMemberships.Where(m => m.GroupId == gid).ExecuteDelete();
-                    db.GroupMemberships.AddRange(_memberLevels.Select(kv => new Database.EF.Entities.GroupMembershipEntity
-                    {
-                        GroupId = gid,
-                        UserId = (uint)kv.Key,
-                        Level = (short)kv.Value
-                    }));
+                    string state = ((int)Type).ToString();
+                    string admindeco = AdminOnlyDeco.ToString();
+                    string forumEnabled = ForumEnabled ? "1" : "0";
+                    short groupType = (short)Kind;
 
-                    db.GroupRequests.Where(r => r.GroupId == gid).ExecuteDelete();
+                    db.Database.ExecuteSqlInterpolated($@"UPDATE `groups` SET
+                        `name` = {Name},
+                        `desc` = {Description},
+                        `badge` = {Badge},
+                        `colour1` = {Colour1},
+                        `colour2` = {Colour2},
+                        `state` = {state},
+                        `admindeco` = {admindeco},
+                        `forum_enabled` = {forumEnabled},
+                        `group_type` = {groupType}
+                        WHERE `id` = {gid}");
 
-                    db.SaveChanges();
+                    db.Database.ExecuteSqlInterpolated($"DELETE FROM `group_memberships` WHERE `group_id` = {gid}");
+                    foreach (KeyValuePair<int, int> kv in _memberLevels) {
+                        uint memberId = (uint)kv.Key;
+                        short level = (short)kv.Value;
+                        db.Database.ExecuteSqlInterpolated(
+                            $"INSERT INTO `group_memberships` (`group_id`, `user_id`, `level`) VALUES ({gid}, {memberId}, {level})");
+                    }
 
-                    // group_requests is a keyless entity (no PK), so EF cannot track/Add it. Insert
-                    // the (bounded) request set via raw SQL, mirroring the delete-all + re-insert above.
+                    db.Database.ExecuteSqlInterpolated($"DELETE FROM `group_requests` WHERE `group_id` = {gid}");
                     foreach (int uid in _requests) {
                         uint requestUserId = (uint)uid;
                         db.Database.ExecuteSqlInterpolated(
                             $"INSERT INTO `group_requests` (`group_id`, `user_id`) VALUES ({gid}, {requestUserId})");
                     }
+
+                    tx.Commit();
                 }
 
                 _dirty = false;

@@ -247,7 +247,7 @@ namespace Plus.HabboHotel.Groups
             {
                 Name = name,
                 Desc = description ?? string.Empty,
-                Badge = string.Empty,
+                Badge = GangDefinition.DefaultBadge,
                 OwnerId = (uint)player.Id,
                 Created = (int)PlusEnvironment.GetUnixTimestamp(),
                 RoomId = 0,
@@ -261,9 +261,10 @@ namespace Plus.HabboHotel.Groups
             db.Groups.Add(entity);
             db.SaveChanges();
 
-            group = new Group((int)entity.Id, name, description ?? string.Empty, string.Empty, 0, player.Id, entity.Created, 0, (int)kind, colour1, colour2, 0, false);
+            group = new Group((int)entity.Id, name, description ?? string.Empty, GangDefinition.DefaultBadge, 0, player.Id, entity.Created, 0, (int)kind, colour1, colour2, 0, false);
 
             group.AddMember(player.Id, 0);            // owner (level 0)
+            group.AddOwnerRole();                     // persisted, undeletable Owner role at level 0
             group.AddRole("Member", 0, string.Empty, string.Empty, 5, true); // base role, level 1
             group.MarkDirty();
 
@@ -298,8 +299,8 @@ namespace Plus.HabboHotel.Groups
 
         public List<Group> GetGroupsForUser(int userId)
         {
-            List<Group> groups = new();
-            HashSet<int> seen = new();
+            List<Group> groups = [];
+            HashSet<int> seen = [];
 
             // Loaded groups are the authoritative (cached) source: membership changes are deferred
             // to the 15-minute DB flush, so the DB alone would be stale for recent joins/leaves.

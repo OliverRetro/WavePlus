@@ -3,6 +3,7 @@ using Plus.Communication.Packets.Outgoing.Groups;
 using Plus.Communication.Packets.Outgoing.Roleplay.Gang;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
+using Plus.HabboHotel.Roleplay.Utilities;
 using Plus.HabboHotel.Users;
 
 namespace Plus.Communication.Packets.Incoming.Roleplay.Gang
@@ -29,7 +30,9 @@ namespace Plus.Communication.Packets.Incoming.Roleplay.Gang
 
             groups.DeleteGangPermanent(gangId);
 
-            // Clear the favourite-group badge for any online members in-memory.
+            foreach (int memberId in memberIds)
+                GangMottoService.ClearToCitizen(memberId);
+
             foreach (int memberId in memberIds) {
                 Habbo member = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(memberId)?.GetHabbo();
                 if (member?.GetStats() == null || member.GetStats().FavouriteGroupId != gangId)

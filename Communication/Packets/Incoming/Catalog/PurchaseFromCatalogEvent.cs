@@ -195,6 +195,15 @@ namespace Plus.Communication.Packets.Incoming.Catalog
                 session.SendPacket(new HabboActivityPointNotificationComposer(session.GetHabbo().Diamonds, 0, 5));
             }
 
+            if (item.Data?.ItemName != null
+                && item.Data.ItemName.StartsWith("vip_", StringComparison.OrdinalIgnoreCase)
+                && int.TryParse(item.Data.ItemName.AsSpan(4), out int vipSeconds) && vipSeconds > 0) {
+                session.GetHabbo().GrantVip(vipSeconds * amountPurchase);
+                session.SendPacket(new PurchaseOkComposer(item, item.Data));
+                session.SendPacket(new FurniListUpdateComposer());
+                return;
+            }
+
             switch (item.Data.Type.ToString().ToLower()) {
                 default:
                     List<Item> generatedGenericItems = new();

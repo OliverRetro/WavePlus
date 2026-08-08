@@ -16,7 +16,7 @@ namespace Plus.HabboHotel.Users.Authenticator
                 PlusEnvironment.EnumToBool(row.AdvertisingReportBlocked), (double)(row.LastChange ?? 0), row.GotwPoints ?? 0,
                 PlusEnvironment.EnumToBool(row.IgnoreInvites), row.TimeMuted ?? 0, userInfo.TradingLocked,
                 PlusEnvironment.EnumToBool(row.AllowGifts), (row.FriendBarState ?? false) ? 1 : 0, PlusEnvironment.EnumToBool(row.DisableForcedEffects),
-                PlusEnvironment.EnumToBool(row.AllowMimic), row.RankVip ?? 0, row.Bubble);
+                PlusEnvironment.EnumToBool(row.AllowMimic), row.RankVip ?? 0, row.VipExpire ?? 0, row.Bubble);
 
             habbo.LoadHomeRoomData(row.HomeRoomData);
 

@@ -23,6 +23,8 @@
         public const int GangInviteRespondMessageEvent = 6118;
         public const int GangDeleteMessageEvent = 6119;
         public const int GangMemberActionMessageEvent = 6120;
+        public const int GangUpgradeMessageEvent = 6122;
+        public const int GangSaveBadgeMessageEvent = 6123;
 
         // Web overlay (gaz-js) habblet JSON callback bridge
         public const int JavascriptCallbackMessageEvent = 314;

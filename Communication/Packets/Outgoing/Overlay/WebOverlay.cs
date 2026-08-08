@@ -1,12 +1,18 @@
-using System.Collections.Generic;
-using System.Linq;
+using Plus.Database.EF;
+using Plus.HabboHotel.Cache.Type;
 using Plus.HabboHotel.GameClients;
+using Plus.HabboHotel.Groups;
+using Plus.HabboHotel.Roleplay.Corporation;
 using Plus.HabboHotel.Roleplay.Macros;
 using Plus.HabboHotel.Roleplay.RpItem.Weapon;
 using Plus.HabboHotel.Roleplay.Skill;
+using Plus.HabboHotel.Roleplay.Stock;
 using Plus.HabboHotel.Rooms.Chat.Styles;
 using Plus.HabboHotel.Users;
 using Plus.HabboHotel.Users.Roleplay;
+using System.Collections.Generic;
+using System.Linq;
+using static System.Net.WebRequestMethods;
 
 namespace Plus.Communication.Packets.Outgoing.Overlay
 {
@@ -96,6 +102,15 @@ namespace Plus.Communication.Packets.Outgoing.Overlay
             return template.Replace("%badge%", badge);
         }
 
+        public static string GetAvatarImagingUrl(string look)
+        {
+            string template = PlusEnvironment.GetConfig().Data.TryGetValue("rp.imaging.avatar.url", out string configured) && !string.IsNullOrWhiteSpace(configured)
+                ? configured
+                : "https://waverp.org/habbo-imaging/avatar/%figure%&direction=2&head_direction=2&gesture=sml";
+
+            return template.Replace("%figure%", look ?? string.Empty);
+        }
+
         public static void SendGroupInvite(GameClient session, int inviteId, string sender, string groupName, int groupId, string badge)
         {
             Send(session, "group_invite", new
@@ -165,6 +180,89 @@ namespace Plus.Communication.Packets.Outgoing.Overlay
                 dragRooms = settings.DragRooms,
                 hasBankAccount = habbo.GetBankAccount() != null
             });
+        }
+
+        // Corp Center overlay: every corporation (GroupKind.Corporation), its ranks (roles,
+        // most-senior first) and members grouped under each rank. Salary = the role's ShiftPay;
+        // weekly/total shifts come from the ShiftManager; last_online from the users table.
+        public static void SendCorporations(GameClient session)
+        {
+            Habbo viewer = session?.GetHabbo();
+            if (viewer == null) return;
+
+            GroupManager groupManager = PlusEnvironment.GetGame().GetGroupManager();
+            ShiftManager shiftManager = PlusEnvironment.GetGame().GetShiftManager();
+            GameClientManager clients = PlusEnvironment.GetGame().GetClientManager();
+
+            // All corporation group ids from the DB, then loaded (or reused) via the manager.
+            List<int> corpIds;
+            using (WavePlusContext db = PlusEnvironment.GetDbContext())
+                corpIds = db.Groups.Where(g => g.GroupType == (short)GroupKind.Corporation)
+                    .Select(g => (int)g.Id).ToList();
+
+            List<Group> corps = new();
+            foreach (int id in corpIds)
+                if (groupManager.TryGetGroup(id, out Group corp) && corp != null && corp.Kind == GroupKind.Corporation)
+                    corps.Add(corp);
+
+            // Resolve every member's name/look in one cache call, and last_online in one query.
+            List<int> allMemberIds = corps.SelectMany(c => c.MemberLevelsSnapshot.Keys).Distinct().ToList();
+            Dictionary<int, UserCache> userCache = PlusEnvironment.GetGame().GetCacheManager()
+                .GenerateUsers(allMemberIds).ToDictionary(u => u.Id, u => u);
+
+            Dictionary<int, int> lastOnline = new();
+            if (allMemberIds.Count > 0) {
+                using WavePlusContext db = PlusEnvironment.GetDbContext();
+                foreach (var row in db.Users.Where(u => allMemberIds.Contains(u.Id))
+                    .Select(u => new { u.Id, u.LastOnline }).ToList())
+                    lastOnline[row.Id] = row.LastOnline ?? 0;
+            }
+
+            var corporations = corps.Select(corp => new
+            {
+                id = corp.Id,
+                name = corp.Name ?? string.Empty,
+                badge = corp.Badge ?? string.Empty,
+                badgeUrl = GetGroupBadgeUrl(corp.Badge),
+                employees = corp.MemberCount,
+                // Corp stock = the total quantity in the corporation room's shared stock pool.
+                stock = PlusEnvironment.GetRoomStockManager()
+                    .GetRoomStock(corp.RoomId, RoomStockManager.RoomScope).Sum(x => x.Amount),
+                ranks = corp.GetRoles.Where(r => r.Level >= 1).OrderByDescending(r => r.Level).Select(role =>
+                {
+                    var members = corp.MemberLevelsSnapshot
+                        .Where(kv => kv.Value == role.Level)
+                        .Select(kv => kv.Key)
+                        .Select(uid =>
+                        {
+                            userCache.TryGetValue(uid, out UserCache uc);
+                            (int weekly, int total) = shiftManager.GetShiftCounts(corp.Id, uid);
+                            return (object)new
+                            {
+                                id = uid,
+                                userName = uc?.Username ?? string.Empty,
+                                look = uc?.Look ?? string.Empty,
+                                avatarUrl = GetAvatarImagingUrl(uc?.Look),
+                                rank = role.Name ?? string.Empty,
+                                isOnline = clients.GetClientByUserId(uid) != null,
+                                lastOnline = lastOnline.TryGetValue(uid, out int lo) ? lo : 0,
+                                weeklyShifts = weekly,
+                                totalShifts = total
+                            };
+                        })
+                        .ToArray();
+
+                    return (object)new
+                    {
+                        level = role.Level,
+                        title = role.Name ?? string.Empty,
+                        salary = role.ShiftPay,
+                        members
+                    };
+                }).ToArray()
+            }).ToArray();
+
+            Send(session, "corps_data", new { corporations });
         }
 
         public static void SendMyItems(GameClient session)

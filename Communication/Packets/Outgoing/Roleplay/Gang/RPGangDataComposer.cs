@@ -38,8 +38,8 @@ namespace Plus.Communication.Packets.Outgoing.Roleplay.Gang
             packet.WriteString(gang.Name ?? string.Empty);
             packet.WriteString(gang.Description ?? string.Empty);
             packet.WriteInteger((int)gang.Kind);
-            packet.WriteString(GangDefinition.ToHex(gang.Colour1));
-            packet.WriteString(GangDefinition.ToHex(gang.Colour2));
+            packet.WriteInteger(gang.Colour1); // colour1: id into the group colorsA palette
+            packet.WriteInteger(gang.Colour2); // colour2: id into the group colorsB palette
 
             // TODO: gang stat tracking — level/xp/kills/etc. are not persisted yet.
             packet.WriteInteger(0);   // level
@@ -69,13 +69,16 @@ namespace Plus.Communication.Packets.Outgoing.Roleplay.Gang
                 packet.WriteString(key.Name ?? string.Empty);
             }
 
-            List<GroupRole> roles = [.. gang.GetRoles.Where(r => r.Level >= 1).OrderBy(r => r.Level)];
+            List<GroupRole> roles = [.. gang.GetRoles
+                .OrderBy(r => r.Level == 0 ? int.MinValue : -r.Level)];
             packet.WriteInteger(roles.Count);
             foreach (GroupRole role in roles) {
                 packet.WriteInteger(role.Level);
                 packet.WriteString(role.Name ?? string.Empty);
 
-                List<int> enabled = [.. keys.Where(k => gang.RoleHasPermission(role.Level, k.Id)).Select(k => k.Id)];
+                List<int> enabled = role.Level == 0
+                    ? []
+                    : [.. keys.Where(k => gang.RoleHasPermission(role.Level, k.Id)).Select(k => k.Id)];
                 packet.WriteInteger(enabled.Count);
                 foreach (int permId in enabled)
                     packet.WriteInteger(permId);
@@ -88,6 +91,31 @@ namespace Plus.Communication.Packets.Outgoing.Roleplay.Gang
                 packet.WriteString(member.Username ?? string.Empty);
                 packet.WriteString(member.Look ?? string.Empty);
                 packet.WriteInteger(gang.GetMemberLevel(member.Id));
+            }
+
+            // The gang badge (rendered on top of the two-tone colours, like normal groups).
+            // Gangs created before badges existed have an empty code — fall back to the
+            // default so they still show an emblem until the owner customises it.
+            packet.WriteString(string.IsNullOrEmpty(gang.Badge) ? GangDefinition.DefaultBadge : gang.Badge);
+
+            // Upgrade offer: only the owner can upgrade, and only if a higher tier exists.
+            // We send the target tier's cost/kill gate + whether the viewer meets them so
+            // the client shows the blue "Upgrade to X" button exactly when it's affordable.
+            GroupKind? next = isOwner ? GangDefinition.NextKind(gang.Kind) : null;
+            if (next.HasValue) {
+                int cost = GangDefinition.CreationCost(next.Value);
+                int killsRequired = GangDefinition.KillsRequired(next.Value);
+                int kills = viewer.GetRpStats()?.Knockouts ?? 0;
+                bool eligible = kills >= killsRequired && viewer.Credits >= cost;
+
+                packet.WriteBoolean(true);
+                packet.WriteInteger((int)next.Value);
+                packet.WriteString(GangDefinition.DisplayName(next.Value));
+                packet.WriteInteger(cost);
+                packet.WriteInteger(killsRequired);
+                packet.WriteBoolean(eligible);
+            } else {
+                packet.WriteBoolean(false);
             }
         }
 
@@ -105,7 +133,17 @@ namespace Plus.Communication.Packets.Outgoing.Roleplay.Gang
         private static void WriteSetupBranch(ServerPacket packet, Habbo viewer)
         {
             packet.WriteBoolean(false);
-            packet.WriteInteger(GangDefinition.CreationCost());
+
+            // The viewer's current knockouts (kills) + the per-kind creation gates, so
+            // the create form can show requirements and disable ineligible types.
+            packet.WriteInteger(viewer?.GetRpStats()?.Knockouts ?? 0);
+
+            packet.WriteInteger(GangDefinition.CreatableKinds.Length);
+            foreach (GroupKind kind in GangDefinition.CreatableKinds) {
+                packet.WriteInteger((int)kind);
+                packet.WriteInteger(GangDefinition.CreationCost(kind));
+                packet.WriteInteger(GangDefinition.KillsRequired(kind));
+            }
 
             GroupInviteService.PendingInvite invite = viewer == null ? null : GroupInviteService.GetPending(viewer.Id);
             if (invite != null && PlusEnvironment.GetGame().GetGroupManager().TryGetGroup(invite.GroupId, out Group group) && group != null) {
@@ -113,8 +151,8 @@ namespace Plus.Communication.Packets.Outgoing.Roleplay.Gang
                 packet.WriteInteger(invite.Id);
                 packet.WriteString(group.Name ?? string.Empty);
                 packet.WriteString(invite.SenderName ?? string.Empty);
-                packet.WriteString(GangDefinition.ToHex(group.Colour1));
-                packet.WriteString(GangDefinition.ToHex(group.Colour2));
+                packet.WriteInteger(group.Colour1);
+                packet.WriteInteger(group.Colour2);
                 packet.WriteString(RelativeTime(invite.SentAt));
             } else {
                 packet.WriteInteger(0);

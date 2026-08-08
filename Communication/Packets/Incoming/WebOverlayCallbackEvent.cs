@@ -156,6 +156,16 @@ namespace Plus.Communication.Packets.Incoming
                     session.SendPacket(new WantedListComposer());
                     break;
 
+                case "open_corps":
+                case "request_corps":
+                    WebOverlay.SendCorporations(session);
+                    break;
+
+                // Organization button in the gaz-js left menu — toggle the Nitro gang window.
+                case "open_gang":
+                    session.SendPacket(new Plus.Communication.Packets.Outgoing.Roleplay.Gang.RPGangToggleComposer());
+                    break;
+
                 // A line bought from the :offer / stock_vendor buy window.
                 case "buy_stock":
                     BuyStock(data, session);

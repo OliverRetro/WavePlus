@@ -20,8 +20,10 @@ namespace Plus.Communication.Packets.Incoming.Roleplay.Gang
             GroupInviteService.Respond(session, inviteId, accepted);
 
             if (accepted && PlusEnvironment.GetGame().GetGroupManager().TryGetGangForUser(viewer.Id, out Group gang) && gang != null) {
+                GangMottoService.ApplyGangMotto(viewer.Id, gang);
+
                 session.SendPacket(new RPGangNoticeComposer(2, $"You are now a member of {gang.Name}.",
-                    "Gang Joined", $"You are now a member of {gang.Name}.", GangDefinition.ToHex(gang.Colour1), GangDefinition.ToHex(gang.Colour2)));
+                    "Gang Joined", $"You are now a member of {gang.Name}.", gang.Colour1, gang.Colour2));
             }
 
             session.SendPacket(new RPGangDataComposer(session));

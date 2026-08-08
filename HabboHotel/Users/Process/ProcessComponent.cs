@@ -113,6 +113,9 @@ namespace Plus.HabboHotel.Users.Process
                 _player.CheckCreditsTimer();
                 _player.CheckBankSaveTimer();
 
+                if (_player.VipRank == 1 && !_player.IsVip)
+                    _player.ExpireVip();
+
                 _player.Effects().CheckEffectExpiry(_player);
 
                 _player.GetRpStats()?.TickHunger(_player);

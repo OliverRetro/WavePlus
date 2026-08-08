@@ -518,6 +518,9 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
 
             if (data.Has("fastwalk") && roomUser != null)
                 roomUser.ApplyTimedFastwalk(TimeSpan.FromMilliseconds(data.Get("fastwalk") * RpItemData.TimeUnitMs));
+
+            if (data.Has("vip"))
+                habbo.GrantVip(data.GetInt("vip"));
         }
 
         private void ConsumeUse(UserRpItem userItem)

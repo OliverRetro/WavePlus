@@ -7,7 +7,7 @@ namespace Plus.Communication.Packets.Incoming.Users
     {
         public void Parse(GameClient session, ClientPacket packet)
         {
-            session.SendPacket(new ScrSendUserInfoComposer());
+            session.SendPacket(new ScrSendUserInfoComposer(session.GetHabbo()));
         }
     }
 }

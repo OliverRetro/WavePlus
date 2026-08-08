@@ -52,6 +52,9 @@ public partial class UserEntity
     [Column("rank_vip", TypeName = "int(1)")]
     public int? RankVip { get; set; }
 
+    [Column("vip_expire", TypeName = "int(11)")]
+    public int? VipExpire { get; set; }
+
     [Column("credits", TypeName = "int(11)")]
     public int? Credits { get; set; }
 
