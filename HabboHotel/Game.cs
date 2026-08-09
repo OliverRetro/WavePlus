@@ -203,8 +203,6 @@ namespace Plus.HabboHotel
                 // damage almost immediately rather than on a coarse interval.
                 PlusEnvironment.GetSlowHealManager()?.OnCycle();
 
-                PlusEnvironment.GetGame().GetBotManager().OnCycle();
-
                 PlusEnvironment.GetMayhemManager()?.OnCycle();
 
                 _cycleEnded = true;

@@ -145,7 +145,6 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             Register(new ToggleSkillCommand());
             Register(new BuildHeightCommand());
             Register(new SuicideCommand());
-            Register(new SetTaxiPointCommand());
             Register(new BalanceCommand());
             Register(new DepositCommand());
             Register(new WithdrawCommand());
@@ -330,7 +329,6 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
 
             Register(new PetCommand());
             Register(new SuperPushCommand());
-            Register(new TaxiCommand());
         }
 
         private void RegisterModerator()

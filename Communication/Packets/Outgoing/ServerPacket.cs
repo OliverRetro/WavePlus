@@ -19,6 +19,11 @@ namespace Plus.Communication.Packets.Outgoing
             }
         }
 
+        public void WriteBytes(IByteBuffer src)
+        {
+            Buffer.WriteBytes(src);
+        }
+
         public void WriteByte(byte b)
         {
             Buffer.WriteByte(b);

@@ -26,7 +26,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.FloorPlan
                 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', '\r'
             };
 
-            string map = packet.PopString().ToLower().TrimEnd();
+            string map = packet.PopString().ToLower().TrimEnd().Replace("\n", "");
 
             if (map.Length > 4159) //4096 + New Lines = 4159
             {
@@ -35,7 +35,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.FloorPlan
             }
 
             if (map.Any(letter => !validLetters.Contains(letter)) || string.IsNullOrEmpty(map)) {
-                session.SendPacket(new RoomNotificationComposer("floorplan_editor.error", "errors", "Oops, it appears that you have entered an invalid floor map!"));
+                session.SendPacket(new RoomNotificationComposer("floorplan_editor.error", "errors", "Oops, it appears that you have entered an invalid floor map! (Bad characters)"));
                 return;
             }
 
@@ -64,7 +64,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.FloorPlan
             }
 
             if (!isValid) {
-                session.SendPacket(new RoomNotificationComposer("floorplan_editor.error", "errors", "Oops, it appears that you have entered an invalid floor map!"));
+                session.SendPacket(new RoomNotificationComposer("floorplan_editor.error", "errors", "Oops, it appears that you have entered an invalid floor map! (Line length)"));
                 return;
             }
 

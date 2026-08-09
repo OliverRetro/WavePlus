@@ -45,6 +45,7 @@ using Plus.HabboHotel.Roleplay.Utilities;
 using Plus.HabboHotel.Users.Roleplay;
 using Plus.HabboHotel.Roleplay.Stock;
 using Plus.HabboHotel.Items.Interactor;
+using Plus.Communication.Packets.Incoming.Rooms.Engine;
 
 namespace Plus.HabboHotel.Users
 {
@@ -1562,10 +1563,6 @@ namespace Plus.HabboHotel.Users
 
         public void SaveKey(string key, string value)
         {
-            // NOTE: the target column name is dynamic (caller-supplied), which EF's strongly-typed
-            // ExecuteUpdate cannot express, so a parameterized raw update is retained. `value` and `Id`
-            // are bound as parameters ({0}/{1}); only the trusted internal `key` (column name, which
-            // cannot be a SQL parameter) is concatenated, hence the intentional EF1003 suppression.
             using WavePlusContext db = PlusEnvironment.GetDbContext();
 #pragma warning disable EF1003 // Risk of SQL injection — only the trusted internal column name is concatenated.
             db.Database.ExecuteSqlRaw("UPDATE `users` SET " + key + " = {0} WHERE `id` = {1} LIMIT 1;", value, Id);
@@ -1648,7 +1645,7 @@ namespace Plus.HabboHotel.Users
             }
         }
 
-        public bool EnterRoom(Rooms.Room room)
+        public bool EnterRoom(Room room)
         {
             GameClient client = GetClient();
             if (client == null || client.GetHabbo() == null)
@@ -1677,9 +1674,7 @@ namespace Plus.HabboHotel.Users
             client.SendPacket(new RoomPropertyComposer("landscape", room.Landscape));
             client.SendPacket(new RoomRatingComposer(room.Score, !(habbo.RatedRooms.Contains(room.RoomId) || room.OwnerId == habbo.Id)));
 
-            // The client only sends GetFurnitureAliases on the very first connection and then
-            // stops. We must push FurnitureAliases proactively on every room entry so that the
-            // client always receives it and triggers GetRoomEntryData in response.
+            // need to send it regardless cus nitro expects it
             client.SendPacket(new FurnitureAliasesComposer());
 
             // Buffered (write-behind) — room entry no longer runs a synchronous INSERT.
@@ -1687,15 +1682,12 @@ namespace Plus.HabboHotel.Users
 
             if (room.OwnerId != habbo.Id) {
                 habbo.GetStats().RoomVisits += 1;
-
-                // Batched: room hopping is frequent enough that the synchronous achievement
-                // write was measurable under load.
                 PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(client, "ACH_RoomEntry", 1);
             }
 
             if (PlusEnvironment.GetSettingsManager().TryGetValue("room.entry.proactive") == "1") {
                 habbo.RoomEntryFinalized = true;
-                Communication.Packets.Incoming.Rooms.Engine.GetRoomEntryDataEvent.Finalize(client);
+                GetRoomEntryDataEvent.Finalize(client);
             }
 
             return true;

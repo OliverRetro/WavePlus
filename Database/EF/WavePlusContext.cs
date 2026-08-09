@@ -147,8 +147,6 @@ public partial class WavePlusContext(DbContextOptions<WavePlusContext> options) 
 
     public virtual DbSet<RoomRightEntity> RoomRights { get; set; }
 
-    public virtual DbSet<RoomTaxiPointEntity> RoomTaxiPoints { get; set; }
-
     public virtual DbSet<RpCrimeEntity> RpCrimes { get; set; }
 
     public virtual DbSet<RpCrimeLogEntity> RpCrimeLogs { get; set; }
@@ -894,11 +892,6 @@ public partial class WavePlusContext(DbContextOptions<WavePlusContext> options) 
         });
 
         modelBuilder.Entity<RoomRightEntity>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PRIMARY");
-        });
-
-        modelBuilder.Entity<RoomTaxiPointEntity>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
         });

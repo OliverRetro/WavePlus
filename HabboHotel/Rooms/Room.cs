@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using DotNetty.Buffers;
 using Plus.Communication.Packets.Outgoing;
 using Plus.Communication.Packets.Outgoing.Rooms.Avatar;
 using Plus.Communication.Packets.Outgoing.Rooms.Engine;
@@ -22,6 +17,12 @@ using Plus.HabboHotel.Rooms.Games.Football;
 using Plus.HabboHotel.Rooms.Games.Freeze;
 using Plus.HabboHotel.Rooms.Games.Teams;
 using Plus.HabboHotel.Rooms.Instance;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Plus.HabboHotel.Rooms
 {
@@ -508,13 +509,27 @@ namespace Plus.HabboHotel.Rooms
 
         public void SendObjects(GameClient session, Room room)
         {
-            session.SendPacket(new HeightMapComposer(room));
-            session.SendPacket(new FloorHeightMapComposer(GetGameMap().Model.GetRelativeHeightmap(), GetGameMap().StaticModel.WallHeight));
+            ServerPacket test = new ServerPacket(-1, Unpooled.Buffer());
 
-            // One batched UsersComposer for the whole room instead of one packet per avatar —
-            // on a 100-user room this trims the entry burst by ~99 packets.
+            new HeightMapComposer(room).Compose(test);
+            new FloorHeightMapComposer(GetGameMap().Model.GetRelativeHeightmap(), GetGameMap().StaticModel.WallHeight).Compose(test);
+
             List<RoomUser> visibleUsers = [.. _roomUserManager.GetUserList().Where(u => u != null)];
-            session.SendPacket(new UsersComposer(visibleUsers));
+            new UsersComposer(visibleUsers).Compose(test);
+            new ObjectsComposer([.. GetRoomItemHandler().GetFloor], this).Compose(test);
+            new ItemsComposer([.. GetRoomItemHandler().GetWall], this).Compose(test);
+
+            Console.WriteLine("Sending RoomInitDataComposer");
+            session.SendPacket(new RoomInitDataComposer(test));
+            session.SendPacket(new UserUpdateComposer([.. _roomUserManager.GetUserList()]));
+
+
+            // session.SendPacket(new HeightMapComposer(room));
+            // session.SendPacket(new FloorHeightMapComposer(GetGameMap().Model.GetRelativeHeightmap(), GetGameMap().StaticModel.WallHeight));
+
+            // List<RoomUser> visibleUsers = [.. _roomUserManager.GetUserList().Where(u => u != null)];
+
+            // session.SendPacket(new UsersComposer(visibleUsers));
 
             foreach (RoomUser user in visibleUsers) {
                 if (user == null)
@@ -538,9 +553,9 @@ namespace Plus.HabboHotel.Rooms
                     session.SendPacket(new AvatarEffectComposer(user.VirtualId, user.CurrentEffect));
             }
 
-            session.SendPacket(new UserUpdateComposer([.. _roomUserManager.GetUserList()]));
-            session.SendPacket(new ObjectsComposer([.. GetRoomItemHandler().GetFloor], this));
-            session.SendPacket(new ItemsComposer([.. GetRoomItemHandler().GetWall], this));
+            // session.SendPacket(new UserUpdateComposer([.. _roomUserManager.GetUserList()]));
+            // session.SendPacket(new ObjectsComposer([.. GetRoomItemHandler().GetFloor], this));
+            // session.SendPacket(new ItemsComposer([.. GetRoomItemHandler().GetWall], this));
         }
 
         #region Tents

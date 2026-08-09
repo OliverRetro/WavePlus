@@ -21,6 +21,7 @@
         public const int GangDataMessageComposer = 6110;
         public const int GangNoticeMessageComposer = 6111;
         public const int GangToggleMessageComposer = 6121;
+        public const int RoomInitDataMessageComposer = 6122;
 
         // credit to Keorich##1440 for the headers for Production-201611291003-338511768
         public const int UserNftChatStylesMessageComposer = 6100;

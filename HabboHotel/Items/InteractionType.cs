@@ -117,7 +117,6 @@
         FxProvider,
         Exchange,
         TrashBin,
-        TaxiPole,
         Atm,
         Bank,
         StockVendor,
@@ -356,8 +355,6 @@
                     return InteractionType.Exchange;
                 case "trash_bin":
                     return InteractionType.TrashBin;
-                case "taxi_pole":
-                    return InteractionType.TaxiPole;
                 case "atm":
                     return InteractionType.Atm;
                 case "bank":

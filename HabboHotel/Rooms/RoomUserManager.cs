@@ -383,8 +383,6 @@ namespace Plus.HabboHotel.Rooms
                 if (session == null)
                     return;
 
-                PlusEnvironment.GetGame().GetBotManager().HandleUserRoomLeave(session, _room);
-
                 List<RoomUser> bots = new();
 
                 try {
