@@ -1,28 +1,26 @@
-using System;
-using System.Collections;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using MySqlX.XDevAPI;
+using Plus.Communication.Packets.Incoming.Rooms.Engine;
 using Plus.Communication.Packets.Outgoing.Handshake;
 using Plus.Communication.Packets.Outgoing.Inventory.Purse;
 using Plus.Communication.Packets.Outgoing.Navigator;
+using Plus.Communication.Packets.Outgoing.Quests;
 using Plus.Communication.Packets.Outgoing.Rooms.Engine;
 using Plus.Communication.Packets.Outgoing.Rooms.Session;
 using Plus.Core;
 using Plus.Database.EF;
 using Plus.Database.EF.Entities;
-using Microsoft.EntityFrameworkCore;
 using Plus.HabboHotel.GameClients;
-using Plus.HabboHotel.Rooms;
-// Disambiguates the bare names from the scaffolded EF entities Plus.Database.EF.Entities.Room/UserAchievement.
-using Room = Plus.HabboHotel.Rooms.Room;
-using UserAchievement = Plus.HabboHotel.Achievements.UserAchievement;
-using Plus.HabboHotel.Rooms.Chat.Commands;
+using Plus.HabboHotel.Items.Interactor;
 using Plus.HabboHotel.Roleplay.Banking;
-using Plus.HabboHotel.Roleplay.RpItem.Weapon;
 using Plus.HabboHotel.Roleplay.RpItem.Item;
+using Plus.HabboHotel.Roleplay.RpItem.Weapon;
 using Plus.HabboHotel.Roleplay.Skill;
+using Plus.HabboHotel.Roleplay.Stock;
+using Plus.HabboHotel.Roleplay.TargetLock;
+using Plus.HabboHotel.Roleplay.Utilities;
+using Plus.HabboHotel.Rooms;
+using Plus.HabboHotel.Rooms.Chat.Commands;
 using Plus.HabboHotel.Subscriptions;
 using Plus.HabboHotel.Users.Badges;
 using Plus.HabboHotel.Users.Clothing;
@@ -35,17 +33,20 @@ using Plus.HabboHotel.Users.Navigator.SavedSearches;
 using Plus.HabboHotel.Users.Permissions;
 using Plus.HabboHotel.Users.Process;
 using Plus.HabboHotel.Users.Relationships;
+using Plus.HabboHotel.Users.Roleplay;
+using System;
+using System.Collections;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Plus.HabboHotel.Roleplay.TargetLock;
-using Plus.Communication.Packets.Outgoing.Quests;
+// Disambiguates the bare names from the scaffolded EF entities Plus.Database.EF.Entities.Room/UserAchievement.
+using Room = Plus.HabboHotel.Rooms.Room;
+using UserAchievement = Plus.HabboHotel.Achievements.UserAchievement;
 using UserRpItem = Plus.HabboHotel.Roleplay.RpItem.Item.UserRpItem;
-using Plus.HabboHotel.Roleplay.Utilities;
-using Plus.HabboHotel.Users.Roleplay;
-using Plus.HabboHotel.Roleplay.Stock;
-using Plus.HabboHotel.Items.Interactor;
-using Plus.Communication.Packets.Incoming.Rooms.Engine;
 
 namespace Plus.HabboHotel.Users
 {
@@ -1666,6 +1667,8 @@ namespace Plus.HabboHotel.Users
 
             data.UsersNow++;
             client.SendPacket(new RoomReadyComposer(room));
+            room.SendObjects(this.GetClient(), room);
+
             if (room.Wallpaper != "0.0")
                 client.SendPacket(new RoomPropertyComposer("wallpaper", room.Wallpaper));
             if (room.Floor != "0.0")
@@ -1675,7 +1678,7 @@ namespace Plus.HabboHotel.Users
             client.SendPacket(new RoomRatingComposer(room.Score, !(habbo.RatedRooms.Contains(room.RoomId) || room.OwnerId == habbo.Id)));
 
             // need to send it regardless cus nitro expects it
-            client.SendPacket(new FurnitureAliasesComposer());
+            // client.SendPacket(new FurnitureAliasesComposer());
 
             // Buffered (write-behind) — room entry no longer runs a synchronous INSERT.
             Plus.Core.Persistence.RoomVisitBuffer.OnEnter(habbo.Id, habbo.CurrentRoomId);

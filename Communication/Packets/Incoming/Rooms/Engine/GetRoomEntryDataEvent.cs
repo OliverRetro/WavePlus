@@ -38,8 +38,6 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
                 return; //TODO: Remove?
             }
 
-            room.SendObjects(session, room);
-
             RoomUser user = room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id);
             if (user != null && session.GetHabbo().PetId == 0) {
                 room.SendPacket(new UserChangeComposer(user, false));

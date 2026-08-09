@@ -1,6 +1,7 @@
 ﻿using DotNetty.Buffers;
 using MySqlX.XDevAPI;
 using Plus.Communication.Packets.Outgoing;
+using Plus.Communication.Packets.Outgoing.Navigator;
 using Plus.Communication.Packets.Outgoing.Rooms.Avatar;
 using Plus.Communication.Packets.Outgoing.Rooms.Engine;
 using Plus.Communication.Packets.Outgoing.Rooms.Session;
@@ -24,6 +25,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Plus.HabboHotel.Rooms
 {
@@ -527,6 +529,9 @@ namespace Plus.HabboHotel.Rooms
             session.SendPacket(new RoomInitDataComposer(enterRoomPacketsMerged));
             session.SendPacket(new UsersComposer(visibleUsers));
             session.SendPacket(new UserUpdateComposer([.. _roomUserManager.GetUserList()]));
+
+            RoomFactory.TryGetData(room.Id, out RoomData data);
+            session.SendPacket(new GetGuestRoomResultComposer(session, data, true, false));
 
             foreach (RoomUser user in visibleUsers) {
                 if (user == null)
