@@ -509,27 +509,35 @@ namespace Plus.HabboHotel.Rooms
 
         public void SendObjects(GameClient session, Room room)
         {
-            ServerPacket test = new ServerPacket(-1, Unpooled.Buffer());
-
-            new HeightMapComposer(room).Compose(test);
-            new FloorHeightMapComposer(GetGameMap().Model.GetRelativeHeightmap(), GetGameMap().StaticModel.WallHeight).Compose(test);
-
+            Boolean newShit = false;
             List<RoomUser> visibleUsers = [.. _roomUserManager.GetUserList().Where(u => u != null)];
-            new UsersComposer(visibleUsers).Compose(test);
-            new ObjectsComposer([.. GetRoomItemHandler().GetFloor], this).Compose(test);
-            new ItemsComposer([.. GetRoomItemHandler().GetWall], this).Compose(test);
 
-            Console.WriteLine("Sending RoomInitDataComposer");
-            session.SendPacket(new RoomInitDataComposer(test));
-            session.SendPacket(new UserUpdateComposer([.. _roomUserManager.GetUserList()]));
+            if (newShit) {
+                ServerPacket test = new ServerPacket(-1, Unpooled.Buffer());
+                new HeightMapComposer(room).Compose(test);
+                new FloorHeightMapComposer(GetGameMap().Model.GetRelativeHeightmap(), GetGameMap().StaticModel.WallHeight).Compose(test);
+
+                new UsersComposer(visibleUsers).Compose(test);
+                new ObjectsComposer([.. GetRoomItemHandler().GetFloor], this).Compose(test);
+                new ItemsComposer([.. GetRoomItemHandler().GetWall], this).Compose(test);
+
+                Console.WriteLine("Sending RoomInitDataComposer");
+                session.SendPacket(new RoomInitDataComposer(test));
+                session.SendPacket(new UserUpdateComposer([.. _roomUserManager.GetUserList()]));
+            }
+            else {
+                session.SendPacket(new HeightMapComposer(room));
+                session.SendPacket(new FloorHeightMapComposer(GetGameMap().Model.GetRelativeHeightmap(), GetGameMap().StaticModel.WallHeight));
+
+                session.SendPacket(new ObjectsComposer([.. GetRoomItemHandler().GetFloor], this));
+                session.SendPacket(new ItemsComposer([.. GetRoomItemHandler().GetWall], this));
+
+                session.SendPacket(new UsersComposer(visibleUsers));
+                session.SendPacket(new UserUpdateComposer([.. _roomUserManager.GetUserList()]));
+            }
 
 
-            // session.SendPacket(new HeightMapComposer(room));
-            // session.SendPacket(new FloorHeightMapComposer(GetGameMap().Model.GetRelativeHeightmap(), GetGameMap().StaticModel.WallHeight));
 
-            // List<RoomUser> visibleUsers = [.. _roomUserManager.GetUserList().Where(u => u != null)];
-
-            // session.SendPacket(new UsersComposer(visibleUsers));
 
             foreach (RoomUser user in visibleUsers) {
                 if (user == null)
