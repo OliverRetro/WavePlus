@@ -40,15 +40,13 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Engine
 
             room.SendObjects(session, room);
 
-            session.SendPacket(new RoomEntryInfoComposer(room.RoomId, room.CheckRights(session, true)));
-            session.SendPacket(new RoomVisualizationSettingsComposer(room.WallThickness, room.FloorThickness, PlusEnvironment.EnumToBool(room.HideWall.ToString())));
-
             RoomUser user = room.GetRoomUserManager().GetRoomUserByHabbo(session.GetHabbo().Id);
             if (user != null && session.GetHabbo().PetId == 0) {
                 room.SendPacket(new UserChangeComposer(user, false));
             }
 
-            session.SendPacket(new RoomEventComposer(room, room.Promotion));
+            // useless packet causing longer load time
+            // session.SendPacket(new RoomEventComposer(room, room.Promotion));
 
             session.GetHabbo().GetMessenger()?.OnStatusChanged(true);
 
