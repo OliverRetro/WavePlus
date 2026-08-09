@@ -522,11 +522,11 @@ namespace Plus.HabboHotel.Rooms
 
             new RoomEntryInfoComposer(room.RoomId, room.CheckRights(session, true)).Compose(enterRoomPacketsMerged);
             new RoomVisualizationSettingsComposer(room.WallThickness, room.FloorThickness, PlusEnvironment.EnumToBool(room.HideWall.ToString())).Compose(enterRoomPacketsMerged);
+            new RoomReadyComposer(room).Compose(enterRoomPacketsMerged);
 
             session.SendPacket(new RoomInitDataComposer(enterRoomPacketsMerged));
             session.SendPacket(new UsersComposer(visibleUsers));
             session.SendPacket(new UserUpdateComposer([.. _roomUserManager.GetUserList()]));
-            session.SendPacket(new RoomReadyComposer(room));
 
             foreach (RoomUser user in visibleUsers) {
                 if (user == null)
