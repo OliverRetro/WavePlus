@@ -12,7 +12,6 @@ using Plus.HabboHotel.Users;
 using Plus.HabboHotel.Users.Roleplay;
 using System.Collections.Generic;
 using System.Linq;
-using static System.Net.WebRequestMethods;
 
 namespace Plus.Communication.Packets.Outgoing.Overlay
 {

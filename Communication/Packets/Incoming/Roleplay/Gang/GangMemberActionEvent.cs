@@ -79,43 +79,43 @@ namespace Plus.Communication.Packets.Incoming.Roleplay.Gang
             string message;
             switch (action) {
                 case 0: {
-                    if (!gang.TryPeekPromotion(targetId, out GroupRole nextRole)) {
-                        session.SendPacket(new RPGangNoticeComposer("They're already at the top role."));
-                        return;
-                    }
+                        if (!gang.TryPeekPromotion(targetId, out GroupRole nextRole)) {
+                            session.SendPacket(new RPGangNoticeComposer("They're already at the top role."));
+                            return;
+                        }
 
-                    if (!GroupHierarchy.CanAssignLevel(session, gang, nextRole.Level)) {
-                        session.SendPacket(new RPGangNoticeComposer("You can't promote anyone into a role at or above your own."));
-                        return;
-                    }
+                        if (!GroupHierarchy.CanAssignLevel(session, gang, nextRole.Level)) {
+                            session.SendPacket(new RPGangNoticeComposer("You can't promote anyone into a role at or above your own."));
+                            return;
+                        }
 
-                    if (!gang.TryPromoteMember(targetId, out nextRole)) {
-                        session.SendPacket(new RPGangNoticeComposer("They're already at the top role."));
-                        return;
-                    }
+                        if (!gang.TryPromoteMember(targetId, out nextRole)) {
+                            session.SendPacket(new RPGangNoticeComposer("They're already at the top role."));
+                            return;
+                        }
 
-                    message = $"{targetName} was promoted to {nextRole.Name}.";
-                    LiveFeedService.LiveFeed("<b>" + LiveFeedService.Name(viewer.Username, "green") + "</b> promoted <b>" + LiveFeedService.Name(targetName, "lightblue") + "</b> to <b>" + nextRole.Name + "</b>");
-                    break;
-                }
+                        message = $"{targetName} was promoted to {nextRole.Name}.";
+                        LiveFeedService.LiveFeed("<b>" + LiveFeedService.Name(viewer.Username, "green") + "</b> promoted <b>" + LiveFeedService.Name(targetName, "lightblue") + "</b> to <b>" + nextRole.Name + "</b>");
+                        break;
+                    }
                 case 1: {
-                    if (!gang.TryDemoteMember(targetId, out GroupRole nextRole)) {
-                        session.SendPacket(new RPGangNoticeComposer("They're already at the lowest role."));
-                        return;
-                    }
+                        if (!gang.TryDemoteMember(targetId, out GroupRole nextRole)) {
+                            session.SendPacket(new RPGangNoticeComposer("They're already at the lowest role."));
+                            return;
+                        }
 
-                    message = $"{targetName} was demoted to {nextRole.Name}.";
-                    LiveFeedService.LiveFeed("<b>" + LiveFeedService.Name(viewer.Username, "green") + "</b> demoted <b>" + LiveFeedService.Name(targetName, "lightblue") + "</b> to <b>" + nextRole.Name + "</b>");
-                    break;
-                }
+                        message = $"{targetName} was demoted to {nextRole.Name}.";
+                        LiveFeedService.LiveFeed("<b>" + LiveFeedService.Name(viewer.Username, "green") + "</b> demoted <b>" + LiveFeedService.Name(targetName, "lightblue") + "</b> to <b>" + nextRole.Name + "</b>");
+                        break;
+                    }
                 default: {
-                    // DeleteMember clears the member's gang motto tag (see Group.DeleteMember).
-                    gang.DeleteMember(targetId);
-                    message = $"{targetName} was removed from {gang.Name}.";
-                    LiveFeedService.LiveFeed(LiveFeedService.Name(viewer.Username, "green") + " removed " + LiveFeedService.Name(targetName, "lightblue") + " from <b>" + gang.Name + "</b>");
-                    target?.GetClient()?.SendWhisper("You've been removed from '" + gang.Name + "'.", 1);
-                    break;
-                }
+                        // DeleteMember clears the member's gang motto tag (see Group.DeleteMember).
+                        gang.DeleteMember(targetId);
+                        message = $"{targetName} was removed from {gang.Name}.";
+                        LiveFeedService.LiveFeed(LiveFeedService.Name(viewer.Username, "green") + " removed " + LiveFeedService.Name(targetName, "lightblue") + " from <b>" + gang.Name + "</b>");
+                        target?.GetClient()?.SendWhisper("You've been removed from '" + gang.Name + "'.", 1);
+                        break;
+                    }
             }
 
             session.SendPacket(new RPGangNoticeComposer(message));

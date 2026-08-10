@@ -4,7 +4,6 @@ using Plus.Communication.Packets.Outgoing.Roleplay.Gang;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
 using Plus.HabboHotel.Roleplay.Utilities;
-using Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay.Corporation;
 using Plus.HabboHotel.Users;
 
 namespace Plus.Communication.Packets.Incoming.Roleplay.Gang

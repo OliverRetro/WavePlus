@@ -1,4 +1,3 @@
-using MySqlX.XDevAPI;
 using Plus.Communication.Packets.Outgoing.Overlay;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Roleplay.RpItem;

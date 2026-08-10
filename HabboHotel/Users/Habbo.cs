@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using MySqlX.XDevAPI;
 using Plus.Communication.Packets.Incoming.Rooms.Engine;
 using Plus.Communication.Packets.Outgoing.Handshake;
 using Plus.Communication.Packets.Outgoing.Inventory.Purse;

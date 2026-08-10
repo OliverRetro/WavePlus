@@ -1,7 +1,4 @@
-﻿using Plus.HabboHotel.Items;
-using Plus.HabboHotel.Rooms;
-
-namespace Plus.Communication.Packets.Outgoing.Rooms.Engine
+﻿namespace Plus.Communication.Packets.Outgoing.Rooms.Engine
 {
     internal class RoomInitDataComposer : MessageComposer
     {

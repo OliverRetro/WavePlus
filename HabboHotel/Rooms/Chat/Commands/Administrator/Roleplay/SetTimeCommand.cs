@@ -1,4 +1,3 @@
-using System;
 using Plus.Communication.Packets.Outgoing.Roleplay;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Roleplay.GameClock;

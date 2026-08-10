@@ -62,7 +62,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
 
             string unit = raw.Substring(i);
 
-            long factor = unit switch {
+            long factor = unit switch
+            {
                 "" or "d" => 86400,      // default unit is days
                 "s" => 1,
                 "m" => 60,               // minutes

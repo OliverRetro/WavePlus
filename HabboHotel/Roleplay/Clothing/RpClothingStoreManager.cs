@@ -50,7 +50,6 @@ namespace Plus.HabboHotel.Roleplay.Clothing
 
                     _sets[set.Id] = set;
 
-                    // Every set (even hidden) is looked up on purchase; only visible ones list in a tab.
                     if (set.Visible && _categories.TryGetValue(set.TabId, out RpClothingCategory category))
                         category.Sets.Add(set);
                 }
@@ -59,19 +58,17 @@ namespace Plus.HabboHotel.Roleplay.Clothing
             Log.Info($"[RP] Loaded {_categories.Count} clothing tabs and {_sets.Count} clothing sets.");
         }
 
-        /// <summary>All tabs in a room (including empty ones), each carrying its visible sets.</summary>
         public IReadOnlyList<RpClothingCategory> GetCategoriesForRoom(int roomId)
         {
             return _byRoom.TryGetValue(roomId, out List<RpClothingCategory> list)
                 ? list
-                : (IReadOnlyList<RpClothingCategory>)new List<RpClothingCategory>();
+                : (IReadOnlyList<RpClothingCategory>)[];
         }
 
         public bool TryGetSet(int setId, out RpClothingSet set) => _sets.TryGetValue(setId, out set);
 
         public bool TryGetCategory(int categoryId, out RpClothingCategory category) => _categories.TryGetValue(categoryId, out category);
 
-        /// <summary>A set is purchasable in a room only when it is visible and its tab lives in that room.</summary>
         public bool IsSetAvailableInRoom(RpClothingSet set, int roomId)
         {
             return set != null
@@ -80,7 +77,6 @@ namespace Plus.HabboHotel.Roleplay.Clothing
                 && category.RoomId == roomId;
         }
 
-        /// <summary>Decrement a set's stock by one (floored at 0) and persist it.</summary>
         public void ConsumeStock(RpClothingSet set)
         {
             if (set == null || set.Stock <= 0)

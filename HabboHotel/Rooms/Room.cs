@@ -1,5 +1,4 @@
 ﻿using DotNetty.Buffers;
-using MySqlX.XDevAPI;
 using Plus.Communication.Packets.Outgoing;
 using Plus.Communication.Packets.Outgoing.Navigator;
 using Plus.Communication.Packets.Outgoing.Rooms.Avatar;
@@ -25,7 +24,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Plus.HabboHotel.Rooms
 {
