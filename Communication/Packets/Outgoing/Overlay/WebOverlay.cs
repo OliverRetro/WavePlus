@@ -87,7 +87,7 @@ namespace Plus.Communication.Packets.Outgoing.Overlay
             Send(session, "interaction_timer_cancel", new { });
         }
 
-        private const string DefaultGroupBadgeUrl = "https://waverp.online/habbo-imaging/badge/%badge%.png";
+        private const string DefaultGroupBadgeUrl = "https://waverp.org/habbo-imaging/badge/%badge%.png";
 
         public static string GetGroupBadgeUrl(string badge)
         {

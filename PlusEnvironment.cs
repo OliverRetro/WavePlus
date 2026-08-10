@@ -73,6 +73,7 @@ namespace Plus
         private static TrashSearchManager _trashSearchManager;
         private static Plus.HabboHotel.GameClients.DisconnectDelayManager _disconnectDelayManager;
         private static MayhemManager _mayhemManager;
+        private static Plus.HabboHotel.Roleplay.Rubbish.RubbishManager _rubbishManager;
 
         // TODO: Get rid?
         public static bool Event = false;
@@ -219,6 +220,8 @@ namespace Plus
                 _disconnectDelayManager = new Plus.HabboHotel.GameClients.DisconnectDelayManager();
 
                 _mayhemManager = new MayhemManager();
+
+                _rubbishManager = new Plus.HabboHotel.Roleplay.Rubbish.RubbishManager();
 
                 _trashSearchManager = new TrashSearchManager();
                 _trashSearchManager.Init();
@@ -535,6 +538,11 @@ namespace Plus
         public static Plus.HabboHotel.Roleplay.Mayhem.MayhemManager GetMayhemManager()
         {
             return _mayhemManager;
+        }
+
+        public static Plus.HabboHotel.Roleplay.Rubbish.RubbishManager GetRubbishManager()
+        {
+            return _rubbishManager;
         }
 
         public static Plus.HabboHotel.GameClients.DisconnectDelayManager GetDisconnectDelayManager()

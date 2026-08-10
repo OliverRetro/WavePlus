@@ -121,7 +121,8 @@
         Bank,
         StockVendor,
         Crafting,
-        CraftingCorporation
+        CraftingCorporation,
+        Rubbish
     }
 
     public static class InteractionTypes
@@ -365,6 +366,8 @@
                     return InteractionType.Crafting;
                 case "crafting_corporation":
                     return InteractionType.CraftingCorporation;
+                case "rubbish":
+                    return InteractionType.Rubbish;
                 case "pet":
                     return InteractionType.Pet;
                 default: {

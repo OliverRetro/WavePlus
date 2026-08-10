@@ -408,6 +408,9 @@ namespace Plus.HabboHotel.Items
                     case InteractionType.StockVendor:
                         return new InteractorStockVendor();
 
+                    case InteractionType.Rubbish:
+                        return new InteractorRubbish();
+
                     case InteractionType.None:
                     default:
                         return new InteractorGenericSwitch();
