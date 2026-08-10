@@ -78,7 +78,7 @@ namespace Plus.Core.FigureData
             Log.Info("Loaded " + _setTypes.Count + " Set Types");
         }
 
-        public string ProcessFigure(string figure, string gender, ICollection<ClothingParts> clothingParts, bool hasHabboClub, bool bypassValidation = false)
+        public string ProcessFigure(string figure, string gender, ICollection<ClothingParts> clothingParts, bool hasHabboClub, bool bypassValidation = false, string currentLook = null)
         {
             figure = figure.ToLower();
             gender = gender.ToUpper();
@@ -87,6 +87,18 @@ namespace Plus.Core.FigureData
                 return figure;
 
             string rebuildFigure = string.Empty;
+
+            Dictionary<string, string> currentParts = [];
+            if (!string.IsNullOrEmpty(currentLook)) {
+                foreach (string currentPart in currentLook.ToLower().Split('.')) {
+                    if (string.IsNullOrEmpty(currentPart) || !currentPart.Contains('-'))
+                        continue;
+                    currentParts[currentPart.Split('-')[0]] = currentPart;
+                }
+            }
+
+            //Cache the sellable/purchasable parts once.
+            ICollection<ClothingItem> purchasableParts = PlusEnvironment.GetGame().GetCatalog().GetClothingManager().GetClothingAllParts;
 
             #region Check clothing, colors & Habbo Club
 
@@ -178,12 +190,29 @@ namespace Plus.Core.FigureData
 
                         #endregion
 
-                        if (set.ClubLevel > 0 && !hasHabboClub) {
-                            partId = figureSet.Sets.FirstOrDefault(x => x.Value.Gender == gender || x.Value.Gender == "U" && x.Value.ClubLevel == 0).Value.Id;
+                        bool clubBlocked = set.ClubLevel > 0 && !hasHabboClub;
 
-                            figureSet.Sets.TryGetValue(partId, out set);
+                        bool sellableBlocked = false;
+                        if (clothingParts != null && !(set.ClubLevel > 0 && hasHabboClub)) {
+                            bool isPurchasable = purchasableParts.Count(x => x.PartIds.Contains(partId)) > 0;
+                            bool owns = clothingParts.Count(x => x.PartId == partId) > 0;
+                            sellableBlocked = isPurchasable && !owns;
+                        }
 
+                        if (clubBlocked || sellableBlocked) {
+                            // Keep current if not owned.
+                            if (currentParts.TryGetValue(type, out string keptPart)) {
+                                rebuildFigure = rebuildFigure + keptPart + ".";
+                                continue;
+                            }
+
+                            Set defaultSet = figureSet.Sets.FirstOrDefault(x => x.Value.ClubLevel == 0 && (x.Value.Gender == gender || x.Value.Gender == "U")).Value;
+                            if (defaultSet == null)
+                                continue;
+
+                            partId = defaultSet.Id;
                             colorId = GetRandomColor(figureSet.PalletId);
+                            secondColorId = 0;
                         }
 
                         if (secondColorId == 0)
@@ -210,34 +239,6 @@ namespace Plus.Core.FigureData
                             int colorId = GetRandomColor(figureSet.PalletId);
 
                             rebuildFigure = rebuildFigure + requirement + "-" + partId + "-" + colorId + ".";
-                        }
-                    }
-                }
-            }
-
-            #endregion
-
-            #region Check Purcashable Clothing
-
-            if (clothingParts != null) {
-                ICollection<ClothingItem> purchasableParts = PlusEnvironment.GetGame().GetCatalog().GetClothingManager().GetClothingAllParts;
-
-                figureParts = rebuildFigure.TrimEnd('.').Split('.');
-                foreach (string part in figureParts.ToList()) {
-                    int partId = Convert.ToInt32(part.Split('-')[1]);
-                    if (purchasableParts.Count(x => x.PartIds.Contains(partId)) > 0) {
-                        if (clothingParts.Count(x => x.PartId == partId) == 0) {
-                            string type = part.Split('-')[0];
-
-                            if (_setTypes.TryGetValue(type, out FigureSet figureSet)) {
-                                Set set = figureSet.Sets.FirstOrDefault(x => x.Value.Gender == gender || x.Value.Gender == "U").Value;
-                                if (set != null) {
-                                    partId = figureSet.Sets.FirstOrDefault(x => x.Value.Gender == gender || x.Value.Gender == "U").Value.Id;
-                                    int colorId = GetRandomColor(figureSet.PalletId);
-
-                                    rebuildFigure = rebuildFigure + type + "-" + partId + "-" + colorId + ".";
-                                }
-                            }
                         }
                     }
                 }
