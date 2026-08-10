@@ -61,6 +61,7 @@ namespace Plus
         private static CombatManager _combatManager;
         private static WeaponManager _weaponManager;
         private static RpItemManager _rpItemManager;
+        private static Plus.HabboHotel.Roleplay.Clothing.RpClothingStoreManager _rpClothingStoreManager;
         private static Plus.HabboHotel.Roleplay.Crafting.CraftingManager _craftingManager;
         private static RoomStockManager _roomStockManager;
         private static Plus.HabboHotel.Roleplay.Crime.RpCrimeManager _rpCrimeManager;
@@ -196,6 +197,9 @@ namespace Plus
 
                 _rpItemManager = new RpItemManager();
                 _rpItemManager.Init();
+
+                _rpClothingStoreManager = new Plus.HabboHotel.Roleplay.Clothing.RpClothingStoreManager();
+                _rpClothingStoreManager.Init();
 
                 _craftingManager = new Plus.HabboHotel.Roleplay.Crafting.CraftingManager();
                 _craftingManager.Init();
@@ -496,6 +500,11 @@ namespace Plus
         public static RpItemManager GetRpItemManager()
         {
             return _rpItemManager;
+        }
+
+        public static Plus.HabboHotel.Roleplay.Clothing.RpClothingStoreManager GetRpClothingStoreManager()
+        {
+            return _rpClothingStoreManager;
         }
 
         public static Plus.HabboHotel.Roleplay.Crafting.CraftingManager GetCraftingManager()

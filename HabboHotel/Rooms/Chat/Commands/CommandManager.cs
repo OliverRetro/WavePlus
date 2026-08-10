@@ -98,6 +98,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
 
         private void RegisterRoleplay()
         {
+            Register(new OpenClothingStoreCommand());
             Register(new PayCommand());
             Register(new MassChatCommand());
             Register(new GodModeCommand());

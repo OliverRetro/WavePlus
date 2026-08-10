@@ -667,7 +667,18 @@ CREATE TABLE `user_rp_settings`  (
   `voice_chat_enabled` tinyint NOT NULL DEFAULT 1,
   `livefeed_enabled` tinyint NOT NULL DEFAULT 1,
   `alerts_enabled` tinyint NOT NULL DEFAULT 1,
+  `link_warning_enabled` tinyint NOT NULL DEFAULT 1,
+  `chat_higher_enabled` tinyint NOT NULL DEFAULT 0,
+  `fps_max` int NOT NULL DEFAULT 24,
+  `drag_rooms_enabled` tinyint NOT NULL DEFAULT 1,
   PRIMARY KEY (`user_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = latin1 COLLATE = latin1_swedish_ci ROW_FORMAT = Dynamic;
+
+-- Migration for live DBs (columns added after the original CREATE above):
+ALTER TABLE `user_rp_settings`
+  ADD COLUMN IF NOT EXISTS `link_warning_enabled` tinyint NOT NULL DEFAULT 1,
+  ADD COLUMN IF NOT EXISTS `chat_higher_enabled` tinyint NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS `fps_max` int NOT NULL DEFAULT 24,
+  ADD COLUMN IF NOT EXISTS `drag_rooms_enabled` tinyint NOT NULL DEFAULT 1;
 
 SET FOREIGN_KEY_CHECKS = 1;

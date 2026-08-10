@@ -23,6 +23,10 @@
         public const int GangToggleMessageComposer = 6121;
         public const int RoomInitDataMessageComposer = 6122;
 
+        // Clothing shit
+        public const int ClothingStoreMessageComposer = 6130;
+        public const int ClothingPurchaseResultMessageComposer = 6131;
+
         // credit to Keorich##1440 for the headers for Production-201611291003-338511768
         public const int UserNftChatStylesMessageComposer = 6100;
         public const int AvatarEffectActivatedMessageComposer = 1959; // PRODUCTION-201611291003-338511768

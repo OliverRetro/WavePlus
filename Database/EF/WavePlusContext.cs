@@ -155,6 +155,10 @@ public partial class WavePlusContext(DbContextOptions<WavePlusContext> options) 
 
     public virtual DbSet<RpItemEntity> RpItems { get; set; }
 
+    public virtual DbSet<RpClothingSetEntity> RpClothingSets { get; set; }
+
+    public virtual DbSet<RpClothingCategoryEntity> RpClothingCategories { get; set; }
+
     public virtual DbSet<RpShiftLogEntity> RpShiftLogs { get; set; }
 
     public virtual DbSet<RpSkillEntity> RpSkills { get; set; }
@@ -922,6 +926,22 @@ public partial class WavePlusContext(DbContextOptions<WavePlusContext> options) 
             entity.Property(e => e.ImageUrl).HasDefaultValueSql("''''''");
             entity.Property(e => e.ItemType).HasDefaultValueSql("'''consumable'''");
             entity.Property(e => e.StackLimit).HasDefaultValueSql("'1'");
+        });
+
+        modelBuilder.Entity<RpClothingSetEntity>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.Property(e => e.Stock).HasDefaultValueSql("'0'");
+            entity.Property(e => e.BasePrice).HasDefaultValueSql("'0'");
+            entity.Property(e => e.DiscountPrice).HasDefaultValueSql("'0'");
+        });
+
+        modelBuilder.Entity<RpClothingCategoryEntity>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.Property(e => e.TabName).HasDefaultValueSql("'''Unnamed'''");
         });
 
         modelBuilder.Entity<RpShiftLogEntity>(entity =>

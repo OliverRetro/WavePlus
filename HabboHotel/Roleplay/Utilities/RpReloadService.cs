@@ -2,7 +2,7 @@ namespace Plus.HabboHotel.Roleplay.Utilities
 {
     public static class RpReloadService
     {
-        public const string Switches = "items, weapons, groups, crimes, all";
+        public const string Switches = "items, weapons, groups, crimes, clothing, all";
 
         public static string Reload(string sw)
         {
@@ -26,12 +26,18 @@ namespace Plus.HabboHotel.Roleplay.Utilities
                     PlusEnvironment.GetRpCrimeManager().Init();
                     return "Reloaded crimes + penalties.";
 
+                case "clothing":
+                case "rp_clothing":
+                    PlusEnvironment.GetRpClothingStoreManager().Init();
+                    return "Reloaded RP clothing store.";
+
                 case "all":
                     PlusEnvironment.GetRpItemManager().Init();
                     PlusEnvironment.GetWeaponManager().Init();
                     PlusEnvironment.GetGame().GetGroupManager().ReloadAll();
                     PlusEnvironment.GetRpCrimeManager().Init();
-                    return "Reloaded RP items, weapons, groups and crimes.";
+                    PlusEnvironment.GetRpClothingStoreManager().Init();
+                    return "Reloaded RP items, weapons, groups, crimes and clothing.";
 
                 default:
                     return null;

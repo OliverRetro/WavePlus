@@ -26,6 +26,10 @@
         public const int GangUpgradeMessageEvent = 6122;
         public const int GangSaveBadgeMessageEvent = 6123;
 
+        // Clothing shit
+        public const int RequestClothingStoreMessageEvent = 6132;
+        public const int PurchaseClothingSetMessageEvent = 6133;
+
         // Web overlay (gaz-js) habblet JSON callback bridge
         public const int JavascriptCallbackMessageEvent = 314;
 

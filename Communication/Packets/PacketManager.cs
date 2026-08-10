@@ -147,6 +147,10 @@ namespace Plus.Communication.Packets
             _incomingPackets.Add(ClientPacketHeader.GangMemberActionMessageEvent, new Incoming.Roleplay.Gang.GangMemberActionEvent());
             _incomingPackets.Add(ClientPacketHeader.GangUpgradeMessageEvent, new Incoming.Roleplay.Gang.GangUpgradeEvent());
             _incomingPackets.Add(ClientPacketHeader.GangSaveBadgeMessageEvent, new Incoming.Roleplay.Gang.GangSaveBadgeEvent());
+
+            // clothing shit
+            _incomingPackets.Add(ClientPacketHeader.RequestClothingStoreMessageEvent, new Incoming.Roleplay.Clothing.RequestClothingStoreEvent());
+            _incomingPackets.Add(ClientPacketHeader.PurchaseClothingSetMessageEvent, new Incoming.Roleplay.Clothing.PurchaseClothingSetEvent());
         }
 
         private void RegisterCrafting()
