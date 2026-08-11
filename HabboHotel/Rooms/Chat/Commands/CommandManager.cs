@@ -98,6 +98,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
 
         private void RegisterRoleplay()
         {
+            Register(new SuperHealUserCommand());
             Register(new OpenClothingStoreCommand());
             Register(new PayCommand());
             Register(new MassChatCommand());
@@ -112,6 +113,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             Register(new RpuserRpInfoCommand());
             Register(new RoomHealCommand());
             Register(new GlobalHealCommand());
+            Register(new HealUserCommand());
             Register(new TempRpInventoryCommand());
             Register(new EquipWeaponCommand());
             Register(new ToggleWeaponSkinCommand());
