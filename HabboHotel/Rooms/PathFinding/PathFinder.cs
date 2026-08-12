@@ -90,6 +90,10 @@ namespace Plus.HabboHotel.Rooms.PathFinding
             int[] dys = diagonal ? DiagDy : CardDy;
             int neighbours = dxs.Length;
 
+            int closestNode = -1;
+            int closestHeuristic = Heuristic(startX, startY, goalX, goalY, diagonal);
+            int closestCost = 0;
+
             BinaryHeap open = _open;
             open.Clear();
 
@@ -118,6 +122,16 @@ namespace Plus.HabboHotel.Rooms.PathFinding
                 // Cheapest tile touching an unreachable target — that is as close as we get.
                 if (approachOnly && current != startNode && IsAdjacent(cx, cy, goalX, goalY))
                     return Reconstruct(map, current, size, width, startNode, startSurface);
+
+                if (current != startNode) {
+                    int heuristic = Heuristic(cx, cy, goalX, goalY, diagonal);
+
+                    if (heuristic < closestHeuristic || (heuristic == closestHeuristic && closestNode != -1 && _gCost[current] < closestCost)) {
+                        closestHeuristic = heuristic;
+                        closestCost = _gCost[current];
+                        closestNode = current;
+                    }
+                }
                 double fromSurface = current == startNode ? startSurface : map.SurfaceAt(currentTile, current / size);
 
                 // Diagonals only "make progress on both axes" while the goal is off-axis; once it
@@ -174,7 +188,11 @@ namespace Plus.HabboHotel.Rooms.PathFinding
                 }
             }
 
-            return path; // unreachable
+            // walk to nearest if target is impossible
+            if (closestNode != -1)
+                return Reconstruct(map, closestNode, size, width, startNode, startSurface);
+
+            return path; // nothing reachable is any closer than where we already stand
         }
 
         /// <summary>

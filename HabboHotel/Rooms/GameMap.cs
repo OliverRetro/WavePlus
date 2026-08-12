@@ -520,13 +520,13 @@ namespace Plus.HabboHotel.Rooms
                 _room.GetSoccer().OnGateRemove(item);
 
             bool isRemoved = false;
-            foreach (Point coord in item.GetCoords.ToList()) {
+            foreach (Point coord in GetFootprintTiles(item).ToList()) {
                 if (RemoveCoordinatedItem(item, coord))
                     isRemoved = true;
             }
 
             ConcurrentDictionary<Point, List<Item>> items = new();
-            foreach (Point tile in item.GetCoords.ToList()) {
+            foreach (Point tile in GetFootprintTiles(item).ToList()) {
                 Point point = new(tile.X, tile.Y);
                 if (_coordinatedItems.ContainsKey(point)) {
                     List<int> ids = _coordinatedItems[point];
@@ -624,7 +624,7 @@ namespace Plus.HabboHotel.Rooms
 
             MarkHeightMapDirty(item);
 
-            foreach (Point coord in item.GetCoords.ToList()) {
+            foreach (Point coord in GetFootprintTiles(item).ToList()) {
                 AddCoordinatedItem(item, new Point(coord.X, coord.Y));
             }
 
@@ -845,12 +845,31 @@ namespace Plus.HabboHotel.Rooms
                 if (_heightMapDirty)
                     return; // a full rebuild is already queued, no point listing tiles
 
-                foreach (Point coord in item.GetCoords) {
+                foreach (Point coord in GetFootprintTiles(item)) {
                     if (ValidTile(coord.X, coord.Y))
                         _heightMapDirtyTiles.Add((coord.Y * Model.MapSizeX) + coord.X);
                 }
 
                 _heightMapDirtyTileCount = _heightMapDirtyTiles.Count;
+            }
+        }
+
+        private static IEnumerable<Point> GetFootprintTiles(Item item)
+        {
+            ItemData data = item.GetBaseItem();
+
+            int width = Math.Max(1, data.Width);
+            int length = Math.Max(1, data.Length);
+
+            int rotation = ((item.Rotation % 8) + 8) % 8;
+            bool swapped = rotation == 2 || rotation == 3 || rotation == 6 || rotation == 7;
+
+            int spanX = swapped ? length : width;
+            int spanY = swapped ? width : length;
+
+            for (int dx = 0; dx < spanX; dx++) {
+                for (int dy = 0; dy < spanY; dy++)
+                    yield return new Point(item.GetX + dx, item.GetY + dy);
             }
         }
 
@@ -891,12 +910,15 @@ namespace Plus.HabboHotel.Rooms
                     if (item?.GetBaseItem() == null || item.GetBaseItem().Type != 's')
                         continue;
 
-                    foreach (Point coord in item.GetCoords) {
+                    foreach (Point coord in GetFootprintTiles(item)) {
                         if (!ValidTile(coord.X, coord.Y))
                             continue;
 
                         int index = (coord.Y * width) + coord.X;
-                        (tiles[index] ??= new List<Item>()).Add(item);
+                        List<Item> bucket = tiles[index] ??= new List<Item>();
+
+                        if (!bucket.Contains(item))
+                            bucket.Add(item);
                     }
                 }
 
@@ -936,11 +958,18 @@ namespace Plus.HabboHotel.Rooms
         {
             ItemData data = item.GetBaseItem();
 
-            builder.AddFurniture(item.Id, ClassifyFurniture(item, data, floorHeight), item.GetZ, item.TotalHeight, data.Height, floorHeight, item.GroupId);
+            builder.AddFurniture(item.Id, ClassifyFurniture(item, data, floorHeight), item.GetZ, ResolveTopHeight(item, data), data.Height, floorHeight, item.GroupId);
         }
 
-        /// <summary>Maps a furni's flags onto how it behaves vertically. The geometry that follows
-        /// from that lives in <see cref="RoomHeightMap.Builder.AddFurniture"/>.</summary>
+        private static double ResolveTopHeight(Item item, ItemData data)
+        {
+            if (data.AdjustableHeights.Count > 1 && int.TryParse(item.ExtraData, out int state) &&
+                state >= 0 && state < data.AdjustableHeights.Count)
+                return item.GetZ + data.AdjustableHeights[state];
+
+            return item.TotalHeight;
+        }
+
         private static FurnitureFootprint ClassifyFurniture(Item item, ItemData data, double floorHeight)
         {
             InteractionType type = data.InteractionType;
@@ -964,9 +993,6 @@ namespace Plus.HabboHotel.Rooms
             return FurnitureFootprint.Solid;
         }
 
-        /// <summary>
-        /// Freezes everything the pathfinder is allowed to see into one immutable bundle.
-        /// </summary>
         public PathContext CreatePathContext(RoomUser user, byte[] occupancy)
         {
             RoomHeightMap map = GetHeightMap();
@@ -1012,10 +1038,6 @@ namespace Plus.HabboHotel.Rooms
             return IsValidStep2(user, from, to, SqAbsoluteHeight(to.X, to.Y), endOfPath, @override);
         }
 
-        /// <summary>
-        /// Validates a step the walk loop is about to commit, against the height the pathfinder
-        /// picked for the destination — which is not necessarily the top of the tile any more.
-        /// </summary>
         public bool IsValidStep2(RoomUser user, Vector2D from, Vector2D to, double toZ, bool endOfPath, bool @override)
         {
             if (user == null)
@@ -1067,8 +1089,6 @@ namespace Plus.HabboHotel.Rooms
             RoomHeightMap map = GetHeightMap();
             int level = map.FindLevel(to.X, to.Y, toZ);
 
-            // No surface anywhere near the height the path picked: furniture moved under the
-            // user's feet mid-walk. Refuse the step and let them re-path from where they stand.
             if (level < 0) {
                 if (user.Path.Count > 0)
                     user.Path.Clear();
@@ -1078,8 +1098,7 @@ namespace Plus.HabboHotel.Rooms
 
             byte state = map.StateAt(map.TileIndex(to.X, to.Y), level);
 
-            // Legacy behaviour, deliberately kept: a square that closed up while the step was in
-            // flight still lets this step land, it just forces a recalculation afterwards.
+            // Legacy behaviour, recalc if path blocked.
             if (state == RoomHeightMap.StateBlocked ||
                 ((state == RoomHeightMap.StateSeat || state == RoomHeightMap.StateLastStep) && !endOfPath)) {
                 if (user.Path.Count > 0)
