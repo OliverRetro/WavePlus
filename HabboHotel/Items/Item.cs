@@ -234,23 +234,35 @@ namespace Plus.HabboHotel.Items
             return Math.Abs(userZ - ContactHeight) <= tolerance;
         }
 
-        public double TotalHeight
+        public int HeightState => int.TryParse(ExtraData, out int state) ? state : 0;
+
+        public double EffectiveHeight
         {
             get
             {
-                double curHeight = 0.0;
+                ItemData data = GetBaseItem();
 
-                if (GetBaseItem().AdjustableHeights.Count > 1) {
-                    if (int.TryParse(ExtraData, out int num2) && (GetBaseItem().AdjustableHeights.Count) - 1 >= num2)
-                        curHeight = GetZ + GetBaseItem().AdjustableHeights[num2];
-                }
+                if (data == null)
+                    return 0.0;
 
-                if (curHeight <= 0.0)
-                    curHeight = GetZ + GetBaseItem().Height;
-
-                return curHeight;
+                return data.HasAdjustableHeights ? data.HeightForState(HeightState) : data.Height;
             }
         }
+
+        public int StateCount
+        {
+            get
+            {
+                ItemData data = GetBaseItem();
+
+                if (data == null)
+                    return 0;
+
+                return data.HasAdjustableHeights ? Math.Max(data.Modes, data.AdjustableHeights.Count) : data.Modes;
+            }
+        }
+
+        public double TotalHeight => GetZ + EffectiveHeight;
 
         public bool IsWallItem { get; }
 
@@ -346,6 +358,10 @@ namespace Plus.HabboHotel.Items
 
                 if (TrashSearchManager.IsBin(this)) {
                     return new InteractorTrashBin();
+                }
+
+                if (GetBaseItem().InteractionType == InteractionType.None && GetBaseItem().HasAdjustableHeights) {
+                    return new InteractorMultiHeight();
                 }
 
                 switch (GetBaseItem().InteractionType) {
@@ -1359,6 +1375,9 @@ namespace Plus.HabboHotel.Items
                 else
                     GetRoom().SendPacket(new ItemUpdateComposer(this, GetRoom().OwnerId));
             }
+
+            if (IsFloorItem && GetBaseItem() != null && GetBaseItem().HasAdjustableHeights)
+                GetRoom().GetGameMap().OnItemHeightChanged(this);
         }
 
         public void ResetBaseItem()

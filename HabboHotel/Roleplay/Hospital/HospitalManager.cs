@@ -348,7 +348,7 @@ namespace Plus.HabboHotel.Roleplay.Hospital
             roomUser.ClearMovement(true);
             room.GetGameMap().TeleportToItem(roomUser, bed);
             roomUser.RemoveStatus("sit");
-            roomUser.SetStatus("lay", Plus.Utilities.TextHandling.GetString(bed.GetBaseItem().Height) + " null");
+            roomUser.SetStatus("lay", Plus.Utilities.TextHandling.GetString(bed.EffectiveHeight) + " null");
             roomUser.IsLying = true;
             roomUser.IsSitting = false;
             roomUser.Z = bed.GetZ;

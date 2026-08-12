@@ -854,6 +854,37 @@ namespace Plus.HabboHotel.Rooms
             }
         }
 
+        public void OnItemHeightChanged(Item item)
+        {
+            if (item?.GetBaseItem() == null || item.GetBaseItem().Type != 's')
+                return;
+
+            MarkHeightMapDirty(item);
+            UpdateOccupantHeights(item);
+        }
+
+        public void UpdateOccupantHeights(Item item)
+        {
+            if (item?.GetBaseItem() == null || item.GetBaseItem().Type != 's')
+                return;
+
+            RoomUserManager userManager = _room.GetRoomUserManager();
+            if (userManager == null)
+                return;
+
+            foreach (Point coord in GetFootprintTiles(item)) {
+                if (!ValidTile(coord.X, coord.Y))
+                    continue;
+
+                foreach (RoomUser user in GetRoomUsers(coord)) {
+                    if (user == null)
+                        continue;
+
+                    userManager.UpdateUserStatus(user, false);
+                }
+            }
+        }
+
         private static IEnumerable<Point> GetFootprintTiles(Item item)
         {
             ItemData data = item.GetBaseItem();
@@ -958,16 +989,7 @@ namespace Plus.HabboHotel.Rooms
         {
             ItemData data = item.GetBaseItem();
 
-            builder.AddFurniture(item.Id, ClassifyFurniture(item, data, floorHeight), item.GetZ, ResolveTopHeight(item, data), data.Height, floorHeight, item.GroupId);
-        }
-
-        private static double ResolveTopHeight(Item item, ItemData data)
-        {
-            if (data.AdjustableHeights.Count > 1 && int.TryParse(item.ExtraData, out int state) &&
-                state >= 0 && state < data.AdjustableHeights.Count)
-                return item.GetZ + data.AdjustableHeights[state];
-
-            return item.TotalHeight;
+            builder.AddFurniture(item.Id, ClassifyFurniture(item, data, floorHeight), item.GetZ, item.TotalHeight, item.EffectiveHeight, floorHeight, item.GroupId);
         }
 
         private static FurnitureFootprint ClassifyFurniture(Item item, ItemData data, double floorHeight)
@@ -1231,7 +1253,7 @@ namespace Plus.HabboHotel.Rooms
                         if (item.TotalHeight > highestStack) {
                             if (item.GetBaseItem().IsSeat || item.GetBaseItem().InteractionType == InteractionType.Bed || item.GetBaseItem().InteractionType == InteractionType.TentSmall) {
                                 deduct = true;
-                                deductible = item.GetBaseItem().Height;
+                                deductible = item.EffectiveHeight;
                             } else
                                 deduct = false;
 

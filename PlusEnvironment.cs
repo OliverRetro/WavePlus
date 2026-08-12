@@ -116,6 +116,11 @@ namespace Plus
 
             CultureInfo = CultureInfo.CreateSpecificCulture("en-GB");
 
+            CultureInfo.DefaultThreadCurrentCulture = CultureInfo;
+            CultureInfo.DefaultThreadCurrentUICulture = CultureInfo;
+            Thread.CurrentThread.CurrentCulture = CultureInfo;
+            Thread.CurrentThread.CurrentUICulture = CultureInfo;
+
             try {
                 _configuration = new ConfigurationData($"Config{Path.DirectorySeparatorChar}config.ini");
 

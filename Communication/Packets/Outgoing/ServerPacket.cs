@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 using DotNetty.Buffers;
 using DotNetty.Common;
 
@@ -36,7 +37,7 @@ namespace Plus.Communication.Packets.Outgoing
 
         public void WriteDouble(double d)
         {
-            WriteString(d.ToString());
+            WriteString(d.ToString(CultureInfo.InvariantCulture));
         }
 
         public void WriteTrueDouble(double d)

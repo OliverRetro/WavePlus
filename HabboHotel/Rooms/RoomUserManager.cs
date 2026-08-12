@@ -1277,10 +1277,10 @@ namespace Plus.HabboHotel.Rooms
                         continue;
 
                     if (item.GetBaseItem().IsSeat) {
-                        if (!user.Statusses.ContainsKey("sit")) {
-                            if (!user.Statusses.ContainsKey("sit"))
-                                user.Statusses.Add("sit", TextHandling.GetString(item.GetBaseItem().Height));
-                        }
+                        string sitHeight = TextHandling.GetString(item.EffectiveHeight);
+
+                        if (!user.Statusses.TryGetValue("sit", out string currentSit) || currentSit != sitHeight)
+                            user.Statusses["sit"] = sitHeight;
 
                         user.Z = item.GetZ;
                         user.RotHead = item.Rotation;
@@ -1293,8 +1293,10 @@ namespace Plus.HabboHotel.Rooms
 
                         case InteractionType.Bed:
                         case InteractionType.TentSmall: {
-                                if (!user.Statusses.ContainsKey("lay"))
-                                    user.Statusses.Add("lay", TextHandling.GetString(item.GetBaseItem().Height) + " null");
+                                string layHeight = TextHandling.GetString(item.EffectiveHeight) + " null";
+
+                                if (!user.Statusses.TryGetValue("lay", out string currentLay) || currentLay != layHeight)
+                                    user.Statusses["lay"] = layHeight;
 
                                 user.Z = item.GetZ;
                                 user.RotHead = item.Rotation;

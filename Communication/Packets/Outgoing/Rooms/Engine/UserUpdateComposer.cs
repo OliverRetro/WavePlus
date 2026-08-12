@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using Plus.HabboHotel.Rooms;
@@ -22,7 +23,7 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Engine
                 packet.WriteInteger(user.VirtualId);
                 packet.WriteInteger(user.X);
                 packet.WriteInteger(user.Y);
-                packet.WriteString(user.Z.ToString("0.00"));
+                packet.WriteString(user.Z.ToString("0.00", CultureInfo.InvariantCulture));
                 packet.WriteInteger(user.RotHead);
                 packet.WriteInteger(user.RotBody);
 

@@ -1,5 +1,5 @@
 ﻿using Plus.HabboHotel.GameClients;
-using System;
+using System.Globalization;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
 {
@@ -24,7 +24,12 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Moderator
                 }
             }
 
-            double newHeight = Convert.ToDouble(@params[1]);
+            string input = @params[1].Replace(',', '.');
+
+            if (!double.TryParse(input, NumberStyles.Float, CultureInfo.InvariantCulture, out double newHeight)) {
+                session.SendWhisper("That's not a height. Example usage :bh 2.5!", 1);
+                return;
+            }
 
             if (newHeight < 0 || newHeight > 40) {
                 session.SendWhisper("The build height must be within 0-40.", 1);

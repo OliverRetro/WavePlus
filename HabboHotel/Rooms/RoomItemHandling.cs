@@ -276,7 +276,7 @@ namespace Plus.HabboHotel.Rooms
 
                             if (!_rollerItemsMoved.Contains(rItem.Id) && room.GetGameMap().CanRollItemHere(nextSquare.X, nextSquare.Y) && nextRollerClear && roller.GetZ < rItem.GetZ && room.GetRoomUserManager().GetUserForSquare(nextSquare.X, nextSquare.Y) == null) {
                                 if (!nextSquareIsRoller)
-                                    nextZ = rItem.GetZ - roller.GetBaseItem().Height;
+                                    nextZ = rItem.GetZ - roller.EffectiveHeight;
                                 else
                                     nextZ = rItem.GetZ;
 
@@ -291,7 +291,7 @@ namespace Plus.HabboHotel.Rooms
                     if (rollerUser != null && !rollerUser.IsWalking && nextRollerClear && room.GetGameMap().IsValidStep(new Vector2D(roller.GetX, roller.GetY), new Vector2D(nextSquare.X, nextSquare.Y), true, false, true) && room.GetGameMap().CanRollItemHere(nextSquare.X, nextSquare.Y) && room.GetGameMap().GetFloorStatus(nextSquare) != 0) {
                         if (!_rollerUsersMoved.Contains(rollerUser.HabboId)) {
                             if (!nextSquareIsRoller)
-                                nextZ = rollerUser.Z - roller.GetBaseItem().Height;
+                                nextZ = rollerUser.Z - roller.EffectiveHeight;
                             else
                                 nextZ = rollerUser.Z;
 

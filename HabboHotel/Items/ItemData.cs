@@ -42,6 +42,19 @@ namespace Plus.HabboHotel.Items
         public int Modes { get; set; }
         public List<int> VendingIds { get; set; }
         public List<double> AdjustableHeights { get; set; }
+        public bool HasAdjustableHeights => AdjustableHeights is { Count: > 0 };
+
+        public double HeightForState(int state)
+        {
+            if (!HasAdjustableHeights)
+                return Height;
+
+            int count = AdjustableHeights.Count;
+            int index = ((state % count) + count) % count;
+
+            return AdjustableHeights[index];
+        }
+
         public int EffectId { get; set; }
         public WiredBoxType WiredType { get; set; }
         public bool IsRare { get; set; }
@@ -89,6 +102,9 @@ namespace Plus.HabboHotel.Items
                         Console.WriteLine("Error with Item " + ItemName + " - Adjustable Height: " + h);
                 }
             }
+
+            if (AdjustableHeights.Count < 2 || AdjustableHeights.TrueForAll(static h => h <= 0.0))
+                AdjustableHeights.Clear();
 
             EffectId = effectId;
 
