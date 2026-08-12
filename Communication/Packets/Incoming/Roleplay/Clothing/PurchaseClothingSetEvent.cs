@@ -1,9 +1,10 @@
-using System.Linq;
 using Plus.Communication.Packets.Outgoing.Inventory.AvatarEffects;
 using Plus.Communication.Packets.Outgoing.Inventory.Purse;
 using Plus.Communication.Packets.Outgoing.Roleplay.Clothing;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Roleplay.Clothing;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Plus.Communication.Packets.Incoming.Roleplay.Clothing
 {
@@ -51,6 +52,9 @@ namespace Plus.Communication.Packets.Incoming.Roleplay.Clothing
             session.SendPacket(new FigureSetIdsComposer(session.GetHabbo().GetClothing().GetClothingParts));
 
             session.SendPacket(new ClothingPurchaseResultComposer(true, "success", setId, set.Stock));
+
+            IReadOnlyList<RpClothingCategory> categories = store.GetCategoriesForRoom(session.GetHabbo().CurrentRoomId);
+            session.SendPacket(new ClothingStoreComposer(categories));
         }
     }
 }

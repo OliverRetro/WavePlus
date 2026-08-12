@@ -1,6 +1,6 @@
 ﻿namespace Plus.HabboHotel.Rooms.PathFinding
 {
-    internal sealed class Vector3D
+    public sealed class Vector3D
     {
         public int X { get; set; }
 

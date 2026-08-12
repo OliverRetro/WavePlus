@@ -18,6 +18,7 @@
         public const int ChatLinkConfigMessageComposer = 6011;
         public const int ClientVisualSettingsMessageComposer = 6014;
         public const int TeleportDissolveMessageComposer = 6015;
+        public const int AvatarWalkSpeedMessageComposer = 6016;
         public const int GangDataMessageComposer = 6110;
         public const int GangNoticeMessageComposer = 6111;
         public const int GangToggleMessageComposer = 6121;

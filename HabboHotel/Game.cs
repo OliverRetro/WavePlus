@@ -66,7 +66,7 @@ namespace Plus.HabboHotel
         private long _nextPoliceCycleMs;
         private long _nextTrashCycleMs;
         private long _nextAchievementFlushMs;
-        private const int CycleSleepTime = 25;
+        private const int CycleSleepTime = 10;
         private const int HospitalCycleIntervalMs = 1000;
         private const int JailCycleIntervalMs = 1000;
         private const int PoliceCycleIntervalMs = 250;

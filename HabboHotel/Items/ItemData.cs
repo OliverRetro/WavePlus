@@ -16,7 +16,21 @@ namespace Plus.HabboHotel.Items
         public int Length { get; set; }
         public double Height { get; set; }
         public bool Stackable { get; set; }
-        public bool Walkable { get; set; }
+
+        /// <summary>
+        /// furniture.is_walkable, as a tri-state rather than a flag:
+        ///   0 — solid, you neither cross it nor stand on it;
+        ///   1 — walk over it freely;
+        ///   2 — you may stand on it, but not cross it. Paths route around such a tile unless it
+        ///       is the destination, which is how you build a platform people step onto rather
+        ///       than stream across.
+        /// </summary>
+        public byte WalkableState { get; set; }
+
+        /// <summary>True for anything a user can end up standing on. Both walkable states qualify;
+        /// use <see cref="WalkableState"/> when the difference matters.</summary>
+        public bool Walkable => WalkableState > 0;
+
         public bool IsSeat { get; set; }
         public bool AllowEcotronRecycle { get; set; }
         public bool AllowTrade { get; set; }
@@ -33,7 +47,7 @@ namespace Plus.HabboHotel.Items
         public bool IsRare { get; set; }
         public bool ExtraRot { get; set; }
 
-        public ItemData(int id, int sprite, string name, string publicName, string type, int width, int length, double height, bool stackable, bool walkable, bool isSeat,
+        public ItemData(int id, int sprite, string name, string publicName, string type, int width, int length, double height, bool stackable, byte walkableState, bool isSeat,
             bool allowRecycle, bool allowTrade, bool allowMarketplaceSell, bool allowGift, bool allowInventoryStack, InteractionType interactionType, int behaviourData, int modes,
             string vendingIds, string adjustableHeights, int effectId, bool isRare, bool extraRot)
         {
@@ -46,7 +60,7 @@ namespace Plus.HabboHotel.Items
             Length = length;
             Height = height;
             Stackable = stackable;
-            Walkable = walkable;
+            WalkableState = walkableState;
             IsSeat = isSeat;
             AllowEcotronRecycle = allowRecycle;
             AllowTrade = allowTrade;

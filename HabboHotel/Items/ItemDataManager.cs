@@ -37,7 +37,9 @@ namespace Plus.HabboHotel.Items
                         int length = row.Length;
                         double height = row.StackHeight;
                         bool allowStack = PlusEnvironment.EnumToBool(row.CanStack.ToString());
-                        bool allowWalk = PlusEnvironment.EnumToBool(row.IsWalkable.ToString());
+                        // is_walkable is a tinyint, not a flag: 2 means "stand on it, but paths go
+                        // around it". Anything unrecognised falls back to solid.
+                        byte walkableState = (byte)Math.Clamp((int)row.IsWalkable.GetValueOrDefault(), 0, 2);
                         bool allowSit = PlusEnvironment.EnumToBool(row.CanSit.ToString());
                         bool allowRecycle = PlusEnvironment.EnumToBool(row.AllowRecycle);
                         bool allowTrade = PlusEnvironment.EnumToBool(row.AllowTrade);
@@ -54,10 +56,10 @@ namespace Plus.HabboHotel.Items
                         bool extraRot = PlusEnvironment.EnumToBool(row.ExtraRot);
 
                         if (!Gifts.ContainsKey(spriteId))
-                            Gifts.Add(spriteId, new ItemData(id, spriteId, itemName, publicName, type, width, length, height, allowStack, allowWalk, allowSit, allowRecycle, allowTrade, allowMarketplace, allowGift, allowInventoryStack, interactionType, behaviourData, cycleCount, vendingIds, heightAdjustable, effectId, isRare, extraRot));
+                            Gifts.Add(spriteId, new ItemData(id, spriteId, itemName, publicName, type, width, length, height, allowStack, walkableState, allowSit, allowRecycle, allowTrade, allowMarketplace, allowGift, allowInventoryStack, interactionType, behaviourData, cycleCount, vendingIds, heightAdjustable, effectId, isRare, extraRot));
 
                         if (!Items.ContainsKey(id))
-                            Items.Add(id, new ItemData(id, spriteId, itemName, publicName, type, width, length, height, allowStack, allowWalk, allowSit, allowRecycle, allowTrade, allowMarketplace, allowGift, allowInventoryStack, interactionType, behaviourData, cycleCount, vendingIds, heightAdjustable, effectId, isRare, extraRot));
+                            Items.Add(id, new ItemData(id, spriteId, itemName, publicName, type, width, length, height, allowStack, walkableState, allowSit, allowRecycle, allowTrade, allowMarketplace, allowGift, allowInventoryStack, interactionType, behaviourData, cycleCount, vendingIds, heightAdjustable, effectId, isRare, extraRot));
                     } catch (Exception e) {
                         Console.WriteLine($"Error loading furniture ID {row.Id}");
                         Console.WriteLine(e);

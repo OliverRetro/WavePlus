@@ -23,6 +23,9 @@ namespace Plus.HabboHotel.Rooms
 
         private DateTime _cycleLastExecution;
 
+        /// <summary>Room tick. Movement pacing is quantised to this, so it has to stay punctual.</summary>
+        private const int CycleIntervalMs = 50;
+
         public RoomManager()
         {
             _roomModels = new Dictionary<string, RoomModel>();
@@ -33,11 +36,13 @@ namespace Plus.HabboHotel.Rooms
         public void OnCycle()
         {
             try {
-                TimeSpan sinceLastTime = DateTime.Now - _cycleLastExecution;
-                // 50ms tick: rooms process movement/status every tick, and internally fall back
-                // to the classic 500ms cadence for items/wired/timers (see Room.ProcessRoom).
-                if (sinceLastTime.TotalMilliseconds >= 50) {
-                    _cycleLastExecution = DateTime.Now;
+                DateTime now = DateTime.Now;
+                TimeSpan sinceLastTime = now - _cycleLastExecution;
+                if (sinceLastTime.TotalMilliseconds >= CycleIntervalMs) {
+                    _cycleLastExecution = _cycleLastExecution.AddMilliseconds(CycleIntervalMs);
+
+                    if ((now - _cycleLastExecution).TotalMilliseconds >= CycleIntervalMs)
+                        _cycleLastExecution = now;
                     foreach (Room room in _rooms.Values) {
                         if (room.IsCrashed)
                             continue;
@@ -47,8 +52,6 @@ namespace Plus.HabboHotel.Rooms
                             room.IsLagging = 0;
                         } else {
                             room.IsLagging++;
-                            // 300 consecutive busy 50ms ticks ≈ 15s of continuous stall — the same
-                            // tolerance the old 30 × 500ms check gave.
                             if (room.IsLagging >= 300) {
                                 room.IsCrashed = true;
                                 UnloadRoom(room.Id);

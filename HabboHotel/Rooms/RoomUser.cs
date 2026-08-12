@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Plus.Communication.Packets.Outgoing;
 using Plus.Communication.Packets.Outgoing.Rooms.Avatar;
@@ -35,6 +36,16 @@ namespace Plus.HabboHotel.Rooms
         public int DanceId;
         public bool FastWalking = false;
         public bool SuperFastWalking = false;
+
+        /// <summary>Walk speed as a plain multiplier on the normal pace. 1.0 is a regular avatar,
+        /// 2.5 is fastwalk, 4.0 is superfastwalk — none of them skip tiles, they just cover them
+        /// faster. Set this directly to hand out any other tier (a sprint, a limp, a debuff).
+        /// 0 means "no override, use the fastwalk flags".</summary>
+        public double WalkSpeedOverride = 0d;
+
+        // Last tier the room was told about. Clients assume 1.0 for an avatar they have heard
+        // nothing about, so this starts matching that assumption.
+        public double LastSentWalkSpeed = 1.0;
         public int FreezeCounter;
         public int FreezeLives = 0;
         public bool Freezed = false;
@@ -55,9 +66,16 @@ namespace Plus.HabboHotel.Rooms
         public Item LastItem = null;
         public int LockedTilesCount = 0;
 
-        public List<Vector2D> Path = new();
+        // Remaining route, ordered [goal, ..., start]. Every node carries the height the
+        // pathfinder picked for that tile, which with 3D pathing is not necessarily the top of it.
+        public List<Vector3D> Path = new();
         public bool PathRecalcNeeded;
         public int PathStep = 1;
+
+        // Set while the full route is still being searched off-thread after the first step was
+        // already handed out. Results carrying a stale PathRequestId are thrown away.
+        public bool PathPending;
+        private long _pathRequestId;
         // Earliest time (unix ms) this user may take their next walking step. The room's
         // movement loop runs every 50ms so clicks register almost instantly, but actual
         // steps stay on the classic 500ms-per-tile cadence via this gate.
@@ -70,6 +88,7 @@ namespace Plus.HabboHotel.Rooms
         // See RpProximity.IsWithinWeaponRange.
         public int PrevX;
         public int PrevY;
+        public double PrevZ;
         public long StepCommittedMs;
 
         public Pet PetData;
@@ -121,7 +140,69 @@ namespace Plus.HabboHotel.Rooms
         private int _itemConsumptionId;
         private int _fastwalkId;
 
+        /// <summary>Normal avatar pace — one tile per <see cref="RoomUserManager.StepIntervalMs"/>.</summary>
+        public const double WalkSpeedNormal = 1.0;
+
+        /// <summary>Fastwalk tier.</summary>
+        public const double WalkSpeedFast = 2.5;
+
+        /// <summary>Superfastwalk tier.</summary>
+        public const double WalkSpeedSuperFast = 4.0;
+
+        /// <summary>Slowest a tier may make a step, so a bad multiplier can't stall a walk.</summary>
+        private const int MaxStepDurationMs = 4000;
+
         public Point Coordinate => new(X, Y);
+
+        /// <summary>
+        /// Tiered walk speed. Tiers scale how long a tile takes, they never skip tiles: the avatar
+        /// walks every square of its path, just quicker.
+        /// </summary>
+        public double WalkSpeed
+        {
+            get
+            {
+                if (WalkSpeedOverride > 0d)
+                    return WalkSpeedOverride;
+
+                if (SuperFastWalking)
+                    return WalkSpeedSuperFast;
+
+                return FastWalking ? WalkSpeedFast : WalkSpeedNormal;
+            }
+        }
+
+        /// <summary>How long this user's next tile takes, in milliseconds.</summary>
+        public int StepDurationMs
+        {
+            get
+            {
+                double speed = WalkSpeed;
+                if (speed <= 0d)
+                    speed = WalkSpeedNormal;
+
+                return Math.Clamp((int)Math.Round(RoomUserManager.StepIntervalMs / speed), RoomUserManager.MinStepIntervalMs, MaxStepDurationMs);
+            }
+        }
+
+        /// <summary>
+        /// How long the client should take to slide the avatar across a tile. Deliberately equal
+        /// to the step interval, and sent explicitly so the client never has to re-derive it from
+        /// a speed multiplier.
+        ///
+        /// Padding this to absorb a late step does not work: the renderer interpolates from where
+        /// the avatar currently is, so an animation longer than the real cadence never completes a
+        /// tile and the shortfall compounds into a visible drift. Step lateness is fixed where it
+        /// happens instead — the room tick and <see cref="NextStepMs"/> both schedule from their
+        /// target rather than from "now".
+        /// </summary>
+        public int StepAnimationMs => StepDurationMs;
+
+        /// <summary>Identifies the walk a pending off-thread path search belongs to.</summary>
+        public long PathRequestId => Interlocked.Read(ref _pathRequestId);
+
+        /// <summary>Starts a new walk, discarding any path search still running for the old one.</summary>
+        public long BeginPathRequest() => Interlocked.Increment(ref _pathRequestId);
 
         public bool IsPet => IsBot && BotData.IsPet;
 
@@ -374,6 +455,8 @@ namespace Plus.HabboHotel.Rooms
             PathRecalcNeeded = false;
             Path.Clear();
             PathStep = 1;
+            PathPending = false;
+            BeginPathRequest();
             SetStep = false;
             SetX = 0;
             SetY = 0;
@@ -426,6 +509,9 @@ namespace Plus.HabboHotel.Rooms
             GoalY = pY;
             PathRecalcNeeded = true;
             FreezeInteracting = false;
+
+            // A new destination retires whatever route is still being searched for the old one.
+            BeginPathRequest();
         }
 
         public void MoveTo(int pX, int pY)
@@ -519,6 +605,7 @@ namespace Plus.HabboHotel.Rooms
             // never lerps a hitbox across the jump.
             PrevX = pX;
             PrevY = pY;
+            PrevZ = pZ;
             StepCommittedMs = 0;
 
             X = pX;

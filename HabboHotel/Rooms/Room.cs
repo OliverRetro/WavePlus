@@ -551,6 +551,11 @@ namespace Plus.HabboHotel.Rooms
 
                 if (!user.IsBot && !user.IsPet && user.CurrentEffect > 0)
                     session.SendPacket(new AvatarEffectComposer(user.VirtualId, user.CurrentEffect));
+
+                // Catch the arriving client up on anyone already walking at a non-default tier;
+                // the client assumes 1.0 for every avatar it has not been told about.
+                if (user.WalkSpeed != RoomUser.WalkSpeedNormal)
+                    session.SendPacket(new Plus.Communication.Packets.Outgoing.Roleplay.AvatarWalkSpeedComposer(user.VirtualId, user.WalkSpeed, user.StepAnimationMs));
             }
         }
 

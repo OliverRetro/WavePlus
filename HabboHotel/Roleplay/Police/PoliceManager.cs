@@ -403,7 +403,7 @@ namespace Plus.HabboHotel.Roleplay.Police
             suspect.SetZ = stepZ;
             // Pace the fused step like a real one: without this the 50ms movement tick would commit
             // it (and strip the "mv") almost immediately, cutting the walk animation short.
-            suspect.NextStepMs = PlusEnvironment.Now() + 500;
+            suspect.NextStepMs = PlusEnvironment.Now() + suspect.StepDurationMs;
             suspect.UpdateNeeded = true;
         }
 

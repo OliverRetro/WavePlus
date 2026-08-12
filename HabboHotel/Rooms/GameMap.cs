@@ -20,6 +20,17 @@ namespace Plus.HabboHotel.Rooms
         private ConcurrentDictionary<Point, List<int>> _coordinatedItems;
         private ConcurrentDictionary<Point, List<RoomUser>> _userMap;
 
+        // 3D view of the room used by the pathfinder. Rebuilt on the room thread whenever
+        // furniture moves and then treated as immutable, which is what lets a path be searched
+        // off-thread while the user is already walking.
+        private RoomHeightMap _heightMap;
+        private volatile bool _heightMapDirty = true;
+        private readonly object _heightMapLock = new();
+        private readonly HashSet<int> _heightMapDirtyTiles = new();
+        // Mirrors _heightMapDirtyTiles.Count so the room thread can test for pending work without
+        // taking the lock; item placement runs on IO threads, which is what writes that set.
+        private volatile int _heightMapDirtyTileCount;
+
         public Gamemap(Room room, RoomModel model)
         {
             _room = room;
@@ -281,6 +292,8 @@ namespace Plus.HabboHotel.Rooms
                 GameMap[Model.DoorX, Model.DoorY] = 3;
             } catch {
             }
+
+            MarkHeightMapDirty();
         }
 
         private bool ConstructMapForItem(Item item, Point coord)
@@ -538,6 +551,8 @@ namespace Plus.HabboHotel.Rooms
 
             items.Clear();
 
+            MarkHeightMapDirty(item);
+
             return isRemoved;
         }
 
@@ -606,6 +621,8 @@ namespace Plus.HabboHotel.Rooms
 
             if (item.GetBaseItem().Type != 's')
                 return true;
+
+            MarkHeightMapDirty(item);
 
             foreach (Point coord in item.GetCoords.ToList()) {
                 AddCoordinatedItem(item, new Point(coord.X, coord.Y));
@@ -793,7 +810,213 @@ namespace Plus.HabboHotel.Rooms
             return item.Coordinate;
         }
 
+        #region 3D height map
+
+        /// <summary>
+        /// Current 3D snapshot of the room, rebuilt on demand after furniture changes.
+        /// </summary>
+        public RoomHeightMap GetHeightMap()
+        {
+            if (_heightMap == null || _heightMapDirty || _heightMapDirtyTileCount > 0)
+                RebuildHeightMap();
+
+            return _heightMap;
+        }
+
+        /// <summary>Flags the whole 3D snapshot as stale. Only for changes that can move every
+        /// tile — a model resize or a full map regeneration.</summary>
+        public void MarkHeightMapDirty()
+        {
+            _heightMapDirty = true;
+        }
+
+        /// <summary>
+        /// Flags just the tiles one item covers. Rollers, gates and wired move furniture on nearly
+        /// every cycle, and rebuilding a whole room for each of them was enough to show up as a
+        /// hitch in the movement tick.
+        /// </summary>
+        public void MarkHeightMapDirty(Item item)
+        {
+            if (item?.GetBaseItem() == null || item.GetBaseItem().Type != 's') {
+                return;
+            }
+
+            lock (_heightMapLock) {
+                if (_heightMapDirty)
+                    return; // a full rebuild is already queued, no point listing tiles
+
+                foreach (Point coord in item.GetCoords) {
+                    if (ValidTile(coord.X, coord.Y))
+                        _heightMapDirtyTiles.Add((coord.Y * Model.MapSizeX) + coord.X);
+                }
+
+                _heightMapDirtyTileCount = _heightMapDirtyTiles.Count;
+            }
+        }
+
+        public void RebuildHeightMap()
+        {
+            lock (_heightMapLock) {
+                int width = Model.MapSizeX;
+                int height = Model.MapSizeY;
+
+                // Anything short of a full rebuild edits a copy of the live snapshot, because a
+                // path search may still be reading the old one on another thread.
+                bool incremental = !_heightMapDirty && _heightMap != null &&
+                                   _heightMap.Width == width && _heightMap.Height == height;
+
+                if (incremental) {
+                    var patch = new RoomHeightMap.Builder(_heightMap.Clone());
+
+                    foreach (int tile in _heightMapDirtyTiles) {
+                        int x = tile % width;
+                        int y = tile / width;
+
+                        if (!ValidTile(x, y))
+                            continue;
+
+                        BuildHeightMapTile(patch, x, y, GetAllRoomItemForSquare(x, y));
+                    }
+
+                    _heightMapDirtyTiles.Clear();
+                    _heightMapDirtyTileCount = 0;
+                    _heightMap = patch.Build();
+                    return;
+                }
+
+                var builder = new RoomHeightMap.Builder(width, height);
+                List<Item>[] tiles = new List<Item>[width * height];
+
+                foreach (Item item in _room.GetRoomItemHandler().GetFloor.ToList()) {
+                    if (item?.GetBaseItem() == null || item.GetBaseItem().Type != 's')
+                        continue;
+
+                    foreach (Point coord in item.GetCoords) {
+                        if (!ValidTile(coord.X, coord.Y))
+                            continue;
+
+                        int index = (coord.Y * width) + coord.X;
+                        (tiles[index] ??= new List<Item>()).Add(item);
+                    }
+                }
+
+                for (int y = 0; y < height; y++) {
+                    for (int x = 0; x < width; x++)
+                        BuildHeightMapTile(builder, x, y, tiles[(y * width) + x]);
+                }
+
+                _heightMapDirtyTiles.Clear();
+                _heightMapDirtyTileCount = 0;
+                _heightMap = builder.Build();
+                _heightMapDirty = false;
+            }
+        }
+
+        private void BuildHeightMapTile(RoomHeightMap.Builder builder, int x, int y, List<Item> itemsOnTile)
+        {
+            bool isDoor = x == Model.DoorX && y == Model.DoorY;
+            double floorHeight = Model.SqFloorHeight[x, y];
+
+            if (isDoor)
+                builder.AddSurface(0, floorHeight, RoomHeightMap.StateLastStep, 0);
+            else if (Model.SqState[x, y] == SquareState.Open)
+                builder.AddSurface(0, floorHeight, RoomHeightMap.StateOpen, 0);
+            else if (Model.SqState[x, y] == SquareState.Seat)
+                builder.AddSurface(0, floorHeight, RoomHeightMap.StateSeat, 0);
+
+            if (itemsOnTile != null) {
+                foreach (Item item in itemsOnTile)
+                    AddItemToHeightMap(builder, item, floorHeight);
+            }
+
+            builder.CommitTile(x, y, isDoor);
+        }
+
+        private static void AddItemToHeightMap(RoomHeightMap.Builder builder, Item item, double floorHeight)
+        {
+            ItemData data = item.GetBaseItem();
+
+            builder.AddFurniture(item.Id, ClassifyFurniture(item, data, floorHeight), item.GetZ, item.TotalHeight, data.Height, floorHeight, item.GroupId);
+        }
+
+        /// <summary>Maps a furni's flags onto how it behaves vertically. The geometry that follows
+        /// from that lives in <see cref="RoomHeightMap.Builder.AddFurniture"/>.</summary>
+        private static FurnitureFootprint ClassifyFurniture(Item item, ItemData data, double floorHeight)
+        {
+            InteractionType type = data.InteractionType;
+
+            if (type == InteractionType.GuildGate)
+                return FurnitureFootprint.GuildGate;
+
+            if (data.IsSeat || type == InteractionType.Bed || type == InteractionType.TentSmall)
+                return FurnitureFootprint.Seat;
+
+            if (data.WalkableState == 2)
+                return FurnitureFootprint.WalkableStopOnly;
+
+            if (data.WalkableState == 1)
+                return FurnitureFootprint.Walkable;
+
+            // An open gate lying on the floor is walked straight through.
+            if (type == InteractionType.Gate && item.ExtraData == "1" && item.GetZ <= floorHeight + 0.1)
+                return FurnitureFootprint.Walkable;
+
+            return FurnitureFootprint.Solid;
+        }
+
+        /// <summary>
+        /// Freezes everything the pathfinder is allowed to see into one immutable bundle.
+        /// </summary>
+        public PathContext CreatePathContext(RoomUser user, byte[] occupancy)
+        {
+            RoomHeightMap map = GetHeightMap();
+
+            return new PathContext
+            {
+                HeightMap = map,
+                DiagonalEnabled = DiagonalEnabled,
+                AllowOverride = user != null && user.AllowOverride,
+                IgnoreHeightLimits = user != null && user.RidingHorse,
+                UsersBlockTiles = _room.RoomBlockingEnabled == 0,
+                Occupancy = occupancy,
+                OpenGateGroups = ResolveOpenGateGroups(user, map)
+            };
+        }
+
+        private static HashSet<int> ResolveOpenGateGroups(RoomUser user, RoomHeightMap map)
+        {
+            if (map.GateGroupIds.Length == 0 || user == null || user.IsBot)
+                return null;
+
+            int habboId = user.GetClient()?.GetHabbo()?.Id ?? 0;
+            if (habboId == 0)
+                return null;
+
+            HashSet<int> open = null;
+
+            foreach (int groupId in map.GateGroupIds) {
+                if (!PlusEnvironment.GetGame().GetGroupManager().TryGetGroup(groupId, out Group group))
+                    continue;
+
+                if (group.IsMember(habboId))
+                    (open ??= new HashSet<int>()).Add(groupId);
+            }
+
+            return open;
+        }
+
+        #endregion
+
         public bool IsValidStep2(RoomUser user, Vector2D from, Vector2D to, bool endOfPath, bool @override)
+        {
+            return IsValidStep2(user, from, to, SqAbsoluteHeight(to.X, to.Y), endOfPath, @override);
+        }
+
+        /// <summary>
+        /// Validates a step the walk loop is about to commit, against the height the pathfinder
+        /// picked for the destination — which is not necessarily the top of the tile any more.
+        /// </summary>
+        public bool IsValidStep2(RoomUser user, Vector2D from, Vector2D to, double toZ, bool endOfPath, bool @override)
         {
             if (user == null)
                 return false;
@@ -841,31 +1064,34 @@ namespace Plus.HabboHotel.Rooms
                 }
             }
 
-            bool chair = false;
-            double highestZ = -1;
-            foreach (Item item in items.ToList()) {
-                if (item == null)
-                    continue;
+            RoomHeightMap map = GetHeightMap();
+            int level = map.FindLevel(to.X, to.Y, toZ);
 
-                if (item.GetZ < highestZ) {
-                    chair = false;
-                    continue;
-                }
-
-                highestZ = item.GetZ;
-                if (item.GetBaseItem().IsSeat)
-                    chair = true;
+            // No surface anywhere near the height the path picked: furniture moved under the
+            // user's feet mid-walk. Refuse the step and let them re-path from where they stand.
+            if (level < 0) {
+                if (user.Path.Count > 0)
+                    user.Path.Clear();
+                user.PathRecalcNeeded = true;
+                return false;
             }
 
-            if (GameMap[to.X, to.Y] == 3 && !endOfPath && !chair || GameMap[to.X, to.Y] == 0 || GameMap[to.X, to.Y] == 2 && !endOfPath) {
+            byte state = map.StateAt(map.TileIndex(to.X, to.Y), level);
+
+            // Legacy behaviour, deliberately kept: a square that closed up while the step was in
+            // flight still lets this step land, it just forces a recalculation afterwards.
+            if (state == RoomHeightMap.StateBlocked ||
+                ((state == RoomHeightMap.StateSeat || state == RoomHeightMap.StateLastStep) && !endOfPath)) {
                 if (user.Path.Count > 0)
                     user.Path.Clear();
                 user.PathRecalcNeeded = true;
             }
 
-            double heightDiff = SqAbsoluteHeight(to.X, to.Y) - SqAbsoluteHeight(from.X, from.Y);
-            if (heightDiff > 1.5 && !user.RidingHorse)
-                return false;
+            if (!user.RidingHorse) {
+                double fromZ = map.SurfaceNear(from.X, from.Y, user.Z);
+                if (!RoomHeightMap.CanTransition(fromZ, toZ))
+                    return false;
+            }
 
             //Check this last, because ya.
             //When room blocking is enabled (RoomBlockingEnabled != 0) users may share the exact same tile.

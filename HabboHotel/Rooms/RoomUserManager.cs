@@ -20,6 +20,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Threading.Tasks;
+using Plus.Communication.Packets.Outgoing.Roleplay;
 
 namespace Plus.HabboHotel.Rooms
 {
@@ -32,13 +34,30 @@ namespace Plus.HabboHotel.Rooms
 
         private ConcurrentDictionary<int, RoomUser> _usersByHabboId = new();
 
-        // how long it takes to animate a tile
+        // how long it takes to animate a tile at walk speed 1.0
         public const int StepIntervalMs = 500;
+
+        public const int MinStepIntervalMs = 50;
 
         private int _primaryPrivateUserId;
         private int _secondaryPrivateUserId;
 
         public int UserCount;
+
+        // Done shit
+        private readonly ConcurrentQueue<CompletedPath> _completedPaths = new();
+
+        // Per-cycle snapshot of which tiles hold users, shared by every path searched this tick.
+        private byte[] _occupancy;
+        private long _occupancyTick = -1;
+
+        // Walks no longer than this are searched in full on the spot instead of being split into
+        // an immediate step plus an off-thread remainder.
+        private const int SyncSearchDistance = 3;
+
+        // How far off an item's own height a user may be and still count as standing on/in it.
+        // Sitting and lying shift a user 0.35 down, so anything tighter would break seats.
+        private const double SameLevelTolerance = 0.5;
 
         public RoomUserManager(Room room)
         {
@@ -148,9 +167,6 @@ namespace Plus.HabboHotel.Rooms
             if (session?.GetHabbo().CurrentRoom == null)
                 return false;
 
-            // Entry packets can be retriggered while the session is already present in the room.
-            // If the cached room user belongs to a stale client/session, remove it and recreate
-            // the avatar so the new session can move normally.
             RoomUser existingUser = GetRoomUserByHabbo(session.GetHabbo().Id);
             if (existingUser != null) {
                 if (ReferenceEquals(existingUser.GetClient(), session))
@@ -272,6 +288,11 @@ namespace Plus.HabboHotel.Rooms
             // room user: walking mode and the locked RP target.
             user.FastWalking = session.GetHabbo().FastWalkingEnabled;
             user.SuperFastWalking = session.GetHabbo().SuperFastWalkingEnabled;
+
+            // Entering mid-tier: tell the room now rather than waiting on the next full cycle,
+            // so the first steps after the door already animate at the right pace.
+            if (user.WalkSpeed != RoomUser.WalkSpeedNormal)
+                BroadcastWalkSpeed(user);
 
             TargetLockService.RestoreLock(session.GetHabbo());
 
@@ -664,12 +685,191 @@ namespace Plus.HabboHotel.Rooms
             return true;
         }
 
+        // Tells the client the speed user is walking as.
+        public void BroadcastWalkSpeed(RoomUser user)
+        {
+            if (user == null)
+                return;
+
+            user.LastSentWalkSpeed = user.WalkSpeed;
+            _room.SendPacket(new AvatarWalkSpeedComposer(user.VirtualId, user.WalkSpeed, user.StepAnimationMs));
+        }
+
+        #region Pathing
+
+        // move bitch move
+        private void StartWalk(RoomUser user, long nowMs)
+        {
+            user.PathRecalcNeeded = false;
+
+            if (user.GoalX == user.X && user.GoalY == user.Y) {
+                user.Path.Clear();
+                user.PathPending = false;
+                return;
+            }
+
+            Gamemap map = _room.GetGameMap();
+            PathContext ctx = map.CreatePathContext(user, GetOccupancySnapshot(nowMs));
+
+            int distance = Math.Max(Math.Abs(user.GoalX - user.X), Math.Abs(user.GoalY - user.Y));
+
+            // Short hops search in full straight away: A* gives up after a handful of expansions at
+            // this range, which is cheaper than splitting the work in two and shuttling it between
+            // threads. Walking one tile to the next costs about as much as looking at that tile.
+            if (distance > SyncSearchDistance) {
+                Vector3D firstStep = PathFinder.FindNextStep(ctx, user.X, user.Y, user.Z, user.GoalX, user.GoalY);
+
+                if (firstStep != null) {
+                    // The avatar leaves now, on a two-node path; the remainder of the route is
+                    // searched off-thread and spliced on before this step has finished animating.
+                    user.Path.Clear();
+                    user.Path.Add(firstStep);
+                    user.Path.Add(new Vector3D(user.X, user.Y, user.Z));
+                    user.PathStep = 1;
+                    user.IsWalking = true;
+
+                    QueueFullPath(user, ctx, firstStep, user.GoalX, user.GoalY);
+                    return;
+                }
+
+                // Nothing adjacent gets us closer, so the route has to detour around something and
+                // no step can be handed out until the search says which way.
+            }
+
+            List<Vector3D> path = PathFinder.FindPath(ctx, user.X, user.Y, user.Z, user.GoalX, user.GoalY);
+            user.PathPending = false;
+
+            if (path.Count > 1) {
+                user.Path = path;
+                user.PathStep = 1;
+                user.IsWalking = true;
+            } else
+                user.Path.Clear();
+        }
+
+        private bool TryExtendWithGreedyStep(RoomUser user, long nowMs)
+        {
+            PathContext ctx = _room.GetGameMap().CreatePathContext(user, GetOccupancySnapshot(nowMs));
+
+            Vector3D step = PathFinder.FindNextStep(ctx, user.X, user.Y, user.Z, user.GoalX, user.GoalY);
+
+            if (step == null)
+                return false;
+
+            user.Path.Clear();
+            user.Path.Add(step);
+            user.Path.Add(new Vector3D(user.X, user.Y, user.Z));
+            user.PathStep = 1;
+
+            return true;
+        }
+
+        private void QueueFullPath(RoomUser user, PathContext ctx, Vector3D from, int goalX, int goalY)
+        {
+            long requestId = user.BeginPathRequest();
+            user.PathPending = true;
+
+            Task.Run(() =>
+            {
+                List<Vector3D> path = null;
+
+                try {
+                    path = PathFinder.FindPath(ctx, from.X, from.Y, from.Z, goalX, goalY);
+                } catch (Exception e) {
+                    ExceptionLogger.LogException(e);
+                }
+
+                // Always report back, even on failure: the walk loop holds the user's animation
+                // open while a route is outstanding, so a search that vanished would strand them.
+                _completedPaths.Enqueue(new CompletedPath(user, requestId, path));
+            });
+        }
+
+        private void ApplyCompletedPaths()
+        {
+            while (_completedPaths.TryDequeue(out CompletedPath completed)) {
+                RoomUser user = completed.User;
+
+                if (user == null || user.PathRequestId != completed.RequestId)
+                    continue; // the user clicked somewhere else; this route is for a walk that's over
+
+                user.PathPending = false;
+
+                if (completed.Path == null || completed.Path.Count <= 1)
+                    continue; // nowhere to go beyond the step already taken
+
+                // The route starts at the tile the first step was aimed at. If the user is no
+                // longer there (or on their way there), the search came back too late to splice in.
+                Vector3D origin = completed.Path[completed.Path.Count - 1];
+                bool atOrigin = origin.X == user.X && origin.Y == user.Y;
+                bool steppingToOrigin = user.SetStep && origin.X == user.SetX && origin.Y == user.SetY;
+
+                if (!atOrigin && !steppingToOrigin) {
+                    user.PathRecalcNeeded = true;
+                    continue;
+                }
+
+                user.Path = completed.Path;
+                user.PathStep = 1;
+                user.IsWalking = true;
+            }
+        }
+
+        private byte[] GetOccupancySnapshot(long nowMs)
+        {
+            if (_room.RoomBlockingEnabled != 0)
+                return null;
+
+            Gamemap map = _room.GetGameMap();
+            int size = map.Model.MapSizeX * map.Model.MapSizeY;
+
+            if (_occupancyTick == nowMs && _occupancy != null && _occupancy.Length == size)
+                return _occupancy;
+
+            byte[] occupancy = new byte[size];
+
+            foreach (RoomUser other in GetUserList().ToList()) {
+                if (other == null || !map.ValidTile(other.X, other.Y))
+                    continue;
+
+                int tile = (other.Y * map.Model.MapSizeX) + other.X;
+                byte value = other.IsWalking ? PathContext.OccupancyWalking : PathContext.OccupancyStanding;
+
+                if (occupancy[tile] < value)
+                    occupancy[tile] = value;
+            }
+
+            _occupancy = occupancy;
+            _occupancyTick = nowMs;
+
+            return occupancy;
+        }
+
+        private readonly struct CompletedPath
+        {
+            public readonly RoomUser User;
+            public readonly long RequestId;
+            public readonly List<Vector3D> Path;
+
+            public CompletedPath(RoomUser user, long requestId, List<Vector3D> path)
+            {
+                User = user;
+                RequestId = requestId;
+                Path = path;
+            }
+        }
+
+        #endregion
+
         public void OnCycle(bool fullCycle)
         {
             int userCounter = 0;
             long nowMs = PlusEnvironment.Now();
 
             try {
+                // Hand out any route that finished searching while its user was already walking.
+                ApplyCompletedPaths();
+
                 List<RoomUser> ToRemove = new();
 
                 foreach (RoomUser user in GetUserList().ToList()) {
@@ -679,8 +879,7 @@ namespace Plus.HabboHotel.Rooms
                     bool updated = false;
                     bool invalidStep = false;
 
-                    // Housekeeping (idle/carry/spam timers, autokick, freeze, rollers) stays on
-                    // the classic 500ms cadence; only movement runs on the fast 50ms ticks.
+                    // Housekeeping (idle/carry/spam timers, autokick, freeze, rollers) stays on 500ms
                     if (fullCycle) {
                         if (!IsValid(user)) {
                             if (user.GetClient() != null)
@@ -711,9 +910,6 @@ namespace Plus.HabboHotel.Rooms
                                 user.CarryItem(0);
                         }
 
-                        // A gesture temporarily cleared this user's avatar effect; once the countdown
-                        // elapses (and they aren't dancing, which suppresses effects on purpose),
-                        // re-apply whatever effect they had on.
                         if (user.EffectReapplyTimer > 0) {
                             user.EffectReapplyTimer--;
                             if (user.EffectReapplyTimer <= 0 && !user.IsDancing) {
@@ -722,6 +918,9 @@ namespace Plus.HabboHotel.Rooms
                                     _room.SendPacket(new Plus.Communication.Packets.Outgoing.Rooms.Avatar.AvatarEffectComposer(user.VirtualId, effect));
                             }
                         }
+
+                        if (user.LastSentWalkSpeed != user.WalkSpeed)
+                            BroadcastWalkSpeed(user);
 
                         if (_room.GotFreeze())
                             _room.GetFreeze().CycleUser(user);
@@ -740,17 +939,21 @@ namespace Plus.HabboHotel.Rooms
                     bool canStep = nowMs >= user.NextStepMs;
 
                     if (canStep && user.SetStep) {
-                        if (_room.GetGameMap().IsValidStep2(user, new Vector2D(user.X, user.Y), new Vector2D(user.SetX, user.SetY), (user.GoalX == user.SetX && user.GoalY == user.SetY), user.AllowOverride)) {
+                        if (_room.GetGameMap().IsValidStep2(user, new Vector2D(user.X, user.Y), new Vector2D(user.SetX, user.SetY), user.SetZ, (user.GoalX == user.SetX && user.GoalY == user.SetY), user.AllowOverride)) {
                             if (!user.RidingHorse)
                                 _room.GetGameMap().UpdateUserMovement(new Point(user.Coordinate.X, user.Coordinate.Y), new Point(user.SetX, user.SetY), user);
 
                             List<Item> items = _room.GetGameMap().GetCoordinatedItems(new Point(user.X, user.Y));
                             foreach (Item item in items.ToList()) {
-                                item.UserWalksOffFurni(user);
+                                // Furniture the user merely passed underneath was never stepped on,
+                                // so it can't be stepped off either.
+                                if (item.IsAtUserLevel(user.Z, SameLevelTolerance))
+                                    item.UserWalksOffFurni(user);
                             }
 
                             user.PrevX = user.X;
                             user.PrevY = user.Y;
+                            user.PrevZ = user.Z;
                             user.StepCommittedMs = nowMs;
 
                             if (!user.IsBot) {
@@ -771,16 +974,14 @@ namespace Plus.HabboHotel.Rooms
                                 }
                             }
 
-                            // Whether this commit ends the walk on this tile. Decided HERE, inside the
-                            // cycle, so arrow teleports fire deterministically — the old async check of
-                            // IsWalking raced the cycle thread and made walk-on teleports a coin flip.
-                            // Note: a pending recalc does NOT veto this — xmouse users spam-click their
-                            // destination, which re-flags PathRecalcNeeded with the SAME goal; as long
-                            // as the goal is this tile, arriving here ends the walk.
                             bool endOfWalk = user.GoalX == user.X && user.GoalY == user.Y;
 
                             List<Item> Items = _room.GetGameMap().GetCoordinatedItems(new Point(user.X, user.Y));
                             foreach (Item item in Items.ToList()) {
+                                // Walking under a raised platform is not walking on it.
+                                if (!item.IsAtUserLevel(user.Z, SameLevelTolerance))
+                                    continue;
+
                                 item.UserWalksOnFurni(user);
 
                                 if (!user.IsBot && endOfWalk && item.GetBaseItem()?.InteractionType == InteractionType.Arrow)
@@ -795,23 +996,20 @@ namespace Plus.HabboHotel.Rooms
                     }
 
                     if (canStep && user.PathRecalcNeeded) {
-                        if (user.Path.Count > 1)
-                            user.Path.Clear();
+                        StartWalk(user, nowMs);
 
-                        user.Path = PathFinder.FindPath(user, _room.GetGameMap().DiagonalEnabled, _room.GetGameMap(), new Vector2D(user.X, user.Y), new Vector2D(user.GoalX, user.GoalY));
-
-                        if (user.Path.Count > 1) {
-                            user.PathStep = 1;
-                            user.IsWalking = true;
-                            user.PathRecalcNeeded = false;
-                        } else {
-                            user.PathRecalcNeeded = false;
-                            if (user.Path.Count > 1)
-                                user.Path.Clear();
-                        }
+                        if (user.IsWalking && user.Path.Count > 1)
+                            invalidStep = false;
                     }
 
-                    if (canStep && user.IsWalking && !user.Freezed) {
+                    bool awaitingRoute = false;
+
+                    if (canStep && user.IsWalking && user.PathPending && !invalidStep && user.PathStep >= user.Path.Count &&
+                        !(user.GoalX == user.X && user.GoalY == user.Y)) {
+                        awaitingRoute = !TryExtendWithGreedyStep(user, nowMs);
+                    }
+
+                    if (canStep && user.IsWalking && !user.Freezed && !awaitingRoute) {
                         if (invalidStep || (user.PathStep >= user.Path.Count) || (user.GoalX == user.X && user.GoalY == user.Y)) //No path found, or reached goal (:
                         {
                             user.IsWalking = false;
@@ -844,28 +1042,19 @@ namespace Plus.HabboHotel.Rooms
                                 }
                             }
                         } else {
-                            Vector2D nextStep = user.Path[(user.Path.Count - user.PathStep) - 1];
+                            // Tiers change how long a tile takes, never which tiles get walked, so
+                            // every square of the route is stepped on regardless of walk speed.
+                            Vector3D nextStep = user.Path[(user.Path.Count - user.PathStep) - 1];
                             user.PathStep++;
-
-                            if (user.FastWalking && user.PathStep < user.Path.Count) {
-                                int s2 = (user.Path.Count - user.PathStep) - 1;
-                                nextStep = user.Path[s2];
-                                user.PathStep++;
-                            }
-
-                            if (user.SuperFastWalking && user.PathStep < user.Path.Count) {
-                                int s2 = (user.Path.Count - user.PathStep) - 1;
-                                nextStep = user.Path[s2];
-                                user.PathStep++;
-                                user.PathStep++;
-                            }
 
                             int nextX = nextStep.X;
                             int nextY = nextStep.Y;
                             user.RemoveStatus("mv");
 
-                            if (_room.GetGameMap().IsValidStep2(user, new Vector2D(user.X, user.Y), new Vector2D(nextX, nextY), (user.GoalX == nextX && user.GoalY == nextY), user.AllowOverride)) {
-                                double nextZ = _room.GetGameMap().SqAbsoluteHeight(nextX, nextY);
+                            if (_room.GetGameMap().IsValidStep2(user, new Vector2D(user.X, user.Y), new Vector2D(nextX, nextY), nextStep.Z, (user.GoalX == nextX && user.GoalY == nextY), user.AllowOverride)) {
+                                // Height comes from the path, not from the top of the tile: with 3D
+                                // pathing the route may deliberately pass underneath furniture.
+                                double nextZ = nextStep.Z;
 
                                 if (!user.IsBot) {
                                     if (user.IsSitting) {
@@ -913,11 +1102,18 @@ namespace Plus.HabboHotel.Rooms
                                 user.SetX = nextX;
                                 user.SetY = nextY;
                                 user.SetZ = nextZ;
-                                user.NextStepMs = nowMs + StepIntervalMs;
+
+                                // Schedule from the step that just came due, not from now. Ticks
+                                // arrive a few milliseconds late, and rebasing on "now" folded that
+                                // lateness into every following step until the avatar was visibly
+                                // waiting between tiles. Falling a whole step behind resyncs.
+                                long nextStepTarget = user.NextStepMs + user.StepDurationMs;
+                                user.NextStepMs = nextStepTarget > nowMs ? nextStepTarget : nowMs + user.StepDurationMs;
 
                                 if (user.StepCommittedMs != nowMs) {
                                     user.PrevX = user.X;
                                     user.PrevY = user.Y;
+                                    user.PrevZ = user.Z;
                                 }
                                 user.StepCommittedMs = nowMs;
 
@@ -937,7 +1133,7 @@ namespace Plus.HabboHotel.Rooms
                                         horse.SetZ = nextZ;
                                         // Pace the horse like its rider so the fast movement tick
                                         // doesn't commit the step (and strip "mv") after 50ms.
-                                        horse.NextStepMs = nowMs + StepIntervalMs;
+                                        horse.NextStepMs = user.NextStepMs;
                                     }
                                 }
 
@@ -955,7 +1151,7 @@ namespace Plus.HabboHotel.Rooms
 
                         if (!user.RidingHorse)
                             user.UpdateNeeded = true;
-                    } else if (canStep) {
+                    } else if (canStep && !awaitingRoute) {
                         if (user.Statusses.ContainsKey("mv")) {
                             user.RemoveStatus("mv");
                             user.UpdateNeeded = true;
@@ -1037,10 +1233,16 @@ namespace Plus.HabboHotel.Rooms
                 double newZ;
                 List<Item> itemsOnSquare = _room.GetGameMap().GetAllRoomItemForSquare(user.X, user.Y);
                 if (itemsOnSquare != null || itemsOnSquare.Count != 0) {
+                    // The surface the user is actually standing on, which with 3D pathing is not
+                    // always the top of the stack — they may be underneath a floating item. Falls
+                    // back to the classic stack height for tiles the height map knows nothing about.
+                    RoomHeightMap heightMap = _room.GetGameMap().GetHeightMap();
+                    newZ = heightMap.LevelCountAt(user.X, user.Y) > 0
+                        ? heightMap.SurfaceNear(user.X, user.Y, user.Z)
+                        : _room.GetGameMap().SqAbsoluteHeight(user.X, user.Y, itemsOnSquare.ToList());
+
                     if (user.RidingHorse && user.IsPet == false)
-                        newZ = _room.GetGameMap().SqAbsoluteHeight(user.X, user.Y, itemsOnSquare.ToList()) + 1;
-                    else
-                        newZ = _room.GetGameMap().SqAbsoluteHeight(user.X, user.Y, itemsOnSquare.ToList());
+                        newZ += 1;
                 } else {
                     newZ = 1;
                 }
@@ -1066,6 +1268,12 @@ namespace Plus.HabboHotel.Rooms
 
                 foreach (Item item in itemsOnSquare.ToList()) {
                     if (item == null)
+                        continue;
+
+                    // Only furniture the user is actually in contact with counts. Anything floating
+                    // clear of them is something they walked underneath, not something they are
+                    // standing on, sitting in, or triggering.
+                    if (!item.IsAtUserLevel(user.Z, SameLevelTolerance))
                         continue;
 
                     if (item.GetBaseItem().IsSeat) {

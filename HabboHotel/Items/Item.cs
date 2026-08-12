@@ -207,6 +207,33 @@ namespace Plus.HabboHotel.Items
             return sides;
         }
 
+        /// <summary>
+        /// The height a user is at when they are actually on this item: the seat's own base for
+        /// something you sit or lie in, otherwise the surface you stand on top of.
+        ///
+        /// Not the same as being anywhere within the item's vertical extent. A tall platform is
+        /// open underneath, and someone walking beneath it is not touching it — so they must not
+        /// be sat down by it, teleported by it, or have its effects applied.
+        /// </summary>
+        public double ContactHeight
+        {
+            get
+            {
+                ItemData data = GetBaseItem();
+
+                if (data != null && (data.IsSeat || data.InteractionType == InteractionType.Bed || data.InteractionType == InteractionType.TentSmall))
+                    return GetZ;
+
+                return TotalHeight;
+            }
+        }
+
+        /// <summary>Whether a user at <paramref name="userZ"/> is standing on or in this item.</summary>
+        public bool IsAtUserLevel(double userZ, double tolerance = 0.5)
+        {
+            return Math.Abs(userZ - ContactHeight) <= tolerance;
+        }
+
         public double TotalHeight
         {
             get
