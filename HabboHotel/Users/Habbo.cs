@@ -175,8 +175,6 @@ namespace Plus.HabboHotel.Users
         public int CustomBubbleId { get; set; }
         public List<int> OwnedChatBubbleIds { get; set; }
         public int TempInt { get; set; }
-        public double LastHitTime { get; set; }
-        public double LastRobTime { get; set; }
         public double LastWorkActionTime { get; set; }
         public double LastUserStatsUpdate { get; set; }
         public bool OnHelperDuty { get; set; }

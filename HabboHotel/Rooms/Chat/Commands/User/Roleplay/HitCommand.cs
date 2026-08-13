@@ -1,4 +1,5 @@
 using Plus.HabboHotel.GameClients;
+using Plus.HabboHotel.Roleplay.Cooldowns;
 using Plus.HabboHotel.Roleplay.TargetLock;
 using Plus.HabboHotel.Users;
 using System;
@@ -7,8 +8,6 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 {
     internal class HitCommand : IChatCommand
     {
-        private const int WhiffCooldownSeconds = 1;
-
         public string PermissionRequired => "command_rp_hit";
 
         public string Parameters => "%username%";
@@ -30,18 +29,17 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
                 return;
             }
 
-            double now = PlusEnvironment.GetUnixTimestamp();
+            RpCooldownManager cooldowns = PlusEnvironment.GetRpCooldownManager();
+            int userId = session.GetHabbo().Id;
 
-            if (session.GetHabbo().LastHitTime <= now && PlusEnvironment.GetMayhemManager().TryHitBot(session.GetHabbo())) {
+            if (cooldowns.IsReady(userId, RpCooldownKind.Combat) && PlusEnvironment.GetMayhemManager().TryHitBot(session.GetHabbo())) {
                 session.GetHabbo().GetRpStats().InteractionEnergy();
-                session.GetHabbo().LastHitTime = now + 3;
+                cooldowns.Apply(userId, RpCooldownKind.Combat);
                 return;
             }
 
-            if (session.GetHabbo().LastHitTime > now) {
-                double secondsLeft = session.GetHabbo().LastHitTime - now;
-
-                session.SendWhisper("You must wait " + (int)Math.Ceiling(secondsLeft) + " seconds to swing again.", 1);
+            if (!cooldowns.IsReady(userId, RpCooldownKind.Combat)) {
+                session.SendWhisper("You must wait " + cooldowns.RemainingSecondsCeil(userId, RpCooldownKind.Combat) + " seconds to swing again.", 1);
                 return;
             }
 
@@ -96,7 +94,8 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
             // than the full 3s — otherwise one mistimed press against a moving target locks you
             // out of the fight for three seconds.
             bool swung = PlusEnvironment.GetCombatManager().AttackUser(session.GetHabbo(), targetClient.GetHabbo());
-            session.GetHabbo().LastHitTime = now + (swung ? 3 : WhiffCooldownSeconds);
+            cooldowns.Apply(userId, RpCooldownKind.Combat,
+                RpCooldownManager.GetDefaultSeconds(swung ? RpCooldownKind.Combat : RpCooldownKind.CombatWhiff));
         }
     }
 }

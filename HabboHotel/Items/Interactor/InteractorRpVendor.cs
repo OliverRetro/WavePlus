@@ -1,6 +1,7 @@
 using System.Linq;
 using Plus.Communication.Packets.Incoming;
 using Plus.HabboHotel.GameClients;
+using Plus.HabboHotel.Roleplay.Cooldowns;
 using Plus.HabboHotel.Roleplay.RpItem;
 using Plus.HabboHotel.Roleplay.RpItem.Item;
 using Plus.HabboHotel.Rooms;
@@ -52,6 +53,11 @@ namespace Plus.HabboHotel.Items.Interactor
                 session.SendWhisper("Your inventory is full (10 stacks max).", 1);
                 return;
             }
+
+            // Claimed here rather than on dispense so holding the button can't queue up machines.
+            if (!PlusEnvironment.GetRpCooldownManager().TryConsume(session, RpCooldownKind.RpVendor,
+                    "You must wait %seconds% second(s) before using a machine again."))
+                return;
 
             item.InteractingUser = habbo.Id;
 

@@ -4,6 +4,7 @@ using Plus.Communication.Packets.Outgoing.Rooms.Chat;
 using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
+using Plus.HabboHotel.Roleplay.Cooldowns;
 using Plus.HabboHotel.Roleplay.RpItem.Item;
 using Plus.HabboHotel.Roleplay.RpItem.Weapon;
 using Plus.HabboHotel.Roleplay.Utilities;
@@ -23,14 +24,12 @@ namespace Plus.HabboHotel.Roleplay.Trash
         private readonly ConcurrentDictionary<int, ActiveTrashSearch> _activeSearches = new();
         // itemId -> userId currently diving it. Guards a single bin against two simultaneous searches.
         private readonly ConcurrentDictionary<int, int> _activeBins = new();
-        private readonly ConcurrentDictionary<int, double> _userCooldowns = new();
         private readonly ConcurrentDictionary<int, BinCooldown> _binCooldowns = new();
         private const int RewardTypeWeapon = 1;
 
         private readonly List<TrashReward> _rewards = [];
         private readonly Random _random = new();
         private double _nextCooldownPurgeUnix;
-        private static readonly ConcurrentDictionary<int, bool> TrashItemCache = new();
 
         public void Init()
         {
@@ -115,8 +114,9 @@ namespace Plus.HabboHotel.Roleplay.Trash
             }
 
             double now = PlusEnvironment.GetUnixTimestamp();
-            if (_userCooldowns.TryGetValue(habbo.Id, out double userReady) && userReady > now) {
-                session.SendWhisper("You can search again in " + (int)Math.Ceiling(userReady - now) + " second(s).", 1);
+            RpCooldownManager cooldowns = PlusEnvironment.GetRpCooldownManager();
+            if (!cooldowns.IsReady(habbo.Id, RpCooldownKind.TrashSearch)) {
+                session.SendWhisper("You can search again in " + cooldowns.RemainingSecondsCeil(habbo.Id, RpCooldownKind.TrashSearch) + " second(s).", 1);
                 return false;
             }
 
@@ -194,11 +194,6 @@ namespace Plus.HabboHotel.Roleplay.Trash
             if (now >= _nextCooldownPurgeUnix) {
                 _nextCooldownPurgeUnix = now + 60;
 
-                foreach (var shit in _userCooldowns) {
-                    if (shit.Value <= now)
-                        _userCooldowns.TryRemove(shit.Key, out _);
-                }
-
                 foreach (var shit in _binCooldowns) {
                     if (shit.Value.ReadyUnix <= now && _binCooldowns.TryRemove(shit.Key, out BinCooldown expired))
                         RestoreBinState(expired);
@@ -226,7 +221,7 @@ namespace Plus.HabboHotel.Roleplay.Trash
 
             ApplyBinCooldown(search);
 
-            _userCooldowns[habbo.Id] = PlusEnvironment.GetUnixTimestamp() + GetUserCooldownSeconds(habbo);
+            PlusEnvironment.GetRpCooldownManager().Apply(habbo.Id, RpCooldownKind.TrashSearch, GetUserCooldownSeconds(habbo));
 
             // Achievement n skill
             PlusEnvironment.GetGame().GetAchievementManager().QueueProgress(client, "ACH_bin", 1);
@@ -410,28 +405,8 @@ namespace Plus.HabboHotel.Roleplay.Trash
                 WebOverlay.CancelInteractionTimer(client);
         }
 
-        public static bool IsBin(Item item)
-        {
-            ItemData baseItem = item?.GetBaseItem();
-            if (baseItem == null)
-                return false;
-
-            return TrashItemCache.GetOrAdd(baseItem.Id, _ =>
-            {
-                if (baseItem.InteractionType == InteractionType.TrashBin)
-                    return true;
-
-                string itemName = baseItem.ItemName ?? string.Empty;
-                string publicName = baseItem.PublicName ?? string.Empty;
-                string combined = (itemName + " " + publicName).ToLowerInvariant();
-
-                return combined.Contains("trash") ||
-                       combined.Contains("garbage") ||
-                       combined.Contains("dumpster") ||
-                       combined.Contains("rubbish") ||
-                       combined.Split(new[] { ' ', '_', '-', '.', '/' }, StringSplitOptions.RemoveEmptyEntries).Contains("bin");
-            });
-        }
+        public static bool IsBin(Item item) =>
+            item?.GetBaseItem()?.InteractionType == InteractionType.TrashBin;
 
         public static bool IsInSearchRange(RoomUser user, Item item)
         {

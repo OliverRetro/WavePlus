@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Plus.Communication.Packets.Incoming;
 using Plus.Communication.Packets.Outgoing.Rooms.Chat;
+using Plus.HabboHotel.Roleplay.Cooldowns;
 using Plus.HabboHotel.Roleplay.Utilities;
 using Plus.HabboHotel.Rooms;
 using Plus.HabboHotel.Users;
@@ -17,8 +18,6 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
         private readonly int _userId;
 
         private readonly HashSet<int> _removedIds = [];
-
-        private readonly Dictionary<int, double> _itemCooldowns = [];
 
         public UserRpItems(int userId, RpItemManager itemManager, IEnumerable<UserRpItem> items)
         {
@@ -329,19 +328,12 @@ namespace Plus.HabboHotel.Roleplay.RpItem.Item
             if (data.IsSuicideVest)
                 return DetonateSuicideVest(habbo, userItem);
 
-            // Per-item cooldown: block re-using the same item type until its cooldown elapses.
-            if (data.CooldownMs > 0 && _itemCooldowns.TryGetValue(data.Id, out double readyAt)) {
-                double nowUnix = PlusEnvironment.GetUnixTimestampPrecise();
-                if (readyAt > nowUnix) {
-                    int secondsLeft = (int)Math.Ceiling(readyAt - nowUnix);
-                    habbo.GetClient()?.SendWhisper($"You need to wait {secondsLeft} second(s) before using {data.Name} again.", 1);
-                    return false;
-                }
-            }
-
-            // use cooldown go brr
-            if (data.CooldownMs > 0)
-                _itemCooldowns[data.Id] = PlusEnvironment.GetUnixTimestampPrecise() + data.CooldownMs / 1000.0;
+            // Cooldowns
+            if (data.CooldownMs > 0 &&
+                !PlusEnvironment.GetRpCooldownManager().TryConsume(habbo.GetClient(), RpCooldownKind.RpItem,
+                    $"You need to wait %seconds% second(s) before using {data.Name} again.",
+                    data.CooldownMs / 1000.0, data.Id))
+                return false;
 
             // Consume shout ("text;bubbleId") fires the moment the item is used.
             EmitConsumeBubble(habbo, roomUser, data);

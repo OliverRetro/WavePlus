@@ -3,6 +3,7 @@ using Plus.Database.EF;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Groups;
 using Plus.HabboHotel.Items.Wired;
+using Plus.HabboHotel.Roleplay.Cooldowns;
 using Plus.HabboHotel.Rooms.Chat.Commands.Administrator;
 using Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay;
 using Plus.HabboHotel.Rooms.Chat.Commands.Events;
@@ -75,6 +76,10 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
                 return false;
 
             if (_commands.TryGetValue(split[0].ToLower(), out IChatCommand cmd)) {
+                // silent spam check for all commands
+                if (!PlusEnvironment.GetRpCooldownManager().TryConsume(session, RpCooldownKind.Command))
+                    return true;
+
                 if (session.GetHabbo().GetPermissions().HasRight("mod_tool"))
                     LogCommand(session.GetHabbo().Id, message, session.GetHabbo().MachineId);
 

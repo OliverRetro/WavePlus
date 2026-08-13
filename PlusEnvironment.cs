@@ -24,6 +24,7 @@ using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Permissions;
 using Plus.HabboHotel.Roleplay.Banking;
 using Plus.HabboHotel.Roleplay.Combat;
+using Plus.HabboHotel.Roleplay.Cooldowns;
 using Plus.HabboHotel.Roleplay.Hospital;
 using Plus.HabboHotel.Roleplay.Trash;
 using Plus.HabboHotel.Roleplay.Police;
@@ -71,6 +72,7 @@ namespace Plus
         private static BankingManager _bankingManager;
         private static PoliceManager _policeManager;
         private static TrashSearchManager _trashSearchManager;
+        private static RpCooldownManager _rpCooldownManager;
         private static Plus.HabboHotel.GameClients.DisconnectDelayManager _disconnectDelayManager;
         private static MayhemManager _mayhemManager;
         private static Plus.HabboHotel.Roleplay.Rubbish.RubbishManager _rubbishManager;
@@ -230,6 +232,8 @@ namespace Plus
 
                 _trashSearchManager = new TrashSearchManager();
                 _trashSearchManager.Init();
+
+                _rpCooldownManager = new RpCooldownManager();
 
                 //Have our encryption ready.
                 HabboEncryptionV2.Initialize(new RSAKeys());
@@ -558,6 +562,11 @@ namespace Plus
         public static TrashSearchManager GetTrashSearchManager()
         {
             return _trashSearchManager;
+        }
+
+        public static RpCooldownManager GetRpCooldownManager()
+        {
+            return _rpCooldownManager;
         }
 
         public static BankingManager GetBankingManager()

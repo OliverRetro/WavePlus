@@ -356,10 +356,6 @@ namespace Plus.HabboHotel.Items
                     return new InteractorWired();
                 }
 
-                if (TrashSearchManager.IsBin(this)) {
-                    return new InteractorTrashBin();
-                }
-
                 if (GetBaseItem().InteractionType == InteractionType.None && GetBaseItem().HasAdjustableHeights) {
                     return new InteractorMultiHeight();
                 }
@@ -453,6 +449,9 @@ namespace Plus.HabboHotel.Items
 
                     case InteractionType.RpVendor:
                         return new InteractorRpVendor();
+
+                    case InteractionType.TrashBin:
+                        return new InteractorTrashBin();
 
                     case InteractionType.Rubbish:
                         return new InteractorRubbish();

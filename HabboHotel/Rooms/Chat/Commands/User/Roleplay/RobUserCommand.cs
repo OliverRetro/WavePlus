@@ -1,5 +1,5 @@
 ﻿using Plus.HabboHotel.GameClients;
-using System;
+using Plus.HabboHotel.Roleplay.Cooldowns;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
 {
@@ -31,12 +31,11 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
                 ////return;
             }
 
-            double now = PlusEnvironment.GetUnixTimestamp();
+            RpCooldownManager cooldowns = PlusEnvironment.GetRpCooldownManager();
+            int userId = session.GetHabbo().Id;
 
-            if (session.GetHabbo().LastRobTime > now) {
-                double secondsLeft = session.GetHabbo().LastRobTime - now;
-
-                session.SendWhisper("You must wait " + (int)Math.Ceiling(secondsLeft) + " seconds to rob again.", 1);
+            if (!cooldowns.IsReady(userId, RpCooldownKind.Robbery)) {
+                session.SendWhisper("You must wait " + cooldowns.RemainingSecondsCeil(userId, RpCooldownKind.Robbery) + " seconds to rob again.", 1);
                 return;
             }
 
@@ -75,7 +74,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.User.Roleplay
             if (!RpCommandUtil.RequireAdjacent(session, room, targetClient.GetHabbo(), "You need to be beside the user to rob them."))
                 return;
 
-            session.GetHabbo().LastRobTime = now + 90;
+            cooldowns.Apply(userId, RpCooldownKind.Robbery);
             PlusEnvironment.GetCombatManager().RobUser(session.GetHabbo(), targetClient.GetHabbo(), room);
         }
     }

@@ -192,6 +192,7 @@ namespace Plus.HabboHotel
                     _nextTrashCycleMs = nowMs + TrashCycleIntervalMs;
                     PlusEnvironment.GetTrashSearchManager()?.OnCycle();
                     PlusEnvironment.GetCraftingManager()?.OnCycle();
+                    PlusEnvironment.GetRpCooldownManager()?.OnCycle();
                 }
 
                 if (nowMs >= _nextAchievementFlushMs) {
