@@ -1,11 +1,67 @@
-# To get started with Dependabot version updates, you'll need to specify which
-# package ecosystems to update and where the package manifests are located.
-# Please see the documentation for all configuration options:
+# Dependabot version updates.
 # https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+#
+# Pushing a change to this file makes GitHub run an update check immediately;
+# after that it follows the weekly schedule below.
 
 version: 2
 updates:
-  - package-ecosystem: "nuget" # See documentation for possible values
-    directory: "/" # Location of package manifests
+  # NuGet: Plus.sln at the repo root pulls in every project, so "/" covers
+  # Plus.csproj plus WavePlus.Cryptography / WavePlus.Entities / WavePlus.Utilities.
+  - package-ecosystem: "nuget"
+    directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+      time: "05:00"
+      timezone: "Europe/Helsinki"
+    target-branch: "master"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "nuget"
+    groups:
+      # One PR for the whole EF Core / MySQL / Redis persistence stack so the
+      # provider versions never drift apart across separate PRs.
+      persistence:
+        patterns:
+          - "Microsoft.EntityFrameworkCore*"
+          - "MySql.EntityFrameworkCore"
+          - "MySqlConnector"
+          - "FlexLabs.EntityFrameworkCore.Upsert"
+          - "StackExchange.Redis*"
+      # DotNetty ships all six packages on one version; split PRs would break the build.
+      dotnetty:
+        patterns:
+          - "DotNetty.*"
+      microsoft-extensions:
+        patterns:
+          - "Microsoft.Extensions.*"
+      all-patch:
+        update-types:
+          - "patch"
+
+  # Keep the actions in .github/workflows/build.yml current.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "05:00"
+      timezone: "Europe/Helsinki"
+    target-branch: "master"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    groups:
+      actions:
+        patterns:
+          - "*"
