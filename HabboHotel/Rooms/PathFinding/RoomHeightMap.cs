@@ -163,7 +163,6 @@ namespace Plus.HabboHotel.Rooms.PathFinding
                 _map = new RoomHeightMap(width, height);
             }
 
-
             public Builder(RoomHeightMap target)
             {
                 _map = target;
@@ -171,7 +170,6 @@ namespace Plus.HabboHotel.Rooms.PathFinding
                 foreach (int groupId in target.GateGroupIds)
                     _gateGroups.Add(groupId);
             }
-
 
             public void AddSolid(int ownerId, double bottom, double top, bool enforceMinimumThickness)
             {
