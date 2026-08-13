@@ -451,6 +451,9 @@ namespace Plus.HabboHotel.Items
                     case InteractionType.StockVendor:
                         return new InteractorStockVendor();
 
+                    case InteractionType.RpVendor:
+                        return new InteractorRpVendor();
+
                     case InteractionType.Rubbish:
                         return new InteractorRubbish();
 
@@ -947,6 +950,17 @@ namespace Plus.HabboHotel.Items
 
                                 UpdateState(false, true);
                             }
+
+                            break;
+
+                        #endregion
+
+                        #region RP Vending Machine
+
+                        case InteractionType.RpVendor:
+
+                            if (ExtraData == "1")
+                                InteractorRpVendor.Dispense(this);
 
                             break;
 

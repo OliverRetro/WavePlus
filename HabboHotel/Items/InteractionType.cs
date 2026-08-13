@@ -120,6 +120,7 @@
         Atm,
         Bank,
         StockVendor,
+        RpVendor,
         Crafting,
         CraftingCorporation,
         Rubbish
@@ -362,6 +363,8 @@
                     return InteractionType.Bank;
                 case "stock_vendor":
                     return InteractionType.StockVendor;
+                case "rp_vendor":
+                    return InteractionType.RpVendor;
                 case "crafting":
                     return InteractionType.Crafting;
                 case "crafting_corporation":
