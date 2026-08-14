@@ -455,6 +455,9 @@ namespace Plus.HabboHotel.Items
                     case InteractionType.Rubbish:
                         return new InteractorRubbish();
 
+                    case InteractionType.PressurePlate:
+                        return new InteractorPressurePlate();
+
                     case InteractionType.None:
                     default:
                         return new InteractorGenericSwitch();
@@ -1195,16 +1198,6 @@ namespace Plus.HabboHotel.Items
 
                         #endregion
 
-                        #region Pressure Pad
-
-                        case InteractionType.PressurePad: {
-                                ExtraData = "1";
-                                UpdateState();
-                                break;
-                            }
-
-                        #endregion
-
                         #region Wired
 
                         case InteractionType.WiredEffect:
@@ -1429,7 +1422,12 @@ namespace Plus.HabboHotel.Items
 
         public void UserWalksOnFurni(RoomUser user)
         {
-            if (user == null || user.GetClient() == null || user.GetClient().GetHabbo() == null)
+            if (user == null)
+                return;
+
+            PressPressurePlate();
+
+            if (user.GetClient() == null || user.GetClient().GetHabbo() == null)
                 return;
 
             if (GetBaseItem().InteractionType == InteractionType.Tent || GetBaseItem().InteractionType == InteractionType.TentSmall) {
@@ -1442,13 +1440,64 @@ namespace Plus.HabboHotel.Items
 
         public void UserWalksOffFurni(RoomUser user)
         {
-            if (user == null || user.GetClient() == null || user.GetClient().GetHabbo() == null)
+            if (user == null)
+                return;
+
+            RefreshPressurePlate(user);
+
+            if (user.GetClient() == null || user.GetClient().GetHabbo() == null)
                 return;
 
             if (GetBaseItem().InteractionType == InteractionType.Tent || GetBaseItem().InteractionType == InteractionType.TentSmall)
                 GetRoom().RemoveUserFromTent(Id, user);
 
             GetRoom().GetWired().TriggerEvent(WiredBoxType.TriggerWalkOffFurni, user.GetClient().GetHabbo(), this);
+        }
+
+        public void PressPressurePlate()
+        {
+            if (GetBaseItem()?.InteractionType != InteractionType.PressurePlate)
+                return;
+
+            SetPressurePlateState(true);
+        }
+
+        public void RefreshPressurePlate(RoomUser leavingUser = null)
+        {
+            if (GetBaseItem()?.InteractionType != InteractionType.PressurePlate)
+                return;
+
+            SetPressurePlateState(IsOccupied(leavingUser));
+        }
+
+        private void SetPressurePlateState(bool pressed)
+        {
+            string state = pressed ? "1" : "0";
+
+            if (ExtraData == state)
+                return;
+
+            ExtraData = state;
+            UpdateState(false, true);
+        }
+
+        private bool IsOccupied(RoomUser ignored)
+        {
+            Room room = GetRoom();
+            if (room == null)
+                return false;
+
+            foreach (Point tile in GetCoords) {
+                foreach (RoomUser other in room.GetGameMap().GetRoomUsers(tile)) {
+                    if (other == null || other == ignored)
+                        continue;
+
+                    if (IsAtUserLevel(other.Z))
+                        return true;
+                }
+            }
+
+            return false;
         }
 
         public void Destroy()

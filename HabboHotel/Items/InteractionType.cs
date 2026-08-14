@@ -65,7 +65,7 @@
         PuzzleBox,
         Toner,
 
-        PressurePad,
+        PressurePlate,
 
         WfFloorSwitch1,
         WfFloorSwitch2,
@@ -258,8 +258,9 @@
                 case "musicdisc":
                     return InteractionType.MusicDisc;
 
+                case "pressureplate":
                 case "pressure_pad":
-                    return InteractionType.PressurePad;
+                    return InteractionType.PressurePlate;
                 case "wf_floor_switch1":
                     return InteractionType.WfFloorSwitch1;
                 case "wf_floor_switch2":

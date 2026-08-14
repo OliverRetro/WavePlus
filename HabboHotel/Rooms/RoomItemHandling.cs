@@ -325,6 +325,8 @@ namespace Plus.HabboHotel.Rooms
             SlideObjectBundleComposer mMessage = new(pUser.X, pUser.Y, pUser.Z, pNextCoord.X,
                 pNextCoord.Y, nextZ, pRollerId, pUser.VirtualId, -1);
 
+            Point previousCoord = new(pUser.X, pUser.Y);
+
             room.GetGameMap()
                 .UpdateUserMovement(new Point(pUser.X, pUser.Y), new Point(pNextCoord.X, pNextCoord.Y), pUser);
             room.GetGameMap().GameMap[pUser.X, pUser.Y] = 1;
@@ -333,6 +335,17 @@ namespace Plus.HabboHotel.Rooms
             pUser.Z = nextZ;
 
             room.GetGameMap().GameMap[pUser.X, pUser.Y] = 0;
+
+            // Rollers move users without the walk-on/walk-off hooks, so pressure plates on both the
+            // vacated and the landed-on tile have to be re-evaluated here.
+            foreach (Items.Item leftItem in room.GetGameMap().GetCoordinatedItems(previousCoord)) {
+                leftItem?.RefreshPressurePlate(pUser);
+            }
+
+            foreach (Items.Item landedItem in room.GetGameMap().GetCoordinatedItems(pNextCoord)) {
+                if (landedItem != null && landedItem.IsAtUserLevel(pUser.Z))
+                    landedItem.PressPressurePlate();
+            }
 
             if (pUser != null && pUser.GetClient() != null && pUser.GetClient().GetHabbo() != null) {
                 List<Items.Item> items = room.GetGameMap().GetRoomItemForSquare(pNextCoord.X, pNextCoord.Y);

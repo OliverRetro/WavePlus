@@ -380,6 +380,11 @@ namespace Plus.HabboHotel.Rooms
                     // (not disconnecting). Exclude them from the UserRemove broadcast so
                     // the Nitro client doesn't receive a self-removal that kills the new
                     // room session. Other users in the room still see the removal.
+                    // Leaving the room is stepping off everything the user was standing on.
+                    foreach (Item item in _room.GetGameMap().GetCoordinatedItems(new Point(user.X, user.Y))) {
+                        item?.RefreshPressurePlate(user);
+                    }
+
                     RemoveRoomUser(user, notifyUser ? null : session);
 
                     if (user.CurrentItemEffect != ItemEffectType.None) {
@@ -1423,6 +1428,15 @@ namespace Plus.HabboHotel.Rooms
                         #endregion
 
                         #region Football Gate
+
+                        #endregion
+
+                        #region Pressure Plate
+
+                        case InteractionType.PressurePlate: {
+                                item.PressPressurePlate();
+                                break;
+                            }
 
                         #endregion
 

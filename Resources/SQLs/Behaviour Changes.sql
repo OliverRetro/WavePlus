@@ -73,3 +73,4 @@ UPDATE `furniture` SET `behaviour_data`='29' WHERE (`id`='30004');
 UPDATE `furniture` SET `behaviour_data`='30' WHERE (`id`='30005');
 UPDATE `furniture` SET `behaviour_data`='7' WHERE (`id`='83545');
 UPDATE `furniture` SET `behaviour_data`='6' WHERE (`id`='84586');
+UPDATE `furniture` SET `interaction_type` = 'pressureplate' WHERE `interaction_type` = 'pressure_pad';
