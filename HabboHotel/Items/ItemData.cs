@@ -125,7 +125,7 @@ namespace Plus.HabboHotel.Items
                 InteractionType.TrashBin or
                 InteractionType.Crafting or
                 InteractionType.CraftingCorporation => 2,
-                _ => Modes > 1 ? 1 : 0
+                _ => Modes > 1 ? 0 : 1
             };
         }
     }

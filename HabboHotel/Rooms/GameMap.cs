@@ -885,18 +885,28 @@ namespace Plus.HabboHotel.Rooms
             }
         }
 
-        private static IEnumerable<Point> GetFootprintTiles(Item item)
+        public static void GetFootprintSpan(int width, int length, int rotation, out int spanX, out int spanY)
+        {
+            width = Math.Max(1, width);
+            length = Math.Max(1, length);
+
+            rotation = ((rotation % 8) + 8) % 8;
+            bool swapped = rotation == 2 || rotation == 3 || rotation == 6 || rotation == 7;
+
+            spanX = swapped ? length : width;
+            spanY = swapped ? width : length;
+        }
+
+        private static void GetFootprintSpan(Item item, out int spanX, out int spanY)
         {
             ItemData data = item.GetBaseItem();
 
-            int width = Math.Max(1, data.Width);
-            int length = Math.Max(1, data.Length);
+            GetFootprintSpan(data.Width, data.Length, item.Rotation, out spanX, out spanY);
+        }
 
-            int rotation = ((item.Rotation % 8) + 8) % 8;
-            bool swapped = rotation == 2 || rotation == 3 || rotation == 6 || rotation == 7;
-
-            int spanX = swapped ? length : width;
-            int spanY = swapped ? width : length;
+        private static IEnumerable<Point> GetFootprintTiles(Item item)
+        {
+            GetFootprintSpan(item, out int spanX, out int spanY);
 
             for (int dx = 0; dx < spanX; dx++) {
                 for (int dy = 0; dy < spanY; dy++)
@@ -1288,47 +1298,18 @@ namespace Plus.HabboHotel.Rooms
 
         public static Dictionary<int, ThreeDCoord> GetAffectedTiles(int length, int width, int posX, int posY, int rotation)
         {
-            int x = 0;
-
             var pointList = new Dictionary<int, ThreeDCoord>();
 
-            if (length > 1) {
-                if (rotation == 0 || rotation == 4) {
-                    for (int i = 1; i < length; i++) {
-                        pointList.Add(x++, new ThreeDCoord(posX, posY + i, i));
+            GetFootprintSpan(width, length, rotation, out int spanX, out int spanY);
 
-                        for (int j = 1; j < width; j++) {
-                            pointList.Add(x++, new ThreeDCoord(posX + j, posY + i, (i < j) ? j : i));
-                        }
-                    }
-                } else if (rotation == 2 || rotation == 6) {
-                    for (int i = 1; i < length; i++) {
-                        pointList.Add(x++, new ThreeDCoord(posX + i, posY, i));
+            int index = 0;
 
-                        for (int j = 1; j < width; j++) {
-                            pointList.Add(x++, new ThreeDCoord(posX + i, posY + j, (i < j) ? j : i));
-                        }
-                    }
-                }
-            }
+            for (int dx = 0; dx < spanX; dx++) {
+                for (int dy = 0; dy < spanY; dy++) {
+                    if (dx == 0 && dy == 0)
+                        continue;
 
-            if (width > 1) {
-                if (rotation == 0 || rotation == 4) {
-                    for (int i = 1; i < width; i++) {
-                        pointList.Add(x++, new ThreeDCoord(posX + i, posY, i));
-
-                        for (int j = 1; j < length; j++) {
-                            pointList.Add(x++, new ThreeDCoord(posX + i, posY + j, (i < j) ? j : i));
-                        }
-                    }
-                } else if (rotation == 2 || rotation == 6) {
-                    for (int i = 1; i < width; i++) {
-                        pointList.Add(x++, new ThreeDCoord(posX, posY + i, i));
-
-                        for (int j = 1; j < length; j++) {
-                            pointList.Add(x++, new ThreeDCoord(posX + j, posY + i, (i < j) ? j : i));
-                        }
-                    }
+                    pointList.Add(index++, new ThreeDCoord(posX + dx, posY + dy, Math.Max(dx, dy)));
                 }
             }
 
@@ -1400,6 +1381,44 @@ namespace Plus.HabboHotel.Rooms
                 items = new List<Item>();
 
             return items;
+        }
+
+        public bool TryGetBedRestTile(int x, int y, out Point restTile)
+        {
+            restTile = new Point(x, y);
+
+            if (!ValidTile(x, y))
+                return false;
+
+            Item bed = null;
+
+            foreach (Item item in GetAllRoomItemForSquare(x, y)) {
+                ItemData data = item?.GetBaseItem();
+
+                if (data == null || (data.InteractionType != InteractionType.Bed && data.InteractionType != InteractionType.TentSmall))
+                    continue;
+
+                if (bed == null || item.TotalHeight > bed.TotalHeight)
+                    bed = item;
+            }
+
+            if (bed == null)
+                return false;
+
+            GetFootprintSpan(bed, out int spanX, out int spanY);
+
+            int rotation = ((bed.Rotation % 8) + 8) % 8;
+            bool headAtFarEnd = rotation >= 4;
+
+            if (spanX >= spanY) {
+                int headX = headAtFarEnd ? bed.GetX + spanX - 1 : bed.GetX;
+                restTile = new Point(headX, Math.Clamp(y, bed.GetY, bed.GetY + spanY - 1));
+            } else {
+                int headY = headAtFarEnd ? bed.GetY + spanY - 1 : bed.GetY;
+                restTile = new Point(Math.Clamp(x, bed.GetX, bed.GetX + spanX - 1), headY);
+            }
+
+            return restTile.X != x || restTile.Y != y;
         }
 
         public bool SquareHasUsers(int x, int y)

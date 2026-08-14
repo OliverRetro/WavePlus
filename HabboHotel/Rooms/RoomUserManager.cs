@@ -1232,6 +1232,29 @@ namespace Plus.HabboHotel.Rooms
             }
         }
 
+        private static double ResolveSurfaceUnderUser(List<Item> itemsOnSquare, double surface)
+        {
+            foreach (Item item in itemsOnSquare) {
+                ItemData data = item?.GetBaseItem();
+
+                if (data == null || data.Walkable)
+                    continue;
+
+                bool baseAtOrBelowFeet = item.GetZ <= surface + RoomHeightMap.Epsilon;
+                bool topAboveFeet = item.TotalHeight > surface + RoomHeightMap.Epsilon;
+
+                if (!baseAtOrBelowFeet || !topAboveFeet)
+                    continue;
+
+                double standOn = item.ContactHeight;
+
+                if (standOn > surface && standOn - surface <= RoomHeightMap.MaxClimbHeight)
+                    surface = standOn;
+            }
+
+            return surface;
+        }
+
         public void UpdateUserStatus(RoomUser user, bool cycleGameItems)
         {
             if (user == null)
@@ -1268,6 +1291,8 @@ namespace Plus.HabboHotel.Rooms
                     newZ = heightMap.LevelCountAt(user.X, user.Y) > 0
                         ? heightMap.SurfaceNear(user.X, user.Y, user.Z)
                         : _room.GetGameMap().SqAbsoluteHeight(user.X, user.Y, itemsOnSquare);
+
+                    newZ = ResolveSurfaceUnderUser(itemsOnSquare, newZ);
 
                     if (user.RidingHorse && user.IsPet == false)
                         newZ += 1;

@@ -493,6 +493,12 @@ namespace Plus.HabboHotel.Rooms
 
         public void MoveTo(int pX, int pY, bool pOverride)
         {
+            Gamemap map = GetRoom()?.GetGameMap();
+            if (map != null && map.TryGetBedRestTile(pX, pY, out Point bedTile) && !map.SquareHasUsers(bedTile.X, bedTile.Y, this)) {
+                pX = bedTile.X;
+                pY = bedTile.Y;
+            }
+
             if (!IsBot && GetClient()?.GetHabbo() != null && (X != pX || Y != pY)) {
                 InteractorArrowTeleport.CancelDelayedTeleport(GetClient().GetHabbo().Id);
                 PassiveModeCommand.CancelPendingToggle(GetClient());

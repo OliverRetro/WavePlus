@@ -412,6 +412,8 @@ namespace Plus.HabboHotel.Rooms
 
             bool needsReAdd = false;
 
+            List<Point> previousFootprint = newItem ? [] : item.GetCoords;
+
             if (newItem) {
                 if (item.IsWired) {
                     if (item.GetBaseItem().WiredType == WiredBoxType.EffectRegenerateMaps && room.GetRoomItemHandler().GetFloor.Any(x => x.GetBaseItem().WiredType == WiredBoxType.EffectRegenerateMaps))
@@ -447,15 +449,14 @@ namespace Plus.HabboHotel.Rooms
             }
             bool hasStackHelper = stackHelper != null;
 
-            if (!room.GetGameMap().ValidTile(newX, newY) || (room.GetGameMap().SquareHasUsers(newX, newY) && !item.GetBaseItem().IsSeat && !hasStackHelper)) {
+            if (!room.GetGameMap().ValidTile(newX, newY)) {
                 if (needsReAdd)
                     room.GetGameMap().AddToMap(item);
                 return false;
             }
 
             foreach (ThreeDCoord tile in affectedTiles.Values) {
-                if (!room.GetGameMap().ValidTile(tile.X, tile.Y) ||
-                    (room.GetGameMap().SquareHasUsers(tile.X, tile.Y) && !item.GetBaseItem().IsSeat && !hasStackHelper)) {
+                if (!room.GetGameMap().ValidTile(tile.X, tile.Y)) {
                     if (needsReAdd) {
                         room.GetGameMap().AddToMap(item);
                     }
@@ -490,16 +491,6 @@ namespace Plus.HabboHotel.Rooms
                         }
                     }
 
-                    // And that we have no users
-                    if (!item.GetBaseItem().IsSeat && !item.IsRoller) {
-                        foreach (ThreeDCoord tile in affectedTiles.Values) {
-                            if (room.GetGameMap().GetRoomUsers(new Point(tile.X, tile.Y)).Count > 0) {
-                                if (needsReAdd)
-                                    room.GetGameMap().AddToMap(item);
-                                return false;
-                            }
-                        }
-                    }
                 }
 
                 // Find affected objects
@@ -567,8 +558,6 @@ namespace Plus.HabboHotel.Rooms
             } else
                 newZ = height;
 
-            Console.WriteLine($"[STACKDBG] final newZ={newZ} for item={item.Id}");
-
             item.Rotation = newRot;
             int oldX = item.GetX;
             int oldY = item.GetY;
@@ -601,6 +590,23 @@ namespace Plus.HabboHotel.Rooms
 
             if (item.GetBaseItem().IsSeat)
                 updateRoomUserStatuses = true;
+
+            if (room.GetGameMap().SquareHasUsers(newX, newY) || room.GetGameMap().SquareHasUsers(oldX, oldY))
+                updateRoomUserStatuses = true;
+
+            foreach (ThreeDCoord tile in affectedTiles.Values) {
+                if (room.GetGameMap().SquareHasUsers(tile.X, tile.Y)) {
+                    updateRoomUserStatuses = true;
+                    break;
+                }
+            }
+
+            foreach (Point tile in previousFootprint) {
+                if (room.GetGameMap().SquareHasUsers(tile.X, tile.Y)) {
+                    updateRoomUserStatuses = true;
+                    break;
+                }
+            }
 
             if (updateRoomUserStatuses)
                 room.GetRoomUserManager().UpdateUserStatusses();
