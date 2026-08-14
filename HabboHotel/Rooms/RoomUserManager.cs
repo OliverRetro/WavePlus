@@ -34,6 +34,13 @@ namespace Plus.HabboHotel.Rooms
 
         private ConcurrentDictionary<int, RoomUser> _usersByHabboId = new();
 
+        // Immutable snapshot of _users, swapped on join/leave. ConcurrentDictionary.Values builds a
+        // fresh copy on every read, and the room reads it on every tick AND on every broadcast
+        // packet — chat, statuses, effects — so that copy was the single most-allocated object in
+        // a busy room. Membership changes are rare by comparison, so pay there instead.
+        // Never mutate a published array: callers iterate it without copying.
+        private volatile RoomUser[] _userSnapshot = [];
+
         // how long it takes to animate a tile at walk speed 1.0
         public const int StepIntervalMs = 500;
 
@@ -81,6 +88,7 @@ namespace Plus.HabboHotel.Rooms
             int personalId = _secondaryPrivateUserId++;
             user.InternalRoomId = personalId;
             _users.TryAdd(personalId, user);
+            RebuildUserSnapshot();
 
             DynamicRoomModel model = _room.GetGameMap().Model;
 
@@ -148,8 +156,10 @@ namespace Plus.HabboHotel.Rooms
 
             _room.SendPacket(new UserRemoveComposer(user.VirtualId));
 
-            if (_users != null)
+            if (_users != null) {
                 _users.TryRemove(user.InternalRoomId, out RoomUser toRemove);
+                RebuildUserSnapshot();
+            }
 
             OnRemove(user);
         }
@@ -190,6 +200,8 @@ namespace Plus.HabboHotel.Rooms
             session.GetHabbo().CurrentRoomId = _room.RoomId;
             if (!_users.TryAdd(personalId, user))
                 return false;
+
+            RebuildUserSnapshot();
 
             _usersByHabboId[user.HabboId] = user;
 
@@ -469,6 +481,8 @@ namespace Plus.HabboHotel.Rooms
 
             if (_users.TryRemove(user.InternalRoomId, out RoomUser toRemove)) {
             }
+
+            RebuildUserSnapshot();
 
             // Only unmap the habbo id if it still points at this instance — a rejoin may have
             // already replaced the mapping with the fresh room user.
@@ -830,7 +844,7 @@ namespace Plus.HabboHotel.Rooms
 
             byte[] occupancy = new byte[size];
 
-            foreach (RoomUser other in GetUserList().ToList()) {
+            foreach (RoomUser other in GetUserList()) {
                 if (other == null || !map.ValidTile(other.X, other.Y))
                     continue;
 
@@ -872,9 +886,10 @@ namespace Plus.HabboHotel.Rooms
                 // Hand out any route that finished searching while its user was already walking.
                 ApplyCompletedPaths();
 
-                List<RoomUser> ToRemove = new();
+                // Allocated only when someone actually needs kicking, which is almost never.
+                List<RoomUser> ToRemove = null;
 
-                foreach (RoomUser user in GetUserList().ToList()) {
+                foreach (RoomUser user in GetUserList()) {
                     if (user == null)
                         continue;
 
@@ -891,8 +906,8 @@ namespace Plus.HabboHotel.Rooms
                                 RemoveRoomUser(user);
                         }
 
-                        if (user.NeedsAutoKick && !ToRemove.Contains(user)) {
-                            ToRemove.Add(user);
+                        if (user.NeedsAutoKick && (ToRemove == null || !ToRemove.Contains(user))) {
+                            (ToRemove ??= []).Add(user);
                             continue;
                         }
 
@@ -946,8 +961,10 @@ namespace Plus.HabboHotel.Rooms
                             if (!user.RidingHorse)
                                 _room.GetGameMap().UpdateUserMovement(new Point(user.Coordinate.X, user.Coordinate.Y), new Point(user.SetX, user.SetY), user);
 
+                            // GetCoordinatedItems already hands back a fresh list; copying it again
+                            // just to iterate was pure allocation, twice per step per user.
                             List<Item> items = _room.GetGameMap().GetCoordinatedItems(new Point(user.X, user.Y));
-                            foreach (Item item in items.ToList()) {
+                            foreach (Item item in items) {
                                 // Furniture the user merely passed underneath was never stepped on,
                                 // so it can't be stepped off either.
                                 if (item.IsAtUserLevel(user.Z, SameLevelTolerance))
@@ -980,7 +997,7 @@ namespace Plus.HabboHotel.Rooms
                             bool endOfWalk = user.GoalX == user.X && user.GoalY == user.Y;
 
                             List<Item> Items = _room.GetGameMap().GetCoordinatedItems(new Point(user.X, user.Y));
-                            foreach (Item item in Items.ToList()) {
+                            foreach (Item item in Items) {
                                 // Walking under a raised platform is not walking on it.
                                 if (!item.IsAtUserLevel(user.Z, SameLevelTolerance))
                                     continue;
@@ -1194,7 +1211,7 @@ namespace Plus.HabboHotel.Rooms
                 PlusEnvironment.GetPoliceManager()?.SyncEscorts(_room);
 
                 if (fullCycle) {
-                    foreach (RoomUser toRemove in ToRemove.ToList()) {
+                    foreach (RoomUser toRemove in ToRemove ?? Enumerable.Empty<RoomUser>()) {
                         GameClient client = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(toRemove.HabboId);
                         if (client != null) {
                             RemoveUserFromRoom(client, true);
@@ -1245,7 +1262,7 @@ namespace Plus.HabboHotel.Rooms
                     RoomHeightMap heightMap = _room.GetGameMap().GetHeightMap();
                     newZ = heightMap.LevelCountAt(user.X, user.Y) > 0
                         ? heightMap.SurfaceNear(user.X, user.Y, user.Z)
-                        : _room.GetGameMap().SqAbsoluteHeight(user.X, user.Y, itemsOnSquare.ToList());
+                        : _room.GetGameMap().SqAbsoluteHeight(user.X, user.Y, itemsOnSquare);
 
                     if (user.RidingHorse && user.IsPet == false)
                         newZ += 1;
@@ -1272,7 +1289,7 @@ namespace Plus.HabboHotel.Rooms
                 if (itemsOnSquare.Count == 0)
                     user.LastItem = null;
 
-                foreach (Item item in itemsOnSquare.ToList()) {
+                foreach (Item item in itemsOnSquare) {
                     if (item == null)
                         continue;
 
@@ -1514,9 +1531,19 @@ namespace Plus.HabboHotel.Rooms
 
         public int PetCount { get; private set; }
 
+        /// <summary>
+        /// Everyone in the room, as a snapshot that is safe to iterate without copying — including
+        /// while the loop itself removes users. Callers do not need <c>.ToList()</c>.
+        /// </summary>
         public ICollection<RoomUser> GetUserList()
         {
-            return _users.Values;
+            return _userSnapshot;
+        }
+
+        private void RebuildUserSnapshot()
+        {
+            ConcurrentDictionary<int, RoomUser> users = _users;
+            _userSnapshot = users == null ? [] : users.Values.ToArray();
         }
 
         public void Dispose()
@@ -1532,6 +1559,7 @@ namespace Plus.HabboHotel.Rooms
             }
 
             _users.Clear();
+            _userSnapshot = [];
             _pets.Clear();
             _bots.Clear();
             _usersByHabboId.Clear();

@@ -172,7 +172,18 @@ namespace Plus.HabboHotel.Rooms
             }
         }
 
-        /// <summary>How long this user's next tile takes, in milliseconds.</summary>
+        /// <summary>
+        /// How long this user's next tile takes, in milliseconds — rounded up to a whole number of
+        /// room ticks.
+        ///
+        /// The rounding is not cosmetic. A step commits when a room tick finds
+        /// <see cref="NextStepMs"/> due, so the shortest cadence the server can actually deliver
+        /// is a multiple of <see cref="RoomManager.CycleIntervalMs"/>. Leave the raw value in and
+        /// the two disagree on every tile: superfastwalk asks for 125ms, the ticks deliver
+        /// 100/150/100/150, and the client — which is told to animate exactly this number — spends
+        /// every other tile either frozen early or overrunning. Ask for what the grid can give and
+        /// the delivered cadence matches the animation by construction.
+        /// </summary>
         public int StepDurationMs
         {
             get
@@ -181,14 +192,21 @@ namespace Plus.HabboHotel.Rooms
                 if (speed <= 0d)
                     speed = WalkSpeedNormal;
 
-                return Math.Clamp((int)Math.Round(RoomUserManager.StepIntervalMs / speed), RoomUserManager.MinStepIntervalMs, MaxStepDurationMs);
+                int duration = Math.Clamp((int)Math.Round(RoomUserManager.StepIntervalMs / speed), RoomUserManager.MinStepIntervalMs, MaxStepDurationMs);
+
+                int remainder = duration % RoomManager.CycleIntervalMs;
+                if (remainder != 0)
+                    duration += RoomManager.CycleIntervalMs - remainder;
+
+                return Math.Min(duration, MaxStepDurationMs);
             }
         }
 
         /// <summary>
         /// How long the client should take to slide the avatar across a tile. Deliberately equal
-        /// to the step interval, and sent explicitly so the client never has to re-derive it from
-        /// a speed multiplier.
+        /// to the step interval — the tick-rounded one, so the client animates the cadence the
+        /// server can really deliver — and sent explicitly so the client never has to re-derive it
+        /// from a speed multiplier.
         ///
         /// Padding this to absorb a late step does not work: the renderer interpolates from where
         /// the avatar currently is, so an animation longer than the real cadence never completes a

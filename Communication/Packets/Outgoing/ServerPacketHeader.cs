@@ -18,7 +18,6 @@
         public const int ChatLinkConfigMessageComposer = 6011;
         public const int ClientVisualSettingsMessageComposer = 6014;
         public const int TeleportDissolveMessageComposer = 6015;
-        public const int AvatarWalkSpeedMessageComposer = 6016;
         public const int GangDataMessageComposer = 6110;
         public const int GangNoticeMessageComposer = 6111;
         public const int GangToggleMessageComposer = 6121;
@@ -130,7 +129,8 @@
         public const int FurniListNotificationMessageComposer = 2103; // PRODUCTION-201611291003-338511768
         public const int RoomInfoUpdatedMessageComposer = 3297; // PRODUCTION-201611291003-338511768
         public const int FurniListAddMessageComposer = 104; // PRODUCTION-201611291003-338511768
-        public const int AvatarEffectMessageComposer = 1167; // PRODUCTION-201611291003-338511768
+        public const int AvatarEffectMessageComposer = 1167;
+        public const int AvatarWalkSpeedMessageComposer = 6016; // PRODUCTION-201611291003-338511768
         public const int OpenConnectionMessageComposer = 758; // PRODUCTION-201611291003-338511768
         public const int FurniListMessageComposer = 994; // PRODUCTION-201611291003-338511768
         public const int FigureUpdateMessageComposer = 2429; // PRODUCTION-201611291003-338511768

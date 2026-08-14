@@ -21,10 +21,15 @@ namespace Plus.HabboHotel.Rooms
 
         private readonly ConcurrentDictionary<int, Room> _rooms;
 
-        private DateTime _cycleLastExecution;
+        private long _cycleLastExecution;
 
-        /// <summary>Room tick. Movement pacing is quantised to this, so it has to stay punctual.</summary>
-        private const int CycleIntervalMs = 50;
+        /// <summary>
+        /// Room tick. Movement pacing is quantised to this, so it has to stay punctual — and note
+        /// it is the gate, not the poll: lowering Game.CycleSleepTime polls more often but still
+        /// dispatches on this grid. A step can only ever commit on a tick, which is why
+        /// <see cref="RoomUser.StepDurationMs"/> rounds itself up to a multiple of it.
+        /// </summary>
+        public const int CycleIntervalMs = 50;
 
         public RoomManager()
         {
@@ -36,13 +41,19 @@ namespace Plus.HabboHotel.Rooms
         public void OnCycle()
         {
             try {
-                DateTime now = DateTime.Now;
-                TimeSpan sinceLastTime = now - _cycleLastExecution;
-                if (sinceLastTime.TotalMilliseconds >= CycleIntervalMs) {
-                    _cycleLastExecution = _cycleLastExecution.AddMilliseconds(CycleIntervalMs);
+                // Monotonic, not DateTime.Now: the room tick is the clock movement is quantised to,
+                // and wall time moves sideways on a DST change or an NTP correction. A backwards
+                // jump would stall every walk in the hotel until wall time caught up.
+                long now = Environment.TickCount64;
 
-                    if ((now - _cycleLastExecution).TotalMilliseconds >= CycleIntervalMs)
+                if ((now - _cycleLastExecution) >= CycleIntervalMs) {
+                    _cycleLastExecution += CycleIntervalMs;
+
+                    // Keep the phase, but never try to replay a backlog: if we are a whole tick
+                    // behind (a GC pause, a stalled callback) resync rather than firing repeatedly.
+                    if ((now - _cycleLastExecution) >= CycleIntervalMs)
                         _cycleLastExecution = now;
+
                     foreach (Room room in _rooms.Values) {
                         if (room.IsCrashed)
                             continue;
