@@ -761,6 +761,8 @@ namespace Plus.HabboHotel.Rooms
             user.Path.Add(new Vector3D(user.X, user.Y, user.Z));
             user.PathStep = 1;
 
+            QueueFullPath(user, ctx, step, user.GoalX, user.GoalY);
+
             return true;
         }
 
@@ -878,6 +880,7 @@ namespace Plus.HabboHotel.Rooms
 
                     bool updated = false;
                     bool invalidStep = false;
+                    bool statusChanged = false;
 
                     // Housekeeping (idle/carry/spam timers, autokick, freeze, rollers) stays on 500ms
                     if (fullCycle) {
@@ -1013,7 +1016,9 @@ namespace Plus.HabboHotel.Rooms
                         if (invalidStep || (user.PathStep >= user.Path.Count) || (user.GoalX == user.X && user.GoalY == user.Y)) //No path found, or reached goal (:
                         {
                             user.IsWalking = false;
+                            user.NextStepMs = 0;
                             user.RemoveStatus("mv");
+                            statusChanged = true;
 
                             if (user.Statusses.ContainsKey("sign"))
                                 user.RemoveStatus("sign");
@@ -1037,6 +1042,7 @@ namespace Plus.HabboHotel.Rooms
                                 RoomUser mascotaVinculada = GetRoomUserByVirtualId(user.HorseId);
                                 if (mascotaVinculada != null) {
                                     mascotaVinculada.IsWalking = false;
+                                    mascotaVinculada.NextStepMs = 0;
                                     mascotaVinculada.RemoveStatus("mv");
                                     mascotaVinculada.UpdateNeeded = true;
                                 }
@@ -1049,7 +1055,6 @@ namespace Plus.HabboHotel.Rooms
 
                             int nextX = nextStep.X;
                             int nextY = nextStep.Y;
-                            user.RemoveStatus("mv");
 
                             if (_room.GetGameMap().IsValidStep2(user, new Vector2D(user.X, user.Y), new Vector2D(nextX, nextY), nextStep.Z, (user.GoalX == nextX && user.GoalY == nextY), user.AllowOverride)) {
                                 // Height comes from the path, not from the top of the tile: with 3D
@@ -1120,6 +1125,7 @@ namespace Plus.HabboHotel.Rooms
                                 UpdateUserEffect(user, user.SetX, user.SetY);
 
                                 updated = true;
+                                statusChanged = true;
 
                                 if (user.RidingHorse && user.IsPet == false && !user.IsBot) {
                                     RoomUser horse = GetRoomUserByVirtualId(user.HorseId);
@@ -1149,7 +1155,7 @@ namespace Plus.HabboHotel.Rooms
                             }
                         }
 
-                        if (!user.RidingHorse)
+                        if (!user.RidingHorse && statusChanged)
                             user.UpdateNeeded = true;
                     } else if (canStep && !awaitingRoute) {
                         if (user.Statusses.ContainsKey("mv")) {

@@ -699,7 +699,7 @@ namespace Plus.HabboHotel.Users
 
             // Include the currently clicked/locked target only while it is still in this room.
             Habbo target = TargetLockService.GetTarget(this);
-            GetClient().SendPacket(new UserStatsComposer(GetClient(), target));
+            //GetClient().SendPacket(new UserStatsComposer(GetClient(), target));
             LastUserStatsUpdate = now + 1;
         }
 

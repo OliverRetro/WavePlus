@@ -449,6 +449,7 @@ namespace Plus.HabboHotel.Rooms
         public void ClearMovement(bool update)
         {
             IsWalking = false;
+            NextStepMs = 0;
             Statusses.Remove("mv");
             GoalX = 0;
             GoalY = 0;
