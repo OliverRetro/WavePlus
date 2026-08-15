@@ -29,7 +29,7 @@ namespace Plus.HabboHotel.Roleplay.Utilities
             if (range < 0)
                 range = 0;
 
-            long at = PlusEnvironment.Now() - (long)LagCompensationMs(attacker);
+            long at = PlusEnvironment.MonotonicMs() - (long)LagCompensationMs(attacker);
 
             (double X, double Y, double Z) a = PositionAt(attacker, at);
             (double X, double Y, double Z) b = PositionAt(target, at);

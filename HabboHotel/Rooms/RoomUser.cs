@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Plus.Communication.Packets.Outgoing;
 using Plus.Communication.Packets.Outgoing.Rooms.Avatar;
@@ -69,17 +68,21 @@ namespace Plus.HabboHotel.Rooms
         // Remaining route, ordered [goal, ..., start]. Every node carries the height the
         // pathfinder picked for that tile, which with 3D pathing is not necessarily the top of it.
         public List<Vector3D> Path = new();
-        public bool PathRecalcNeeded;
+
+        // Set from IO threads (a click) and consumed by the room thread, hence volatile: it is the
+        // release that publishes the GoalX/GoalY written just before it.
+        public volatile bool PathRecalcNeeded;
         public int PathStep = 1;
 
-        // Set while the full route is still being searched off-thread after the first step was
-        // already handed out. Results carrying a stale PathRequestId are thrown away.
-        public bool PathPending;
-        private long _pathRequestId;
-        // Earliest time (unix ms) this user may take their next walking step. The room's
-        // movement loop runs every 50ms so clicks register almost instantly, but actual
-        // steps stay on the classic 500ms-per-tile cadence via this gate.
+        // Earliest time (monotonic ms, see PlusEnvironment.MonotonicMs) this user may take their
+        // next walking step. The room's movement loop runs every 50ms so clicks register almost
+        // instantly, but actual steps stay on the classic 500ms-per-tile cadence via this gate.
         public long NextStepMs;
+
+        // Whether the step in flight already replaced a cancelled one. Reset on every real arrival,
+        // so a click can turn the avatar around at most once per tile and a stream of clicks can
+        // never keep it pinned on one square. See RoomUserManager.CanAbortStep.
+        public bool StepAborted;
 
         // Tile the avatar stepped off, and the moment (unix ms) the current step was committed.
         // The client animates X,Y -> SetX,SetY linearly over one step interval, so together with
@@ -215,12 +218,6 @@ namespace Plus.HabboHotel.Rooms
         /// target rather than from "now".
         /// </summary>
         public int StepAnimationMs => StepDurationMs;
-
-        /// <summary>Identifies the walk a pending off-thread path search belongs to.</summary>
-        public long PathRequestId => Interlocked.Read(ref _pathRequestId);
-
-        /// <summary>Starts a new walk, discarding any path search still running for the old one.</summary>
-        public long BeginPathRequest() => Interlocked.Increment(ref _pathRequestId);
 
         public bool IsPet => IsBot && BotData.IsPet;
 
@@ -474,9 +471,8 @@ namespace Plus.HabboHotel.Rooms
             PathRecalcNeeded = false;
             Path.Clear();
             PathStep = 1;
-            PathPending = false;
-            BeginPathRequest();
             SetStep = false;
+            StepAborted = false;
             SetX = 0;
             SetY = 0;
             SetZ = 0;
@@ -532,11 +528,11 @@ namespace Plus.HabboHotel.Rooms
 
             GoalX = pX;
             GoalY = pY;
-            PathRecalcNeeded = true;
             FreezeInteracting = false;
 
-            // A new destination retires whatever route is still being searched for the old one.
-            BeginPathRequest();
+            // Written last: the room thread acts on this flag, and it must never see a new goal
+            // flagged for planning before both coordinates are in place.
+            PathRecalcNeeded = true;
         }
 
         public void MoveTo(int pX, int pY)
@@ -632,6 +628,7 @@ namespace Plus.HabboHotel.Rooms
             PrevY = pY;
             PrevZ = pZ;
             StepCommittedMs = 0;
+            StepAborted = false;
 
             X = pX;
             Y = pY;

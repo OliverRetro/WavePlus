@@ -20,7 +20,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Threading.Tasks;
 using Plus.Communication.Packets.Outgoing.Roleplay;
 
 namespace Plus.HabboHotel.Rooms
@@ -51,16 +50,12 @@ namespace Plus.HabboHotel.Rooms
 
         public int UserCount;
 
-        // Done shit
-        private readonly ConcurrentQueue<CompletedPath> _completedPaths = new();
-
         // Per-cycle snapshot of which tiles hold users, shared by every path searched this tick.
         private byte[] _occupancy;
         private long _occupancyTick = -1;
 
-        // Walks no longer than this are searched in full on the spot instead of being split into
-        // an immediate step plus an off-thread remainder.
-        private const int SyncSearchDistance = 3;
+        // The max window for cancel/recalculation
+        private const int MaxStepAbortWindowMs = 200;
 
         // How far off an item's own height a user may be and still count as standing on/in it.
         // Sitting and lying shift a user 0.35 down, so anything tighter would break seats.
@@ -716,47 +711,65 @@ namespace Plus.HabboHotel.Rooms
 
         #region Pathing
 
-        // move bitch move
         private void StartWalk(RoomUser user, long nowMs)
         {
             user.PathRecalcNeeded = false;
 
-            if (user.GoalX == user.X && user.GoalY == user.Y) {
-                user.Path.Clear();
-                user.PathPending = false;
-                return;
-            }
-
             Gamemap map = _room.GetGameMap();
-            PathContext ctx = map.CreatePathContext(user, GetOccupancySnapshot(nowMs));
+            PathContext ctx = null;
 
-            int distance = Math.Max(Math.Abs(user.GoalX - user.X), Math.Abs(user.GoalY - user.Y));
+            // A click that lands in the first moments of a tile can still turn the avatar around on
+            // the spot. Plan that route first — it is the one the player actually asked for — and
+            // only commit to abandoning the step in flight if it turns out to lead somewhere.
+            if (user.SetStep && CanAbortStep(user, nowMs)) {
+                ctx = map.CreatePathContext(user, GetOccupancySnapshot(nowMs));
 
-            // Short hops search in full straight away: A* gives up after a handful of expansions at
-            // this range, which is cheaper than splitting the work in two and shuttling it between
-            // threads. Walking one tile to the next costs about as much as looking at that tile.
-            if (distance > SyncSearchDistance) {
-                Vector3D firstStep = PathFinder.FindNextStep(ctx, user.X, user.Y, user.Z, user.GoalX, user.GoalY);
+                List<Vector3D> fromHere = PathFinder.FindPath(ctx, user.X, user.Y, user.Z, user.GoalX, user.GoalY);
 
-                if (firstStep != null) {
-                    // The avatar leaves now, on a two-node path; the remainder of the route is
-                    // searched off-thread and spliced on before this step has finished animating.
-                    user.Path.Clear();
-                    user.Path.Add(firstStep);
-                    user.Path.Add(new Vector3D(user.X, user.Y, user.Z));
+                if (fromHere.Count > 1) {
+                    Vector3D firstStep = fromHere[fromHere.Count - 2];
+
+                    if (firstStep.X == user.SetX && firstStep.Y == user.SetY) {
+                        // The step already in flight is the first step of the new route anyway.
+                        // Drop that node and the remainder is the route from where it lands, so the
+                        // walk carries straight on without a second search or a redundant turn.
+                        fromHere.RemoveAt(fromHere.Count - 1);
+
+                        user.Path = fromHere;
+                        user.PathStep = 1;
+                        user.IsWalking = true;
+                        return;
+                    }
+
+                    AbortStep(user, nowMs);
+
+                    user.Path = fromHere;
                     user.PathStep = 1;
                     user.IsWalking = true;
-
-                    QueueFullPath(user, ctx, firstStep, user.GoalX, user.GoalY);
                     return;
                 }
 
-                // Nothing adjacent gets us closer, so the route has to detour around something and
-                // no step can be handed out until the search says which way.
+                // Nowhere to go from here — most often the tile we are standing on IS the new
+                // target. Let the step land and walk back to it rather than snapping the avatar
+                // backwards mid-slide.
             }
 
-            List<Vector3D> path = PathFinder.FindPath(ctx, user.X, user.Y, user.Z, user.GoalX, user.GoalY);
-            user.PathPending = false;
+            // Where the avatar will be when it is next allowed to leave a tile. Mid-step that is
+            // the tile it is walking INTO, so the new route is spliced on at the right end and is
+            // ready to hand out the instant the step commits — no search happens at commit time,
+            // and the route can never double back over the tile just walked.
+            int fromX = user.SetStep ? user.SetX : user.X;
+            int fromY = user.SetStep ? user.SetY : user.Y;
+            double fromZ = user.SetStep ? user.SetZ : user.Z;
+
+            if (user.GoalX == fromX && user.GoalY == fromY) {
+                user.Path.Clear();
+                return;
+            }
+
+            ctx ??= map.CreatePathContext(user, GetOccupancySnapshot(nowMs));
+
+            List<Vector3D> path = PathFinder.FindPath(ctx, fromX, fromY, fromZ, user.GoalX, user.GoalY);
 
             if (path.Count > 1) {
                 user.Path = path;
@@ -766,74 +779,56 @@ namespace Plus.HabboHotel.Rooms
                 user.Path.Clear();
         }
 
-        private bool TryExtendWithGreedyStep(RoomUser user, long nowMs)
+        /// <summary>
+        /// Whether the step currently in flight may be thrown away so a fresh click can be answered
+        /// from the tile the avatar is still standing on.
+        /// </summary>
+        private static bool CanAbortStep(RoomUser user, long nowMs)
         {
-            PathContext ctx = _room.GetGameMap().CreatePathContext(user, GetOccupancySnapshot(nowMs));
-
-            Vector3D step = PathFinder.FindNextStep(ctx, user.X, user.Y, user.Z, user.GoalX, user.GoalY);
-
-            if (step == null)
+            // Rider and mount step as one, and bots gain nothing from click latency.
+            if (user.IsBot || user.RidingHorse || user.HorseId > 0)
                 return false;
 
-            user.Path.Clear();
-            user.Path.Add(step);
-            user.Path.Add(new Vector3D(user.X, user.Y, user.Z));
-            user.PathStep = 1;
+            // At most one cancel per tile, so no amount of clicking can hold an avatar in place.
+            if (user.StepAborted)
+                return false;
 
-            QueueFullPath(user, ctx, step, user.GoalX, user.GoalY);
+            // The step is already due to land this tick; there is nothing left to cancel.
+            if (nowMs >= user.NextStepMs)
+                return false;
 
-            return true;
+            int stepDuration = user.StepDurationMs;
+            int window = Math.Min(MaxStepAbortWindowMs, (stepDuration * 2) / 5);
+
+            if (user.StepCommittedMs <= 0 || (nowMs - user.StepCommittedMs) > window)
+                return false;
+
+            // Nothing to gain by turning towards the tile we are already walking onto.
+            return user.GoalX != user.SetX || user.GoalY != user.SetY;
         }
 
-        private void QueueFullPath(RoomUser user, PathContext ctx, Vector3D from, int goalX, int goalY)
+        private void AbortStep(RoomUser user, long nowMs)
         {
-            long requestId = user.BeginPathRequest();
-            user.PathPending = true;
+            Gamemap map = _room.GetGameMap();
 
-            Task.Run(() =>
-            {
-                List<Vector3D> path = null;
-
-                try {
-                    path = PathFinder.FindPath(ctx, from.X, from.Y, from.Z, goalX, goalY);
-                } catch (Exception e) {
-                    ExceptionLogger.LogException(e);
-                }
-
-                // Always report back, even on failure: the walk loop holds the user's animation
-                // open while a route is outstanding, so a search that vanished would strand them.
-                _completedPaths.Enqueue(new CompletedPath(user, requestId, path));
-            });
-        }
-
-        private void ApplyCompletedPaths()
-        {
-            while (_completedPaths.TryDequeue(out CompletedPath completed)) {
-                RoomUser user = completed.User;
-
-                if (user == null || user.PathRequestId != completed.RequestId)
-                    continue; // the user clicked somewhere else; this route is for a walk that's over
-
-                user.PathPending = false;
-
-                if (completed.Path == null || completed.Path.Count <= 1)
-                    continue; // nowhere to go beyond the step already taken
-
-                // The route starts at the tile the first step was aimed at. If the user is no
-                // longer there (or on their way there), the search came back too late to splice in.
-                Vector3D origin = completed.Path[completed.Path.Count - 1];
-                bool atOrigin = origin.X == user.X && origin.Y == user.Y;
-                bool steppingToOrigin = user.SetStep && origin.X == user.SetX && origin.Y == user.SetY;
-
-                if (!atOrigin && !steppingToOrigin) {
-                    user.PathRecalcNeeded = true;
-                    continue;
-                }
-
-                user.Path = completed.Path;
-                user.PathStep = 1;
-                user.IsWalking = true;
+            // Issuing the step handed the target tile's square state to the user and marked that
+            // tile occupied. Give both back, or the replacement step would stamp the abandoned
+            // target's state onto the tile we are standing on.
+            if (map.ValidTile(user.SetX, user.SetY) && map.ValidTile(user.X, user.Y)) {
+                map.GameMap[user.SetX, user.SetY] = user.SqState;
+                user.SqState = map.GameMap[user.X, user.Y];
             }
+
+            user.SetStep = false;
+            user.SetX = user.X;
+            user.SetY = user.Y;
+            user.SetZ = user.Z;
+            user.StepAborted = true;
+
+            // Let the replacement step leave immediately and take a full tile of its own; leaving
+            // the old deadline in place would have charged it the remainder of the old step on top
+            // of its own duration.
+            user.NextStepMs = nowMs;
         }
 
         private byte[] GetOccupancySnapshot(long nowMs)
@@ -844,10 +839,15 @@ namespace Plus.HabboHotel.Rooms
             Gamemap map = _room.GetGameMap();
             int size = map.Model.MapSizeX * map.Model.MapSizeY;
 
-            if (_occupancyTick == nowMs && _occupancy != null && _occupancy.Length == size)
-                return _occupancy;
+            byte[] occupancy = _occupancy;
 
-            byte[] occupancy = new byte[size];
+            if (occupancy != null && occupancy.Length == size) {
+                if (_occupancyTick == nowMs)
+                    return occupancy;
+
+                Array.Clear(occupancy, 0, size);
+            } else
+                occupancy = new byte[size];
 
             foreach (RoomUser other in GetUserList()) {
                 if (other == null || !map.ValidTile(other.X, other.Y))
@@ -866,31 +866,14 @@ namespace Plus.HabboHotel.Rooms
             return occupancy;
         }
 
-        private readonly struct CompletedPath
-        {
-            public readonly RoomUser User;
-            public readonly long RequestId;
-            public readonly List<Vector3D> Path;
-
-            public CompletedPath(RoomUser user, long requestId, List<Vector3D> path)
-            {
-                User = user;
-                RequestId = requestId;
-                Path = path;
-            }
-        }
-
         #endregion
 
         public void OnCycle(bool fullCycle)
         {
             int userCounter = 0;
-            long nowMs = PlusEnvironment.Now();
+            long nowMs = PlusEnvironment.MonotonicMs();
 
             try {
-                // Hand out any route that finished searching while its user was already walking.
-                ApplyCompletedPaths();
-
                 // Allocated only when someone actually needs kicking, which is almost never.
                 List<RoomUser> ToRemove = null;
 
@@ -957,6 +940,15 @@ namespace Plus.HabboHotel.Rooms
                         }
                     }
 
+                    // Plan first, move second. A click is answered on the tick it arrives even when
+                    // the avatar is mid-slide and cannot legally leave its tile yet: the route is
+                    // searched from the tile the step in flight is walking into, so the moment that
+                    // step lands the next one is already sitting there waiting to be issued. The
+                    // search may also cancel the step outright (see CanAbortStep), which is why the
+                    // step gate below is read afterwards and not before.
+                    if (user.PathRecalcNeeded)
+                        StartWalk(user, nowMs);
+
                     // Per-user step gate: a fresh click starts walking within one 50ms tick, but
                     // consecutive steps keep the 500ms-per-tile pace the client animates at.
                     bool canStep = nowMs >= user.NextStepMs;
@@ -991,6 +983,9 @@ namespace Plus.HabboHotel.Rooms
                                 user.Z = user.SetZ;
                             }
 
+                            // Landed on a new tile, so the next one may be turned around again.
+                            user.StepAborted = false;
+
                             if (!user.IsBot && user.RidingHorse) {
                                 RoomUser horse = GetRoomUserByVirtualId(user.HorseId);
                                 if (horse != null) {
@@ -1020,21 +1015,17 @@ namespace Plus.HabboHotel.Rooms
                         user.SetStep = false;
                     }
 
-                    if (canStep && user.PathRecalcNeeded) {
+                    // The step that just landed can invalidate the rest of the route — a door swung
+                    // shut, someone parked on the next tile. Re-planning right here costs one
+                    // search and keeps the walk going on the same tick instead of stalling a tile.
+                    if (user.PathRecalcNeeded) {
                         StartWalk(user, nowMs);
 
                         if (user.IsWalking && user.Path.Count > 1)
                             invalidStep = false;
                     }
 
-                    bool awaitingRoute = false;
-
-                    if (canStep && user.IsWalking && user.PathPending && !invalidStep && user.PathStep >= user.Path.Count &&
-                        !(user.GoalX == user.X && user.GoalY == user.Y)) {
-                        awaitingRoute = !TryExtendWithGreedyStep(user, nowMs);
-                    }
-
-                    if (canStep && user.IsWalking && !user.Freezed && !awaitingRoute) {
+                    if (canStep && user.IsWalking && !user.Freezed) {
                         if (invalidStep || (user.PathStep >= user.Path.Count) || (user.GoalX == user.X && user.GoalY == user.Y)) //No path found, or reached goal (:
                         {
                             user.IsWalking = false;
@@ -1179,7 +1170,7 @@ namespace Plus.HabboHotel.Rooms
 
                         if (!user.RidingHorse && statusChanged)
                             user.UpdateNeeded = true;
-                    } else if (canStep && !awaitingRoute) {
+                    } else if (canStep && !user.SetStep) {
                         if (user.Statusses.ContainsKey("mv")) {
                             user.RemoveStatus("mv");
                             user.UpdateNeeded = true;

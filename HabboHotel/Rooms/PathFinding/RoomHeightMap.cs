@@ -47,6 +47,12 @@ namespace Plus.HabboHotel.Rooms.PathFinding
         public int Height { get; }
         public int[] GateGroupIds { get; private set; } = Array.Empty<int>();
 
+        // 2D or 3D
+        public int LevelDepth { get; private set; } = 1;
+
+        // true when no tile stacks surfaces, i.e. the room is a flat 2D grid.
+        public bool IsFlat => LevelDepth <= 1;
+
         private RoomHeightMap(int width, int height)
         {
             Width = width;
@@ -69,6 +75,7 @@ namespace Plus.HabboHotel.Rooms.PathFinding
             Array.Copy(_gateGroup, clone._gateGroup, _gateGroup.Length);
 
             clone.GateGroupIds = GateGroupIds;
+            clone.LevelDepth = LevelDepth;
 
             return clone;
         }
@@ -271,6 +278,18 @@ namespace Plus.HabboHotel.Rooms.PathFinding
                     _map.GateGroupIds = new int[_gateGroups.Count];
                     _gateGroups.CopyTo(_map.GateGroupIds);
                 }
+
+                // One pass over a byte per tile, once per rebuild, so every later search knows
+                // whether this room needs a 3D search at all.
+                byte[] counts = _map._levelCount;
+                int depth = 1;
+
+                for (int i = 0; i < counts.Length; i++) {
+                    if (counts[i] > depth)
+                        depth = counts[i];
+                }
+
+                _map.LevelDepth = depth;
 
                 return _map;
             }

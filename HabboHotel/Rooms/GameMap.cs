@@ -1037,6 +1037,7 @@ namespace Plus.HabboHotel.Rooms
                 IgnoreHeightLimits = user != null && user.RidingHorse,
                 UsersBlockTiles = _room.RoomBlockingEnabled == 0,
                 Occupancy = occupancy,
+                IgnoreTile = user != null && ValidTile(user.X, user.Y) ? (user.Y * map.Width) + user.X : -1,
                 OpenGateGroups = ResolveOpenGateGroups(user, map)
             };
         }

@@ -36,6 +36,8 @@ namespace Plus.HabboHotel.Rooms.PathFinding
         /// <summary>Per-tile occupancy snapshot, or null when nobody blocks anything.</summary>
         public byte[] Occupancy { get; init; }
 
+        public int IgnoreTile { get; init; } = -1;
+
         /// <summary>Guild groups whose gates this user may walk through, or null for none.</summary>
         public HashSet<int> OpenGateGroups { get; init; }
 
@@ -59,7 +61,7 @@ namespace Plus.HabboHotel.Rooms.PathFinding
                     return false;
             }
 
-            if (UsersBlockTiles && Occupancy != null && tile < Occupancy.Length) {
+            if (UsersBlockTiles && Occupancy != null && tile != IgnoreTile && tile < Occupancy.Length) {
                 byte occupancy = Occupancy[tile];
 
                 if (occupancy == OccupancyStanding)

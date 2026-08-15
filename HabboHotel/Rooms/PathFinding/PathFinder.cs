@@ -6,13 +6,19 @@ namespace Plus.HabboHotel.Rooms.PathFinding
     /// <summary>
     /// 3D A* over a <see cref="RoomHeightMap"/> snapshot.
     ///
-    /// Three things set it apart from the flat pathfinder it replaces:
+    /// Four things set it apart from the flat pathfinder it replaces:
     ///   * every tile can carry several standable surfaces, so a route may duck under furniture,
     ///     climb onto it, or drop off it inside one continuous path;
     ///   * among equally short routes it always spends its diagonals first and walks the straight
     ///     remainder afterwards;
-    ///   * it reads nothing but the snapshot it is handed, so it is safe to run off the room thread
-    ///     while the user is already walking their first step.
+    ///   * it reads nothing but the snapshot it is handed, so it has no room locks to wait on and
+    ///     can be run straight through on the room thread the moment a click lands;
+    ///   * an unobstructed route never reaches the search at all — see <see cref="TryWalkTheLine"/>.
+    ///
+    /// Cost, measured in node expansions: a clear route across a 23x23 room is the length of the
+    /// route (roughly 20), and the search only wakes up when something is actually in the way.
+    /// That is what makes it affordable to re-plan the whole route synchronously on every click
+    /// instead of handing out a guessed first step and searching for the rest in the background.
     /// </summary>
     public static class PathFinder
     {
@@ -35,12 +41,26 @@ namespace Plus.HabboHotel.Rooms.PathFinding
         /// <summary>Charged for changing height, so flat ground wins ties against clambering.</summary>
         private const int LevelChangePenalty = 2;
 
+        private const int MaxLineSteps = 128;
+
+        private const int CoordBits = 9;
+        private const int CoordMask = (1 << CoordBits) - 1;
+        private const int LevelShift = CoordBits * 2;
+
+        private const int HeapNodeBits = 22;
+        private const int HeapNodeMask = (1 << HeapNodeBits) - 1;
+        private const int HeapTieShift = HeapNodeBits;
+        private const int HeapCostShift = HeapNodeBits + 8;
+
         [ThreadStatic] private static int[] _gCost;
         [ThreadStatic] private static int[] _parent;
         [ThreadStatic] private static int[] _stamp;
         [ThreadStatic] private static bool[] _closed;
+        [ThreadStatic] private static int[] _passStamp;
+        [ThreadStatic] private static bool[] _passable;
         [ThreadStatic] private static int _generation;
         [ThreadStatic] private static BinaryHeap _open;
+        [ThreadStatic] private static LineStep[] _line;
 
         /// <summary>
         /// Full route from a start position to a goal tile, ordered [goal, ..., start] to match the
@@ -60,14 +80,6 @@ namespace Plus.HabboHotel.Rooms.PathFinding
             if (startX == goalX && startY == goalY)
                 return path;
 
-            int width = map.Width;
-            int size = width * map.Height;
-            int nodeCount = size * RoomHeightMap.MaxLevels;
-
-            EnsureScratch(nodeCount);
-
-            int generation = NextGeneration();
-
             int startTile = map.TileIndex(startX, startY);
             int goalTile = map.TileIndex(goalX, goalY);
 
@@ -83,14 +95,101 @@ namespace Plus.HabboHotel.Rooms.PathFinding
             // onto a blocked square, or furniture dropped on their head. Path out of it anyway.
             int startLevel = map.FindLevel(startX, startY, startZ);
             double startSurface = startLevel >= 0 ? map.SurfaceAt(startTile, startLevel) : startZ;
-            int startNode = (Math.Max(startLevel, 0) * size) + startTile;
+
+            // The overwhelmingly common click: nothing between the avatar and the tile it was aimed
+            // at. Answering that without a search is the whole reason a re-plan can be handed out
+            // on the same tick the click arrives.
+            if (!approachOnly && ctx.DiagonalEnabled &&
+                TryWalkTheLine(ctx, map, startX, startY, startSurface, goalX, goalY, path))
+                return path;
+
+            return Search(ctx, map, path, startX, startY, startTile, startSurface, goalX, goalY, goalTile, approachOnly);
+        }
+
+        private static bool TryWalkTheLine(PathContext ctx, RoomHeightMap map, int startX, int startY, double startSurface, int goalX, int goalY, List<Vector3D> path)
+        {
+            int dx = goalX - startX;
+            int dy = goalY - startY;
+
+            int absX = Math.Abs(dx);
+            int absY = Math.Abs(dy);
+
+            int steps = Math.Max(absX, absY);
+            if (steps > MaxLineSteps)
+                return false;
+
+            int diagonals = Math.Min(absX, absY);
+            int stepX = Math.Sign(dx);
+            int stepY = Math.Sign(dy);
+
+            // After the diagonals are spent the rest of the run is along whichever axis still has
+            // ground to cover.
+            int tailX = absX > absY ? stepX : 0;
+            int tailY = absX > absY ? 0 : stepY;
+
+            LineStep[] line = _line ??= new LineStep[MaxLineSteps];
+
+            int x = startX;
+            int y = startY;
+            double surface = startSurface;
+
+            for (int i = 0; i < steps; i++) {
+                bool diagonal = i < diagonals;
+
+                x += diagonal ? stepX : tailX;
+                y += diagonal ? stepY : tailY;
+
+                int tile = map.TileIndex(x, y);
+                bool isFinalStep = i == steps - 1;
+
+                // SelectLevel applies the same entry and climb/fall rules the search does, so a
+                // line that clears it is walkable by exactly the same definition.
+                int level = ctx.SelectLevel(tile, surface, isFinalStep);
+                if (level < 0)
+                    return false;
+
+                surface = map.SurfaceAt(tile, level);
+
+                line[i] = new LineStep(x, y, surface);
+            }
+
+            // Legacy order: [goal, ..., start].
+            for (int i = steps - 1; i >= 0; i--) {
+                LineStep step = line[i];
+                path.Add(new Vector3D(step.X, step.Y, step.Z));
+            }
+
+            path.Add(new Vector3D(startX, startY, startSurface));
+
+            return true;
+        }
+
+        private static List<Vector3D> Search(PathContext ctx, RoomHeightMap map, List<Vector3D> path, int startX, int startY, int startTile, double startSurface, int goalX, int goalY, int goalTile, bool approachOnly)
+        {
+            int width = map.Width;
+            int height = map.Height;
+            int size = width * height;
+
+            // Only the levels this room actually stacks. A room with nothing to walk under is a
+            // plain 2D grid here: node == tile, and the search touches a quarter of the memory the
+            // fixed four-level layout would have made it stamp, close and probe.
+            int depth = map.LevelDepth;
+            int nodeCount = size * depth;
+
+            EnsureScratch(nodeCount);
+
+            int generation = NextGeneration();
+
+            int startLevel = Math.Min(Math.Max(map.FindLevel(startX, startY, startSurface), 0), depth - 1);
+            int startNode = (startLevel * size) + startTile;
+            int startPacked = Pack(startX, startY, startLevel);
 
             bool diagonal = ctx.DiagonalEnabled;
             int[] dxs = diagonal ? DiagDx : CardDx;
             int[] dys = diagonal ? DiagDy : CardDy;
             int neighbours = dxs.Length;
 
-            int closestNode = -1;
+            int closestPacked = -1;
             int closestHeuristic = Heuristic(startX, startY, goalX, goalY, diagonal);
             int closestCost = 0;
 
@@ -101,38 +200,43 @@ namespace Plus.HabboHotel.Rooms.PathFinding
             _parent[startNode] = -1;
             _stamp[startNode] = generation;
             _closed[startNode] = false;
-            open.Push(Heuristic(startX, startY, goalX, goalY, diagonal), startNode);
+            open.Push(0, closestHeuristic, startPacked);
 
             while (open.Count > 0) {
                 int current = open.Pop();
 
-                if (_closed[current])
+                int cx = current & CoordMask;
+                int cy = (current >> CoordBits) & CoordMask;
+                int clevel = current >> LevelShift;
+
+                int currentTile = (cy * width) + cx;
+                int currentNode = (clevel * size) + currentTile;
+
+                if (_closed[currentNode])
                     continue; // stale duplicate heap entry
 
-                int currentTile = current % size;
-
                 if (currentTile == goalTile)
-                    return Reconstruct(map, current, size, width, startNode, startSurface);
+                    return Reconstruct(map, path, current, width, startPacked, startSurface);
 
-                _closed[current] = true;
-
-                int cx = currentTile % width;
-                int cy = currentTile / width;
+                _closed[currentNode] = true;
 
                 // Cheapest tile touching an unreachable target — that is as close as we get.
-                if (approachOnly && current != startNode && IsAdjacent(cx, cy, goalX, goalY))
-                    return Reconstruct(map, current, size, width, startNode, startSurface);
+                if (approachOnly && currentNode != startNode && IsAdjacent(cx, cy, goalX, goalY))
+                    return Reconstruct(map, path, current, width, startPacked, startSurface);
 
-                if (current != startNode) {
+                int currentCost = _gCost[currentNode];
+
+                if (currentNode != startNode) {
                     int heuristic = Heuristic(cx, cy, goalX, goalY, diagonal);
 
-                    if (heuristic < closestHeuristic || (heuristic == closestHeuristic && closestNode != -1 && _gCost[current] < closestCost)) {
+                    if (heuristic < closestHeuristic || (heuristic == closestHeuristic && closestPacked != -1 && currentCost < closestCost)) {
                         closestHeuristic = heuristic;
-                        closestCost = _gCost[current];
-                        closestNode = current;
+                        closestCost = currentCost;
+                        closestPacked = current;
                     }
                 }
-                double fromSurface = current == startNode ? startSurface : map.SurfaceAt(currentTile, current / size);
+
+                double fromSurface = currentNode == startNode ? startSurface : map.SurfaceAt(currentTile, clevel);
 
                 // Diagonals only "make progress on both axes" while the goal is off-axis; once it
                 // lines up, straight steps are free again.
@@ -142,10 +246,15 @@ namespace Plus.HabboHotel.Rooms.PathFinding
                     int nx = cx + dxs[i];
                     int ny = cy + dys[i];
 
-                    if (nx < 0 || ny < 0 || nx >= width || ny >= map.Height)
+                    if (nx < 0 || ny < 0 || nx >= width || ny >= height)
                         continue;
 
                     int neighbourTile = (ny * width) + nx;
+
+                    int levels = map.LevelCountAt(neighbourTile);
+                    if (levels == 0)
+                        continue; // nothing to stand on, whatever height you arrive at
+
                     bool isFinalStep = neighbourTile == goalTile;
                     bool isDiagonalStep = nx != cx && ny != cy;
 
@@ -153,29 +262,36 @@ namespace Plus.HabboHotel.Rooms.PathFinding
                     if (!isDiagonalStep && diagonalStillUseful)
                         stepCost += DeferredDiagonalPenalty;
 
-                    int levels = map.LevelCountAt(neighbourTile);
+                    int heuristic = Heuristic(nx, ny, goalX, goalY, diagonal);
 
                     for (int level = 0; level < levels; level++) {
                         int neighbourNode = (level * size) + neighbourTile;
+                        bool seen = _stamp[neighbourNode] == generation;
 
-                        if (_stamp[neighbourNode] == generation && _closed[neighbourNode])
-                            continue;
-
-                        if (!ctx.CanEnter(neighbourTile, level, isFinalStep))
+                        if (seen && _closed[neighbourNode])
                             continue;
 
                         double toSurface = map.SurfaceAt(neighbourTile, level);
 
-                        if (!ctx.AllowOverride && !ctx.IgnoreHeightLimits && !RoomHeightMap.CanTransition(fromSurface, toSurface))
+                        int cost = stepCost;
+                        if (Math.Abs(toSurface - fromSurface) > RoomHeightMap.Epsilon) {
+                            if (!ctx.AllowOverride && !ctx.IgnoreHeightLimits && !RoomHeightMap.CanTransition(fromSurface, toSurface))
+                                continue;
+
+                            cost += LevelChangePenalty;
+                        }
+
+                        int tentative = currentCost + cost;
+
+                        if (seen && tentative >= _gCost[neighbourNode])
                             continue;
 
-                        int cost = stepCost;
-                        if (Math.Abs(toSurface - fromSurface) > RoomHeightMap.Epsilon)
-                            cost += LevelChangePenalty;
-
-                        int tentative = _gCost[current] + cost;
-
-                        if (_stamp[neighbourNode] == generation && tentative >= _gCost[neighbourNode])
+                        // Left until last: it is the only test that has to look past the height map
+                        // into gates and live occupancy, and by here most neighbours have already
+                        // been rejected on cost alone. Within one search the goal tile is only ever
+                        // reached as a final step, so the answer never depends on which side we
+                        // arrive from and it is safe to remember it.
+                        if (!Passable(ctx, neighbourNode, neighbourTile, level, isFinalStep, generation))
                             continue;
 
                         _stamp[neighbourNode] = generation;
@@ -183,91 +299,38 @@ namespace Plus.HabboHotel.Rooms.PathFinding
                         _gCost[neighbourNode] = tentative;
                         _parent[neighbourNode] = current;
 
-                        open.Push(tentative + Heuristic(nx, ny, goalX, goalY, diagonal), neighbourNode);
+                        open.Push(tentative, heuristic, Pack(nx, ny, level));
                     }
                 }
             }
 
             // walk to nearest if target is impossible
-            if (closestNode != -1)
-                return Reconstruct(map, closestNode, size, width, startNode, startSurface);
+            if (closestPacked != -1)
+                return Reconstruct(map, path, closestPacked, width, startPacked, startSurface);
 
             return path; // nothing reachable is any closer than where we already stand
         }
 
+        private static int Pack(int x, int y, int level) => x | (y << CoordBits) | (level << LevelShift);
+
         /// <summary>
-        /// The single best step towards a goal, worked out from the eight neighbours alone.
+        /// <see cref="PathContext.CanEnter"/>, answered once per node per search.
         ///
-        /// This is what gets a user moving on the very tick they clicked: the full route is only
-        /// needed by the time that step lands, and a one-tile walk never needs one at all.
-        /// Returns null when no neighbour makes progress, which is the caller's cue that the route
-        /// has to go around something and a full search is required up front.
+        /// Neighbours are reached from up to eight directions and the answer cannot change while a
+        /// search runs, so without this the gate and occupancy lookups are repeated several times
+        /// over for every tile the search touches.
         /// </summary>
-        public static Vector3D FindNextStep(PathContext ctx, int startX, int startY, double startZ, int goalX, int goalY)
+        private static bool Passable(PathContext ctx, int node, int tile, int level, bool isFinalStep, int generation)
         {
-            RoomHeightMap map = ctx?.HeightMap;
-            if (map == null)
-                return null;
+            if (_passStamp[node] == generation)
+                return _passable[node];
 
-            if (!map.InBounds(startX, startY) || !map.InBounds(goalX, goalY))
-                return null;
+            bool passable = ctx.CanEnter(tile, level, isFinalStep);
 
-            if (startX == goalX && startY == goalY)
-                return null;
+            _passStamp[node] = generation;
+            _passable[node] = passable;
 
-            bool diagonal = ctx.DiagonalEnabled;
-            int[] dxs = diagonal ? DiagDx : CardDx;
-            int[] dys = diagonal ? DiagDy : CardDy;
-
-            int startTile = map.TileIndex(startX, startY);
-            int startLevel = map.FindLevel(startX, startY, startZ);
-            double fromSurface = startLevel >= 0 ? map.SurfaceAt(startTile, startLevel) : startZ;
-
-            int currentDistance = Heuristic(startX, startY, goalX, goalY, diagonal);
-            bool diagonalStillUseful = diagonal && startX != goalX && startY != goalY;
-
-            Vector3D best = null;
-            int bestScore = int.MaxValue;
-
-            for (int i = 0; i < dxs.Length; i++) {
-                int nx = startX + dxs[i];
-                int ny = startY + dys[i];
-
-                if (!map.InBounds(nx, ny))
-                    continue;
-
-                int distance = Heuristic(nx, ny, goalX, goalY, diagonal);
-
-                // Only ever commit to a step that genuinely closes the gap; anything else is a
-                // detour, and detours are the full search's job.
-                if (distance >= currentDistance)
-                    continue;
-
-                int neighbourTile = map.TileIndex(nx, ny);
-                bool isFinalStep = nx == goalX && ny == goalY;
-
-                int level = ctx.SelectLevel(neighbourTile, fromSurface, isFinalStep);
-                if (level < 0)
-                    continue;
-
-                bool isDiagonalStep = nx != startX && ny != startY;
-                int score = distance + (isDiagonalStep ? CostDiagonal : CostStraight);
-
-                if (!isDiagonalStep && diagonalStillUseful)
-                    score += DeferredDiagonalPenalty;
-
-                double surface = map.SurfaceAt(neighbourTile, level);
-                if (Math.Abs(surface - fromSurface) > RoomHeightMap.Epsilon)
-                    score += LevelChangePenalty;
-
-                if (score >= bestScore)
-                    continue;
-
-                bestScore = score;
-                best = new Vector3D(nx, ny, surface);
-            }
-
-            return best;
+            return passable;
         }
 
         private static bool IsAdjacent(int x, int y, int otherX, int otherY)
@@ -291,19 +354,23 @@ namespace Plus.HabboHotel.Rooms.PathFinding
             return (CostDiagonal * min) + (CostStraight * (max - min));
         }
 
-        private static List<Vector3D> Reconstruct(RoomHeightMap map, int goalNode, int size, int width, int startNode, double startSurface)
+        private static List<Vector3D> Reconstruct(RoomHeightMap map, List<Vector3D> path, int goalPacked, int width, int startPacked, double startSurface)
         {
             // Legacy order: [goal, ..., start].
-            var path = new List<Vector3D>();
-            int node = goalNode;
+            int packed = goalPacked;
+            int size = width * map.Height;
 
-            while (node != -1) {
-                int tile = node % size;
-                double surface = node == startNode ? startSurface : map.SurfaceAt(tile, node / size);
+            while (packed != -1) {
+                int x = packed & CoordMask;
+                int y = (packed >> CoordBits) & CoordMask;
+                int level = packed >> LevelShift;
 
-                path.Add(new Vector3D(tile % width, tile / width, surface));
+                int tile = (y * width) + x;
+                double surface = packed == startPacked ? startSurface : map.SurfaceAt(tile, level);
 
-                node = _parent[node];
+                path.Add(new Vector3D(x, y, surface));
+
+                packed = _parent[(level * size) + tile];
             }
 
             return path;
@@ -311,8 +378,9 @@ namespace Plus.HabboHotel.Rooms.PathFinding
 
         private static void EnsureScratch(int nodeCount)
         {
-            if (_gCost != null && _gCost.Length >= nodeCount)
+            if (_gCost != null && _gCost.Length >= nodeCount) {
                 return;
+            }
 
             // Rooms only ever grow, and a handful of rooms per thread share these buffers, so
             // rounding up keeps re-allocation to a one-off.
@@ -322,33 +390,59 @@ namespace Plus.HabboHotel.Rooms.PathFinding
             _parent = new int[capacity];
             _stamp = new int[capacity];
             _closed = new bool[capacity];
+            _passStamp = new int[capacity];
+            _passable = new bool[capacity];
             _generation = 0;
-            _open ??= new BinaryHeap(256);
+            _open ??= new BinaryHeap(1024);
         }
 
-        /// <summary>Stamping beats clearing three arrays per search; the only cost is one wrap
-        /// check per call.</summary>
+        /// <summary>Stamping beats clearing the scratch arrays per search; the only cost is one
+        /// wrap check per call.</summary>
         private static int NextGeneration()
         {
             if (_generation == int.MaxValue) {
                 Array.Clear(_stamp, 0, _stamp.Length);
+                Array.Clear(_passStamp, 0, _passStamp.Length);
                 _generation = 0;
             }
 
             return ++_generation;
         }
 
+        /// <summary>One tile of a straight-line probe, held in a reusable buffer so a probe that
+        /// fails costs nothing at all.</summary>
+        private readonly struct LineStep
+        {
+            public readonly int X;
+            public readonly int Y;
+            public readonly double Z;
+
+            public LineStep(int x, int y, double z)
+            {
+                X = x;
+                Y = y;
+                Z = z;
+            }
+        }
+
+        /// <summary>
+        /// Binary heap of (priority, node) pairs held as a single long each — priority in the high
+        /// half, the packed node in the low half.
+        ///
+        /// One array instead of two is the whole point: an obstructed search sifts tens of
+        /// thousands of entries, and the parallel-array version touched two cache lines and did two
+        /// swaps for every one of those. Comparing the combined long orders by priority first and
+        /// then by node, which is a stable tie-break rather than an arbitrary one.
+        /// </summary>
         private sealed class BinaryHeap
         {
-            private int[] _priority;
-            private int[] _value;
+            private long[] _entries;
 
             public int Count { get; private set; }
 
             public BinaryHeap(int capacity)
             {
-                _priority = new int[capacity];
-                _value = new int[capacity];
+                _entries = new long[capacity];
             }
 
             public void Clear()
@@ -356,53 +450,66 @@ namespace Plus.HabboHotel.Rooms.PathFinding
                 Count = 0;
             }
 
-            public void Push(int priority, int value)
+            public void Push(int cost, int heuristic, int node)
             {
-                if (Count == _priority.Length) {
-                    Array.Resize(ref _priority, Count * 2);
-                    Array.Resize(ref _value, Count * 2);
+                long[] entries = _entries;
+
+                if (Count == entries.Length) {
+                    Array.Resize(ref _entries, Count * 2);
+                    entries = _entries;
                 }
 
+                int tie = heuristic >> 10; // ~one unit per tile still to cover
+                if (tie > 255)
+                    tie = 255;
+
+                long entry = ((long)(cost + heuristic) << HeapCostShift) | ((long)tie << HeapTieShift) | (uint)node;
+
                 int i = Count++;
-                _priority[i] = priority;
-                _value[i] = value;
 
                 while (i > 0) {
                     int p = (i - 1) >> 1;
-                    if (_priority[p] <= _priority[i])
+                    long parent = entries[p];
+
+                    if (parent <= entry)
                         break;
 
-                    (_priority[p], _priority[i]) = (_priority[i], _priority[p]);
-                    (_value[p], _value[i]) = (_value[i], _value[p]);
+                    entries[i] = parent;
                     i = p;
                 }
+
+                entries[i] = entry;
             }
 
             public int Pop()
             {
-                int result = _value[0];
-                Count--;
-                _priority[0] = _priority[Count];
-                _value[0] = _value[Count];
+                long[] entries = _entries;
+
+                long result = entries[0];
+
+                int count = --Count;
+                long last = entries[count];
 
                 int i = 0;
                 while (true) {
                     int l = (i << 1) + 1;
-                    if (l >= Count)
+                    if (l >= count)
                         break;
 
                     int r = l + 1;
-                    int smallest = (r < Count && _priority[r] < _priority[l]) ? r : l;
+                    int smallest = (r < count && entries[r] < entries[l]) ? r : l;
 
-                    if (_priority[i] <= _priority[smallest])
+                    if (last <= entries[smallest])
                         break;
 
-                    (_priority[i], _priority[smallest]) = (_priority[smallest], _priority[i]);
-                    (_value[i], _value[smallest]) = (_value[smallest], _value[i]);
+                    entries[i] = entries[smallest];
                     i = smallest;
                 }
 
-                return result;
+                if (count > 0)
+                    entries[i] = last;
+
+                return (int)result & HeapNodeMask;
             }
         }
     }
