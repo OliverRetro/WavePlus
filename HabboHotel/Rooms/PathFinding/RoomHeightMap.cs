@@ -34,7 +34,7 @@ namespace Plus.HabboHotel.Rooms.PathFinding
         public const byte StateSeat = 2;
         public const byte StateLastStep = 3;
 
-        private const double MinSolidThickness = 0.01;
+        private const double MinSolidThickness = 1.0;
         private const double PlatformThickness = 0.25;
 
         private readonly byte[] _levelCount;
