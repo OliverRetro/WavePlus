@@ -1,6 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
+using System;
+using System.Collections.Generic;
 using System.Text;
 using Plus.HabboHotel.Rooms;
 
@@ -8,42 +7,86 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Engine
 {
     internal class UserUpdateComposer : MessageComposer
     {
-        public ICollection<RoomUser> Users { get; }
+        [ThreadStatic] private static StringBuilder _statusBuilder;
+
+        private readonly Entry[] _entries;
+        private readonly int _count;
 
         public UserUpdateComposer(ICollection<RoomUser> users)
             : base(ServerPacketHeader.UserUpdateMessageComposer)
         {
-            Users = users;
+            _entries = new Entry[users.Count];
+
+            StringBuilder builder = _statusBuilder ??= new StringBuilder(64);
+            int count = 0;
+
+            foreach (RoomUser user in users) {
+                if (user == null)
+                    continue;
+
+                int zMillis = (int)Math.Round(user.Z * 1000d);
+
+                _entries[count++] = new Entry(user.VirtualId, user.X, user.Y, zMillis, user.RotHead, user.RotBody, BuildStatus(builder, user));
+            }
+
+            _count = count;
         }
 
         public override void Compose(ServerPacket packet)
         {
-            packet.WriteInteger(Users.Count);
-            foreach (RoomUser user in Users.ToList()) {
-                packet.WriteInteger(user.VirtualId);
-                packet.WriteInteger(user.X);
-                packet.WriteInteger(user.Y);
-                packet.WriteString(user.Z.ToString("0.00", CultureInfo.InvariantCulture));
-                packet.WriteInteger(user.RotHead);
-                packet.WriteInteger(user.RotBody);
+            packet.WriteInteger(_count);
 
-                StringBuilder statusComposer = new();
-                statusComposer.Append("/");
+            for (int i = 0; i < _count; i++) {
+                Entry entry = _entries[i];
 
-                foreach (KeyValuePair<string, string> status in user.Statusses.ToList()) {
-                    statusComposer.Append(status.Key);
+                packet.WriteInteger(entry.VirtualId);
+                packet.WriteInteger(entry.X);
+                packet.WriteInteger(entry.Y);
+                packet.WriteInteger(entry.ZMillis);
+                packet.WriteInteger(entry.RotHead);
+                packet.WriteInteger(entry.RotBody);
+                packet.WriteString(entry.Status);
+            }
+        }
 
-                    if (!string.IsNullOrEmpty(status.Value)) {
-                        statusComposer.Append(" ");
-                        statusComposer.Append(status.Value);
-                    }
+        private static string BuildStatus(StringBuilder builder, RoomUser user)
+        {
+            builder.Clear();
+            builder.Append('/');
 
-                    statusComposer.Append("/");
+            foreach (KeyValuePair<string, string> status in user.Statusses) {
+                builder.Append(status.Key);
+
+                if (!string.IsNullOrEmpty(status.Value)) {
+                    builder.Append(' ');
+                    builder.Append(status.Value);
                 }
 
-                statusComposer.Append("/");
-                packet.WriteString(statusComposer.ToString());
+                builder.Append('/');
             }
+
+            builder.Append('/');
+
+            string cached = user.SerializedStatus;
+
+            if (cached != null && builder.Equals(cached.AsSpan()))
+                return cached;
+
+            cached = builder.ToString();
+            user.SerializedStatus = cached;
+
+            return cached;
+        }
+
+        private readonly struct Entry(int virtualId, int x, int y, int zMillis, int rotHead, int rotBody, string status)
+        {
+            public readonly int VirtualId = virtualId;
+            public readonly int X = x;
+            public readonly int Y = y;
+            public readonly int ZMillis = zMillis;
+            public readonly int RotHead = rotHead;
+            public readonly int RotBody = rotBody;
+            public readonly string Status = status;
         }
     }
 }

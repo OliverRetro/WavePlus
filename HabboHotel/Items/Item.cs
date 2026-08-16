@@ -1425,8 +1425,6 @@ namespace Plus.HabboHotel.Items
             if (user == null)
                 return;
 
-            PressPressurePlate();
-
             if (user.GetClient() == null || user.GetClient().GetHabbo() == null)
                 return;
 
@@ -1443,8 +1441,6 @@ namespace Plus.HabboHotel.Items
             if (user == null)
                 return;
 
-            RefreshPressurePlate(user);
-
             if (user.GetClient() == null || user.GetClient().GetHabbo() == null)
                 return;
 
@@ -1454,24 +1450,11 @@ namespace Plus.HabboHotel.Items
             GetRoom().GetWired().TriggerEvent(WiredBoxType.TriggerWalkOffFurni, user.GetClient().GetHabbo(), this);
         }
 
-        public void PressPressurePlate()
+        public void SetPressurePlate(bool pressed)
         {
             if (GetBaseItem()?.InteractionType != InteractionType.PressurePlate)
                 return;
 
-            SetPressurePlateState(true);
-        }
-
-        public void RefreshPressurePlate(RoomUser leavingUser = null)
-        {
-            if (GetBaseItem()?.InteractionType != InteractionType.PressurePlate)
-                return;
-
-            SetPressurePlateState(IsOccupied(leavingUser));
-        }
-
-        private void SetPressurePlateState(bool pressed)
-        {
             string state = pressed ? "1" : "0";
 
             if (ExtraData == state)
@@ -1479,25 +1462,6 @@ namespace Plus.HabboHotel.Items
 
             ExtraData = state;
             UpdateState(false, true);
-        }
-
-        private bool IsOccupied(RoomUser ignored)
-        {
-            Room room = GetRoom();
-            if (room == null)
-                return false;
-
-            foreach (Point tile in GetCoords) {
-                foreach (RoomUser other in room.GetGameMap().GetRoomUsers(tile)) {
-                    if (other == null || other == ignored)
-                        continue;
-
-                    if (IsAtUserLevel(other.Z))
-                        return true;
-                }
-            }
-
-            return false;
         }
 
         public void Destroy()

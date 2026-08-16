@@ -9,7 +9,7 @@ namespace Plus.HabboHotel.Roleplay.Utilities
         // added reach for non-diagonal attacks
         private const double Tolerance = 0.5;
         // ping compensation
-        private const double MaxLagCompensationMs = 300;
+        private const double MaxLagCompensationMs = 150;
 
         /// <summary>
         /// How far apart in height two users may be and still reach each other. Reach is a dome,

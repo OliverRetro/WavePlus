@@ -63,6 +63,8 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Settings
             int chatDistance = packet.PopInt();
             int extraFlood = packet.PopInt();
 
+            bool pathfinding3D = packet.RemainingLength() > 0 ? packet.PopBoolean() : room.Pathfinding3D;
+
             if (chatMode < 0 || chatMode > 1)
                 chatMode = 0;
 
@@ -152,6 +154,7 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Settings
             room.ExtraFlood = extraFlood;
 
             room.TradeSettings = tradeSettings;
+            room.Pathfinding3D = pathfinding3D;
 
             string accessStr;
             switch (access) {
@@ -186,7 +189,6 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Settings
                         .SetProperty(r => r.UsersMax, maxUsers)
                         .SetProperty(r => r.AllowPets, allowPets != 0)
                         .SetProperty(r => r.AllowPetsEat, allowPetsEat != 0)
-                        // NOTE: legacy maps room_blocking_disabled to roomBlockingEnabled value; preserved as-is.
                         .SetProperty(r => r.RoomBlockingDisabled, roomBlockingEnabled != 0)
                         .SetProperty(r => r.AllowHidewall, (bool?)(room.HideWall != 0))
                         .SetProperty(r => r.Floorthick, room.FloorThickness)
@@ -199,7 +201,8 @@ namespace Plus.Communication.Packets.Incoming.Rooms.Settings
                         .SetProperty(r => r.ChatSpeed, room.ChatSpeed)
                         .SetProperty(r => r.ChatExtraFlood, room.ExtraFlood)
                         .SetProperty(r => r.ChatHearingDistance, room.ChatDistance)
-                        .SetProperty(r => r.TradeSettings, room.TradeSettings));
+                        .SetProperty(r => r.TradeSettings, room.TradeSettings)
+                        .SetProperty(r => r.Pathfinding3d, pathfinding3D));
             }
 
             room.GetGameMap().GenerateMaps();

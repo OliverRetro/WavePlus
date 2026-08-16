@@ -11,7 +11,6 @@ using Plus.Database.EF;
 using Microsoft.EntityFrameworkCore;
 using Plus.HabboHotel.GameClients;
 using Plus.HabboHotel.Items;
-// Disambiguates the bare name from the scaffolded EF entity Plus.Database.EF.Entities.Item.
 using Item = Plus.HabboHotel.Items.Item;
 using Plus.HabboHotel.Items.Data.Moodlight;
 using Plus.HabboHotel.Items.Data.Toner;
@@ -26,26 +25,55 @@ namespace Plus.HabboHotel.Rooms
         private int _mRollerSpeed = 4;
         private int _mRollerCycle = 0;
 
-        private readonly ConcurrentDictionary<int, Items.Item> _movedItems = new();
+        private readonly ConcurrentDictionary<int, Item> _movedItems = new();
 
-        private readonly ConcurrentDictionary<int, Items.Item> _rollers = new();
-        private readonly ConcurrentDictionary<int, Items.Item> _wallItems = new();
-        private readonly ConcurrentDictionary<int, Items.Item> _floorItems = new();
+        private readonly ConcurrentDictionary<int, Item> _rollers = new();
+        private readonly ConcurrentDictionary<int, Item> _wallItems = new();
+        private readonly ConcurrentDictionary<int, Item> _floorItems = new();
 
         private readonly List<int> _rollerItemsMoved = [];
         private readonly List<int> _rollerUsersMoved = [];
         private readonly List<MessageComposer> _rollerMessages = [];
 
-        private ConcurrentQueue<Items.Item> _roomItemUpdateQueue = new();
+        private ConcurrentQueue<Item> _roomItemUpdateQueue = new();
 
-        public void TryAddRoller(int itemId, Items.Item roller)
+        private Item[] _pressurePlates = [];
+        private volatile bool _pressurePlatesDirty = true;
+
+        public Item[] GetPressurePlates()
+        {
+            if (!_pressurePlatesDirty)
+                return _pressurePlates;
+
+            // Cleared first: a placement racing this rebuild has to leave the flag set, not lose it.
+            _pressurePlatesDirty = false;
+
+            List<Item> plates = null;
+
+            foreach (Item item in _floorItems.Values) {
+                if (item?.GetBaseItem()?.InteractionType == InteractionType.PressurePlate)
+                    (plates ??= []).Add(item);
+            }
+
+            _pressurePlates = plates == null ? [] : [.. plates];
+
+            return _pressurePlates;
+        }
+
+        /// <summary>Call whenever the floor item set changes.</summary>
+        public void InvalidatePressurePlates()
+        {
+            _pressurePlatesDirty = true;
+        }
+
+        public void TryAddRoller(int itemId, Item roller)
         {
             _rollers.TryAdd(itemId, roller);
         }
 
         public bool GotRollers { get; set; } = false;
 
-        public void QueueRoomItemUpdate(Items.Item item)
+        public void QueueRoomItemUpdate(Item item)
         {
             _roomItemUpdateQueue.Enqueue(item);
         }
@@ -91,6 +119,8 @@ namespace Plus.HabboHotel.Rooms
 
         public void LoadFurniture()
         {
+            InvalidatePressurePlates();
+
             if (!_floorItems.IsEmpty)
                 _floorItems.Clear();
             if (!_wallItems.IsEmpty)
@@ -105,7 +135,7 @@ namespace Plus.HabboHotel.Rooms
                     .ExecuteUpdate(s => s.SetProperty(i => i.UserId, ownerId));
             }
 
-            List<Items.Item> items = ItemLoader.GetItemsForRoom(room.Id, room);
+            List<Item> items = ItemLoader.GetItemsForRoom(room.Id, room);
             foreach (Item item in items) {
                 if (item == null)
                     continue;
@@ -171,7 +201,7 @@ namespace Plus.HabboHotel.Rooms
             }
         }
 
-        public Items.Item GetItem(int pId)
+        public Item GetItem(int pId)
         {
             if (_floorItems != null && _floorItems.ContainsKey(pId)) {
                 if (_floorItems.TryGetValue(pId, out Item item))
@@ -204,8 +234,10 @@ namespace Plus.HabboHotel.Rooms
             RemoveRoomItem(item);
         }
 
-        private void RemoveRoomItem(Items.Item item)
+        private void RemoveRoomItem(Item item)
         {
+            InvalidatePressurePlates();
+
             if (item.IsFloorItem)
                 room.SendPacket(new ObjectRemoveComposer(item, item.UserId));
             else if (item.IsWallItem)
@@ -235,14 +267,14 @@ namespace Plus.HabboHotel.Rooms
                 _rollerUsersMoved.Clear();
                 _rollerMessages.Clear();
 
-                foreach (Items.Item roller in _rollers.Values.ToList()) {
+                foreach (Item roller in _rollers.Values.ToList()) {
                     if (roller == null)
                         continue;
 
                     Point nextSquare = roller.SquareInFront;
 
-                    List<Items.Item> itemsOnRoller = room.GetGameMap().GetRoomItemForSquare(roller.GetX, roller.GetY, roller.GetZ);
-                    List<Items.Item> itemsOnNext = [.. room.GetGameMap().GetAllRoomItemForSquare(nextSquare.X, nextSquare.Y)];
+                    List<Item> itemsOnRoller = room.GetGameMap().GetRoomItemForSquare(roller.GetX, roller.GetY, roller.GetZ);
+                    List<Item> itemsOnNext = [.. room.GetGameMap().GetAllRoomItemForSquare(nextSquare.X, nextSquare.Y)];
 
                     if (itemsOnRoller.Count > 10)
                         itemsOnRoller = [.. room.GetGameMap().GetRoomItemForSquare(roller.GetX, roller.GetY, roller.GetZ).Take(10)];
@@ -253,7 +285,7 @@ namespace Plus.HabboHotel.Rooms
                     double nextZ = 0.0;
                     bool nextRoller = false;
 
-                    foreach (Items.Item item in itemsOnNext.ToList()) {
+                    foreach (Item item in itemsOnNext.ToList()) {
                         if (item.IsRoller) {
                             if (item.TotalHeight > nextZ)
                                 nextZ = item.TotalHeight;
@@ -263,14 +295,14 @@ namespace Plus.HabboHotel.Rooms
                     }
 
                     if (nextRoller) {
-                        foreach (Items.Item item in itemsOnNext.ToList()) {
+                        foreach (Item item in itemsOnNext.ToList()) {
                             if (item.TotalHeight > nextZ)
                                 nextRollerClear = false;
                         }
                     }
 
                     if (itemsOnRoller.Count > 0) {
-                        foreach (Items.Item rItem in itemsOnRoller.ToList()) {
+                        foreach (Item rItem in itemsOnRoller.ToList()) {
                             if (rItem == null)
                                 continue;
 
@@ -313,7 +345,7 @@ namespace Plus.HabboHotel.Rooms
             return [];
         }
 
-        public MessageComposer UpdateItemOnRoller(Items.Item pItem, Point nextCoord, int pRolledId, double nextZ)
+        public MessageComposer UpdateItemOnRoller(Item pItem, Point nextCoord, int pRolledId, double nextZ)
         {
             var mMessage = new SlideObjectBundleComposer(pItem.GetX, pItem.GetY, pItem.GetZ, nextCoord.X, nextCoord.Y, nextZ, pRolledId, 0, pItem.Id);
             SetFloorItem(pItem, nextCoord.X, nextCoord.Y, nextZ);
@@ -325,8 +357,6 @@ namespace Plus.HabboHotel.Rooms
             SlideObjectBundleComposer mMessage = new(pUser.X, pUser.Y, pUser.Z, pNextCoord.X,
                 pNextCoord.Y, nextZ, pRollerId, pUser.VirtualId, -1);
 
-            Point previousCoord = new(pUser.X, pUser.Y);
-
             room.GetGameMap()
                 .UpdateUserMovement(new Point(pUser.X, pUser.Y), new Point(pNextCoord.X, pNextCoord.Y), pUser);
             room.GetGameMap().GameMap[pUser.X, pUser.Y] = 1;
@@ -336,20 +366,12 @@ namespace Plus.HabboHotel.Rooms
 
             room.GetGameMap().GameMap[pUser.X, pUser.Y] = 0;
 
-            // Rollers move users without the walk-on/walk-off hooks, so pressure plates on both the
-            // vacated and the landed-on tile have to be re-evaluated here.
-            foreach (Items.Item leftItem in room.GetGameMap().GetCoordinatedItems(previousCoord)) {
-                leftItem?.RefreshPressurePlate(pUser);
-            }
-
-            foreach (Items.Item landedItem in room.GetGameMap().GetCoordinatedItems(pNextCoord)) {
-                if (landedItem != null && landedItem.IsAtUserLevel(pUser.Z))
-                    landedItem.PressPressurePlate();
-            }
+            // Pressure plates need no help here: rollers skip the walk-on/walk-off hooks, but the
+            // movement tick reads positions rather than hooks and picks this up on its own.
 
             if (pUser != null && pUser.GetClient() != null && pUser.GetClient().GetHabbo() != null) {
-                List<Items.Item> items = room.GetGameMap().GetRoomItemForSquare(pNextCoord.X, pNextCoord.Y);
-                foreach (Items.Item IItem in items.ToList()) {
+                List<Item> items = room.GetGameMap().GetRoomItemForSquare(pNextCoord.X, pNextCoord.Y);
+                foreach (Item IItem in items.ToList()) {
                     if (IItem == null)
                         continue;
 
@@ -402,7 +424,7 @@ namespace Plus.HabboHotel.Rooms
             }
         }
 
-        public bool SetFloorItem(GameClient session, Items.Item item, int newX, int newY, int newRot, bool newItem, bool onRoller, bool sendMessage, bool updateRoomUserStatuses = false, double height = -1)
+        public bool SetFloorItem(GameClient session, Item item, int newX, int newY, int newRot, bool newItem, bool onRoller, bool sendMessage, bool updateRoomUserStatuses = false, double height = -1)
         {
             newRot = NormalizeFloorRotation(newRot);
 
@@ -494,11 +516,11 @@ namespace Plus.HabboHotel.Rooms
                 }
 
                 // Find affected objects
-                var itemsAffected = new List<Items.Item>();
-                var itemsComplete = new List<Items.Item>();
+                var itemsAffected = new List<Item>();
+                var itemsComplete = new List<Item>();
 
                 foreach (ThreeDCoord tile in affectedTiles.Values.ToList()) {
-                    List<Items.Item> temp = GetFurniObjects(tile.X, tile.Y);
+                    List<Item> temp = GetFurniObjects(tile.X, tile.Y);
 
                     if (temp != null) {
                         itemsAffected.AddRange(temp);
@@ -510,7 +532,7 @@ namespace Plus.HabboHotel.Rooms
 
                 if (!onRoller) {
                     // Check for items in the stack that do not allow stacking on top of them
-                    foreach (Items.Item I in itemsComplete.ToList()) {
+                    foreach (Item I in itemsComplete.ToList()) {
                         if (I == null)
                             continue;
 
@@ -538,7 +560,7 @@ namespace Plus.HabboHotel.Rooms
                         newZ = item.GetZ;
 
                     // Are there any higher objects in the stack!?
-                    foreach (Items.Item i in itemsComplete.ToList()) {
+                    foreach (Item i in itemsComplete.ToList()) {
                         if (i == null)
                             continue;
                         if (i.Id == item.Id)
@@ -573,9 +595,10 @@ namespace Plus.HabboHotel.Rooms
                     return true;
                 }
 
-                if (item.IsFloorItem && !_floorItems.ContainsKey(item.Id))
+                if (item.IsFloorItem && !_floorItems.ContainsKey(item.Id)) {
                     _floorItems.TryAdd(item.Id, item);
-                else if (item.IsWallItem && !_wallItems.ContainsKey(item.Id))
+                    InvalidatePressurePlates();
+                } else if (item.IsWallItem && !_wallItems.ContainsKey(item.Id))
                     _wallItems.TryAdd(item.Id, item);
 
                 if (sendMessage)
@@ -639,12 +662,9 @@ namespace Plus.HabboHotel.Rooms
             return rotation % 8;
         }
 
-        public List<Items.Item> GetFurniObjects(int x, int y)
-        {
-            return room.GetGameMap().GetCoordinatedItems(new Point(x, y));
-        }
+        public List<Item> GetFurniObjects(int x, int y) => room.GetGameMap().GetCoordinatedItems(new Point(x, y));
 
-        public bool SetFloorItem(Items.Item item, int newX, int newY, double newZ)
+        public bool SetFloorItem(Item item, int newX, int newY, double newZ)
         {
             if (room == null)
                 return false;
@@ -661,7 +681,7 @@ namespace Plus.HabboHotel.Rooms
             return true;
         }
 
-        public bool SetWallItem(GameClient session, Items.Item item)
+        public bool SetWallItem(GameClient session, Item item)
         {
             if (!item.IsWallItem || _wallItems.ContainsKey(item.Id))
                 return false;
@@ -701,7 +721,7 @@ namespace Plus.HabboHotel.Rooms
             return true;
         }
 
-        public void UpdateItem(Items.Item item)
+        public void UpdateItem(Item item)
         {
             if (item == null)
                 return;
@@ -709,7 +729,7 @@ namespace Plus.HabboHotel.Rooms
                 _movedItems.TryAdd(item.Id, item);
         }
 
-        public void RemoveItem(Items.Item item)
+        public void RemoveItem(Item item)
         {
             if (item == null)
                 return;
@@ -734,7 +754,7 @@ namespace Plus.HabboHotel.Rooms
             }
 
             if (!_roomItemUpdateQueue.IsEmpty) {
-                List<Items.Item> addItems = [];
+                List<Item> addItems = [];
                 while (!_roomItemUpdateQueue.IsEmpty) {
                     if (_roomItemUpdateQueue.TryDequeue(out Item item)) {
                         item.ProcessUpdates();
@@ -753,9 +773,11 @@ namespace Plus.HabboHotel.Rooms
             }
         }
 
-        public List<Items.Item> RemoveItems(GameClient session)
+        public List<Item> RemoveItems(GameClient session)
         {
-            List<Items.Item> items = [];
+            InvalidatePressurePlates();
+
+            List<Item> items = [];
 
             foreach (Item item in GetWallAndFloor.ToList()) {
                 if (item == null || item.UserId != session.GetHabbo().Id)
@@ -778,13 +800,13 @@ namespace Plus.HabboHotel.Rooms
             return items;
         }
 
-        public ICollection<Items.Item> GetFloor => _floorItems.Values;
+        public ICollection<Item> GetFloor => _floorItems.Values;
 
-        public ICollection<Items.Item> GetWall => _wallItems.Values;
+        public ICollection<Item> GetWall => _wallItems.Values;
 
-        public IEnumerable<Items.Item> GetWallAndFloor => _floorItems.Values.Concat(_wallItems.Values);
+        public IEnumerable<Item> GetWallAndFloor => _floorItems.Values.Concat(_wallItems.Values);
 
-        public bool CheckPosItem(Items.Item item, int newX, int newY, int newRot)
+        public bool CheckPosItem(Item item, int newX, int newY, int newRot)
         {
             try {
                 Dictionary<int, ThreeDCoord> dictionary = Gamemap.GetAffectedTiles(item.GetBaseItem().Length, item.GetBaseItem().Width, newX, newY, newRot);
@@ -826,11 +848,11 @@ namespace Plus.HabboHotel.Rooms
                     }
                 }
 
-                List<Items.Item> furniObjects = GetFurniObjects(newX, newY);
-                List<Items.Item> collection = [];
-                List<Items.Item> list3 = [];
+                List<Item> furniObjects = GetFurniObjects(newX, newY);
+                List<Item> collection = [];
+                List<Item> list3 = [];
                 foreach (ThreeDCoord coord in dictionary.Values.ToList()) {
-                    List<Items.Item> list4 = GetFurniObjects(coord.X, coord.Y);
+                    List<Item> list4 = GetFurniObjects(coord.X, coord.Y);
                     if (list4 != null)
                         collection.AddRange(list4);
                 }
@@ -839,7 +861,7 @@ namespace Plus.HabboHotel.Rooms
 
                 list3.AddRange(furniObjects);
                 list3.AddRange(collection);
-                foreach (Items.Item i in list3.ToList()) {
+                foreach (Item i in list3.ToList()) {
                     if ((i.Id != item.Id) && !i.GetBaseItem().Stackable)
                         return false;
                 }
@@ -850,7 +872,7 @@ namespace Plus.HabboHotel.Rooms
             }
         }
 
-        public ICollection<Items.Item> GetRollers()
+        public ICollection<Item> GetRollers()
         {
             return _rollers.Values;
         }

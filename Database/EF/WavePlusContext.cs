@@ -820,6 +820,7 @@ public partial class WavePlusContext(DbContextOptions<WavePlusContext> options) 
             entity.Property(e => e.Owner).HasDefaultValueSql("''''''");
             entity.Property(e => e.Password).HasDefaultValueSql("''''''");
             entity.Property(e => e.PetMorphsAllowed).HasDefaultValueSql("'1'");
+            entity.Property(e => e.Pathfinding3d).HasDefaultValueSql("'0'");
             entity.Property(e => e.PullEnabled).HasDefaultValueSql("'1'");
             entity.Property(e => e.PushEnabled).HasDefaultValueSql("'1'");
             entity.Property(e => e.RespectNotificationsEnabled).HasDefaultValueSql("'1'");

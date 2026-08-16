@@ -51,6 +51,7 @@ namespace Plus.HabboHotel.Rooms
         public bool ReverseRollers { get; set; }
         public bool LayEnabled { get; set; }
         public bool Safezone { get; set; }
+        public bool Pathfinding3D { get; set; }
 
         public List<string> Tags;
 
@@ -61,7 +62,8 @@ namespace Plus.HabboHotel.Rooms
         public RoomData(int id, string caption, string modelName, string ownerName, int ownerId, string password, int score, string type, string access, int usersNow, int usersMax, int category, string description,
             string tags, string floor, string landscape, int allowPets, int allowPetsEating, int roomBlockingEnabled, int hideWall, int wallThickness, int floorThickness, string wallpaper, int muteSettings,
             int banSettings, int kickSettings, int chatMode, int chatSize, int chatSpeed, int extraFlood, int chatDistance, int tradeSettings, bool pushEnabled, bool pullEnabled, bool superPushEnabled,
-            bool superPullEnabled, bool enablesEnabled, bool respectedNotificationsEnabled, bool petMorphsAllowed, int groupId, int salePrice, bool layEnabled, RoomModel model, bool safezone)
+            bool superPullEnabled, bool enablesEnabled, bool respectedNotificationsEnabled, bool petMorphsAllowed, int groupId, int salePrice, bool layEnabled, RoomModel model, bool safezone,
+            bool pathfinding3D)
         {
             Id = id;
             Name = caption;
@@ -111,6 +113,7 @@ namespace Plus.HabboHotel.Rooms
             ReverseRollers = false;
             LayEnabled = layEnabled;
             Safezone = safezone;
+            Pathfinding3D = pathfinding3D;
 
             if (groupId > 0)
                 PlusEnvironment.GetGame().GetGroupManager().TryGetGroup(groupId, out _group);
@@ -173,6 +176,10 @@ namespace Plus.HabboHotel.Rooms
             EnablesEnabled = data.EnablesEnabled;
             ReverseRollers = data.ReverseRollers;
             LayEnabled = data.LayEnabled;
+            // Every live Room is built through this copy, so anything missed here is a setting the
+            // room silently loses the moment it loads.
+            Safezone = data.Safezone;
+            Pathfinding3D = data.Pathfinding3D;
 
             Model = data.Model;
         }

@@ -8,7 +8,9 @@ namespace Plus.HabboHotel.Rooms.PathFinding
     ///
     /// Four things set it apart from the flat pathfinder it replaces:
     ///   * every tile can carry several standable surfaces, so a route may duck under furniture,
-    ///     climb onto it, or drop off it inside one continuous path;
+    ///     climb onto it, or drop off it inside one continuous path — in rooms that ask for it.
+    ///     <see cref="PathContext.ThreeDEnabled"/> is off by default and collapses each tile to its
+    ///     top surface, which is the classic behaviour and a search a quarter of the size;
     ///   * among equally short routes it always spends its diagonals first and walks the straight
     ///     remainder afterwards;
     ///   * it reads nothing but the snapshot it is handed, so it has no room locks to wait on and
@@ -148,7 +150,7 @@ namespace Plus.HabboHotel.Rooms.PathFinding
                 if (level < 0)
                     return false;
 
-                surface = map.SurfaceAt(tile, level);
+                surface = ctx.SurfaceOf(tile, level);
 
                 line[i] = new LineStep(x, y, surface);
             }
@@ -170,10 +172,12 @@ namespace Plus.HabboHotel.Rooms.PathFinding
             int height = map.Height;
             int size = width * height;
 
-            // Only the levels this room actually stacks. A room with nothing to walk under is a
-            // plain 2D grid here: node == tile, and the search touches a quarter of the memory the
-            // fixed four-level layout would have made it stamp, close and probe.
-            int depth = map.LevelDepth;
+            // Only the levels this search can actually branch into: the levels the room stacks when
+            // it pathfinds in 3D, and exactly one when it does not. Either way a room with nothing
+            // to walk under is a plain 2D grid here — node == tile, and the search touches a
+            // quarter of the memory the fixed four-level layout would have made it stamp, close
+            // and probe.
+            int depth = ctx.SearchDepth;
             int nodeCount = size * depth;
 
             EnsureScratch(nodeCount);
@@ -216,13 +220,13 @@ namespace Plus.HabboHotel.Rooms.PathFinding
                     continue; // stale duplicate heap entry
 
                 if (currentTile == goalTile)
-                    return Reconstruct(map, path, current, width, startPacked, startSurface);
+                    return Reconstruct(ctx, map, path, current, width, startPacked, startSurface);
 
                 _closed[currentNode] = true;
 
                 // Cheapest tile touching an unreachable target — that is as close as we get.
                 if (approachOnly && currentNode != startNode && IsAdjacent(cx, cy, goalX, goalY))
-                    return Reconstruct(map, path, current, width, startPacked, startSurface);
+                    return Reconstruct(ctx, map, path, current, width, startPacked, startSurface);
 
                 int currentCost = _gCost[currentNode];
 
@@ -236,7 +240,7 @@ namespace Plus.HabboHotel.Rooms.PathFinding
                     }
                 }
 
-                double fromSurface = currentNode == startNode ? startSurface : map.SurfaceAt(currentTile, clevel);
+                double fromSurface = currentNode == startNode ? startSurface : ctx.SurfaceOf(currentTile, clevel);
 
                 // Diagonals only "make progress on both axes" while the goal is off-axis; once it
                 // lines up, straight steps are free again.
@@ -251,7 +255,7 @@ namespace Plus.HabboHotel.Rooms.PathFinding
 
                     int neighbourTile = (ny * width) + nx;
 
-                    int levels = map.LevelCountAt(neighbourTile);
+                    int levels = ctx.UsableLevelCount(neighbourTile);
                     if (levels == 0)
                         continue; // nothing to stand on, whatever height you arrive at
 
@@ -271,7 +275,7 @@ namespace Plus.HabboHotel.Rooms.PathFinding
                         if (seen && _closed[neighbourNode])
                             continue;
 
-                        double toSurface = map.SurfaceAt(neighbourTile, level);
+                        double toSurface = ctx.SurfaceOf(neighbourTile, level);
 
                         int cost = stepCost;
                         if (Math.Abs(toSurface - fromSurface) > RoomHeightMap.Epsilon) {
@@ -306,7 +310,7 @@ namespace Plus.HabboHotel.Rooms.PathFinding
 
             // walk to nearest if target is impossible
             if (closestPacked != -1)
-                return Reconstruct(map, path, closestPacked, width, startPacked, startSurface);
+                return Reconstruct(ctx, map, path, closestPacked, width, startPacked, startSurface);
 
             return path; // nothing reachable is any closer than where we already stand
         }
@@ -354,7 +358,7 @@ namespace Plus.HabboHotel.Rooms.PathFinding
             return (CostDiagonal * min) + (CostStraight * (max - min));
         }
 
-        private static List<Vector3D> Reconstruct(RoomHeightMap map, List<Vector3D> path, int goalPacked, int width, int startPacked, double startSurface)
+        private static List<Vector3D> Reconstruct(PathContext ctx, RoomHeightMap map, List<Vector3D> path, int goalPacked, int width, int startPacked, double startSurface)
         {
             // Legacy order: [goal, ..., start].
             int packed = goalPacked;
@@ -366,7 +370,7 @@ namespace Plus.HabboHotel.Rooms.PathFinding
                 int level = packed >> LevelShift;
 
                 int tile = (y * width) + x;
-                double surface = packed == startPacked ? startSurface : map.SurfaceAt(tile, level);
+                double surface = packed == startPacked ? startSurface : ctx.SurfaceOf(tile, level);
 
                 path.Add(new Vector3D(x, y, surface));
 

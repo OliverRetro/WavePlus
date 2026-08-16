@@ -55,7 +55,7 @@ namespace Plus.HabboHotel.Rooms
             }
         }
 
-        public void TeleportToItem(RoomUser user, Item item)
+        public void TeleportToItem(RoomUser user, Items.Item item)
         {
             if (item == null || user == null)
                 return;

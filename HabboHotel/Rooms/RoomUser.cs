@@ -233,6 +233,8 @@ namespace Plus.HabboHotel.Rooms
 
         public Dictionary<string, string> Statusses { get; } = [];
 
+        public string SerializedStatus { get; set; }
+
         public bool NeedsAutoKick
         {
             get

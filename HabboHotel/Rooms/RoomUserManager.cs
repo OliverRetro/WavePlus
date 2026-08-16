@@ -55,7 +55,7 @@ namespace Plus.HabboHotel.Rooms
         private long _occupancyTick = -1;
 
         // The max window for cancel/recalculation
-        private const int MaxStepAbortWindowMs = 200;
+        private const int MaxStepAbortWindowMs = 75;
 
         // How far off an item's own height a user may be and still count as standing on/in it.
         // Sitting and lying shift a user 0.35 down, so anything tighter would break seats.
@@ -375,11 +375,6 @@ namespace Plus.HabboHotel.Rooms
                     // (not disconnecting). Exclude them from the UserRemove broadcast so
                     // the Nitro client doesn't receive a self-removal that kills the new
                     // room session. Other users in the room still see the removal.
-                    // Leaving the room is stepping off everything the user was standing on.
-                    foreach (Item item in _room.GetGameMap().GetCoordinatedItems(new Point(user.X, user.Y))) {
-                        item?.RefreshPressurePlate(user);
-                    }
-
                     RemoveRoomUser(user, notifyUser ? null : session);
 
                     if (user.CurrentItemEffect != ItemEffectType.None) {
@@ -866,6 +861,69 @@ namespace Plus.HabboHotel.Rooms
             return occupancy;
         }
 
+        private static void DrawnTile(RoomUser user, long nowMs, out int x, out int y, out double z)
+        {
+            if (!user.SetStep || user.StepCommittedMs <= 0) {
+                x = user.X;
+                y = user.Y;
+                z = user.Z;
+                return;
+            }
+
+            bool pastHalfway = (nowMs - user.StepCommittedMs) * 2 >= user.StepDurationMs;
+
+            x = pastHalfway ? user.SetX : user.X;
+            y = pastHalfway ? user.SetY : user.Y;
+            z = pastHalfway ? user.SetZ : user.Z;
+        }
+
+        private void UpdatePressurePlates(long nowMs)
+        {
+            Item[] plates = _room.GetRoomItemHandler().GetPressurePlates();
+
+            if (plates.Length == 0)
+                return;
+
+            foreach (Item plate in plates) {
+                if (plate == null)
+                    continue;
+
+                bool pressed = false;
+
+                foreach (RoomUser user in GetUserList()) {
+                    if (user == null)
+                        continue;
+
+                    DrawnTile(user, nowMs, out int x, out int y, out double z);
+
+                    // A plate under a walkway somebody is passing above is not being stood on.
+                    if (!plate.IsAtUserLevel(z))
+                        continue;
+
+                    if (!Covers(plate, x, y))
+                        continue;
+
+                    pressed = true;
+                    break;
+                }
+
+                plate.SetPressurePlate(pressed);
+            }
+        }
+
+        private static bool Covers(Item item, int x, int y)
+        {
+            if (item.GetX == x && item.GetY == y)
+                return true;
+
+            foreach (ThreeDCoord tile in item.GetAffectedTiles.Values) {
+                if (tile.X == x && tile.Y == y)
+                    return true;
+            }
+
+            return false;
+        }
+
         #endregion
 
         public void OnCycle(bool fullCycle)
@@ -1206,6 +1264,10 @@ namespace Plus.HabboHotel.Rooms
                 // escort into an unanimated teleport.
                 PlusEnvironment.GetPoliceManager()?.SyncEscorts(_room);
 
+                // After everything that can move somebody this tick, so a plate never reports a
+                // position that is already one tick stale.
+                UpdatePressurePlates(nowMs);
+
                 if (fullCycle) {
                     foreach (RoomUser toRemove in ToRemove ?? Enumerable.Empty<RoomUser>()) {
                         GameClient client = PlusEnvironment.GetGame().GetClientManager().GetClientByUserId(toRemove.HabboId);
@@ -1263,52 +1325,76 @@ namespace Plus.HabboHotel.Rooms
                     }
                 }
 
+                user.Statusses.TryGetValue("sit", out string poseSitBefore);
+                user.Statusses.TryGetValue("lay", out string poseLayBefore);
+                double poseZBefore = user.Z;
+                int poseRotBodyBefore = user.RotBody;
+                int poseRotHeadBefore = user.RotHead;
+
                 if ((user.Statusses.ContainsKey("lay") && !user.IsLying) || (user.Statusses.ContainsKey("sit") && !user.IsSitting)) {
                     if (user.Statusses.ContainsKey("lay"))
                         user.Statusses.Remove("lay");
                     if (user.Statusses.ContainsKey("sit"))
                         user.Statusses.Remove("sit");
-                    user.UpdateNeeded = true;
                 } else if (user.IsLying || user.IsSitting)
                     return;
 
+                Gamemap gameMap = _room.GetGameMap();
+                List<Item> itemsOnSquare = gameMap.GetAllRoomItemForSquare(user.X, user.Y) ?? [];
+                RoomHeightMap heightMap = gameMap.GetHeightMap();
                 double newZ;
-                List<Item> itemsOnSquare = _room.GetGameMap().GetAllRoomItemForSquare(user.X, user.Y);
-                if (itemsOnSquare != null || itemsOnSquare.Count != 0) {
-                    // The surface the user is actually standing on, which with 3D pathing is not
-                    // always the top of the stack — they may be underneath a floating item. Falls
-                    // back to the classic stack height for tiles the height map knows nothing about.
-                    RoomHeightMap heightMap = _room.GetGameMap().GetHeightMap();
-                    newZ = heightMap.LevelCountAt(user.X, user.Y) > 0
-                        ? heightMap.SurfaceNear(user.X, user.Y, user.Z)
-                        : _room.GetGameMap().SqAbsoluteHeight(user.X, user.Y, itemsOnSquare);
 
+                if (heightMap.LevelCountAt(user.X, user.Y) > 0)
+                    newZ = heightMap.SurfaceNear(user.X, user.Y, user.Z);
+                else if (itemsOnSquare.Count != 0)
+                    newZ = gameMap.SqAbsoluteHeight(user.X, user.Y, itemsOnSquare); // tile the height map knows nothing about
+                else
+                    newZ = gameMap.Model.SqFloorHeight[user.X, user.Y];
+
+                if (itemsOnSquare.Count != 0)
                     newZ = ResolveSurfaceUnderUser(itemsOnSquare, newZ);
 
-                    if (user.RidingHorse && user.IsPet == false)
-                        newZ += 1;
-                } else {
-                    newZ = 1;
-                }
+                if (user.RidingHorse && user.IsPet == false)
+                    newZ += 1;
 
-                if (newZ != user.Z) {
-                    user.Z = newZ;
-                    user.UpdateNeeded = true;
-                }
+                user.Z = newZ;
 
-                DynamicRoomModel model = _room.GetGameMap().Model;
+                DynamicRoomModel model = gameMap.Model;
                 if (model.SqState[user.X, user.Y] == SquareState.Seat) {
                     if (!user.Statusses.ContainsKey("sit"))
                         user.Statusses.Add("sit", "1.0");
                     user.Z = model.SqFloorHeight[user.X, user.Y];
                     user.RotHead = model.SqSeatRot[user.X, user.Y];
                     user.RotBody = model.SqSeatRot[user.X, user.Y];
-
-                    user.UpdateNeeded = true;
                 }
 
                 if (itemsOnSquare.Count == 0)
                     user.LastItem = null;
+
+                double standingLevel = user.Z;
+                Item seat = null;
+
+                foreach (Item item in itemsOnSquare) {
+                    if (item == null || !item.GetBaseItem().IsSeat)
+                        continue;
+
+                    if (!item.IsAtUserLevel(standingLevel, SameLevelTolerance))
+                        continue;
+
+                    if (seat == null || item.GetZ > seat.GetZ || (item.GetZ == seat.GetZ && item.Id < seat.Id))
+                        seat = item;
+                }
+
+                if (seat != null) {
+                    string sitHeight = TextHandling.GetString(seat.EffectiveHeight);
+
+                    if (!user.Statusses.TryGetValue("sit", out string currentSit) || currentSit != sitHeight)
+                        user.Statusses["sit"] = sitHeight;
+
+                    user.Z = seat.GetZ;
+                    user.RotHead = seat.Rotation;
+                    user.RotBody = seat.Rotation;
+                }
 
                 foreach (Item item in itemsOnSquare) {
                     if (item == null)
@@ -1317,20 +1403,8 @@ namespace Plus.HabboHotel.Rooms
                     // Only furniture the user is actually in contact with counts. Anything floating
                     // clear of them is something they walked underneath, not something they are
                     // standing on, sitting in, or triggering.
-                    if (!item.IsAtUserLevel(user.Z, SameLevelTolerance))
+                    if (!item.IsAtUserLevel(standingLevel, SameLevelTolerance))
                         continue;
-
-                    if (item.GetBaseItem().IsSeat) {
-                        string sitHeight = TextHandling.GetString(item.EffectiveHeight);
-
-                        if (!user.Statusses.TryGetValue("sit", out string currentSit) || currentSit != sitHeight)
-                            user.Statusses["sit"] = sitHeight;
-
-                        user.Z = item.GetZ;
-                        user.RotHead = item.Rotation;
-                        user.RotBody = item.Rotation;
-                        user.UpdateNeeded = true;
-                    }
 
                     switch (item.GetBaseItem().InteractionType) {
                         #region Beds & Tents
@@ -1345,8 +1419,6 @@ namespace Plus.HabboHotel.Rooms
                                 user.Z = item.GetZ;
                                 user.RotHead = item.Rotation;
                                 user.RotBody = item.Rotation;
-
-                                user.UpdateNeeded = true;
                                 break;
                             }
 
@@ -1447,27 +1519,17 @@ namespace Plus.HabboHotel.Rooms
 
                         #endregion
 
-                        #region Pressure Plate
-
-                        case InteractionType.PressurePlate: {
-                                item.PressPressurePlate();
-                                break;
-                            }
-
-                        #endregion
-
                         #region Effects
 
+                        // break, not return: an effect tile that has nothing to do is not a reason
+                        // to abandon the rest of the square and skip the pose flush below.
                         case InteractionType.Effect: {
-                                if (user == null)
-                                    return;
-
                                 if (!user.IsBot) {
-                                    if (item == null || item.GetBaseItem() == null || user.GetClient() == null || user.GetClient().GetHabbo() == null || user.GetClient().GetHabbo().Effects() == null)
-                                        return;
+                                    if (item.GetBaseItem() == null || user.GetClient() == null || user.GetClient().GetHabbo() == null || user.GetClient().GetHabbo().Effects() == null)
+                                        break;
 
                                     if (item.GetBaseItem().EffectId == 0 && user.GetClient().GetHabbo().Effects().CurrentEffect == 0)
-                                        return;
+                                        break;
 
                                     user.GetClient().GetHabbo().Effects().ApplyEffect(item.GetBaseItem().EffectId);
                                     item.ExtraData = "1";
@@ -1483,10 +1545,17 @@ namespace Plus.HabboHotel.Rooms
                     }
                 }
 
-                if (user.IsSitting && user.TeleportEnabled) {
+                if (user.IsSitting && user.TeleportEnabled)
                     user.Z -= 0.35;
+
+                // One flag for the whole rebuild. Anything the passes above actually moved gets
+                // broadcast; a pose that came out identical costs nothing.
+                user.Statusses.TryGetValue("sit", out string poseSitAfter);
+                user.Statusses.TryGetValue("lay", out string poseLayAfter);
+
+                if (poseSitAfter != poseSitBefore || poseLayAfter != poseLayBefore ||
+                    user.Z != poseZBefore || user.RotBody != poseRotBodyBefore || user.RotHead != poseRotHeadBefore)
                     user.UpdateNeeded = true;
-                }
 
                 if (cycleGameItems) {
                     if (_room.GotSoccer())
