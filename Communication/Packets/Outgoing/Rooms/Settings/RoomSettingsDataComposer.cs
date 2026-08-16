@@ -46,6 +46,8 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Settings
             packet.WriteInteger(Room.WhoCanMute); // who can mute
             packet.WriteInteger(Room.WhoCanKick); // who can kick
             packet.WriteInteger(Room.WhoCanBan); // who can ban
+
+            packet.WriteBoolean(Room.Pathfinding3D); // Toggle between 2D n 3D. Does not effect tilemaps
         }
     }
 }

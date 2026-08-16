@@ -26,9 +26,6 @@ namespace Plus.HabboHotel.Items
         ///       than stream across.
         /// </summary>
         public byte WalkableState { get; set; }
-
-        /// <summary>True for anything a user can end up standing on. Both walkable states qualify;
-        /// use <see cref="WalkableState"/> when the difference matters.</summary>
         public bool Walkable => WalkableState > 0;
 
         public bool IsSeat { get; set; }
@@ -43,6 +40,7 @@ namespace Plus.HabboHotel.Items
         public List<int> VendingIds { get; set; }
         public List<double> AdjustableHeights { get; set; }
         public bool HasAdjustableHeights => AdjustableHeights is { Count: > 0 };
+        public int IsUsable { get; set; }
 
         public double HeightForState(int state)
         {
@@ -116,6 +114,19 @@ namespace Plus.HabboHotel.Items
 
             IsRare = isRare;
             ExtraRot = extraRot;
+            IsUsable = InteractionType switch
+            {
+                InteractionType.Teleport or
+                InteractionType.VendingMachine or
+                InteractionType.WfFloorSwitch1 or
+                InteractionType.WfFloorSwitch2 or
+                InteractionType.Dice or
+                InteractionType.RpVendor or
+                InteractionType.TrashBin or
+                InteractionType.Crafting or
+                InteractionType.CraftingCorporation => 2,
+                _ => Modes > 1 ? 0 : 1
+            };
         }
     }
 }

@@ -305,6 +305,8 @@ namespace Plus
             return (long)unixTime;
         }
 
+        public static long MonotonicMs() => Environment.TickCount64;
+
         public static string FilterFigure(string figure)
         {
             foreach (char character in figure) {

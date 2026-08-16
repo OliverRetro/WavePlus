@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Plus.HabboHotel.Rooms.PathFinding
 {
@@ -6,8 +7,8 @@ namespace Plus.HabboHotel.Rooms.PathFinding
     /// Everything the pathfinder is allowed to know about a room, captured on the room thread.
     ///
     /// It exists so pathfinding is a pure function of a snapshot: no live item lists, no room
-    /// locks, no <see cref="RoomUser"/> reads. That is what makes it safe to run the full path
-    /// off-thread while the user has already started walking.
+    /// locks, no <see cref="RoomUser"/> reads. A search is therefore cheap enough, and free enough
+    /// of contention, to run start to finish on the room thread the moment a click lands.
     /// </summary>
     public sealed class PathContext
     {
@@ -20,9 +21,57 @@ namespace Plus.HabboHotel.Rooms.PathFinding
         /// <summary>A standing user is on the tile — it is off limits entirely.</summary>
         public const byte OccupancyStanding = 2;
 
-        public RoomHeightMap HeightMap { get; init; }
+        private readonly RoomHeightMap _heightMap;
+        private readonly bool _threeDEnabled;
+
+        private readonly bool _flattens;
+
+        public RoomHeightMap HeightMap
+        {
+            get => _heightMap;
+            init
+            {
+                _heightMap = value;
+                _flattens = !_threeDEnabled && value != null && value.LevelDepth > 1;
+            }
+        }
 
         public bool DiagonalEnabled { get; init; }
+
+        public bool ThreeDEnabled
+        {
+            get => _threeDEnabled;
+            init
+            {
+                _threeDEnabled = value;
+                _flattens = !value && _heightMap != null && _heightMap.LevelDepth > 1;
+            }
+        }
+
+        public int SearchDepth => ThreeDEnabled ? HeightMap.LevelDepth : 1;
+        private bool Flattens => _flattens;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int UsableLevelCount(int tile)
+        {
+            int count = HeightMap.LevelCountAt(tile);
+
+            if (count == 0)
+                return 0;
+
+            return Flattens ? 1 : count;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int ResolveLevel(int tile, int level)
+        {
+            if (!Flattens)
+                return level;
+
+            int count = HeightMap.LevelCountAt(tile);
+
+            return count <= 0 ? 0 : count - 1;
+        }
 
         /// <summary>Staff/override walking: nothing blocks, nothing is too high.</summary>
         public bool AllowOverride { get; init; }
@@ -36,8 +85,14 @@ namespace Plus.HabboHotel.Rooms.PathFinding
         /// <summary>Per-tile occupancy snapshot, or null when nobody blocks anything.</summary>
         public byte[] Occupancy { get; init; }
 
+        public int IgnoreTile { get; init; } = -1;
+
         /// <summary>Guild groups whose gates this user may walk through, or null for none.</summary>
         public HashSet<int> OpenGateGroups { get; init; }
+
+        /// <summary>Height of one search-space surface of a tile.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public double SurfaceOf(int tile, int level) => HeightMap.SurfaceAt(tile, ResolveLevel(tile, level));
 
         /// <summary>
         /// Whether a user may set foot on one specific surface of one specific tile.
@@ -46,6 +101,8 @@ namespace Plus.HabboHotel.Rooms.PathFinding
         {
             if (AllowOverride)
                 return true;
+
+            level = ResolveLevel(tile, level);
 
             byte state = HeightMap.StateAt(tile, level);
             bool stateAllows = state == RoomHeightMap.StateOpen ||
@@ -59,7 +116,7 @@ namespace Plus.HabboHotel.Rooms.PathFinding
                     return false;
             }
 
-            if (UsersBlockTiles && Occupancy != null && tile < Occupancy.Length) {
+            if (UsersBlockTiles && Occupancy != null && tile != IgnoreTile && tile < Occupancy.Length) {
                 byte occupancy = Occupancy[tile];
 
                 if (occupancy == OccupancyStanding)
@@ -78,7 +135,7 @@ namespace Plus.HabboHotel.Rooms.PathFinding
         /// </summary>
         public bool HasEnterableLevel(int tile)
         {
-            int count = HeightMap.LevelCountAt(tile);
+            int count = UsableLevelCount(tile);
 
             for (int level = 0; level < count; level++) {
                 if (CanEnter(tile, level, true))
@@ -95,7 +152,7 @@ namespace Plus.HabboHotel.Rooms.PathFinding
         /// </summary>
         public int SelectLevel(int tile, double fromHeight, bool isFinalStep)
         {
-            int count = HeightMap.LevelCountAt(tile);
+            int count = UsableLevelCount(tile);
             int best = -1;
             double bestDelta = double.MaxValue;
 
@@ -103,7 +160,7 @@ namespace Plus.HabboHotel.Rooms.PathFinding
                 if (!CanEnter(tile, level, isFinalStep))
                     continue;
 
-                double surface = HeightMap.SurfaceAt(tile, level);
+                double surface = SurfaceOf(tile, level);
 
                 if (!AllowOverride && !IgnoreHeightLimits && !RoomHeightMap.CanTransition(fromHeight, surface))
                     continue;

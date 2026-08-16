@@ -21,7 +21,7 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Engine
             ItemBehaviourUtility.GenerateWallExtradata(Item, packet);
 
             packet.WriteInteger(-1);
-            packet.WriteInteger((Item.GetBaseItem().Modes > 1) ? 1 : 0); // Type New R63 ('use bottom')
+            packet.WriteInteger(Item.GetBaseItem().IsUsable); // Type New R63 ('use bottom')
             packet.WriteInteger(Item.UserId);
             packet.WriteString(Item.Username);
         }

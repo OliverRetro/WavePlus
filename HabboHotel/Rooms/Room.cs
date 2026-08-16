@@ -524,39 +524,43 @@ namespace Plus.HabboHotel.Rooms
             new RoomVisualizationSettingsComposer(room.WallThickness, room.FloorThickness, PlusEnvironment.EnumToBool(room.HideWall.ToString())).Compose(enterRoomPacketsMerged);
             new RoomReadyComposer(room).Compose(enterRoomPacketsMerged);
 
-            session.SendPacket(new RoomInitDataComposer(enterRoomPacketsMerged));
-            session.SendPacket(new UsersComposer(visibleUsers));
-            session.SendPacket(new UserUpdateComposer([.. _roomUserManager.GetUserList()]));
-
             RoomFactory.TryGetData(room.Id, out RoomData data);
-            session.SendPacket(new GetGuestRoomResultComposer(session, data, true, false));
+
+            List<MessageComposer> entry = [
+                new RoomInitDataComposer(enterRoomPacketsMerged),
+                new UsersComposer(visibleUsers),
+                new UserUpdateComposer(visibleUsers),
+                new GetGuestRoomResultComposer(session, data, true, false)
+            ];
 
             foreach (RoomUser user in visibleUsers) {
                 if (user == null)
                     continue;
 
                 if (user.IsBot && user.BotData.DanceId > 0)
-                    session.SendPacket(new DanceComposer(user.VirtualId, user.BotData.DanceId));
+                    entry.Add(new DanceComposer(user.VirtualId, user.BotData.DanceId));
                 else if (!user.IsBot && !user.IsPet && user.IsDancing)
-                    session.SendPacket(new DanceComposer(user.VirtualId, user.DanceId));
+                    entry.Add(new DanceComposer(user.VirtualId, user.DanceId));
 
                 if (user.IsBot && user.BotData.EffectId > 0)
-                    session.SendPacket(new AvatarEffectComposer(user.VirtualId, user.BotData.EffectId));
+                    entry.Add(new AvatarEffectComposer(user.VirtualId, user.BotData.EffectId));
 
                 if (user.IsAsleep)
-                    session.SendPacket(new SleepComposer(user.VirtualId, true));
+                    entry.Add(new SleepComposer(user.VirtualId, true));
 
                 if (user.CarryItemId > 0 && user.CarryTimer > 0)
-                    session.SendPacket(new CarryObjectComposer(user.VirtualId, user.CarryItemId));
+                    entry.Add(new CarryObjectComposer(user.VirtualId, user.CarryItemId));
 
                 if (!user.IsBot && !user.IsPet && user.CurrentEffect > 0)
-                    session.SendPacket(new AvatarEffectComposer(user.VirtualId, user.CurrentEffect));
+                    entry.Add(new AvatarEffectComposer(user.VirtualId, user.CurrentEffect));
 
                 // Catch the arriving client up on anyone already walking at a non-default tier;
                 // the client assumes 1.0 for every avatar it has not been told about.
                 if (user.WalkSpeed != RoomUser.WalkSpeedNormal)
-                    session.SendPacket(new Plus.Communication.Packets.Outgoing.Roleplay.AvatarWalkSpeedComposer(user.VirtualId, user.WalkSpeed, user.StepAnimationMs));
+                    entry.Add(new Plus.Communication.Packets.Outgoing.Roleplay.AvatarWalkSpeedComposer(user.VirtualId, user.WalkSpeed, user.StepAnimationMs));
             }
+
+            session.SendPackets(entry);
         }
 
         #region Tents

@@ -163,7 +163,7 @@ namespace Plus.Core
 
             try {
                 string json = JsonConvert.SerializeObject(value);
-                bool result = _database.StringSet(key, json, expiry);
+                bool result = _database.StringSet(key, json, expiry ?? default);
                 MarkHealthy();
                 return result;
             } catch (Exception ex) {

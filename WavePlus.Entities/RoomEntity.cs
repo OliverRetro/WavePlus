@@ -94,6 +94,9 @@ public partial class RoomEntity
     [Column("room_blocking_disabled")]
     public bool RoomBlockingDisabled { get; set; }
 
+    [Column("pathfinding_3d")]
+    public bool Pathfinding3d { get; set; }
+
     [Required]
     [Column("allow_hidewall")]
     public bool? AllowHidewall { get; set; }

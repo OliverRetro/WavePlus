@@ -320,6 +320,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands
             Register(new SetMaxCommand());
             Register(new SetSpeedCommand());
             Register(new DisableDiagonalCommand());
+            Register(new Pathfinding3DCommand());
             Register(new ClickThroughCommand());
             Register(new FlagMeCommand());
 

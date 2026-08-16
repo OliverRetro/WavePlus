@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Plus.Communication.Packets;
@@ -61,12 +62,20 @@ namespace Plus.HabboHotel
         private bool _cycleEnded;
         private bool _cycleActive;
         private Task _gameCycle;
+        private PeriodicTimer _cycleTimer;
         private long _nextHospitalCycleMs;
         private long _nextJailCycleMs;
         private long _nextPoliceCycleMs;
         private long _nextTrashCycleMs;
         private long _nextAchievementFlushMs;
-        private const int CycleSleepTime = 10;
+
+        // How often the loop POLLS. RoomManager.CycleIntervalMs (50ms) is the grid steps actually
+        // dispatch on; this only decides how late past that grid a tick can fire. Movement is
+        // paced by that grid, and the client animates a tile over exactly the grid interval, so
+        // tick lateness is directly visible as walking stutter. Polling AT the grid interval is
+        // the worst case: the poll phase beats against the grid phase and every tick lands a
+        // different 0-50ms late. 5ms bounds the lateness to about one frame.
+        private const int CyclePollMs = 5;
         private const int HospitalCycleIntervalMs = 1000;
         private const int JailCycleIntervalMs = 1000;
         private const int PoliceCycleIntervalMs = 250;
@@ -154,71 +163,93 @@ namespace Plus.HabboHotel
             // from here on they only touch the DB on the 15-minute failsafe and shutdown.
             Core.Cache.PublicRoomCache.LoadAll();
 
-            _gameCycle = new Task(GameCycle);
-            _gameCycle.Start();
-
             _cycleActive = true;
+
+            // A single long-running loop instead of a System.Threading.Timer: a Timer queues
+            // callbacks on schedule whether or not the previous one finished, so an overrunning
+            // cycle either piles up threads (corrupting the room tick's phase - OnCycle is a
+            // read-modify-write on a plain field) or, with a reentrancy skip, silently drops a
+            // whole poll period. A loop can do neither. PeriodicTimer on .NET 8+ uses the OS
+            // high-resolution timer, so the poll really fires every CyclePollMs rather than
+            // being quantised to the ~15.6ms system clock the way Thread.Sleep is.
+            _cycleTimer = new PeriodicTimer(TimeSpan.FromMilliseconds(CyclePollMs));
+            _gameCycle = Task.Run(GameCycleLoop);
 
             _persistenceScheduler.Start();
         }
 
-        private void GameCycle()
+        private async Task GameCycleLoop()
         {
-            while (_cycleActive) {
-                _cycleEnded = false;
-
-                long nowMs = PlusEnvironment.Now();
-
-                PlusEnvironment.GetGame().GetRoomManager().OnCycle();
-                PlusEnvironment.GetGame().GetClientManager().OnCycle();
-                PlusEnvironment.GetGame().GetGroupManager().OnCycle();
-
-                if (nowMs >= _nextHospitalCycleMs) {
-                    _nextHospitalCycleMs = nowMs + HospitalCycleIntervalMs;
-                    PlusEnvironment.GetHospitalManager().OnCycle();
+            try {
+                while (_cycleActive && await _cycleTimer.WaitForNextTickAsync()) {
+                    try {
+                        RunGameCycle();
+                    } catch (Exception e) {
+                        ExceptionLogger.LogException(e);
+                    }
                 }
-
-                if (nowMs >= _nextJailCycleMs) {
-                    _nextJailCycleMs = nowMs + JailCycleIntervalMs;
-                    PlusEnvironment.GetJailManager().OnCycle();
-                }
-
-                if (nowMs >= _nextPoliceCycleMs) {
-                    _nextPoliceCycleMs = nowMs + PoliceCycleIntervalMs;
-                    PlusEnvironment.GetPoliceManager()?.OnCycle();
-                }
-
-                if (nowMs >= _nextTrashCycleMs) {
-                    _nextTrashCycleMs = nowMs + TrashCycleIntervalMs;
-                    PlusEnvironment.GetTrashSearchManager()?.OnCycle();
-                    PlusEnvironment.GetCraftingManager()?.OnCycle();
-                    PlusEnvironment.GetRpCooldownManager()?.OnCycle();
-                }
-
-                if (nowMs >= _nextAchievementFlushMs) {
-                    _nextAchievementFlushMs = nowMs + AchievementFlushIntervalMs;
-                    PlusEnvironment.GetGame().GetAchievementManager().FlushQueuedProgress();
-                }
-
-                // Ticked every cycle (it no-ops while idle) so a slow heal reacts to incoming
-                // damage almost immediately rather than on a coarse interval.
-                PlusEnvironment.GetSlowHealManager()?.OnCycle();
-
-                PlusEnvironment.GetMayhemManager()?.OnCycle();
-
-                PlusEnvironment.GetRubbishManager()?.OnCycle();
-
-                _cycleEnded = true;
-                Thread.Sleep(CycleSleepTime);
+            } catch (OperationCanceledException) {
+                // Timer disposed during shutdown.
             }
+
+            _cycleEnded = true;
+        }
+
+        private void RunGameCycle()
+        {
+            _cycleEnded = false;
+
+            long nowMs = PlusEnvironment.Now();
+
+            PlusEnvironment.GetGame().GetRoomManager().OnCycle();
+            PlusEnvironment.GetGame().GetClientManager().OnCycle();
+            PlusEnvironment.GetGame().GetGroupManager().OnCycle();
+
+            if (nowMs >= _nextHospitalCycleMs) {
+                _nextHospitalCycleMs = nowMs + HospitalCycleIntervalMs;
+                PlusEnvironment.GetHospitalManager().OnCycle();
+            }
+
+            if (nowMs >= _nextJailCycleMs) {
+                _nextJailCycleMs = nowMs + JailCycleIntervalMs;
+                PlusEnvironment.GetJailManager().OnCycle();
+            }
+
+            if (nowMs >= _nextPoliceCycleMs) {
+                _nextPoliceCycleMs = nowMs + PoliceCycleIntervalMs;
+                PlusEnvironment.GetPoliceManager()?.OnCycle();
+            }
+
+            if (nowMs >= _nextTrashCycleMs) {
+                _nextTrashCycleMs = nowMs + TrashCycleIntervalMs;
+                PlusEnvironment.GetTrashSearchManager()?.OnCycle();
+                PlusEnvironment.GetCraftingManager()?.OnCycle();
+                PlusEnvironment.GetRpCooldownManager()?.OnCycle();
+            }
+
+            if (nowMs >= _nextAchievementFlushMs) {
+                _nextAchievementFlushMs = nowMs + AchievementFlushIntervalMs;
+                PlusEnvironment.GetGame().GetAchievementManager().FlushQueuedProgress();
+            }
+
+            // Ticked every cycle (it no-ops while idle) so a slow heal reacts to incoming
+            // damage almost immediately rather than on a coarse interval.
+            PlusEnvironment.GetSlowHealManager()?.OnCycle();
+
+            PlusEnvironment.GetMayhemManager()?.OnCycle();
+
+            PlusEnvironment.GetRubbishManager()?.OnCycle();
+
+            _cycleEnded = true;
         }
 
         public void StopGameLoop()
         {
             _cycleActive = false;
+            _cycleTimer?.Dispose(); // wakes WaitForNextTickAsync so the loop exits promptly
 
             while (!_cycleEnded) {
-                Thread.Sleep(CycleSleepTime);
+                Thread.Sleep(CyclePollMs);
             }
         }
 

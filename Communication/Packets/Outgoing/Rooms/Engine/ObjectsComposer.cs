@@ -53,7 +53,7 @@ namespace Plus.Communication.Packets.Outgoing.Rooms.Engine
             }
 
             packet.WriteInteger(-1); // to-do: check
-            packet.WriteInteger((item.GetBaseItem().Modes > 1) ? 1 : 0);
+            packet.WriteInteger(item.GetBaseItem().IsUsable);
             packet.WriteInteger(userId);
         }
     }

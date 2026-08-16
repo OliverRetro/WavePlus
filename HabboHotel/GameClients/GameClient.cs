@@ -199,6 +199,19 @@ namespace Plus.HabboHotel.GameClients
             _channel.WriteAndFlushAsync(message);
         }
 
+        public void SendPackets(List<MessageComposer> messages)
+        {
+            if (_ghost || messages == null || messages.Count == 0)
+                return;
+
+            foreach (MessageComposer message in messages) {
+                if (message != null)
+                    _channel.WriteAsync(message);
+            }
+
+            _channel.Flush();
+        }
+
         public async void SendPacketsAsync(List<MessageComposer> messages)
         {
             foreach (MessageComposer message in messages) {

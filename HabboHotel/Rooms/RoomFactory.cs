@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Plus.Database.EF;
+using Plus.Database.EF.Entities;
 
 namespace Plus.HabboHotel.Rooms
 {
@@ -9,14 +10,14 @@ namespace Plus.HabboHotel.Rooms
     {
         public static List<RoomData> GetRoomsDataByOwnerSortByName(int ownerId)
         {
-            List<RoomData> data = new();
+            List<RoomData> data = [];
             string ownerStr = ownerId.ToString();
 
             using WavePlusContext db = PlusEnvironment.GetDbContext();
             string username = db.Users.Where(u => u.Id == ownerId).Select(u => u.Username).FirstOrDefault();
-            List<Database.EF.Entities.RoomEntity> rooms = db.Rooms.Where(r => r.Owner == ownerStr).OrderBy(r => r.Caption).ToList();
+            List<RoomEntity> rooms = [.. db.Rooms.Where(r => r.Owner == ownerStr).OrderBy(r => r.Caption)];
 
-            foreach (Database.EF.Entities.RoomEntity r in rooms) {
+            foreach (RoomEntity r in rooms) {
                 if (PlusEnvironment.GetGame().GetRoomManager().TryGetRoom(r.Id, out Room room)) {
                     data.Add(room);
                 } else {
@@ -58,7 +59,7 @@ namespace Plus.HabboHotel.Rooms
             return false;
         }
 
-        private static RoomData BuildRoomData(Database.EF.Entities.RoomEntity r, string username, RoomModel model)
+        private static RoomData BuildRoomData(RoomEntity r, string username, RoomModel model)
         {
             return new RoomData(r.Id, r.Caption, r.ModelName, username, Convert.ToInt32(r.Owner),
                 r.Password, r.Score, r.Roomtype, r.State, r.UsersNow,
@@ -68,7 +69,8 @@ namespace Plus.HabboHotel.Rooms
                 r.KickSettings, r.ChatMode, r.ChatSize, r.ChatSpeed, r.ChatExtraFlood,
                 r.ChatHearingDistance, r.TradeSettings, r.PushEnabled == true, r.PullEnabled == true,
                 r.SpushEnabled == "1", r.SpullEnabled == true, r.EnablesEnabled == true, r.RespectNotificationsEnabled == true,
-                r.PetMorphsAllowed == true, (int)r.GroupId, r.SalePrice, r.LayEnabled == "1", model, r.Safezone == "1");
+                r.PetMorphsAllowed == true, (int)r.GroupId, r.SalePrice, r.LayEnabled == "1", model, r.Safezone == "1",
+                r.Pathfinding3d);
         }
     }
 }

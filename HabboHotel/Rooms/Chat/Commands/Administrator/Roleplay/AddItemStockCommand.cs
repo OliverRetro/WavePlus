@@ -1,5 +1,6 @@
 using System;
 using Plus.HabboHotel.GameClients;
+using Plus.HabboHotel.Items;
 using Plus.HabboHotel.Roleplay.Stock;
 
 namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
@@ -29,7 +30,7 @@ namespace Plus.HabboHotel.Rooms.Chat.Commands.Administrator.Roleplay
                 return;
             }
 
-            Items.Item furni = room.GetRoomItemHandler().GetItem(furniId);
+            Item furni = room.GetRoomItemHandler().GetItem(furniId);
             if (furni == null) {
                 session.SendWhisper($"There's no furni with ID {furniId} in this room.", 1);
                 return;
