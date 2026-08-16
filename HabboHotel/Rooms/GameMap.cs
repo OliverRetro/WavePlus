@@ -1033,6 +1033,7 @@ namespace Plus.HabboHotel.Rooms
             {
                 HeightMap = map,
                 DiagonalEnabled = DiagonalEnabled,
+                ThreeDEnabled = _room.Pathfinding3D,
                 AllowOverride = user != null && user.AllowOverride,
                 IgnoreHeightLimits = user != null && user.RidingHorse,
                 UsersBlockTiles = _room.RoomBlockingEnabled == 0,

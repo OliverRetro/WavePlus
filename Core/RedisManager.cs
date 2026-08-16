@@ -37,6 +37,11 @@ namespace Plus.Core
 
         private void TripBreaker(Exception ex)
         {
+            if (ex is RedisServerException || ex is RedisCommandException) {
+                Log.Warn($"Redis rejected a command: ({ex.Message})");
+                return;
+            }
+
             bool justTripped = false;
             lock (_breakerLock) {
                 _consecutiveFailures++;
@@ -163,7 +168,8 @@ namespace Plus.Core
 
             try {
                 string json = JsonConvert.SerializeObject(value);
-                bool result = _database.StringSet(key, json, expiry ?? default);
+                Expiration ttl = expiry.HasValue && expiry.Value > TimeSpan.Zero ? new Expiration(expiry.Value) : Expiration.Default;
+                bool result = _database.StringSet(key, json, ttl);
                 MarkHealthy();
                 return result;
             } catch (Exception ex) {
