@@ -42,7 +42,7 @@
         <PackageReference Include="DotNetty.Common" Version="0.7.6" />
         <PackageReference Include="DotNetty.Handlers" Version="0.7.6" />
         <PackageReference Include="DotNetty.Transport" Version="0.7.6" />
-        <PackageReference Include="FlexLabs.EntityFrameworkCore.Upsert" Version="10.0.0" />
+        <PackageReference Include="FlexLabs.EntityFrameworkCore.Upsert" Version="10.1.0" />
         <PackageReference Include="log4net" Version="3.3.2" />
         <PackageReference Include="FlexLabs.EntityFrameworkCore.Upsert" Version="10.1.0" />
         <PackageReference Include="log4net" Version="3.3.0" />
@@ -50,7 +50,7 @@
         <PackageReference Include="MySql.EntityFrameworkCore" Version="10.0.9" />
         <PackageReference Include="MySqlConnector" Version="2.6.2" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-        <PackageReference Include="StackExchange.Redis" Version="2.8.58" />
+        <PackageReference Include="StackExchange.Redis" Version="3.1.13" />
         <PackageReference Include="StackExchange.Redis" Version="3.1.13" />
     </ItemGroup>
 
