@@ -10,3 +10,5 @@ This is technically revision 3, I am working from Revision #2. SQLs etc, should 
 * Finish missing features.
 
 Lots of work to be done, mostly will be refactoring for a while.
+
+This Emulator will not receive support.
