@@ -43,7 +43,7 @@
         <PackageReference Include="DotNetty.Handlers" Version="0.7.6" />
         <PackageReference Include="DotNetty.Transport" Version="0.7.6" />
         <PackageReference Include="FlexLabs.EntityFrameworkCore.Upsert" Version="10.0.0" />
-        <PackageReference Include="log4net" Version="3.3.2" />
+        <PackageReference Include="log4net" Version="3.4.0" />
         <PackageReference Include="FlexLabs.EntityFrameworkCore.Upsert" Version="10.1.0" />
         <PackageReference Include="log4net" Version="3.3.0" />
         <PackageReference Include="morelinq" Version="4.4.0" />
